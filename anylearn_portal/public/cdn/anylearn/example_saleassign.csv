@@ -1,0 +1,4 @@
+name;dob;sex;address;phone;email;ref_id;sale_id;source;role
+Mr A;02/02/2000;Female;;0983717011;cba@gmail.com;;54;tini2010;member
+Mr B;02/02/2000;Male;;0983717012;cba@gmail.com;;53;zalo;teacher
+Mr C;02/02/2000;Male;;0983717013;cba@gmail.com;;53;zalo;school

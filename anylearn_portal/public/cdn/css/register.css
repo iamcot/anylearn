@@ -1,0 +1,86 @@
+body {
+    background-color: rgb(35, 64, 136);
+}
+.index_block_introduce {
+    line-height:1.5em; 
+    min-height:3em;
+}
+
+.register {
+    margin-left: 15%;
+    margin-right: 15%;
+}
+.register_btn {
+   width: 30%;
+   margin: auto;
+}
+
+.register_btn button {
+    background: none;
+    border: none;
+    padding: 0px;
+}
+
+.register_btn img {
+    width: 100%;
+}
+
+h1.primary {
+    color: rgb(35, 64, 136);
+}
+.index_block h2 {
+    line-height:1em; 
+    min-height:2em;
+}
+
+.index_block {
+    margin-left: 15%;
+    margin-right: 15%;
+}
+
+.index_block img, .introduce img {
+    width: 100%;
+}
+
+.index_logo {
+    width: 25%
+}
+
+.p1 {
+    padding: 15px 10% 15px ;
+}
+
+.m2 {
+    margin: 5px 20% 5px;
+}
+
+.register_form {
+    padding-top:50px;
+}
+
+.register_form h2 {
+    padding: 0 10% 0;
+}
+
+.register_form a {
+    color: white;
+}
+
+.form-group {
+    margin-bottom:10px;
+}
+
+@media screen and (max-width:768px) {
+    .index_logo {
+        width: 50%
+    }
+
+    .register_btn {
+        width: 100%;
+     }
+
+     .register {
+        margin-left: 0;
+        margin-right: 0;
+    }
+}

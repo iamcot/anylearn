@@ -1,0 +1,20 @@
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Next.js (anylearn_v2)
+anylearn_v2/.next/
+anylearn_v2/out/
+anylearn_v2/node_modules/
+anylearn_v2/.env*.local
+
+# Laravel (anylearn_portal)
+anylearn_portal/vendor/
+anylearn_portal/node_modules/
+anylearn_portal/.env
+anylearn_portal/.env.backup
+anylearn_portal/storage/*.key
+anylearn_portal/storage/logs/*
+anylearn_portal/public/hot
+anylearn_portal/public/storage
+anylearn_portal/.phpunit.result.cache

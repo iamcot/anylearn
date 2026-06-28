@@ -1,0 +1,1258 @@
+body {
+    /* font-family: 'Quicksand', sans-serif; */
+    font-family: 'Sarabun', sans-serif;
+    /* background-color: #F1F1F1; */
+}
+
+img {
+    max-width: 100% !important;
+    max-height: 100%;
+}
+
+.nav-link {
+    cursor: pointer;
+}
+
+.panel-body {
+    background: #fff;
+}
+
+#article_content img {
+    text-align: center;
+    max-height: 100% !important;
+}
+
+.avatar {
+    font-size: 1rem;
+    position: relative;
+    display: inline-block;
+    width: 3.875rem;
+    height: 3.875rem;
+}
+
+.avatar.avatar-xl {
+    font-size: 1.70833rem;
+    width: 5.125rem;
+    height: 5.125rem;
+}
+
+.avatar.avatar-lg {
+    font-size: 1.4rem;
+    width: 4.5rem;
+    height: 4.5rem;
+}
+
+.avatar.avatar-md {
+    font-size: .95rem;
+    width: 3.25rem;
+    height: 3.25rem;
+}
+
+.avatar.avatar-sm {
+    font-size: .9rem;
+    width: 2.625rem;
+    height: 2.625rem;
+}
+
+.avatar.avatar-xs {
+    font-size: .6rem;
+    width: 2rem;
+    height: 2rem;
+}
+
+.avatar .avatar-img {
+    width: 100%;
+    height: 100%;
+    -o-object-fit: cover;
+    object-fit: cover;
+}
+
+.avatar .avatar-text {
+    display: block;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    text-transform: uppercase;
+    overflow: hidden;
+    background: #fff;
+    font-weight: 600;
+    color: #00acf0;
+}
+
+.avatar .avatar-text .initial-wrap {
+    display: table;
+    width: 100%;
+    height: 100%;
+}
+
+.avatar .avatar-text .initial-wrap>span {
+    position: relative;
+    display: table-cell;
+    vertical-align: middle;
+    text-align: center;
+}
+
+.avatar .avatar-text:before {
+    content: "";
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    left: 0;
+    top: 0;
+    background: rgba(178, 230, 250, 0.5);
+}
+
+.avatar .avatar-text.avatar-text-cyan,
+.avatar .avatar-text.avatar-text-info {
+    color: #1ebccd;
+}
+
+.avatar .avatar-text.avatar-text-cyan:before,
+.avatar .avatar-text.avatar-text-info:before {
+    background: rgba(187, 235, 240, 0.5);
+}
+
+.avatar .avatar-text.avatar-text-light {
+    color: #6f7a7f;
+}
+
+.avatar .avatar-text.avatar-text-light:before {
+    background: rgba(173, 179, 182, 0.5);
+}
+
+.avatar .avatar-text.avatar-text-dark {
+    color: #fff;
+}
+
+.avatar .avatar-text.avatar-text-dark:before {
+    background: #324148 !important;
+}
+
+.avatar .avatar-text.avatar-text-sky,
+.avatar .avatar-text.avatar-text-primary {
+    color: #00acf0;
+}
+
+.avatar .avatar-text.avatar-text-sky:before,
+.avatar .avatar-text.avatar-text-primary:before {
+    background: rgba(178, 230, 250, 0.5);
+}
+
+.avatar .avatar-text.avatar-text-green,
+.avatar .avatar-text.avatar-text-success {
+    color: #22af47;
+}
+
+.avatar .avatar-text.avatar-text-green:before,
+.avatar .avatar-text.avatar-text-success:before {
+    background: rgba(188, 231, 199, 0.5);
+}
+
+.avatar .avatar-text.avatar-text-red,
+.avatar .avatar-text.avatar-text-danger {
+    color: #f83f37;
+}
+
+.avatar .avatar-text.avatar-text-red:before,
+.avatar .avatar-text.avatar-text-danger:before {
+    background: rgba(253, 197, 195, 0.5);
+}
+
+.avatar .avatar-text.avatar-text-yellow,
+.avatar .avatar-text.avatar-text-warning {
+    color: #ffbf36;
+}
+
+.avatar .avatar-text.avatar-text-yellow:before,
+.avatar .avatar-text.avatar-text-warning:before {
+    background: rgba(255, 236, 194, 0.5);
+}
+
+.avatar .avatar-text.avatar-text-pink {
+    color: #ed1b60;
+}
+
+.avatar .avatar-text.avatar-text-pink:before {
+    background: rgba(250, 186, 207, 0.5);
+}
+
+.avatar .avatar-text.avatar-text-purple {
+    color: #ab26aa;
+}
+
+.avatar .avatar-text.avatar-text-purple:before {
+    background: rgba(230, 189, 229, 0.5);
+}
+
+.avatar .avatar-text.avatar-text-violet {
+    color: #6640b2;
+}
+
+.avatar .avatar-text.avatar-text-violet:before {
+    background: rgba(209, 197, 232, 0.5);
+}
+
+.avatar .avatar-text.avatar-text-indigo {
+    color: #3a55b1;
+}
+
+.avatar .avatar-text.avatar-text-indigo:before {
+    background: rgba(196, 204, 231, 0.5);
+}
+
+.avatar .avatar-text.avatar-text-blue {
+    color: #0092ee;
+}
+
+.avatar .avatar-text.avatar-text-blue:before {
+    background: rgba(178, 222, 250, 0.5);
+}
+
+.avatar .avatar-text.avatar-text-teal {
+    color: #009b84;
+}
+
+.avatar .avatar-text.avatar-text-teal:before {
+    background: rgba(178, 225, 218, 0.5);
+}
+
+.avatar .avatar-text.avatar-text-neon {
+    color: #88c241;
+}
+
+.avatar .avatar-text.avatar-text-neon:before {
+    background: rgba(219, 237, 198, 0.5);
+}
+
+.avatar .avatar-text.avatar-text-lime {
+    color: #d0d962;
+}
+
+.avatar .avatar-text.avatar-text-lime:before {
+    background: rgba(241, 244, 208, 0.5);
+}
+
+.avatar .avatar-text.avatar-text-sun {
+    color: #fde335;
+}
+
+.avatar .avatar-text.avatar-text-sun:before {
+    background: rgba(254, 247, 194, 0.5);
+}
+
+.avatar .avatar-text.avatar-text-orange {
+    color: #ff9528;
+}
+
+.avatar .avatar-text.avatar-text-orange:before {
+    background: rgba(255, 223, 190, 0.5);
+}
+
+.avatar .avatar-text.avatar-text-pumpkin {
+    color: #ff6028;
+}
+
+.avatar .avatar-text.avatar-text-pumpkin:before {
+    background: rgba(255, 207, 190, 0.5);
+}
+
+.avatar .avatar-text.avatar-text-brown {
+    color: #7a5449;
+}
+
+.avatar .avatar-text.avatar-text-brown:before {
+    background: rgba(215, 203, 200, 0.5);
+}
+
+.avatar .avatar-text.avatar-text-gold {
+    color: #c1993f;
+}
+
+.avatar .avatar-text.avatar-text-gold:before {
+    background: rgba(236, 224, 197, 0.5);
+}
+
+.avatar .avatar-text.avatar-text-grey,
+.avatar .avatar-text.avatar-text-secondary {
+    color: #9e9e9e;
+}
+
+.avatar .avatar-text.avatar-text-grey:before,
+.avatar .avatar-text.avatar-text-secondary:before {
+    background: rgba(226, 226, 226, 0.5);
+}
+
+.avatar .avatar-text.avatar-text-inv-cyan,
+.avatar .avatar-text.avatar-text-inv-info {
+    color: #fff;
+}
+
+.avatar .avatar-text.avatar-text-inv-cyan:before,
+.avatar .avatar-text.avatar-text-inv-info:before {
+    background-color: #1ebccd !important;
+}
+
+.avatar .avatar-text.avatar-text-inv-sky,
+.avatar .avatar-text.avatar-text-inv-primary {
+    color: #fff;
+}
+
+.avatar .avatar-text.avatar-text-inv-sky:before,
+.avatar .avatar-text.avatar-text-inv-primary:before {
+    background-color: #00acf0 !important;
+}
+
+.avatar .avatar-text.avatar-text-inv-green,
+.avatar .avatar-text.avatar-text-inv-success {
+    color: #fff;
+}
+
+.avatar .avatar-text.avatar-text-inv-green:before,
+.avatar .avatar-text.avatar-text-inv-success:before {
+    background-color: #22af47 !important;
+}
+
+.avatar .avatar-text.avatar-text-inv-red,
+.avatar .avatar-text.avatar-text-inv-danger {
+    color: #fff;
+}
+
+.avatar .avatar-text.avatar-text-inv-red:before,
+.avatar .avatar-text.avatar-text-inv-danger:before {
+    background-color: #f83f37 !important;
+}
+
+.avatar .avatar-text.avatar-text-inv-yellow,
+.avatar .avatar-text.avatar-text-inv-warning {
+    color: #fff;
+}
+
+.avatar .avatar-text.avatar-text-inv-yellow:before,
+.avatar .avatar-text.avatar-text-inv-warning:before {
+    background-color: #ffbf36 !important;
+}
+
+.avatar .avatar-text.avatar-text-inv-pink {
+    color: #fff;
+}
+
+.avatar .avatar-text.avatar-text-inv-pink:before {
+    background-color: #ed1b60 !important;
+}
+
+.avatar .avatar-text.avatar-text-inv-purple {
+    color: #fff;
+}
+
+.avatar .avatar-text.avatar-text-inv-purple:before {
+    background-color: #ab26aa !important;
+}
+
+.avatar .avatar-text.avatar-text-inv-violet {
+    color: #fff;
+}
+
+.avatar .avatar-text.avatar-text-inv-violet:before {
+    background-color: #6640b2 !important;
+}
+
+.avatar .avatar-text.avatar-text-inv-indigo {
+    color: #fff;
+}
+
+.avatar .avatar-text.avatar-text-inv-indigo:before {
+    background-color: #3a55b1 !important;
+}
+
+.avatar .avatar-text.avatar-text-inv-blue {
+    color: #fff;
+}
+
+.avatar .avatar-text.avatar-text-inv-blue:before {
+    background-color: #0092ee !important;
+}
+
+.avatar .avatar-text.avatar-text-inv-teal {
+    color: #fff;
+}
+
+.avatar .avatar-text.avatar-text-inv-teal:before {
+    background-color: #009b84 !important;
+}
+
+.avatar .avatar-text.avatar-text-inv-neon {
+    color: #fff;
+}
+
+.avatar .avatar-text.avatar-text-inv-neon:before {
+    background-color: #88c241 !important;
+}
+
+.avatar .avatar-text.avatar-text-inv-lime {
+    color: #fff;
+}
+
+.avatar .avatar-text.avatar-text-inv-lime:before {
+    background-color: #d0d962 !important;
+}
+
+.avatar .avatar-text.avatar-text-inv-sun {
+    color: #fff;
+}
+
+.avatar .avatar-text.avatar-text-inv-sun:before {
+    background-color: #fde335 !important;
+}
+
+.avatar .avatar-text.avatar-text-inv-orange {
+    color: #fff;
+}
+
+.avatar .avatar-text.avatar-text-inv-orange:before {
+    background-color: #ff9528 !important;
+}
+
+.avatar .avatar-text.avatar-text-inv-pumpkin {
+    color: #fff;
+}
+
+.avatar .avatar-text.avatar-text-inv-pumpkin:before {
+    background-color: #ff6028 !important;
+}
+
+.avatar .avatar-text.avatar-text-inv-brown {
+    color: #fff;
+}
+
+.avatar .avatar-text.avatar-text-inv-brown:before {
+    background-color: #7a5449 !important;
+}
+
+.avatar .avatar-text.avatar-text-inv-gold {
+    color: #fff;
+}
+
+.avatar .avatar-text.avatar-text-inv-gold:before {
+    background-color: #c1993f !important;
+}
+
+.avatar .avatar-text.avatar-text-inv-grey,
+.avatar .avatar-text.avatar-text-inv-secondary {
+    color: #fff;
+}
+
+.avatar .avatar-text.avatar-text-inv-grey:before,
+.avatar .avatar-text.avatar-text-inv-secondary:before {
+    background-color: #9e9e9e !important;
+}
+
+.avatar-group {
+    display: -webkit-inline-box;
+    display: -ms-inline-flexbox;
+    display: inline-flex;
+}
+
+.avatar-group .avatar {
+    font-size: .9rem;
+    width: 2.625rem;
+    height: 2.625rem;
+}
+
+.avatar-group .avatar .avatar-img,
+.avatar-group .avatar .avatar-text {
+    border: 2px solid #fff;
+}
+
+.avatar-group.avatar-group-overlapped .avatar {
+    margin-right: -13px;
+}
+
+.avatar-group.avatar-group-overlapped .avatar:hover {
+    z-index: 1;
+}
+
+.ms-n5 {
+    margin-left: -40px;
+}
+
+.btn-hidden {
+    display: none;
+}
+
+.avatar-group.avatar-group-lg .avatar {
+    font-size: .95rem;
+    width: 3.25rem;
+    height: 3.25rem;
+}
+
+.avatar-group.avatar-group-lg.avatar-group-overlapped .avatar {
+    margin-right: -15px;
+}
+
+.btn-no-booder {
+    border: none;
+}
+
+.cover-photo {
+    position: relative;
+}
+
+a {
+    text-decoration: none;
+}
+
+.fb-timeline-img img {
+    width: 100%;
+    height: auto;
+    max-height: 160px;
+    border-radius: 4px 4px 0 0;
+    -webkit-border-radius: 4px 4px 0 0;
+}
+
+.profile-thumb img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    -webkit-border-radius: 50%;
+    margin-top: -80px;
+    margin-left: 10px;
+    border: 3px solid #fff;
+}
+
+.profile-info .panel-footer ul li a {
+    color: #7a7a7a;
+}
+
+.profile-thumb {
+    float: left;
+    position: relative;
+}
+
+.p-text-area,
+.p-text-area:focus {
+    border: none;
+    font-weight: 300;
+    box-shadow: none;
+    color: #c3c3c3;
+    font-size: 16px;
+}
+
+.fb-user-mail {
+    margin: 10px 0 0 20px;
+    display: inline-block;
+}
+
+.fb-name {
+    bottom: 5px;
+    left: 175px;
+    position: absolute;
+}
+
+.fb-name h2 a {
+    color: black;
+    text-rendering: optimizelegibility;
+    text-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
+    font-size: 25px;
+}
+
+.fb-user-thumb {
+    float: left;
+    width: 70px;
+    margin-right: 15px;
+}
+
+.fb-user-thumb img {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    -webkit-border-radius: 50%;
+}
+
+.fb-user-details h3 {
+    margin: 15px 0 0;
+    font-size: 18px;
+    font-weight: 300;
+}
+
+.fb-user-details p {
+    color: #c3c3c3;
+}
+
+.fb-user-status {
+    padding: 10px 0;
+    line-height: 20px;
+}
+
+.fb-time-action {
+    padding: 15px 0;
+}
+
+.fb-border {
+    border-top: 1px solid #ebeef5;
+}
+
+.fb-time-action span,
+.fb-time-action a {
+    margin-right: 5px;
+}
+
+.fb-time-action a {
+    color: #2972a1;
+}
+
+.fb-time-action a:hover {
+    text-decoration: underline;
+}
+
+.fb-time-action span {
+    color: #5a5a5a;
+}
+
+.fb-status-container,
+.fb-comments li {
+    margin: 0 -15px 0 -15px;
+    padding: 0 15px;
+}
+
+.fb-gray-bg {
+    background: #f6f6f6;
+}
+
+.fb-comments li {
+    border-top: 1px solid #ebeef5;
+    padding: 15px;
+}
+
+.fb-comments .cmt-thumb {
+    width: 50px;
+    float: left;
+    margin-right: 15px;
+}
+
+.fb-comments .cmt-thumb img {
+    width: 50px;
+}
+
+.fb-comments .cmt-details {
+    padding-top: 5px;
+}
+
+.fb-comments .cmt-details a {
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.fb-comments .cmt-details a.like-link {
+    font-size: 12px;
+    font-weight: normal;
+}
+
+.cmt-form {
+    display: inline-block;
+    width: 90%;
+}
+
+.cmt-form textarea {
+    height: 50px;
+    line-height: 35px;
+}
+
+.fb-timeliner h2 {
+    background: #828283;
+    color: #fff;
+    margin-top: 0;
+    padding: 10px 15px;
+    font-size: 16px;
+    border-radius: 4px;
+    -webkit-border-radius: 4px;
+    font-weight: 300;
+}
+
+.fb-timeliner ul {
+    margin-left: 15px;
+    margin-bottom: 20px;
+    list-style-type: none;
+}
+
+.fb-comments {
+    list-style-type: none;
+}
+
+.fb-timeliner ul li {
+    margin-bottom: 3px;
+}
+
+.fb-timeliner ul li a {
+    color: #999797;
+    border-left: 4px solid #d3d7dd;
+    padding-left: 10px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    display: block;
+}
+
+.fb-timeliner ul li a:hover {
+    color: #999797;
+    border-left: 4px solid #b1b1b1;
+    padding-left: 10px;
+}
+
+.fb-timeliner ul li.active a {
+    color: #7a7a7a;
+    border-left: 4px solid #7a7a7a;
+    padding-left: 10px;
+}
+
+.recent-highlight {
+    background: #FF6C60 !important;
+}
+
+h2 {
+    font-size: 1.25rem;
+}
+
+.blink_me {
+    animation: blinker 1s linear infinite;
+}
+
+@keyframes blinker {
+    50% {
+        opacity: 0;
+    }
+}
+
+#wrapper #content-wrapper {
+    background-color: #F1F1F1;
+}
+
+#admin-top .page-link,
+#admin-top .nav-link.active {
+    color: #01A652 !important;
+}
+
+#admin-top .page-item.active .page-link {
+    color: #fff !important;
+    background-color: #01A652 !important;
+    border-color: #01A652 !important;
+}
+
+.is-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.bg-topbg {
+    background: rgb(0, 91, 168);
+}
+
+.container {
+    max-width: 1110px;
+}
+
+.text-success {
+    color: #01A652 !important;
+}
+
+.bg-success,
+.btn-success {
+    background-color: #01A652 !important;
+}
+
+.btn-primary {
+    background-color: rgb(0, 91, 168) !important;
+}
+
+nav a {
+    font-weight: 700;
+}
+
+#search {
+    max-width: 550px;
+    margin: auto;
+    position: relative;
+}
+
+#search input {
+    display: inline-block;
+    text-indent: 15px;
+    padding: 10px;
+}
+
+#search button {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 24px;
+}
+
+#quote {
+    position: relative;
+}
+
+#quote-top {
+    position: absolute;
+    width: 3%;
+    left: 5%;
+    top: 6%;
+}
+
+#quote-bottom {
+    position: absolute;
+    width: 3%;
+    right: 5%;
+    bottom: 6%;
+}
+
+.quote-text {
+    position: absolute;
+    font-weight: 300;
+    text-align: center;
+    width: 80%;
+    top: 30%;
+    left: 10%;
+    font-size: 1.2rem;
+    color: #fff;
+}
+
+.classBox {
+    text-decoration: none;
+}
+
+#banners {
+    max-height: 550px !important;
+}
+
+#banners img {
+    max-width: 100%;
+    max-height: 550;
+}
+
+.carousel3 {
+    min-height: 300px;
+}
+
+.carousel4 .class-button {
+    position: absolute;
+    bottom: 0;
+}
+
+#promotion.carousel3 .card {
+    min-height: 280px;
+}
+
+.carousel3 .card {
+    min-height: 230px;
+}
+
+.carousel3 img {
+    min-height: 230px;
+}
+
+.promotion-tag {
+    width: 96px;
+    height: 96px;
+    background: url(./img/promotion-tag.png) top left no-repeat;
+    position: absolute;
+    right: 10%;
+    bottom: 0px;
+    color: #FF0000;
+    font-size: 28px;
+    line-height: 90px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    text-align: center;
+    transform: rotate(20deg);
+}
+
+footer {
+    background-color: #F7F7F7;
+    min-height: 300px;
+    overflow: hidden;
+}
+
+.topic_box {
+    height: 200px;
+}
+
+#footer_call {
+    position: fixed;
+    bottom: 0;
+    height: 40px;
+    background: #000;
+    width: 100%;
+    text-align: center;
+    z-index: 9999;
+}
+
+#footer_call a {
+    text-decoration: none !important;
+    color: #fff !important;
+}
+
+footer .head_text {
+    line-height: 80px;
+    vertical-align: bottom;
+    font-size: 20px;
+}
+
+#pdptab .active {
+    color: #01A652 !important;
+}
+
+.collapse-module .collapse,
+.collapse-module .collapsing {
+    height: 250px;
+    /* [NUM_OF_LINES] x [LINE_HEIGHT] */
+}
+
+.collapse-module .collapse {
+    position: relative;
+    display: block;
+    overflow: hidden;
+}
+
+.collapse-module .collapse:before {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+}
+
+.collapse-module .collapse.show {
+    height: auto;
+    /* You need to reset the height when not collapsed */
+}
+
+.locale_flag-vi {
+    height: 25px;
+    width: 25px;
+    /* background-color: rgb(226, 45, 45); */
+    border-radius: 50%;
+    display: inline-block;
+    background: url("../img/flag/vn.svg");
+    background-position: center;
+}
+
+.locale_icon-vi {
+    height: 25px;
+    width: 25px;
+    /* background-color: rgb(226, 45, 45); */
+    display: inline-block;
+    background: url("../img/flag/vn.svg");
+    background-position: center;
+}
+
+.locale_flag-en {
+    height: 25px;
+    width: 25px;
+    /* background-color: rgb(226, 45, 45); */
+    border-radius: 50%;
+    display: inline-block;
+    background: url("../img/flag/en.svg");
+    background-position: center;
+}
+
+.collapse-module .collapse.show:before {
+    display: none;
+}
+
+.collapse-module button[aria-expanded="false"]:after {
+    content: '⇳ MỞ RỘNG';
+}
+
+.collapse-module button[aria-expanded="true"]:after {
+    content: '⇳ THU GỌN';
+}
+
+.avatar-profile {
+    position: absolute;
+    bottom: 0;
+    transform: translateY(50%);
+}
+
+.avatar-5xl {
+    height: 10.5rem;
+    width: 10.5rem;
+}
+
+.avatar {
+    position: relative;
+    display: inline-block;
+}
+
+.avatar img {
+    object-fit: cover;
+}
+
+.avatar .avatar-name,
+.avatar img {
+    width: 100%;
+    height: 100%;
+}
+
+.avatar img {
+    display: block;
+}
+
+
+/* collapse-module-en */
+
+.collapse-module-en .collapse,
+.collapse-module-en .collapsing {
+    height: 250px;
+    /* [NUM_OF_LINES] x [LINE_HEIGHT] */
+}
+
+.collapse-module-en .collapse {
+    position: relative;
+    display: block;
+    overflow: hidden;
+}
+
+.collapse-module-en .collapse:before {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+}
+
+.collapse-module-en .collapse.show {
+    height: auto;
+    /* You need to reset the height when not collapsed */
+}
+
+.collapse-module-en .collapse.show:before {
+    display: none;
+}
+
+.collapse-module-en button[aria-expanded="false"]:after {
+    content: '⇳ EXTEND';
+}
+
+.collapse-module-en button[aria-expanded="true"]:after {
+    content: '⇳ COLLAPSE';
+}
+
+.imagebox:after {
+    content: "";
+    display: block;
+    padding-bottom: 100%;
+    /* The padding depends on the width, not on the height, so with a padding-bottom of 100% you will get a square */
+}
+
+.toast {
+    z-index: 999;
+    margin-top: -30px;
+    margin-right: 10px;
+}
+
+.imagebox {
+    position: relative;
+}
+
+.imagebox img {
+    position: absolute;
+    /* Take your picture out of the flow */
+    top: 3%;
+    bottom: 3%;
+    left: 3%;
+    right: 3%;
+    /* Make the picture taking the size of it's parent */
+    width: 94%;
+    /* This if for the object-fit */
+    height: 94%;
+    /* This if for the object-fit */
+    object-fit: cover;
+    /* Equivalent of the background-size: cover; of a background-image */
+    object-position: center;
+}
+
+.grid_title {
+    height: 4rem;
+    line-height: 1.5rem;
+    overflow: hidden;
+}
+
+.class-title,
+.class-price {
+    line-height: 1.5rem;
+    height: 3rem;
+    overflow: hidden;
+}
+
+.article-sidebar {
+    min-height: 32px;
+}
+
+.owl-carousel-control-icon,
+.owl-carousel-control-icon-right {
+    position: absolute;
+    top: 40%;
+    width: 50px;
+    height: 50px;
+}
+
+.owl-carousel-control-icon {
+    left: -20px;
+}
+
+.owl-carousel-control-icon-right {
+    right: -20px;
+}
+
+#landing-banner {
+    background: rgb(0, 91, 168) url("./img/landing_banner.png") no-repeat center;
+    background-size: cover;
+    height: 600px;
+}
+
+#landing-banner>div {
+    padding-top: 170px;
+}
+
+#landing-number {
+    background: #fff url("./img/landing_numberbg.png") no-repeat center;
+    background-size: cover;
+    height: 305px;
+}
+
+#landing-number>div {
+    background: #fff;
+    opacity: 0.9;
+    height: 100%;
+    position: relative;
+}
+
+.landing-number-item {
+    margin-top: 100px;
+    /* top: 40%; */
+    /* position: absolute; */
+}
+
+.landing-number-item img {
+    max-height: 60px;
+}
+
+.school-logo {
+    list-style-type: none;
+    margin: auto;
+    padding: 0;
+}
+
+.school-logo li {
+    max-height: 100px;
+    display: inline-block;
+    padding: 10px;
+    margin: 0;
+    text-align: center;
+}
+
+.school-logo li img {
+    max-height: 80px;
+}
+
+.carousel button.active {
+    background-color: #01A652 !important;
+}
+
+.mobile-closed-message-avatar {
+    display: none !important;
+}
+
+.pdp-content-header {
+    /* text-decoration: underline; */
+    color: #01A652 !important;
+}
+
+
+/* #landing-number div {
+    opacity: 1;
+} */
+
+@media screen and (max-width: 768px) {
+    #banners img {
+        max-height: 200px;
+    }
+    #search {
+        max-width: 93%;
+    }
+    .quote-text {
+        top: 20%;
+        font-size: 0.7rem;
+    }
+    #landing-banner {
+        height: 400px;
+    }
+    #landing-banner>div {
+        padding-top: 100px;
+    }
+}
+
+footer {
+    background-color: #F8F8F8;
+    padding: 40px 0;
+    font-size: 14px;
+}
+
+footer h4 {
+    color: #333;
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+footer ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+footer ul li {
+    margin-bottom: 10px;
+}
+
+footer ul {
+    list-style: none;
+    padding: 0;
+}
+
+footer ul li {
+    margin-bottom: 10px;
+}
+
+footer ul li a {
+    color: #888;
+    text-decoration: none;
+}
+
+footer ul li a:hover {
+    color: #555;
+}
+
+footer .social-links a {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    background: #ccc;
+    color: #fff;
+    font-size: 20px;
+    line-height: 40px;
+    border-radius: 50%;
+    text-align: center;
+    margin-right: 10px;
+    transition: all 0.3s ease;
+}
+
+footer .social-links a:hover {
+    background: #555;
+}
+
+footer .app-links {
+    margin-top: 20px;
+}
+
+footer .app-links p {
+    color: #555;
+}
+
+footer a {
+    color: #555;
+}
