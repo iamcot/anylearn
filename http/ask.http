@@ -1,3 +1,7 @@
+@baseUrl = http://localhost:8080/api
+@apiToken = {{$dotenv API_TOKEN}}
+@jwtToken = {{$dotenv JWT_TOKEN}}
+
 ### List questions
 GET {{baseUrl}}/ask/list
 

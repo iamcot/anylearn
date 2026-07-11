@@ -1,3 +1,7 @@
+@baseUrl = http://localhost:8080/api
+@apiToken = {{$dotenv API_TOKEN}}
+@jwtToken = {{$dotenv JWT_TOKEN}}
+
 ### My dashboard
 GET {{baseUrl}}/v3/meAPI?api_token={{apiToken}}
 
