@@ -18,3 +18,9 @@ anylearn_portal/storage/logs/*
 anylearn_portal/public/hot
 anylearn_portal/public/storage
 anylearn_portal/.phpunit.result.cache
+
+# Java Spring Boot (anylearn_backend_v2)
+anylearn_backend_v2/target/
+anylearn_backend_v2/.env
+anylearn_backend_v2/application-local.yml
+anylearn_backend_v2/application-local.properties

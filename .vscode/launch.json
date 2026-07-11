@@ -1,0 +1,29 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "AnyLearn Backend V2",
+      "request": "launch",
+      "mainClass": "com.anylearn.backend.AnyLearnBackendV2Application",
+      "projectName": "backend-v2",
+      "cwd": "${workspaceFolder}/anylearn_backend_v2",
+      "env": {
+        "JWT_SECRET": "local-dev-secret-change-in-production-32chars"
+      },
+      "vmArgs": "-Dspring.profiles.active=local"
+    },
+    {
+      "type": "java",
+      "name": "AnyLearn Backend V2 (Debug)",
+      "request": "launch",
+      "mainClass": "com.anylearn.backend.AnyLearnBackendV2Application",
+      "projectName": "backend-v2",
+      "cwd": "${workspaceFolder}/anylearn_backend_v2",
+      "env": {
+        "JWT_SECRET": "local-dev-secret-change-in-production-32chars"
+      },
+      "vmArgs": "-Dspring.profiles.active=local -Dlogging.level.org.springframework=DEBUG"
+    }
+  ]
+}

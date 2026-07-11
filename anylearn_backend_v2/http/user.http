@@ -1,0 +1,51 @@
+### Get my profile (api_token)
+GET {{baseUrl}}/user?api_token={{apiToken}}
+
+### Get my profile (JWT)
+GET {{baseUrl}}/user
+Authorization: Bearer {{jwtToken}}
+
+### Get public user profile
+GET {{baseUrl}}/user/profile/1
+
+### Get users by role
+GET {{baseUrl}}/users/teacher
+
+### Edit profile
+POST {{baseUrl}}/user/edit?api_token={{apiToken}}
+Content-Type: application/json
+
+{
+  "name": "New Name",
+  "introduce": "About me"
+}
+
+### My calendar
+GET {{baseUrl}}/user/mycalendar?api_token={{apiToken}}
+
+### Get notifications
+GET {{baseUrl}}/user/notification?api_token={{apiToken}}
+
+### Mark notification read
+GET {{baseUrl}}/user/notification/1?api_token={{apiToken}}
+
+### Get documents
+GET {{baseUrl}}/user/get-docs?api_token={{apiToken}}
+
+### Pending orders
+GET {{baseUrl}}/user/pending-orders?api_token={{apiToken}}
+
+### List children accounts
+GET {{baseUrl}}/user/children?api_token={{apiToken}}
+
+### Change password
+POST {{baseUrl}}/user/changepass?api_token={{apiToken}}
+Content-Type: application/json
+
+{
+  "old_password": "oldpass",
+  "new_password": "newpass"
+}
+
+### Delete account
+GET {{baseUrl}}/user/delete?api_token={{apiToken}}

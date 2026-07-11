@@ -1,0 +1,61 @@
+### Login
+GET {{baseUrl}}/login?phone=0123456789&password=123456
+
+###  Register
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{
+  "phone": "0123456789",
+  "password": "123456",
+  "name": "Test User"
+}
+
+### Simple Register
+POST {{baseUrl}}/simple-register
+Content-Type: application/json
+
+{
+  "phone": "0123456789"
+}
+
+### Request OTP for password reset
+GET {{baseUrl}}/password/otp?phone=0123456789
+
+### Reset password with OTP
+POST {{baseUrl}}/password/reset
+Content-Type: application/json
+
+{
+  "phone": "0123456789",
+  "otp": "123456",
+  "password": "newpassword"
+}
+
+### Check OTP
+POST {{baseUrl}}/otp/check
+Content-Type: application/json
+
+{
+  "phone": "0123456789",
+  "otp": "123456"
+}
+
+### Logout
+GET {{baseUrl}}/logout?api_token={{apiToken}}
+
+### Login with Facebook
+POST {{baseUrl}}/login/facebook
+Content-Type: application/json
+
+{
+  "token": "facebook_access_token"
+}
+
+### Login with Apple
+POST {{baseUrl}}/login/apple
+Content-Type: application/json
+
+{
+  "token": "apple_id_token"
+}

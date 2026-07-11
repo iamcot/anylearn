@@ -1,0 +1,32 @@
+### List questions
+GET {{baseUrl}}/ask/list
+
+### Get question thread
+GET {{baseUrl}}/ask/1
+
+### Create question
+POST {{baseUrl}}/ask/create/question?api_token={{apiToken}}
+Content-Type: application/json
+
+{
+  "title": "How do I enroll?",
+  "content": "I want to know the enrollment process."
+}
+
+### Create answer
+POST {{baseUrl}}/ask/create/answer?api_token={{apiToken}}
+Content-Type: application/json
+
+{
+  "ask_id": 1,
+  "content": "You can enroll by clicking the register button."
+}
+
+### Vote up
+GET {{baseUrl}}/ask/1/vote/up?api_token={{apiToken}}
+
+### Vote down
+GET {{baseUrl}}/ask/1/vote/down?api_token={{apiToken}}
+
+### Select best answer
+GET {{baseUrl}}/ask/1/select?api_token={{apiToken}}

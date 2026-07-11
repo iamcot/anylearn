@@ -1,0 +1,26 @@
+### My dashboard
+GET {{baseUrl}}/v3/meAPI?api_token={{apiToken}}
+
+### My work (partner view)
+GET {{baseUrl}}/v3/meWork?api_token={{apiToken}}
+
+### My classes
+GET {{baseUrl}}/v3/class?api_token={{apiToken}}
+
+### Students for item
+GET {{baseUrl}}/v3/students/1?api_token={{apiToken}}
+
+### My locations
+GET {{baseUrl}}/v3/locations?api_token={{apiToken}}
+
+### My categories
+GET {{baseUrl}}/v3/categories?api_token={{apiToken}}
+
+### Enrolled courses
+GET {{baseUrl}}/v3/auth/study?api_token={{apiToken}}
+
+### Study detail
+GET {{baseUrl}}/v3/auth/study/1?api_token={{apiToken}}
+
+### Cart count
+GET {{baseUrl}}/v3/auth/cart?api_token={{apiToken}}

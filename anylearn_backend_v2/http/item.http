@@ -1,0 +1,55 @@
+### Get item detail (PDP)
+GET {{baseUrl}}/pdp/1
+
+### Get item reviews
+GET {{baseUrl}}/item/1/reviews
+
+### Get items by user
+GET {{baseUrl}}/user/1/items
+
+### List my items (auth)
+GET {{baseUrl}}/item/list?api_token={{apiToken}}
+
+### Get item for editing
+GET {{baseUrl}}/item/1/edit?api_token={{apiToken}}
+
+### Create item
+POST {{baseUrl}}/item/create?api_token={{apiToken}}
+Content-Type: application/json
+
+{
+  "title": "New Course",
+  "type": "course",
+  "price": 500000,
+  "date_start": "2026-08-01"
+}
+
+### Update item
+POST {{baseUrl}}/item/update?api_token={{apiToken}}
+Content-Type: application/json
+
+{
+  "id": 1,
+  "title": "Updated Course Title"
+}
+
+### Change item user status
+GET {{baseUrl}}/item/1/user-status/1?api_token={{apiToken}}
+
+### Touch favourite
+GET {{baseUrl}}/item/1/touch-fav?api_token={{apiToken}}
+
+### Save rating
+POST {{baseUrl}}/item/1/save-rating?api_token={{apiToken}}
+Content-Type: application/json
+
+{
+  "rating": 5,
+  "comment": "Great course!"
+}
+
+### Get schedule
+GET {{baseUrl}}/item/schadule/1?api_token={{apiToken}}
+
+### Get user locations
+GET {{baseUrl}}/location?api_token={{apiToken}}

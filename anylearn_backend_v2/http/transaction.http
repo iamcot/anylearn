@@ -1,0 +1,31 @@
+### Transaction history
+GET {{baseUrl}}/transaction/history?api_token={{apiToken}}
+
+### Deposit
+POST {{baseUrl}}/transaction/deposit?api_token={{apiToken}}
+Content-Type: application/json
+
+{
+  "amount": 100000,
+  "pay_method": "bank"
+}
+
+### Withdraw
+POST {{baseUrl}}/transaction/withdraw?api_token={{apiToken}}
+Content-Type: application/json
+
+{
+  "amount": 50000,
+  "bank_account": "123456789"
+}
+
+### Exchange wallet
+POST {{baseUrl}}/transaction/exchange?api_token={{apiToken}}
+Content-Type: application/json
+
+{
+  "amount": 10000
+}
+
+### Place order (register for item)
+GET {{baseUrl}}/transaction/register/1?api_token={{apiToken}}

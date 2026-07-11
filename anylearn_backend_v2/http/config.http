@@ -1,0 +1,52 @@
+### Home config (public)
+GET {{baseUrl}}/config/home/buyer
+
+### Home V2
+GET {{baseUrl}}/config/homev2/buyer
+
+### Categories
+GET {{baseUrl}}/config/category
+
+### Category by ID
+GET {{baseUrl}}/config/category?catId=1
+
+### Search
+GET {{baseUrl}}/search?q=english
+
+### Search tags
+GET {{baseUrl}}/search-tags?q=kids
+
+### Foundation data
+GET {{baseUrl}}/foundation
+
+### Get doc by key
+GET {{baseUrl}}/doc/terms
+
+### Save feedback (auth)
+POST {{baseUrl}}/config/feedback?api_token={{apiToken}}
+Content-Type: application/json
+
+{
+  "content": "This is feedback"
+}
+
+### V3 Home (public)
+GET {{baseUrl}}/v3/home
+
+### V3 Home (auth)
+GET {{baseUrl}}/v3/auth/home?api_token={{apiToken}}
+
+### V3 Listing
+GET {{baseUrl}}/v3/listing
+
+### V3 Map
+GET {{baseUrl}}/v3/map?lat=10.77&lng=106.69&radius=5
+
+### V3 Search filters
+GET {{baseUrl}}/v3/search
+
+### V3 Partner profile
+GET {{baseUrl}}/v3/partner/1
+
+### V3 Main subtypes
+GET {{baseUrl}}/v3/main-subtypes/online
