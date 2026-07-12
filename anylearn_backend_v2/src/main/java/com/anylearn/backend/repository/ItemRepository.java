@@ -28,4 +28,12 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
         ORDER BY i.isHot DESC, i.id DESC
         """)
     List<Item> findHotItems(@Param("itemId") Long itemId, org.springframework.data.domain.Pageable pageable);
+    @Query("""
+        SELECT i FROM Item i
+        WHERE i.userId = :userId AND i.status = 1 AND i.userStatus = 1
+        AND i.id != :itemId AND i.itemId IS NULL
+        ORDER BY i.boostScore DESC, i.id DESC
+        """)
+    List<Item> findByAuthor(@Param("userId") Long userId, @Param("itemId") Long itemId,
+                            org.springframework.data.domain.Pageable pageable);
 }

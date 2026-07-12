@@ -34,17 +34,30 @@ public class ConfigController {
                                   @RequestParam(defaultValue = "0") int page,
                                   @RequestParam(defaultValue = "20") int pageSize,
                                   @RequestParam(required = false) String category,
-                                  @RequestParam(required = false) String sort) {
-        if ((q == null || q.isBlank()) && (category == null || category.isBlank())) {
-            return ApiResponse.ok(java.util.Map.of("items", java.util.List.of(), "total", 0, "page", page, "pageSize", pageSize));
-        }
-        var result = meilisearchService.search(q, page, pageSize, category, sort);
+                                  @RequestParam(required = false) String sort,
+                                  @RequestParam(required = false) Long authorId,
+                                  @RequestParam(required = false) String age,
+                                  @RequestParam(required = false) String priceRange,
+                                  @RequestParam(required = false) String location,
+                                  @RequestParam(required = false) String mode) {
+        var result = meilisearchService.search(q, page, pageSize, category, sort, authorId, age, priceRange, location, mode);
         return ApiResponse.ok(result);
     }
 
     @GetMapping("/search-tags")
     public ApiResponse<?> searchTags(@RequestParam(required = false) String q) {
         return ApiResponse.ok(configService.searchTags(q));
+    }
+
+    @GetMapping("/search/users")
+    public ApiResponse<?> searchUsers(@RequestParam(required = false) String q,
+                                       @RequestParam(defaultValue = "0") int page,
+                                       @RequestParam(defaultValue = "20") int pageSize,
+                                       @RequestParam(required = false) String role,
+                                       @RequestParam(required = false) String sort,
+                                       @RequestParam(required = false) Long authorId) {
+        var result = meilisearchService.searchUsers(q, role, page, pageSize, sort, authorId);
+        return ApiResponse.ok(result);
     }
 
     @GetMapping("/foundation")

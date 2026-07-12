@@ -21,6 +21,7 @@ public class ConfigService {
     private final ItemRepository itemRepository;
     private final TagRepository tagRepository;
     private final ObjectMapper objectMapper;
+    private final com.anylearn.backend.repository.UserRepository userRepository;
 
     public Map<String, Object> homeV2(String role) {
         Map<String, Object> result = new LinkedHashMap<>();
@@ -28,8 +29,8 @@ public class ConfigService {
         // Banners
         result.put("new_banners", getBanners());
 
-        // Articles (read + video)
-        var articles = articleRepository.findByStatusAndTypeInOrderByIdDesc(
+        // Articles (read + video) — exclude content field
+        var articles = articleRepository.findLightByStatusAndTypeIn(
                 (byte) 1, List.of("read", "video"), PageRequest.of(0, 5));
         result.put("articles", articles);
 
@@ -40,12 +41,12 @@ public class ConfigService {
         result.put("home_classes", getHomeSpecialClasses());
 
         // Promotions
-        result.put("promotions", articleRepository.findByStatusAndTypeOrderByIdDesc(
+        result.put("promotions", articleRepository.findLightByStatusAndType(
                 (byte) 1, "promotion", PageRequest.of(0, 5)));
         result.put("promotions_title", "Ưu đãi độc quyền");
 
         // Events
-        result.put("events", articleRepository.findByStatusAndTypeOrderByIdDesc(
+        result.put("events", articleRepository.findLightByStatusAndType(
                 (byte) 1, "event", PageRequest.of(0, 5)));
         result.put("events_title", "Sự kiện nổi bật");
 
@@ -94,7 +95,8 @@ public class ConfigService {
                     List<Long> ids = Arrays.stream(classesCsv.split(","))
                             .map(String::trim).map(Long::parseLong).toList();
 
-                    var items = itemRepository.findByIdsOrdered(ids, classesCsv);
+                    var items = itemRepository.findByIdsOrdered(ids, classesCsv)
+                            .stream().map(this::enrichItem).toList();
                     Object titleObj = block.get("title");
                     String title = titleObj instanceof Map<?, ?> m
                             ? String.valueOf(m.containsKey("vi") ? m.get("vi") : m.values().iterator().next())
@@ -131,8 +133,28 @@ public class ConfigService {
     public List<?> getItemsByIds(List<Long> ids) {
         var itemMap = itemRepository.findAllById(ids).stream()
                 .collect(java.util.stream.Collectors.toMap(i -> i.getId(), i -> i));
-        // preserve Meilisearch rank order
-        return ids.stream().map(itemMap::get).filter(Objects::nonNull).toList();
+        return ids.stream().map(itemMap::get).filter(Objects::nonNull)
+                .map(this::enrichItem).toList();
+    }
+
+    private Map<String, Object> enrichItem(com.anylearn.backend.entity.Item item) {
+        Map<String, Object> m = new java.util.LinkedHashMap<>();
+        m.put("id",           item.getId());
+        m.put("title",        item.getTitle());
+        m.put("type",         item.getType());
+        m.put("subtype",      item.getSubtype());
+        m.put("shortContent", item.getShortContent());
+        m.put("image",        item.getImage());
+        m.put("price",        item.getPrice());
+        m.put("dateStart",    item.getDateStart() != null ? item.getDateStart().toString() : null);
+        m.put("isHot",        item.getIsHot());
+        userRepository.findById(item.getUserId()).ifPresent(u -> {
+            m.put("authorName",  u.getName());
+            m.put("authorImage", u.getImage());
+            m.put("authorId",    u.getId());
+            m.put("authorRole",  u.getRole());
+        });
+        return m;
     }
 
     public List<String> searchTags(String q) {

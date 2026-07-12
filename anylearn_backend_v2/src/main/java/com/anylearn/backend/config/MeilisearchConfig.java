@@ -36,7 +36,7 @@ public class MeilisearchConfig {
             });
 
             index.updateFilterableAttributesSettings(new String[]{
-                "status", "userStatus", "type", "subtype", "price", "categoryUrls"
+                "status", "userStatus", "type", "subtype", "price", "categoryUrls", "authorId", "agesMin", "agesMax", "authorProvinceCodes"
             });
 
             index.updateSortableAttributesSettings(new String[]{
@@ -48,6 +48,25 @@ public class MeilisearchConfig {
             });
 
             log.info("Meilisearch index 'items' configured successfully");
+
+            // ── Users index ──
+            client.createIndex("users", "id");
+            var usersIndex = client.index("users");
+
+            usersIndex.updateSearchableAttributesSettings(new String[]{
+                "name", "title", "introduce"
+            });
+            usersIndex.updateFilterableAttributesSettings(new String[]{
+                "role", "status", "isTest"
+            });
+            usersIndex.updateSortableAttributesSettings(new String[]{
+                "isHot", "boostScore", "rating"
+            });
+            usersIndex.updateRankingRulesSettings(new String[]{
+                "sort", "words", "typo", "proximity", "attribute", "exactness"
+            });
+
+            log.info("Meilisearch index 'users' configured successfully");
         } catch (MeilisearchException e) {
             log.warn("Meilisearch not available at startup (will retry on first use): {}", e.getMessage());
         }

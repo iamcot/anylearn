@@ -3,7 +3,7 @@
   "configurations": [
     {
       "type": "java",
-      "name": "AnyLearn Backend V2",
+      "name": "BE V2",
       "request": "launch",
       "mainClass": "com.anylearn.backend.AnyLearnBackendV2Application",
       "projectName": "backend-v2",
@@ -15,7 +15,7 @@
     },
     {
       "type": "java",
-      "name": "AnyLearn Backend V2 (Debug)",
+      "name": "Debug BE V2 (Debug)",
       "request": "launch",
       "mainClass": "com.anylearn.backend.AnyLearnBackendV2Application",
       "projectName": "backend-v2",
@@ -27,7 +27,7 @@
     },
     {
       "type": "node",
-      "name": "AnyLearn V2 (Next.js dev)",
+      "name": "FE AnyLearn V2 (Next.js dev)",
       "request": "launch",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],

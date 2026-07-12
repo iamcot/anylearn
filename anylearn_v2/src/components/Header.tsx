@@ -26,9 +26,8 @@ export default function Header() {
         <nav style={{ display: 'flex', gap: 26, alignItems: 'center' }} className="hidden-mobile">
           {[
             { href: '/info', label: 'Giới thiệu' },
-            { href: '/search', label: 'anySCHOOL' },
-            { href: '/search', label: 'anyPROFESSOR' },
-            { href: '/search', label: 'anyCOURSE' },
+            { href: '/search?mode=school', label: 'anySCHOOL' },
+            { href: '/search?mode=teacher', label: 'anyPROFESSOR' },
             { href: '/search', label: 'Tìm kiếm' },
           ].map(({ href, label }) => (
             <Link key={label} href={href} style={{
@@ -98,9 +97,8 @@ export default function Header() {
           {[
             { href: '/info', label: 'Giới thiệu' },
             { href: '/search', label: 'Tìm kiếm' },
-            { href: '/search', label: 'anySCHOOL' },
-            { href: '/search', label: 'anyPROFESSOR' },
-            { href: '/search', label: 'anyCOURSE' },
+            { href: '/search?mode=school', label: 'anySCHOOL' },
+            { href: '/search?mode=teacher', label: 'anyPROFESSOR' },
           ].map(({ href, label }) => (
             <Link key={label} href={href} onClick={() => setMenuOpen(false)}
               style={{ fontWeight: 800, color: '#4d5968', textDecoration: 'none', fontSize: 16 }}>

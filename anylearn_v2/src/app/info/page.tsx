@@ -12,7 +12,7 @@ const PROBLEMS = [
 const COMMITS = [
   { num: 1, title: 'Trường học uy tín', desc: 'Kiểm tra thông tin pháp lý, chương trình, đội ngũ và phản hồi từ phụ huynh/học viên trước khi hiển thị' },
   { num: 2, title: 'Chuyên gia chất lượng', desc: 'Xác minh chứng chỉ, kinh nghiệm và năng lực giảng dạy của từng chuyên gia, gia sư và huấn luyện viên' },
-  { num: 3, title: 'Hỗ trợ tư vấn', desc: 'Đội ngũ tư vấn viên sẵn sàng hỗ trợ phụ huynh trong toàn bộ hành trình chọn lớp học cho con' },
+  { num: 3, title: 'Hỗ trợ tư vấn', desc: 'Đội ngũ tư vấn viên sẵn sàng hỗ trợ phụ huynh trong toàn bộ hành trình chọn khóa học cho con' },
 ]
 
 const ECOSYSTEM = [
@@ -33,7 +33,7 @@ const STATS = [
 const TESTIMONIALS = [
   {
     img: `${BASE}/cdn/onepage/images/feedbacks/kimchi.jpg`,
-    quote: 'Tôi thấy ứng dụng anyLEARN rất hữu ích. Nhờ ứng dụng, khi đăng ký lớp học cho con, tôi có thể dễ dàng so sánh và chọn được chương trình phù hợp nhất.',
+    quote: 'Tôi thấy ứng dụng anyLEARN rất hữu ích. Nhờ ứng dụng, khi đăng ký khóa học cho con, tôi có thể dễ dàng so sánh và chọn được chương trình phù hợp nhất.',
     name: 'Chị Kim Chi', title: 'Phụ huynh',
   },
   {
@@ -85,7 +85,7 @@ export default function InfoPage() {
       {/* ── Hero ── */}
       <section style={{
         minHeight: 580,
-        background: 'linear-gradient(90deg, rgba(0,65,120,0.92), rgba(0,83,155,0.68) 60%, rgba(0,166,81,0.16)), linear-gradient(135deg, #004178, #00539b)',
+        background: 'linear-gradient(135deg, #00539b, #00a651)',
         color: 'white', display: 'flex', alignItems: 'center',
         padding: '80px 0 120px',
       }}>
@@ -107,7 +107,7 @@ export default function InfoPage() {
 
       {/* ── Intro ── */}
       <section className="section">
-        <div className="container" style={{ display: 'grid', gridTemplateColumns: '0.9fr 1.1fr', gap: 56, alignItems: 'center' }}>
+        <div className="container grid-intro" style={{ display: 'grid', gridTemplateColumns: '0.9fr 1.1fr', gap: 56, alignItems: 'center' }}>
           <div style={{ fontSize: 'clamp(72px,12vw,150px)', fontWeight: 900, lineHeight: 0.9, letterSpacing: -6, userSelect: 'none' }}>
             <div style={{ color: '#00539b' }}>any</div>
             <div style={{ color: '#00a651' }}>LEARN</div>
@@ -129,7 +129,7 @@ export default function InfoPage() {
 
       {/* ── Stats ── */}
       <section style={{ background: '#f7fafc', padding: '56px 0' }}>
-        <div className="container" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 20, textAlign: 'center' }}>
+        <div className="container grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 20, textAlign: 'center' }}>
           {STATS.map(s => (
             <div key={s.label} style={{ background: 'white', border: '1px solid #e6edf4', borderRadius: 22, padding: '28px 20px', boxShadow: '0 8px 24px rgba(15,23,42,0.05)' }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -146,10 +146,10 @@ export default function InfoPage() {
         <div className="container section-head">
           <div>
             <span className="section-kicker">Vấn đề thị trường</span>
-            <h2 className="section-title">Phụ huynh cần một hành trình chọn lớp rõ ràng hơn</h2>
+            <h2 className="section-title">Phụ huynh cần một hành trình chọn khóa học rõ ràng hơn</h2>
           </div>
         </div>
-        <div className="container" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 20 }}>
+        <div className="container grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 20 }}>
           {PROBLEMS.map(p => (
             <article key={p.title} style={{ background: 'white', border: '1px solid #e6edf4', borderRadius: 22, padding: 24, boxShadow: '0 8px 24px rgba(15,23,42,0.05)' }}>
               <div className="feature-icon">{p.emoji}</div>
@@ -187,7 +187,7 @@ export default function InfoPage() {
             <h2 className="section-title">anyLEARN có gì?</h2>
           </div>
         </div>
-        <div className="container" style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 16 }}>
+        <div className="container grid-5" style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 16 }}>
           {ECOSYSTEM.map(e => (
             <article key={e.name} style={{ background: 'white', border: '1px solid #e6edf4', borderRadius: 22, padding: 24, minHeight: 200, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: '0 8px 24px rgba(15,23,42,0.05)' }}>
               <div>
@@ -209,7 +209,7 @@ export default function InfoPage() {
             <h2 className="section-title">Đối tác của anyLEARN</h2>
           </div>
         </div>
-        <div className="container" style={{ display: 'grid', gridTemplateColumns: 'repeat(8,1fr)', gap: 12 }}>
+        <div className="container grid-8" style={{ display: 'grid', gridTemplateColumns: 'repeat(8,1fr)', gap: 12 }}>
           {PARTNER_LOGOS.map((src, i) => (
             // eslint-disable-next-line @next/next/no-img-element
             <img key={i} src={src} alt={`Đối tác ${i + 1}`}

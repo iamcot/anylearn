@@ -21,6 +21,7 @@ public class ItemService {
     private final ClassTeacherRepository classTeacherRepository;
     private final ItemCategoryRepository itemCategoryRepository;
     private final MeilisearchService meilisearchService;
+    private final ConfigService configService;
 
     public Map<String, Object> pdpData(Long itemId, User currentUser) {
         Item item = itemRepository.findById(itemId)
@@ -40,6 +41,14 @@ public class ItemService {
         }
 
         User author = userRepository.findById(item.getUserId()).orElse(null);
+        Map<String, Object> authorInfo = author == null ? null : new LinkedHashMap<>(Map.of(
+                "id", author.getId(),
+                "name", author.getName() != null ? author.getName() : "",
+                "role", author.getRole() != null ? author.getRole() : "",
+                "image", author.getImage() != null ? author.getImage() : "",
+                "introduce", author.getIntroduce() != null ? author.getIntroduce() : "",
+                "isHot", author.getIsHot() != null ? author.getIsHot() : 0
+        ));
 
         // Reviews
         List<Map<String, Object>> reviews = getReviews(itemId);
@@ -75,17 +84,25 @@ public class ItemService {
         result.put("num_favorite", numFav);
         result.put("num_cart", numCart);
         result.put("rating", rating);
-        result.put("author", author);
+        result.put("author", authorInfo);
         result.put("categories", itemCategoryRepository.findCategoriesByItemId(itemId));
         result.put("teachers", classTeacherRepository.findTeachersByClassAndOwner(itemId, item.getUserId()));
         result.put("reviews", reviews);
         result.put("plans", new ArrayList<>(plansGrouped.values()));
         result.put("num_schedule", rawPlans.size());
         result.put("is_fav", isFav);
-        result.put("hotItems", Map.of(
-                "route", "/event",
-                "title", "Sản phẩm liên quan",
-                "list", itemRepository.findHotItems(itemId, PageRequest.of(0, 5))));
+        // Author items
+        List<Long> authorItemIds = itemRepository.findByAuthor(item.getUserId(), itemId, PageRequest.of(0, 8))
+                .stream().map(Item::getId).toList();
+        List<?> authorItems = authorItemIds.isEmpty() ? List.of() : configService.getItemsByIds(authorItemIds);
+
+        // Similar items via Meilisearch: same title keywords + categories + subtype
+        List<String> categoryUrls = itemCategoryRepository.findAllCategoryUrlsByItemId(itemId);
+        List<Long> similarIds = meilisearchService.findSimilarIds(itemId, item.getUserId(), item.getTitle(), categoryUrls, item.getSubtype(), 10);
+        List<?> hotItems = similarIds.isEmpty() ? List.of() : configService.getItemsByIds(similarIds);
+
+        result.put("authorItems", authorItems);
+        result.put("hotItems", hotItems);
         result.put("url", "Khoá học " + item.getTitle() + " cực hay trên anyLEARN bạn có biết chưa");
 
         return result;

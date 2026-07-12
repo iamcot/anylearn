@@ -16,10 +16,15 @@ public class AdminController {
 
     @PostMapping("/reindex")
     public ApiResponse<?> reindex(@AuthenticationPrincipal User user) {
-        if (user == null || !"admin".equals(user.getRole())) {
-            return ApiResponse.fail("Forbidden");
-        }
+        if (user == null || !"admin".equals(user.getRole())) return ApiResponse.fail("Forbidden");
         meilisearchService.reindexAll();
         return ApiResponse.ok("Reindex complete");
+    }
+
+    @PostMapping("/reindex/users")
+    public ApiResponse<?> reindexUsers(@AuthenticationPrincipal User user) {
+        if (user == null || !"admin".equals(user.getRole())) return ApiResponse.fail("Forbidden");
+        meilisearchService.reindexAllUsers();
+        return ApiResponse.ok("User reindex complete");
     }
 }

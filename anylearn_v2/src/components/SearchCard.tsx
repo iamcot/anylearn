@@ -13,9 +13,16 @@ interface Props {
   initialTags?: TagItem[]
 }
 
+const SEARCH_MODES = [
+  { key: 'class',   label: 'Khóa học' },
+  { key: 'school',  label: 'anySCHOOL' },
+  { key: 'teacher', label: 'anyPROFESSOR' },
+]
+
 export default function SearchCard({ variant = 'home', initialTags = [] }: Props) {
   const router = useRouter()
   const [query, setQuery] = useState('')
+  const [searchMode, setSearchMode] = useState('class')
   const [tags, setTags] = useState<TagItem[]>(initialTags)
 
   useEffect(() => {
@@ -31,57 +38,50 @@ export default function SearchCard({ variant = 'home', initialTags = [] }: Props
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    router.push(query.trim() ? `/search?q=${encodeURIComponent(query.trim())}` : '/search')
+    const params = new URLSearchParams()
+    if (query.trim()) params.set('q', query.trim())
+    if (searchMode !== 'class') params.set('mode', searchMode)
+    router.push(`/search?${params.toString()}`)
   }
 
   const handleTagClick = (tag: TagItem) => {
+    const params = new URLSearchParams()
+    if (searchMode !== 'class') params.set('mode', searchMode)
     if (tag.categoryUrl) {
-      router.push(`/search?category=${tag.categoryUrl}`)
+      params.set('category', tag.categoryUrl)
     } else {
-      router.push(`/search?q=${encodeURIComponent(tag.label)}`)
+      params.set('q', tag.label)
     }
+    router.push(`/search?${params.toString()}`)
   }
 
   return (
     <form className="search-card" onSubmit={handleSubmit}>
-      <div className="search-row">
+
+      <div className="search-row search-row--home">
+        <select
+          value={searchMode}
+          onChange={e => setSearchMode(e.target.value)}
+          className="field"
+          style={{ borderRadius: 18, fontWeight: 700 }}
+        >
+          {SEARCH_MODES.map(m => (
+            <option key={m.key} value={m.key}>{m.label}</option>
+          ))}
+        </select>
         <input
           className="field"
           type="search"
-          placeholder={variant === 'about' ? 'Bạn đang tìm chương trình học nào?' : 'Tìm môn học, kỹ năng, trường hoặc chuyên gia'}
+          placeholder={variant === 'about' ? 'Bạn đang tìm chương trình học nào?' : 'Tìm khóa học, kỹ năng, trường hoặc chuyên gia'}
           value={query}
           onChange={e => setQuery(e.target.value)}
         />
-        <select className="field" name="age" defaultValue="">
-          <option value="" disabled>Độ tuổi</option>
-          <option>3 - 5 tuổi</option>
-          <option>6 - 10 tuổi</option>
-          <option>11 - 15 tuổi</option>
-          <option>16 tuổi trở lên</option>
-        </select>
-        <select className="field" name={variant === 'about' ? 'mode' : 'location'} defaultValue="">
-          {variant === 'about' ? (
-            <>
-              <option value="" disabled>Hình thức học</option>
-              <option>Offline</option>
-              <option>Online</option>
-              <option>Hybrid</option>
-            </>
-          ) : (
-            <>
-              <option value="" disabled>Khu vực</option>
-              <option>TP.HCM</option>
-              <option>Hà Nội</option>
-              <option>Online</option>
-            </>
-          )}
-        </select>
         <button type="submit" className="btn btn--green">
-          {variant === 'about' ? 'Tìm ngay' : 'Tìm lớp'}
+          {variant === 'about' ? 'Tìm ngay' : 'Tìm khóa học'}
         </button>
       </div>
 
-      {tags.length > 0 && (
+      {searchMode === 'class' && tags.length > 0 && (
         <div className="quick-tags">
           {tags.map(tag => (
             <span key={tag.label} className="tag" style={{ cursor: 'pointer' }}
@@ -92,8 +92,8 @@ export default function SearchCard({ variant = 'home', initialTags = [] }: Props
         </div>
       )}
 
-      <div style={{ fontSize: 13, color: '#6d7a8a', marginTop: 12 }}>
-        💡 Gõ keyword để xem gợi ý lớp học, sau đó chuyển sang trang kết quả có filter đầy đủ
+      <div className="search-hint">
+        💡 Gõ keyword để xem gợi ý, sau đó chuyển sang trang kết quả có filter đầy đủ
       </div>
     </form>
   )

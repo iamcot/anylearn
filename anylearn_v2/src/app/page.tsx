@@ -1,5 +1,6 @@
 import SearchCard from '@/components/SearchCard'
 import CourseCard from '@/components/CourseCard'
+import PromoSlider from '@/components/PromoSlider'
 import { getHomeV2, Category } from '@/lib/api'
 import Link from 'next/link'
 
@@ -26,54 +27,43 @@ export default async function HomePage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const articles: any[] = (homeData as any)?.articles?.slice(0, 3) ?? []
   const events = homeData?.events?.slice(0, 3) ?? []
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const promos: any[] = (homeData as any)?.promotions ?? []
 
   return (
     <>
       {/* ── Hero ── */}
-      <section style={{
-        minHeight: 650,
-        background: 'linear-gradient(135deg, #00539b, #00a651)',
-        color: 'white',
-        display: 'flex', alignItems: 'center',
-        padding: '80px 0 140px',
+      <section className="hero-section flex items-center" style={{
+        background: 'linear-gradient(135deg, #00539b, #00a651)', color: 'white',
       }}>
         <div className="container">
-          <span style={{
-            display: 'inline-flex', alignItems: 'center',
-            borderRadius: 999, padding: '8px 14px',
-            background: 'rgba(255,255,255,0.16)', border: '1px solid rgba(255,255,255,0.24)',
-            fontSize: 14, fontWeight: 900, marginBottom: 18,
-          }}>Nền tảng booking giáo dục cho phụ huynh</span>
-
-          <h1 style={{
-            fontSize: 'clamp(38px,5.4vw,66px)', fontWeight: 900,
-            lineHeight: 1.02, letterSpacing: -1.6, margin: '0 0 18px',
-            maxWidth: 800,
-          }}>
+          <span className="inline-flex items-center rounded-full px-3.5 py-2 text-sm font-black mb-5"
+            style={{ background: 'rgba(255,255,255,0.16)', border: '1px solid rgba(255,255,255,0.24)' }}>
+            Nền tảng booking giáo dục cho phụ huynh
+          </span>
+          <h1 className="font-black leading-none mb-5 max-w-3xl"
+            style={{ fontSize: 'clamp(38px,5.4vw,66px)', letterSpacing: -1.6 }}>
             Tìm khóa học, trường học và chuyên gia phù hợp cho con
           </h1>
-
-          <p style={{ fontSize: 18, margin: '0 0 32px', color: 'rgba(255,255,255,0.9)', maxWidth: 640 }}>
+          <p className="text-lg mb-8 max-w-2xl" style={{ color: 'rgba(255,255,255,0.9)' }}>
             anyLEARN giúp phụ huynh tìm kiếm, so sánh, nhận tư vấn và đăng ký chương trình học chính quy, ngoại khóa, online và offline dễ dàng hơn
           </p>
-
           <SearchCard variant="home" initialTags={categories.slice(0, 6).map(c => ({ label: c.title, categoryUrl: c.url }))} />
         </div>
       </section>
 
       {/* ── Benefits overlap ── */}
-      <div style={{ marginTop: -56, position: 'relative', zIndex: 5 }}>
+      <div className="relative z-10 -mt-14">
         <div className="container">
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16 }}>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             {BENEFITS.map(b => (
-              <article key={b.title} style={{
-                background: 'white', border: '1px solid #e6edf4',
-                borderRadius: 22, padding: 24,
-                boxShadow: '0 10px 26px rgba(15,23,42,0.08)',
-              }}>
-                <div className="feature-icon">{b.emoji}</div>
-                <h3 style={{ margin: '0 0 8px', color: '#17212f', fontSize: 20, fontWeight: 900 }}>{b.title}</h3>
-                <p style={{ margin: 0, color: '#6d7a8a', fontSize: 14.5 }}>{b.desc}</p>
+              <article key={b.title} className="bg-white border border-[#e6edf4] rounded-[18px] px-5 py-4 grid grid-cols-[44px_1fr] gap-3.5 items-center"
+                style={{ boxShadow: '0 10px 26px rgba(15,23,42,0.08)' }}>
+                <div className="feature-icon" style={{ margin: 0 }}>{b.emoji}</div>
+                <div>
+                  <h3 className="m-0 mb-1 text-[#17212f] text-base font-black">{b.title}</h3>
+                  <p className="m-0 text-[#6d7a8a] text-sm leading-snug">{b.desc}</p>
+                </div>
               </article>
             ))}
           </div>
@@ -81,42 +71,7 @@ export default async function HomePage() {
       </div>
 
       {/* ── Promo ── */}
-      <section className="section">
-        <div className="container">
-          <div style={{
-            borderRadius: 32,
-            background: 'linear-gradient(100deg, rgba(0,65,120,0.96), rgba(0,166,81,0.82))',
-            color: 'white',
-            display: 'grid', gridTemplateColumns: '1.2fr 0.8fr',
-            minHeight: 300,
-            boxShadow: '0 10px 26px rgba(15,23,42,0.08)',
-            overflow: 'hidden',
-          }}>
-            <div style={{ padding: 38 }}>
-              <span style={{
-                display: 'inline-flex', padding: '7px 11px', borderRadius: 999,
-                background: 'rgba(255,255,255,0.16)', fontWeight: 900, marginBottom: 16, fontSize: 14,
-              }}>Chương trình nổi bật</span>
-              <h2 style={{ margin: '0 0 12px', fontSize: 'clamp(28px,4vw,44px)', fontWeight: 900, lineHeight: 1.08 }}>
-                11 ON FIELD - Tìm kiếm 11 người ra sân
-              </h2>
-              <p style={{ margin: '0 0 20px', maxWidth: 630, color: 'rgba(255,255,255,0.9)' }}>
-                Chương trình tuyển sinh thể thao dành cho các bạn trẻ yêu bóng đá, mong muốn thử sức trong một hành trình huấn luyện và phát triển bản thân
-              </p>
-              <Link href="/search?q=bóng đá" className="btn btn--yellow">Tìm hiểu chương trình</Link>
-            </div>
-            <div style={{ display: 'grid', placeItems: 'center', padding: 28 }}>
-              <div style={{
-                width: 'min(240px,100%)', aspectRatio: '1/1', borderRadius: 36,
-                border: '2px solid rgba(255,255,255,0.35)',
-                background: 'rgba(255,255,255,0.12)',
-                display: 'grid', placeItems: 'center',
-                textAlign: 'center', fontSize: 48, fontWeight: 900, color: '#ffca05', lineHeight: 1.1,
-              }}>11<br />ON<br />FIELD</div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <PromoSlider promos={promos} />
 
       {/* ── Categories ── */}
       <section className="section section--soft">
@@ -127,20 +82,13 @@ export default async function HomePage() {
             <p className="section-desc">Khám phá các nhóm chương trình theo mục tiêu học tập, độ tuổi và sở thích của con</p>
           </div>
         </div>
-        <div className="container" style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 16 }}>
+        <div className="container grid grid-cols-3 gap-3">
           {categories.map(cat => (
-            <article key={cat.id} style={{
-              background: 'white', border: '1px solid #e6edf4',
-              borderRadius: 22, padding: 24, minHeight: 218,
-              display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-              boxShadow: '0 8px 24px rgba(15,23,42,0.05)',
-            }}>
-              <div>
-                <div className="icon-square">{CATEGORY_EMOJIS[cat.url] ?? DEFAULT_EMOJI}</div>
-                <h3 style={{ margin: '0 0 8px', color: '#00539b', fontSize: 21, fontWeight: 900 }}>{cat.title}</h3>
-              </div>
-              <Link href={`/search?category=${cat.url}`} style={{ color: '#008244', fontWeight: 900, marginTop: 18, textDecoration: 'none' }}>
-                Xem lớp →
+            <article key={cat.id} className="bg-white border border-[#e6edf4] rounded-2xl p-4"
+              style={{ boxShadow: '0 8px 24px rgba(15,23,42,0.05)' }}>
+              <Link href={`/search?category=${cat.url}`} className="cat-link">
+                <div className="cat-icon">{CATEGORY_EMOJIS[cat.url] ?? DEFAULT_EMOJI}</div>
+                <h3 className="cat-title">{cat.title}</h3>
               </Link>
             </article>
           ))}
@@ -157,20 +105,18 @@ export default async function HomePage() {
           </div>
           <Link href="/search" className="btn btn--outline">Xem tất cả</Link>
         </div>
-        <div className="container" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 20 }}>
+        <div className="container grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {featuredItems.length > 0
             ? featuredItems.map(item => <CourseCard key={item.id} item={item} />)
             : Array.from({ length: 4 }).map((_, i) => (
-                <article key={i} style={{
-                  background: 'white', border: '1px solid #e6edf4',
-                  borderRadius: 22, overflow: 'hidden',
-                }}>
-                  <div style={{ minHeight: 165, background: 'linear-gradient(135deg,#dff7e8,#e7f3ff)', display: 'grid', placeItems: 'center' }}>
-                    <span style={{ fontSize: 46 }}>📚</span>
+                <article key={i} className="bg-white border border-[#e6edf4] rounded-[22px] overflow-hidden">
+                  <div className="min-h-[165px] grid place-items-center"
+                    style={{ background: 'linear-gradient(135deg,#dff7e8,#e7f3ff)' }}>
+                    <span className="text-5xl">📚</span>
                   </div>
-                  <div style={{ padding: 18 }}>
-                    <div style={{ height: 16, background: '#f0f0f0', borderRadius: 8, marginBottom: 10 }} />
-                    <div style={{ height: 12, background: '#f0f0f0', borderRadius: 8, width: '70%' }} />
+                  <div className="p-4">
+                    <div className="h-4 bg-[#f0f0f0] rounded-lg mb-2.5" />
+                    <div className="h-3 bg-[#f0f0f0] rounded-lg w-[70%]" />
                   </div>
                 </article>
               ))
@@ -178,7 +124,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── Promotions (static) ── */}
+      {/* ── Events ── */}
       <section className="section section--soft">
         <div className="container section-head">
           <div>
@@ -187,27 +133,17 @@ export default async function HomePage() {
             <p className="section-desc">Cập nhật các chương trình tư vấn, kiểm tra năng lực và thanh toán linh hoạt từ anyLEARN</p>
           </div>
         </div>
-        <div className="container" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 20 }}>
+        <div className="container grid grid-cols-1 md:grid-cols-3 gap-5">
           {events.map(e => (
-            <article key={e.id} style={{
-              borderRadius: 22, overflow: 'hidden',
-              background: 'white', border: '1px solid #e6edf4',
-              boxShadow: '0 8px 24px rgba(15,23,42,0.06)',
-              display: 'flex', flexDirection: 'column',
-            }}>
-              <div style={{
-                minHeight: 190,
-                background: 'linear-gradient(135deg, #00539b, #00a651)',
-                color: 'white',
-                display: 'grid', placeItems: 'center',
-                padding: 24, textAlign: 'center',
-                fontSize: 28, fontWeight: 900, lineHeight: 1.2,
-              }}>{e.title}</div>
-              <div style={{ padding: 20, display: 'flex', flexDirection: 'column', flex: 1 }}>
-                {e.shortContent && (
-                  <p style={{ margin: '0 0 16px', color: '#6d7a8a', flex: 1 }}>{e.shortContent}</p>
-                )}
-                <Link href="/search" className="btn btn--green" style={{ marginTop: 'auto' }}>Xem chi tiết</Link>
+            <article key={e.id} className="rounded-[22px] overflow-hidden bg-white border border-[#e6edf4] flex flex-col"
+              style={{ boxShadow: '0 8px 24px rgba(15,23,42,0.06)' }}>
+              <div className="min-h-[190px] grid place-items-center p-6 text-center text-white font-black text-2xl leading-tight"
+                style={{ background: 'linear-gradient(135deg, #00539b, #00a651)' }}>
+                {e.title}
+              </div>
+              <div className="p-5 flex flex-col flex-1">
+                {e.shortContent && <p className="text-[#6d7a8a] flex-1 mb-4">{e.shortContent}</p>}
+                <Link href="/search" className="btn btn--green mt-auto">Xem chi tiết</Link>
               </div>
             </article>
           ))}
@@ -225,39 +161,27 @@ export default async function HomePage() {
             </div>
             <Link href="/search" className="btn btn--outline">Xem tất cả bài viết</Link>
           </div>
-          <div className="container" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 20 }}>
+          <div className="container grid grid-cols-1 md:grid-cols-3 gap-5">
             {articles.map((a: any) => (
-              <article key={a.id} style={{
-                background: 'white', border: '1px solid #e6edf4',
-                borderRadius: 22, overflow: 'hidden',
-                boxShadow: '0 8px 24px rgba(15,23,42,0.06)',
-                display: 'flex', flexDirection: 'column',
-              }}>
-                <div style={{
-                  minHeight: 160, background: 'linear-gradient(135deg, #eef7ff, #e9fff3)',
-                  display: 'grid', placeItems: 'center', position: 'relative', overflow: 'hidden',
-                }}>
+              <article key={a.id} className="bg-white border border-[#e6edf4] rounded-[22px] overflow-hidden flex flex-col"
+                style={{ boxShadow: '0 8px 24px rgba(15,23,42,0.06)' }}>
+                <div className="min-h-[160px] grid place-items-center relative overflow-hidden"
+                  style={{ background: 'linear-gradient(135deg, #eef7ff, #e9fff3)' }}>
                   {a.image
                     // eslint-disable-next-line @next/next/no-img-element
-                    ? <img src={a.image} alt={a.title} style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }} />
-                    : <span style={{ fontSize: 46 }}>📚</span>
+                    ? <img src={a.image} alt={a.title} className="absolute inset-0 w-full h-full object-cover" />
+                    : <span className="text-5xl">📚</span>
                   }
-                  <span style={{
-                    position: 'absolute', top: 12, left: 12,
-                    background: '#00539b', color: 'white',
-                    borderRadius: 999, padding: '5px 10px',
-                    fontSize: 11, fontWeight: 900, textTransform: 'uppercase',
-                  }}>{a.type === 'video' ? '🎬 Video' : '📖 Bài viết'}</span>
+                  <span className="absolute top-3 left-3 bg-[#00539b] text-white rounded-full px-2.5 py-1 text-[11px] font-black uppercase">
+                    {a.type === 'video' ? '🎬 Video' : '📖 Bài viết'}
+                  </span>
                 </div>
-                <div style={{ padding: 20, display: 'flex', flexDirection: 'column', flex: 1 }}>
-                  <h3 style={{ margin: '0 0 10px', color: '#17212f', fontSize: 17, fontWeight: 900, lineHeight: 1.4 }}>{a.title}</h3>
+                <div className="p-5 flex flex-col flex-1">
+                  <h3 className="mt-0 mb-2.5 text-[#17212f] text-[17px] font-black leading-snug">{a.title}</h3>
                   {a.short_content && (
-                    <p style={{
-                      margin: '0 0 16px', color: '#6d7a8a', fontSize: 14, flex: 1,
-                      display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
-                    }}>{a.short_content}</p>
+                    <p className="mb-4 text-[#6d7a8a] text-sm flex-1 line-clamp-2">{a.short_content}</p>
                   )}
-                  <Link href={`/search`} style={{ color: '#008244', fontWeight: 900, fontSize: 14, textDecoration: 'none', marginTop: 'auto' }}>
+                  <Link href="/search" className="text-[#008244] font-black text-sm no-underline mt-auto">
                     Đọc thêm →
                   </Link>
                 </div>
