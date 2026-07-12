@@ -24,6 +24,15 @@
         "JWT_SECRET": "local-dev-secret-change-in-production-32chars"
       },
       "vmArgs": "-Dspring.profiles.active=local -Dlogging.level.org.springframework=DEBUG"
+    },
+    {
+      "type": "node",
+      "name": "AnyLearn V2 (Next.js dev)",
+      "request": "launch",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "cwd": "${workspaceFolder}/anylearn_v2",
+      "console": "integratedTerminal"
     }
   ]
 }

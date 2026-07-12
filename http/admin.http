@@ -1,0 +1,4 @@
+@baseUrl = http://localhost:8080/v2
+
+### Reindex all items into Meilisearch (admin only)
+POST {{baseUrl}}/admin/reindex?api_token={{$dotenv ADMIN_TOKEN}}

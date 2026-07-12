@@ -1,16 +1,21 @@
 package com.anylearn.backend.controller.auth;
 
 import com.anylearn.backend.dto.response.ApiResponse;
+import com.anylearn.backend.dto.response.LoginResponse;
+import com.anylearn.backend.service.AuthService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api")
+@RequiredArgsConstructor
 public class AuthController {
 
+    private final AuthService authService;
+
     @GetMapping("/login")
-    public ApiResponse<?> login(@RequestParam String phone, @RequestParam String password) {
-        // TODO: implement
-        return ApiResponse.fail("Not implemented");
+    public ApiResponse<LoginResponse> login(@RequestParam String phone, @RequestParam String password) {
+        return ApiResponse.ok(authService.login(phone, password));
     }
 
     @PostMapping("/login/facebook")

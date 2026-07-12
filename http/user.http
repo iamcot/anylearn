@@ -1,4 +1,4 @@
-@baseUrl = http://localhost:8080/api
+@baseUrl = http://localhost:8080/v2/api
 @apiToken = {{$dotenv API_TOKEN}}
 @jwtToken = {{$dotenv JWT_TOKEN}}
 
@@ -13,7 +13,7 @@ Authorization: Bearer {{jwtToken}}
 GET {{baseUrl}}/user/profile/1
 
 ### Get users by role
-GET {{baseUrl}}/users/teacher
+GET {{baseUrl}}/users/school
 
 ### Edit profile
 POST {{baseUrl}}/user/edit?api_token={{apiToken}}

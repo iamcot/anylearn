@@ -20,5 +20,11 @@ app:
     secret: ${JWT_SECRET:change-me-in-production-use-at-least-32-chars}
     expiration-ms: 86400000
 
+meilisearch:
+  host: ${MEILI_HOST:http://localhost:7700}
+  api-key: ${MEILI_MASTER_KEY:local_dev_key}
+
 server:
   port: 8080
+  servlet:
+    context-path: /v2

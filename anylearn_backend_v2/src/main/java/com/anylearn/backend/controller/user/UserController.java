@@ -1,31 +1,39 @@
 package com.anylearn.backend.controller.user;
 
 import com.anylearn.backend.dto.response.ApiResponse;
+import com.anylearn.backend.entity.User;
+import com.anylearn.backend.service.UserService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api")
+@RequiredArgsConstructor
 public class UserController {
 
+    private final UserService userService;
+
     @GetMapping("/users/{role}")
-    public ApiResponse<?> usersList(@PathVariable String role) {
-        return ApiResponse.fail("Not implemented");
+    public ApiResponse<?> usersList(@PathVariable String role,
+                                    @RequestParam(defaultValue = "9999") int pageSize) {
+        return ApiResponse.ok(userService.usersList(role, pageSize));
     }
 
     @GetMapping("/user/profile/{userId}")
     public ApiResponse<?> profile(@PathVariable Long userId) {
-        return ApiResponse.fail("Not implemented");
+        return ApiResponse.ok(userService.profile(userId));
     }
 
     @GetMapping("/user")
-    public ApiResponse<?> userInfo() {
-        return ApiResponse.fail("Not implemented");
+    public ApiResponse<?> userInfo(@AuthenticationPrincipal User user) {
+        return ApiResponse.ok(userService.userInfo(user));
     }
 
     @GetMapping("/user-less")
-    public ApiResponse<?> userInfoLess() {
-        return ApiResponse.fail("Not implemented");
+    public ApiResponse<?> userInfoLess(@AuthenticationPrincipal User user) {
+        return ApiResponse.ok(userService.userInfoLess(user));
     }
 
     @GetMapping("/friends/{userId}")

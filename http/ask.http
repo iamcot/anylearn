@@ -1,4 +1,4 @@
-@baseUrl = http://localhost:8080/api
+@baseUrl = http://localhost:8080/v2/api
 @apiToken = {{$dotenv API_TOKEN}}
 @jwtToken = {{$dotenv JWT_TOKEN}}
 

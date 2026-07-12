@@ -1,9 +1,9 @@
-@baseUrl = http://localhost:8080/api
+@baseUrl = http://localhost:8080/v2/api
 @apiToken = {{$dotenv API_TOKEN}}
 @jwtToken = {{$dotenv JWT_TOKEN}}
 
 ### Login
-GET {{baseUrl}}/login?phone=0123456789&password=123456
+GET {{baseUrl}}/login?phone=0395359198&password=123456
 
 ###  Register
 POST {{baseUrl}}/register

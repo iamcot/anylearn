@@ -1,25 +1,27 @@
 package com.anylearn.backend.controller.config;
 
 import com.anylearn.backend.dto.response.ApiResponse;
+import com.anylearn.backend.service.ConfigService;
+import com.anylearn.backend.service.MeilisearchService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api")
+@RequiredArgsConstructor
 public class ConfigController {
 
-    @GetMapping("/config/home/{role}")
-    public ApiResponse<?> home(@PathVariable String role) {
-        return ApiResponse.fail("Not implemented");
-    }
+    private final ConfigService configService;
+    private final MeilisearchService meilisearchService;
 
-    @GetMapping("/config/homev2/{role}")
-    public ApiResponse<?> homeV2(@PathVariable String role) {
-        return ApiResponse.fail("Not implemented");
+    @GetMapping({"/config/homev2/{role}", "/config/homev2"})
+    public ApiResponse<?> homeV2(@PathVariable(required = false) String role) {
+        return ApiResponse.ok(configService.homeV2(role != null ? role : "buyer"));
     }
 
     @GetMapping("/config/category")
     public ApiResponse<?> category(@RequestParam(required = false) Long catId) {
-        return ApiResponse.fail("Not implemented");
+        return ApiResponse.ok(configService.getAllCategories());
     }
 
     @GetMapping("/event/{month}")
@@ -28,13 +30,21 @@ public class ConfigController {
     }
 
     @GetMapping("/search")
-    public ApiResponse<?> search(@RequestParam(required = false) String q) {
-        return ApiResponse.fail("Not implemented");
+    public ApiResponse<?> search(@RequestParam(required = false) String q,
+                                  @RequestParam(defaultValue = "0") int page,
+                                  @RequestParam(defaultValue = "20") int pageSize,
+                                  @RequestParam(required = false) String category,
+                                  @RequestParam(required = false) String sort) {
+        if ((q == null || q.isBlank()) && (category == null || category.isBlank())) {
+            return ApiResponse.ok(java.util.Map.of("items", java.util.List.of(), "total", 0, "page", page, "pageSize", pageSize));
+        }
+        var result = meilisearchService.search(q, page, pageSize, category, sort);
+        return ApiResponse.ok(result);
     }
 
     @GetMapping("/search-tags")
     public ApiResponse<?> searchTags(@RequestParam(required = false) String q) {
-        return ApiResponse.fail("Not implemented");
+        return ApiResponse.ok(configService.searchTags(q));
     }
 
     @GetMapping("/foundation")

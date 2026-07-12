@@ -1,16 +1,24 @@
 package com.anylearn.backend.controller.item;
 
 import com.anylearn.backend.dto.response.ApiResponse;
+import com.anylearn.backend.entity.User;
+import com.anylearn.backend.service.ItemService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api")
+@RequiredArgsConstructor
 public class ItemController {
 
+    private final ItemService itemService;
+
     @GetMapping("/pdp/{id}")
-    public ApiResponse<?> pdp(@PathVariable Long id) {
-        return ApiResponse.fail("Not implemented");
+    public ApiResponse<?> pdp(@PathVariable Long id,
+                               @AuthenticationPrincipal User currentUser) {
+        return ApiResponse.ok(itemService.pdpData(id, currentUser));
     }
 
     @GetMapping("/item/{itemId}/reviews")

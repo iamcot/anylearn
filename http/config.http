@@ -1,12 +1,9 @@
-@baseUrl = http://localhost:8080/api
+@baseUrl = http://localhost:8080/v2/api
 @apiToken = {{$dotenv API_TOKEN}}
 @jwtToken = {{$dotenv JWT_TOKEN}}
 
-### Home config (public)
-GET {{baseUrl}}/config/home/buyer
-
 ### Home V2
-GET {{baseUrl}}/config/homev2/buyer
+GET {{baseUrl}}/config/homev2
 
 ### Categories
 GET {{baseUrl}}/config/category
@@ -15,7 +12,7 @@ GET {{baseUrl}}/config/category
 GET {{baseUrl}}/config/category?catId=1
 
 ### Search
-GET {{baseUrl}}/search?q=english
+GET {{baseUrl}}/search?q=cờ vua 
 
 ### Search tags
 GET {{baseUrl}}/search-tags?q=kids
