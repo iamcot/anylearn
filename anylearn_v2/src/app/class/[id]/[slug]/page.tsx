@@ -3,6 +3,8 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import ScrollRow from '@/components/ScrollRow'
+import BackButton from '@/components/BackButton'
+import RegisterButton from './RegisterButton'
 
 const SUBTYPE_LABELS: Record<string, string> = {
   extra: 'Ngoại khóa', offline: 'Học trực tiếp', online: 'Học online',
@@ -57,6 +59,7 @@ export default async function PdpPage({ params }: Props) {
       {/* ── Hero ── */}
       <section className="section--soft" style={{ paddingTop: 40, paddingBottom: 40 }}>
         <div className="container">
+          <BackButton />
           <div className="pdp-hero">
             <div className="pdp-image" style={{ aspectRatio: '1/1', borderRadius: 20, overflow: 'hidden', background: 'linear-gradient(135deg,#dff7e8,#e7f3ff)', position: 'relative' }}>
               {item.image
@@ -156,9 +159,7 @@ export default async function PdpPage({ params }: Props) {
                 )}
               </div>
 
-              <button className="btn btn--green" style={{ width: '100%', fontSize: 17, padding: '16px 24px' }}>
-                Đăng ký ngay
-              </button>
+              <RegisterButton itemId={item.id} />
               <button className="btn btn--outline" style={{ width: '100%', marginTop: 10 }}>
                 Nhận tư vấn miễn phí
               </button>

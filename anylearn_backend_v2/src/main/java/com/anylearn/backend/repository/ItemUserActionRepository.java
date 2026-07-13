@@ -58,4 +58,13 @@ public interface ItemUserActionRepository extends JpaRepository<ItemUserAction, 
         ORDER BY iua.id DESC
         """, nativeQuery = true)
     List<java.util.Map<String, Object>> findReviewsByItemId(@Param("itemId") Long itemId);
+    @Query("SELECT iua FROM ItemUserAction iua WHERE iua.userId = :userId AND iua.type = 'cart' ORDER BY iua.id DESC")
+    List<ItemUserAction> findCartByUser(@Param("userId") Long userId);
+
+    @Query(value = """
+        SELECT * FROM item_user_actions
+        WHERE user_id = :userId AND type = 'reg'
+        AND JSON_UNQUOTE(JSON_EXTRACT(extra_value, '$.orderId')) = :orderId
+        """, nativeQuery = true)
+    List<ItemUserAction> findRegsByOrderId(@Param("userId") Long userId, @Param("orderId") String orderId);
 }

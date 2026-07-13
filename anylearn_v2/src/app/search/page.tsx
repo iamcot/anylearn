@@ -568,9 +568,9 @@ function SearchPageInner() {
                 {filteredResults.map(item => (
                   <article key={item.id} className="bg-white border border-[#e6edf4] rounded-2xl overflow-hidden flex flex-col md:grid md:grid-cols-[160px_1fr]"
                     style={{ boxShadow: '0 8px 24px rgba(15,23,42,0.05)' }}>
-                    {/* Ảnh — luôn vuông */}
-                    <div className="relative overflow-hidden grid place-items-center shrink-0 self-start"
-                      style={{ aspectRatio: '1/1', background: 'linear-gradient(135deg,#e9fff3,#eef7ff)' }}>
+                    {/* Ảnh — mobile: vuông, desktop: full height */}
+                    <div className="relative overflow-hidden grid place-items-center shrink-0 aspect-square md:aspect-auto"
+                      style={{ background: 'linear-gradient(135deg,#e9fff3,#eef7ff)' }}>
                       {item.image
                         // eslint-disable-next-line @next/next/no-img-element
                         ? <img src={item.image} alt={item.title} className="absolute inset-0 w-full h-full object-cover" />
@@ -627,9 +627,9 @@ function SearchPageInner() {
                 {userResults.map(u => (
                   <article key={u.id} className="bg-white border border-[#e6edf4] rounded-2xl overflow-hidden flex flex-col md:grid md:grid-cols-[160px_1fr]"
                     style={{ boxShadow: '0 8px 24px rgba(15,23,42,0.05)' }}>
-                    {/* Ảnh — luôn vuông */}
-                    <div className="relative overflow-hidden grid place-items-center shrink-0 self-start"
-                      style={{ aspectRatio: '1/1', background: 'linear-gradient(135deg,#eef7ff,#e9fff3)' }}>
+                    {/* Ảnh — mobile: vuông, desktop: full height */}
+                    <div className="relative overflow-hidden grid place-items-center shrink-0 aspect-square md:aspect-auto"
+                      style={{ background: 'linear-gradient(135deg,#eef7ff,#e9fff3)' }}>
                       {u.image
                         // eslint-disable-next-line @next/next/no-img-element
                         ? <img src={u.image} alt={u.name} className="absolute inset-0 w-full h-full object-cover" />

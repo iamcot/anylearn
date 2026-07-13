@@ -28,3 +28,10 @@ server:
   port: 8080
   servlet:
     context-path: /v2
+
+logging:
+  level:
+    root: INFO
+    com.anylearn: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.security: INFO

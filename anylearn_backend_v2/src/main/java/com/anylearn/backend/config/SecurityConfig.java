@@ -29,6 +29,8 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
+                // Allow CORS preflight requests
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 // Public auth endpoints
                 .requestMatchers(HttpMethod.GET,  "/api/login", "/api/logout").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/login", "/api/login/facebook", "/api/login/apple").permitAll()

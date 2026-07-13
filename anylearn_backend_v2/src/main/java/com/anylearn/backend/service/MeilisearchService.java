@@ -16,6 +16,8 @@ import com.meilisearch.sdk.exceptions.MeilisearchException;
 import com.meilisearch.sdk.model.SearchResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -38,6 +40,10 @@ public class MeilisearchService {
     private final ItemUserActionRepository itemUserActionRepository;
     private final com.anylearn.backend.repository.UserLocationRepository userLocationRepository;
     private final ObjectMapper objectMapper;
+
+    @Lazy
+    @Autowired
+    private ConfigService configService;
 
     @Async
     public void indexItem(Long itemId) {

@@ -6,6 +6,8 @@ import com.anylearn.backend.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
@@ -18,24 +20,14 @@ public class AuthController {
         return ApiResponse.ok(authService.login(phone, password));
     }
 
-    @PostMapping("/login/facebook")
-    public ApiResponse<?> loginFacebook(@RequestBody Object body) {
-        return ApiResponse.fail("Not implemented");
-    }
-
-    @PostMapping("/login/apple")
-    public ApiResponse<?> loginApple(@RequestBody Object body) {
-        return ApiResponse.fail("Not implemented");
-    }
-
-    @GetMapping("/logout")
-    public ApiResponse<?> logout() {
-        return ApiResponse.fail("Not implemented");
-    }
-
     @PostMapping("/register")
-    public ApiResponse<?> register(@RequestBody Object body) {
-        return ApiResponse.fail("Not implemented");
+    public ApiResponse<LoginResponse> register(@RequestBody Map<String, String> body) {
+        return ApiResponse.ok(authService.register(
+                body.get("name"),
+                body.get("phone"),
+                body.get("email"),
+                body.get("password")
+        ));
     }
 
     @PostMapping("/simple-register")

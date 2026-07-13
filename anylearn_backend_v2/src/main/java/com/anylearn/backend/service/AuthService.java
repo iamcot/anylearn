@@ -40,6 +40,40 @@ public class AuthService {
         return new LoginResponse(user, jwtService.generateToken(user.getId()));
     }
 
+    public LoginResponse register(String name, String phone, String email, String password) {
+        if (userRepository.findByPhone(phone).isPresent()) {
+            throw new IllegalArgumentException("Số điện thoại này đã được đăng ký.");
+        }
+
+        User user = new User();
+        user.setName(name);
+        user.setPhone(phone);
+        user.setRefcode(phone);
+        user.setEmail(email != null ? email : "");
+        user.setPassword(passwordEncoder.encode(password));
+        user.setRole("user");
+        user.setStatus((byte) 1);
+        user.setIsChild((byte) 0);
+        user.setIsSigned((byte) 0);
+        user.setUserCategoryId(0);
+        user.setPackageId(0);
+        user.setExpire(0);
+        user.setWalletM(0L);
+        user.setWalletC(0L);
+        user.setIsHot((byte) 0);
+        user.setCommissionRate(0.0);
+        user.setNumFriends(0);
+        user.setIsTest((byte) 0);
+        user.setIsRegistered((byte) 0);
+        user.setUpdateDoc((byte) 0);
+        user.setSalePriority(0);
+        user.setGetRefSeller(false);
+        user.setApiToken(generateApiToken());
+
+        userRepository.save(user);
+        return new LoginResponse(user, jwtService.generateToken(user.getId()));
+    }
+
     private String generateApiToken() {
         try {
             byte[] random = new byte[60];

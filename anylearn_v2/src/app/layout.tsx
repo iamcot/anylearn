@@ -3,6 +3,8 @@ import './globals.css'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import FloatContact from '@/components/FloatContact'
+import { AuthProvider } from '@/context/AuthContext'
+import AuthModal from '@/components/AuthModal'
 
 export const metadata: Metadata = {
   title: 'anyLEARN - Học không giới hạn',
@@ -16,10 +18,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="vi">
       <body style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-        <Header />
-        <main style={{ flex: 1 }}>{children}</main>
-        <Footer />
-        <FloatContact />
+        <AuthProvider>
+          <Header />
+          <main style={{ flex: 1 }}>{children}</main>
+          <Footer />
+          <FloatContact />
+          <AuthModal />
+        </AuthProvider>
       </body>
     </html>
   )

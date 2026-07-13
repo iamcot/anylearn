@@ -1,13 +1,27 @@
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080/v2/api'
 
-async function apiFetch<T>(path: string): Promise<T | null> {
+async function apiFetch<T>(path: string, options?: RequestInit): Promise<T | null> {
   try {
-    const res = await fetch(`${BASE}${path}`, { next: { revalidate: 60 } })
+    const res = await fetch(`${BASE}${path}`, { next: { revalidate: 60 }, ...options })
     if (!res.ok) return null
     const json = await res.json()
     return json?.data ?? json
   } catch {
     return null
+  }
+}
+
+async function authFetch<T>(path: string, token: string, options?: RequestInit): Promise<{ data: T | null; error?: string }> {
+  try {
+    const res = await fetch(`${BASE}${path}`, {
+      ...options,
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, ...(options?.headers ?? {}) },
+    })
+    const json = await res.json()
+    if (!res.ok) return { data: null, error: json?.message || 'Lỗi không xác định' }
+    return { data: json?.data ?? json }
+  } catch (e) {
+    return { data: null, error: 'Không thể kết nối máy chủ' }
   }
 }
 
@@ -210,4 +224,107 @@ export async function searchUsers(q: string, role: string, page = 0, pageSize = 
   if (authorId) path += `&authorId=${authorId}`
   const result = await apiFetch<UserSearchResult>(path)
   return result ?? { items: [], total: 0, page, pageSize }
+}
+
+// ── Auth ──────────────────────────────────────────────
+export interface AuthUser {
+  id: number
+  name: string
+  firstName?: string
+  phone: string
+  email?: string
+  role: string
+  image?: string
+  walletM?: number
+  walletC?: number
+  apiToken: string
+  jwtToken: string
+}
+
+export async function loginApi(phone: string, password: string): Promise<{ user: AuthUser | null; error?: string }> {
+  try {
+    const res = await fetch(`${BASE}/login?phone=${encodeURIComponent(phone)}&password=${encodeURIComponent(password)}`)
+    const json = await res.json()
+    if (!res.ok || json?.resultCode !== 1) return { user: null, error: json?.message || 'Đăng nhập thất bại' }
+    return { user: json.data }
+  } catch {
+    return { user: null, error: 'Không thể kết nối máy chủ' }
+  }
+}
+
+export async function registerApi(name: string, phone: string, email: string, password: string): Promise<{ user: AuthUser | null; error?: string }> {
+  try {
+    const res = await fetch(`${BASE}/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, phone, email, password }),
+    })
+    const json = await res.json()
+    if (!res.ok || json?.resultCode !== 1) return { user: null, error: json?.message || 'Đăng ký thất bại' }
+    return { user: json.data }
+  } catch {
+    return { user: null, error: 'Không thể kết nối máy chủ' }
+  }
+}
+
+// ── Cart ──────────────────────────────────────────────
+export interface CartInfoData {
+  item: Item & { orgPrice?: number; nolimitTime?: string; authorName?: string }
+  children: { id: number; name: string; image?: string }[]
+  plans: { id: number; title?: string; weekdays?: string; date_start?: string; time_start?: string; location_title?: string; address?: string }[]
+  categories: { id: number; title: string; url: string }[]
+  activiyTrial: boolean
+  activiyTest: boolean
+  activiyVisit: boolean
+}
+
+export interface CartItem {
+  cartItemId: number
+  itemId: number
+  title: string
+  image?: string
+  price: number
+  orgPrice?: number
+  dateStart?: string
+  authorName?: string
+  studentName?: string
+  extra?: Record<string, unknown>
+}
+
+export interface OrderData {
+  orderId: string
+  items: { itemId: number; title: string; price: number; image?: string; dateStart?: string; seoUrl?: string }[]
+  paymentMethod: string
+}
+
+export async function getCartInfo(itemId: number, token: string): Promise<CartInfoData | null> {
+  const { data } = await authFetch<CartInfoData>(`/cart-info/${itemId}`, token)
+  return data
+}
+
+export async function addToCart(payload: {
+  itemId: number; studentId?: number; planId?: number
+  trialType?: string; trialDate?: string; trialNote?: string
+}, token: string): Promise<{ data: { cartItemId: number; cartCount: number } | null; error?: string }> {
+  return authFetch(`/cart/add`, token, { method: 'POST', body: JSON.stringify(payload) })
+}
+
+export async function getCart(token: string): Promise<CartItem[]> {
+  const { data } = await authFetch<CartItem[]>(`/cart`, token)
+  return data ?? []
+}
+
+export async function removeCartItem(actionId: number, token: string): Promise<void> {
+  await authFetch(`/cart/${actionId}`, token, { method: 'DELETE' })
+}
+
+export async function checkout(payload: {
+  paymentMethod: string; couponCode?: string; pointsUsed?: number
+}, token: string): Promise<{ data: OrderData | null; error?: string }> {
+  return authFetch(`/checkout`, token, { method: 'POST', body: JSON.stringify(payload) })
+}
+
+export async function getOrder(orderId: string, token: string): Promise<OrderData | null> {
+  const { data } = await authFetch<OrderData>(`/order/${orderId}`, token)
+  return data
 }
