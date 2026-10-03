@@ -1,6 +1,21 @@
 import Link from 'next/link'
 
-export default function Footer() {
+const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080/v2/api'
+
+interface KnowledgeItem { id: number; title: string; url: string }
+
+async function fetchTopKnowledge(): Promise<KnowledgeItem[]> {
+  try {
+    const res = await fetch(`${BASE}/helpcenter/top?limit=4`, { next: { revalidate: 3600 } })
+    const json = await res.json()
+    if (json?.resultCode === 1 && Array.isArray(json?.data)) return json.data
+  } catch {}
+  return []
+}
+
+export default async function Footer() {
+  const topKnowledge = await fetchTopKnowledge()
+
   return (
     <footer className="footer">
       <div className="container">
@@ -13,25 +28,18 @@ export default function Footer() {
 
           <div>
             <h4>Dành cho phụ huynh</h4>
-            <Link href="/search">Tìm khóa học</Link>
-            <Link href="/search">Tìm trường học</Link>
-            <Link href="/search">Tìm chuyên gia</Link>
-            <Link href="/info">Nhận tư vấn</Link>
+            <Link href="/helpcenter">Trung Tâm Hỗ trợ</Link>
+            {topKnowledge.map(k => (
+              <Link key={k.id} href={`/helpcenter/${k.id}/${k.url}`}>{k.title}</Link>
+            ))}
           </div>
 
           <div>
-            <h4>Dành cho đối tác</h4>
-            <a href="#">Đăng ký trường học</a>
-            <a href="#">Đăng ký chuyên gia</a>
-            <a href="#">Liên hệ hợp tác</a>
-          </div>
-
-          <div>
-            <h4>Hỗ trợ</h4>
-            <a href="#">FAQ</a>
-            <a href="#">Chính sách thanh toán</a>
-            <a href="#">Chính sách đổi trả</a>
-            <a href="#">Điều khoản sử dụng</a>
+            <h4>Điều khoản &amp; Chính sách</h4>
+            <Link href="/privacy">Chính sách bảo mật thông tin</Link>
+            <Link href="/guide?p=guide_toc">Điều khoản sử dụng</Link>
+            <Link href="/guide?p=guide_payment_term">Chính sách thanh toán</Link>
+            <Link href="/guide?p=guide_return_term">Chính sách đổi - trả và hoàn tiền</Link>
           </div>
 
           <div>
@@ -46,9 +54,9 @@ export default function Footer() {
                 { href: '#', src: '/cdn/img/zalo.png', title: 'Zalo' },
               ].map(s => (
                 <a key={s.title} href={s.href} title={s.title}
-                  className="w-9 h-9 rounded-full border border-white/25 grid place-items-center overflow-hidden">
+                  className="w-9 h-9 rounded-full overflow-hidden">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={s.src} alt={s.title} className="w-5 h-5 object-contain" />
+                  <img src={s.src} alt={s.title} className="w-full h-full object-cover" />
                 </a>
               ))}
             </div>

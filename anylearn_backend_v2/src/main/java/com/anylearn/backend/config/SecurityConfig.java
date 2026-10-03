@@ -42,7 +42,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET,  "/api/event/**", "/api/search", "/api/search-tags", "/api/search/users").permitAll()
                 .requestMatchers(HttpMethod.GET,  "/api/config/**").permitAll()
                 .requestMatchers(HttpMethod.GET,  "/api/voucher/check").permitAll()
-                .requestMatchers(HttpMethod.GET,  "/api/pdp/**", "/api/foundation", "/api/doc/**").permitAll()
+                .requestMatchers(HttpMethod.GET,  "/api/pdp/**", "/api/foundation", "/api/doc/**", "/api/helpcenter/**").permitAll()
                 .requestMatchers(HttpMethod.GET,  "/api/item/*/reviews").permitAll()
                 .requestMatchers(HttpMethod.GET,  "/api/article/**").permitAll()
                 .requestMatchers(HttpMethod.GET,  "/api/ask/list", "/api/ask/*").permitAll()

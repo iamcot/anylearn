@@ -1,11 +1,16 @@
 package com.anylearn.backend.controller.config;
 
 import com.anylearn.backend.dto.response.ApiResponse;
+import com.anylearn.backend.repository.ConfigurationRepository;
+import com.anylearn.backend.repository.KnowledgeRepository;
+import com.anylearn.backend.repository.KnowledgeTopicCategoryLinkRepository;
+import com.anylearn.backend.repository.KnowledgeTopicRepository;
 import com.anylearn.backend.repository.VoucherGroupRepository;
 import com.anylearn.backend.repository.VoucherRepository;
 import com.anylearn.backend.service.ConfigService;
 import com.anylearn.backend.service.MeilisearchService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.LinkedHashMap;
@@ -20,6 +25,10 @@ public class ConfigController {
     private final MeilisearchService meilisearchService;
     private final VoucherRepository voucherRepository;
     private final VoucherGroupRepository voucherGroupRepository;
+    private final ConfigurationRepository configurationRepository;
+    private final KnowledgeRepository knowledgeRepository;
+    private final KnowledgeTopicRepository knowledgeTopicRepository;
+    private final KnowledgeTopicCategoryLinkRepository knowledgeTopicCategoryLinkRepository;
 
     @GetMapping({"/config/homev2/{role}", "/config/homev2"})
     public ApiResponse<?> homeV2(@PathVariable(required = false) String role) {
@@ -74,7 +83,87 @@ public class ConfigController {
 
     @GetMapping("/doc/{key}")
     public ApiResponse<?> getDoc(@PathVariable String key) {
-        return ApiResponse.fail("Not implemented");
+        return configurationRepository.findByKey(key)
+                .map(c -> {
+                    Map<String, Object> res = new LinkedHashMap<>();
+                    res.put("content", c.getValue());
+                    res.put("updatedAt", c.getUpdatedAt());
+                    return ApiResponse.ok(res);
+                })
+                .orElse(ApiResponse.fail("Không tìm thấy tài liệu"));
+    }
+
+    @GetMapping("/helpcenter/top")
+    public ApiResponse<?> helpcenterTop(@RequestParam(defaultValue = "buyer") String type,
+                                         @RequestParam(defaultValue = "4") int limit) {
+        var items = knowledgeRepository.findTopByType(type, PageRequest.of(0, limit));
+        var result = items.stream().map(k -> {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("id", k.getId());
+            m.put("title", k.getTitle());
+            m.put("url", k.getUrl());
+            return m;
+        }).toList();
+        return ApiResponse.ok(result);
+    }
+
+    @GetMapping("/helpcenter")
+    public ApiResponse<?> helpcenterIndex() {
+        var topKnowledge = knowledgeRepository.findTopByType("buyer", PageRequest.of(0, 10))
+                .stream().map(k -> {
+                    Map<String, Object> m = new LinkedHashMap<>();
+                    m.put("id", k.getId()); m.put("title", k.getTitle()); m.put("url", k.getUrl());
+                    return m;
+                }).toList();
+        var topics = knowledgeTopicRepository.findByTypeAndStatusGreaterThanOrderByIdAsc("buyer", (byte) 0)
+                .stream().map(t -> {
+                    Map<String, Object> m = new LinkedHashMap<>();
+                    m.put("id", t.getId()); m.put("title", t.getTitle()); m.put("url", t.getUrl());
+                    m.put("image", t.getImage()); m.put("description", t.getDescription());
+                    return m;
+                }).toList();
+        return ApiResponse.ok(Map.of("topKnowledge", topKnowledge, "topics", topics));
+    }
+
+    @GetMapping("/helpcenter/article/{id}")
+    public ApiResponse<?> helpcenterArticle(@PathVariable Long id) {
+        return knowledgeRepository.findById(id).map(k -> {
+            var others = knowledgeRepository
+                    .findTopByType(k.getType(), PageRequest.of(0, 6))
+                    .stream().filter(o -> !o.getId().equals(id))
+                    .limit(5)
+                    .map(o -> {
+                        Map<String, Object> m = new LinkedHashMap<>();
+                        m.put("id", o.getId()); m.put("title", o.getTitle()); m.put("url", o.getUrl());
+                        return m;
+                    }).toList();
+            Map<String, Object> res = new LinkedHashMap<>();
+            res.put("id", k.getId()); res.put("title", k.getTitle()); res.put("url", k.getUrl());
+            res.put("content", k.getContent()); res.put("updatedAt", k.getUpdatedAt());
+            res.put("others", others);
+            return ApiResponse.ok(res);
+        }).orElse(ApiResponse.fail("Không tìm thấy bài viết"));
+    }
+
+    @GetMapping("/helpcenter/topic/{url}")
+    public ApiResponse<?> helpcenterTopic(@PathVariable String url) {
+        var topic = knowledgeTopicRepository.findByTypeAndStatusGreaterThanOrderByIdAsc("buyer", (byte) 0)
+                .stream().filter(t -> url.equals(t.getUrl())).findFirst().orElse(null);
+        if (topic == null) return ApiResponse.fail("Không tìm thấy chủ đề");
+
+        var categoryIds = knowledgeTopicCategoryLinkRepository.findByKnowledgeTopicId(topic.getId())
+                .stream().map(l -> l.getKnowledgeCategoryId()).toList();
+        var knowledge = categoryIds.isEmpty() ? java.util.List.of() : knowledgeRepository.findByCategoryIds(categoryIds)
+                .stream().map(k -> {
+                    Map<String, Object> m = new LinkedHashMap<>();
+                    m.put("id", k.getId()); m.put("title", k.getTitle()); m.put("url", k.getUrl());
+                    return m;
+                }).toList();
+
+        Map<String, Object> res = new LinkedHashMap<>();
+        res.put("id", topic.getId()); res.put("title", topic.getTitle()); res.put("url", topic.getUrl());
+        res.put("knowledge", knowledge);
+        return ApiResponse.ok(res);
     }
 
     @PostMapping("/report/ecommerce")

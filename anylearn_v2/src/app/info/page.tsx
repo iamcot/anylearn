@@ -237,7 +237,6 @@ export default function InfoPage() {
                   <div style={{ fontSize: 13, color: '#6d7a8a' }}>{t.title}</div>
                 </div>
               </div>
-              <div style={{ fontSize: 28, color: '#00a651', lineHeight: 1, marginBottom: 10 }}>"</div>
               <p style={{ margin: 0, color: '#2f3b4a', lineHeight: 1.6, fontStyle: 'italic' }}>{t.quote}</p>
             </article>
           ))}
