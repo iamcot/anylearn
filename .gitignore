@@ -11,16 +11,8 @@ anylearn_v2/out/
 anylearn_v2/node_modules/
 anylearn_v2/.env*.local
 
-# Laravel (anylearn_portal)
-anylearn_portal/vendor/
-anylearn_portal/node_modules/
-anylearn_portal/.env
-anylearn_portal/.env.backup
-anylearn_portal/storage/*.key
-anylearn_portal/storage/logs/*
-anylearn_portal/public/hot
-anylearn_portal/public/storage
-anylearn_portal/.phpunit.result.cache
+# Laravel (anylearn_portal) — kept locally for reference, removed from git
+anylearn_portal/
 
 # Java Spring Boot (anylearn_backend_v2)
 anylearn_backend_v2/target/

@@ -1,0 +1,283 @@
+name: Deploy to Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      deploy_backend:
+        description: 'Deploy backend (Java)'
+        required: true
+        default: true
+        type: boolean
+      deploy_frontend:
+        description: 'Deploy frontend (Next.js)'
+        required: true
+        default: true
+        type: boolean
+
+env:
+  JAVA_VERSION: '21'
+  NODE_VERSION: '20.x'
+  DEPLOY_PATH: '/opt/anylearn'
+
+jobs:
+
+  # ── Build ────────────────────────────────────────────────────────────────────
+
+  build-backend:
+    name: Build Backend
+    runs-on: [self-hosted, production]
+    if: github.event.inputs.deploy_backend == 'true'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('anylearn_backend_v2/pom.xml') }}
+          restore-keys: ${{ runner.os }}-maven-
+
+      - name: Build with Maven
+        working-directory: anylearn_backend_v2
+        run: mvn clean package -DskipTests -B
+
+      - name: Upload backend artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-jar
+          path: anylearn_backend_v2/target/backend-v2-0.0.1-SNAPSHOT.jar
+          retention-days: 7
+
+  build-frontend:
+    name: Build Frontend
+    runs-on: [self-hosted, production]
+    if: github.event.inputs.deploy_frontend == 'true'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Cache npm
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('anylearn_v2/package-lock.json') }}
+          restore-keys: ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        working-directory: anylearn_v2
+        run: |
+          npm ci --prefer-offline --no-audit
+
+          # Update shared node_modules if package.json changed
+          if [ ! -f "${{ env.DEPLOY_PATH }}/frontend/package.json" ] || \
+             ! cmp -s package.json "${{ env.DEPLOY_PATH }}/frontend/package.json"; then
+            echo "Updating shared node_modules..."
+            sg anylearn-deploy -c "mkdir -p ${{ env.DEPLOY_PATH }}/frontend"
+            sg anylearn-deploy -c "cp package.json ${{ env.DEPLOY_PATH }}/frontend/"
+            sg anylearn-deploy -c "cp package-lock.json ${{ env.DEPLOY_PATH }}/frontend/"
+            cd ${{ env.DEPLOY_PATH }}/frontend
+            sg anylearn-deploy -c "npm ci --prefer-offline --no-audit"
+            echo "✓ Shared node_modules updated"
+          fi
+
+      - name: Create .env.production
+        working-directory: anylearn_v2
+        run: |
+          echo "NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}" > .env.production
+
+      - name: Build Next.js
+        working-directory: anylearn_v2
+        run: |
+          npm run build
+          [ -d ".next" ] || (echo "✗ .next not found after build" && exit 1)
+
+      - name: Upload frontend artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: |
+            anylearn_v2/.next
+            anylearn_v2/package.json
+            anylearn_v2/package-lock.json
+            anylearn_v2/next.config.ts
+            anylearn_v2/public
+          retention-days: 7
+          include-hidden-files: true
+
+  # ── Deploy ───────────────────────────────────────────────────────────────────
+
+  deploy-backend:
+    name: Deploy Backend
+    runs-on: [self-hosted, production]
+    needs: build-backend
+    if: ${{ !cancelled() && needs.build-backend.result == 'success' }}
+    steps:
+      - name: Checkout deploy scripts
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: deployment/
+          sparse-checkout-cone-mode: false
+
+      - name: Resolve Java 21 path and update service file
+        run: |
+          JAVA21_HOME=""
+          for p in /opt/java/jdk-21 /usr/lib/jvm/java-21-openjdk-amd64 /usr/lib/jvm/temurin-21-*; do
+            if [ -d "$p" ] && [ -x "$p/bin/java" ]; then
+              JAVA21_HOME="$p"; break
+            fi
+          done
+          if [ -z "$JAVA21_HOME" ]; then
+            JAVA21_HOME=$(readlink -f "$JAVA_HOME")
+            sudo mkdir -p /opt/java
+            sudo rm -rf /opt/java/jdk-21
+            sudo cp -rL "$JAVA21_HOME" /opt/java/jdk-21
+            JAVA21_HOME=/opt/java/jdk-21
+          fi
+          echo "Using Java: $JAVA21_HOME"
+          sudo sed -i "s|JAVA_HOME=.*|JAVA_HOME=$JAVA21_HOME\"|" deployment/systemd/anylearn-backend.service
+          sudo sed -i "s|ExecStart=.*/bin/java|ExecStart=$JAVA21_HOME/bin/java|" deployment/systemd/anylearn-backend.service
+          sudo systemctl stop anylearn-backend.service || true
+          sudo cp deployment/systemd/anylearn-backend.service /etc/systemd/system/
+          sudo systemctl daemon-reload
+
+      - name: Create backend .env
+        run: |
+          sg anylearn-deploy -c "mkdir -p ${{ env.DEPLOY_PATH }}/backend"
+          sg anylearn-deploy -c "tee ${{ env.DEPLOY_PATH }}/backend/.env > /dev/null" << 'EOF'
+          SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }}
+          SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }}
+          SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          APP_URL=${{ secrets.APP_URL }}
+          PAYMENT_CALLBACK_URL=${{ secrets.PAYMENT_CALLBACK_URL }}
+          FRONTEND_URL=${{ secrets.FRONTEND_URL }}
+          MEILI_HOST=${{ secrets.MEILI_HOST }}
+          MEILI_MASTER_KEY=${{ secrets.MEILI_MASTER_KEY }}
+          ADMIN_API_TOKEN=${{ secrets.ADMIN_API_TOKEN }}
+          VNPAY_SERVER=${{ secrets.VNPAY_SERVER }}
+          VNPAY_TMN_CODE=${{ secrets.VNPAY_TMN_CODE }}
+          VNPAY_SECRET=${{ secrets.VNPAY_SECRET }}
+          ONEPAY_SERVER=${{ secrets.ONEPAY_SERVER }}
+          ONEPAY_ACCESS_CODE=${{ secrets.ONEPAY_ACCESS_CODE }}
+          ONEPAY_MERCHANT=${{ secrets.ONEPAY_MERCHANT }}
+          ONEPAY_SECRET=${{ secrets.ONEPAY_SECRET }}
+          ONEPAYTG_SERVER=${{ secrets.ONEPAYTG_SERVER }}
+          ONEPAYTG_ACCESS_CODE=${{ secrets.ONEPAYTG_ACCESS_CODE }}
+          ONEPAYTG_MERCHANT=${{ secrets.ONEPAYTG_MERCHANT }}
+          ONEPAYTG_SECRET=${{ secrets.ONEPAYTG_SECRET }}
+          MOMO_SERVER=${{ secrets.MOMO_SERVER }}
+          MOMO_PARTNER_CODE=${{ secrets.MOMO_PARTNER_CODE }}
+          MOMO_ACCESS_KEY=${{ secrets.MOMO_ACCESS_KEY }}
+          MOMO_SECRET_KEY=${{ secrets.MOMO_SECRET_KEY }}
+          BANK_NAME=${{ secrets.BANK_NAME }}
+          BANK_ACCOUNT_NUMBER=${{ secrets.BANK_ACCOUNT_NUMBER }}
+          BANK_ACCOUNT_NAME=${{ secrets.BANK_ACCOUNT_NAME }}
+          BANK_TRANSFER_CONTENT=${{ secrets.BANK_TRANSFER_CONTENT }}
+          BANK_ZALO_PHONE=${{ secrets.BANK_ZALO_PHONE }}
+          AWS_ACCESS_KEY=${{ secrets.AWS_ACCESS_KEY }}
+          AWS_SECRET_KEY=${{ secrets.AWS_SECRET_KEY }}
+          AWS_REGION=${{ secrets.AWS_REGION }}
+          AWS_S3_BUCKET=${{ secrets.AWS_S3_BUCKET }}
+          AWS_CDN_URL=${{ secrets.AWS_CDN_URL }}
+          SPRING_PROFILES_ACTIVE=prod
+          EOF
+          sg anylearn-deploy -c "chmod 640 ${{ env.DEPLOY_PATH }}/backend/.env"
+
+      - name: Download backend artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-jar
+          path: /tmp/artifacts/backend
+
+      - name: Deploy backend
+        run: bash deployment/scripts/deploy-backend.sh /tmp/artifacts/backend/backend-v2-0.0.1-SNAPSHOT.jar
+
+  deploy-frontend:
+    name: Deploy Frontend
+    runs-on: [self-hosted, production]
+    needs: [build-frontend, deploy-backend]
+    if: ${{ !cancelled() && needs.build-frontend.result == 'success' }}
+    steps:
+      - name: Checkout deploy scripts
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: deployment/
+          sparse-checkout-cone-mode: false
+
+      - name: Update frontend service file
+        run: |
+          sudo cp deployment/systemd/anylearn-frontend.service /etc/systemd/system/
+          sudo systemctl daemon-reload
+
+      - name: Create frontend .env.production
+        run: |
+          sg anylearn-deploy -c "mkdir -p ${{ env.DEPLOY_PATH }}/frontend"
+          sg anylearn-deploy -c "tee ${{ env.DEPLOY_PATH }}/frontend/.env.production > /dev/null" << 'EOF'
+          NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
+          EOF
+          sg anylearn-deploy -c "chmod 640 ${{ env.DEPLOY_PATH }}/frontend/.env.production"
+
+      - name: Download frontend artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build
+          path: /tmp/artifacts/frontend
+
+      - name: Restructure artifacts
+        run: |
+          # Flatten anylearn_v2/ subdirectory if present
+          if [ -d "/tmp/artifacts/frontend/anylearn_v2" ]; then
+            mv /tmp/artifacts/frontend/anylearn_v2/* /tmp/artifacts/frontend/
+            rm -rf /tmp/artifacts/frontend/anylearn_v2
+          fi
+
+      - name: Deploy frontend
+        run: bash ${{ env.DEPLOY_PATH }}/scripts/deploy-frontend.sh /tmp/artifacts/frontend
+
+  # ── Health Check & Rollback ──────────────────────────────────────────────────
+
+  health-check:
+    name: Health Check
+    runs-on: [self-hosted, production]
+    needs: [deploy-backend, deploy-frontend]
+    if: ${{ !cancelled() && (needs.deploy-backend.result == 'success' || needs.deploy-frontend.result == 'success') }}
+    steps:
+      - name: Run health check
+        run: bash ${{ env.DEPLOY_PATH }}/scripts/health-check.sh
+
+      - name: Report success
+        run: |
+          echo "✅ Deployment completed successfully!"
+          echo "Commit: ${{ github.sha }}"
+
+  rollback:
+    name: Rollback on Failure
+    runs-on: [self-hosted, production]
+    needs: [deploy-backend, deploy-frontend, health-check]
+    if: failure()
+    steps:
+      - name: Rollback backend
+        if: needs.deploy-backend.result == 'failure' || needs.health-check.result == 'failure'
+        run: bash ${{ env.DEPLOY_PATH }}/scripts/rollback.sh backend
+        continue-on-error: true
+
+      - name: Rollback frontend
+        if: needs.deploy-frontend.result == 'failure' || needs.health-check.result == 'failure'
+        run: bash ${{ env.DEPLOY_PATH }}/scripts/rollback.sh frontend
+        continue-on-error: true
+
+      - name: Report failure
+        run: |
+          echo "❌ Deployment failed — rolled back to previous version"
+          echo "Commit: ${{ github.sha }}"
+          exit 1

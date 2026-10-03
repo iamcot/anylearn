@@ -1,0 +1,33 @@
+[Unit]
+Description=anyLEARN Backend Service (Java Spring Boot)
+After=network.target mysql.service
+Wants=mysql.service
+
+[Service]
+Type=simple
+User=anylearn-app
+Group=anylearn-app
+WorkingDirectory=/opt/anylearn/backend/current
+EnvironmentFile=/opt/anylearn/backend/current/.env
+Environment="SPRING_PROFILES_ACTIVE=prod"
+Environment="JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64"
+Environment="PATH=/usr/lib/jvm/java-21-openjdk-amd64/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+ExecStart=/usr/lib/jvm/java-21-openjdk-amd64/bin/java \
+    -jar \
+    -Xms512m -Xmx1024m \
+    -Dspring.profiles.active=prod \
+    /opt/anylearn/backend/current/backend-v2.jar
+Restart=on-failure
+RestartSec=10
+StandardOutput=append:/opt/anylearn/backend/logs/app.log
+StandardError=append:/opt/anylearn/backend/logs/error.log
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/anylearn/backend/logs
+
+[Install]
+WantedBy=multi-user.target
