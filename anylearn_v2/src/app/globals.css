@@ -9,12 +9,17 @@
   --color-blue-soft: #eef7ff;
   --color-yellow: #ffca05;
   --color-red: #e73348;
+  --color-red-soft: #fff5f5;
   --color-ink: #17212f;
   --color-text: #2f3b4a;
   --color-muted: #6d7a8a;
   --color-line: #e6edf4;
   --color-bg: #f7fafc;
   --color-navy: #071b33;
+  --color-warn-soft: #fffbeb;
+  --color-warn-line: #fde68a;
+  --color-warn-text: #92400e;
+  --radius-card: 1.25rem;
 }
 
 html {
@@ -73,7 +78,7 @@ body {
 
 /* ── Section helpers ── */
 .section {
-  padding: 82px 0;
+  padding: 40px 0;
 }
 .section--soft {
   background: #f7fafc;

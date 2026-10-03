@@ -41,6 +41,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET,  "/api/users/**", "/api/user/profile/**").permitAll()
                 .requestMatchers(HttpMethod.GET,  "/api/event/**", "/api/search", "/api/search-tags", "/api/search/users").permitAll()
                 .requestMatchers(HttpMethod.GET,  "/api/config/**").permitAll()
+                .requestMatchers(HttpMethod.GET,  "/api/voucher/check").permitAll()
                 .requestMatchers(HttpMethod.GET,  "/api/pdp/**", "/api/foundation", "/api/doc/**").permitAll()
                 .requestMatchers(HttpMethod.GET,  "/api/item/*/reviews").permitAll()
                 .requestMatchers(HttpMethod.GET,  "/api/article/**").permitAll()
@@ -54,6 +55,10 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET,  "/api/v3/main-subtypes/**", "/api/v3/articles").permitAll()
                 // Open API (partner integration)
                 .requestMatchers("/api/open/**").permitAll()
+                // Payment gateway callbacks (called by external gateways, no auth)
+                .requestMatchers("/payment-notify/**", "/payment-return/**").permitAll()
+                // Payment bank info (public config)
+                .requestMatchers(HttpMethod.GET, "/api/payment/bank-info").permitAll()
                 // Everything else requires auth
                 .anyRequest().authenticated()
             )

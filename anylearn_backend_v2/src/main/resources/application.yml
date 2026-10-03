@@ -29,7 +29,43 @@ server:
   servlet:
     context-path: /v2
 
-logging:
+payment:
+  baseUrl: ${APP_URL:http://localhost:8080}
+  callbackBaseUrl: ${PAYMENT_CALLBACK_URL:http://localhost:8080/v2}
+  frontendUrl: ${FRONTEND_URL:http://localhost:3000}
+  vnpay:
+    server: ${VNPAY_SERVER:https://sandbox.vnpayment.vn/paymentv2/vpcpay.html}
+    tmnCode: ${VNPAY_TMN_CODE:}
+    secret: ${VNPAY_SECRET:}
+  onepay:
+    server: ${ONEPAY_SERVER:https://mtf.onepay.vn/paygate/vpcpay.op}
+    accessCode: ${ONEPAY_ACCESS_CODE:}
+    merchant: ${ONEPAY_MERCHANT:}
+    secret: ${ONEPAY_SECRET:}
+  onepaytg:
+    server: ${ONEPAYTG_SERVER:https://mtf.onepay.vn/vpcpay/vpcpay.op}
+    accessCode: ${ONEPAYTG_ACCESS_CODE:}
+    merchant: ${ONEPAYTG_MERCHANT:}
+    secret: ${ONEPAYTG_SECRET:}
+  momo:
+    server: ${MOMO_SERVER:https://test-payment.momo.vn}
+    partnerCode: ${MOMO_PARTNER_CODE:}
+    accessKey: ${MOMO_ACCESS_KEY:}
+    secretKey: ${MOMO_SECRET_KEY:}
+  bankTransfer:
+    bankName: ${BANK_NAME:MB Bank}
+    accountNumber: ${BANK_ACCOUNT_NUMBER:}
+    accountName: ${BANK_ACCOUNT_NAME:}
+    transferContent: ${BANK_TRANSFER_CONTENT:[Họ tên] + [Số điện thoại]}
+    zaloPhone: ${BANK_ZALO_PHONE:}
+
+aws:
+  s3:
+    accessKey: ${AWS_ACCESS_KEY:}
+    secretKey: ${AWS_SECRET_KEY:}
+    region: ${AWS_REGION:ap-southeast-1}
+    bucket: ${AWS_S3_BUCKET:}
+    cdnUrl: ${AWS_CDN_URL:}
   level:
     root: INFO
     com.anylearn: DEBUG

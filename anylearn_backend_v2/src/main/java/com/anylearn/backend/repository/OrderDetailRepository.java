@@ -11,6 +11,12 @@ import java.util.List;
 @Repository
 public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> {
 
+    List<OrderDetail> findByOrderId(Long orderId);
+
+    List<OrderDetail> findByUserIdOrderByIdDesc(Long userId);
+
+    boolean existsByUserId(Long userId);
+
     @Query("""
         SELECT new map(i.id as id, i.title as title, i.image as image, i.shortContent as shortContent)
         FROM OrderDetail od JOIN Item i ON i.id = od.itemId

@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState, useCallback, Suspense, useRef } from 'react'
-import { searchItems, searchUsers, Item, UserResult, SearchResult, UserSearchResult, getCategories, Category, getUserProfile, UserProfile, getCourseUrl } from '@/lib/api'
+import { searchItems, searchUsers, Item, UserResult, SearchResult, UserSearchResult, getCategories, Category, getUserProfile, PublicUserProfile, getCourseUrl } from '@/lib/api'
 import Link from 'next/link'
 
 const SUBTYPE_LABELS: Record<string, string> = {
@@ -166,7 +166,7 @@ function SearchPageInner() {
   const [sort, setSort] = useState(initialSort)
   const [activeCategory, setActiveCategory] = useState<string | undefined>(initialCategory)
   const [activeAuthorId, setActiveAuthorId] = useState<number | undefined>(initialAuthorId)
-  const [authorProfile, setAuthorProfile] = useState<UserProfile | null>(null)
+  const [authorProfile, setAuthorProfile] = useState<PublicUserProfile | null>(null)
   const [showFullContent, setShowFullContent] = useState(false)
   const [filterOpen, setFilterOpen] = useState(false)
   const [searchHistory, setSearchHistory] = useState<string[]>([])

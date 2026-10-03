@@ -57,15 +57,15 @@ export default async function PdpPage({ params }: Props) {
   return (
     <>
       {/* ── Hero ── */}
-      <section className="section--soft" style={{ paddingTop: 40, paddingBottom: 40 }}>
+      <section className="section--soft pt-10 pb-10">
         <div className="container">
           <BackButton />
           <div className="pdp-hero">
-            <div className="pdp-image" style={{ aspectRatio: '1/1', borderRadius: 20, overflow: 'hidden', background: 'linear-gradient(135deg,#dff7e8,#e7f3ff)', position: 'relative' }}>
+            <div className="pdp-image aspect-square rounded-card overflow-hidden bg-[linear-gradient(135deg,#dff7e8,#e7f3ff)] relative">
               {item.image
                 // eslint-disable-next-line @next/next/no-img-element
-                ? <img src={item.image} alt={item.title} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-                : <div style={{ width: '100%', height: '100%', display: 'grid', placeItems: 'center', fontSize: 64 }}>📚</div>
+                ? <img src={item.image} alt={item.title} className="absolute inset-0 w-full h-full object-cover" />
+                : <div className="w-full h-full grid place-items-center text-[64px]">📚</div>
               }
             </div>
 
@@ -84,30 +84,30 @@ export default async function PdpPage({ params }: Props) {
                 ))}
               </div>
 
-              <h1 style={{ margin: '0 0 12px', fontSize: 'clamp(22px,3vw,34px)', fontWeight: 900, color: '#17212f', lineHeight: 1.15 }}>
+              <h1 className="m-0 mb-3 text-[clamp(22px,3vw,34px)] font-black text-ink leading-[1.15]">
                 {item.title}
               </h1>
 
               {rating != null ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, flexWrap: 'wrap' }}>
-                  <span style={{ color: '#ffca05', fontSize: 16, letterSpacing: 1 }}>
+                <div className="flex items-center gap-2 mb-[14px] flex-wrap">
+                  <span className="text-yellow text-base tracking-[1px]">
                     {'★'.repeat(Math.round(rating))}{'☆'.repeat(5 - Math.round(rating))}
                   </span>
-                  <span style={{ fontWeight: 900, color: '#17212f' }}>{rating.toFixed(1)}</span>
-                  <span style={{ color: '#6d7a8a', fontSize: 13 }}>({reviews.length} đánh giá)</span>
+                  <span className="font-black text-ink">{rating.toFixed(1)}</span>
+                  <span className="text-muted text-xs">({reviews.length} đánh giá)</span>
                   {num_favorite > 0 && (
                     <>
-                      <span style={{ color: '#9aa5b1' }}>·</span>
-                      <span style={{ color: '#6d7a8a', fontSize: 13 }}>❤️ {num_favorite}</span>
+                      <span className="text-[#9aa5b1]">·</span>
+                      <span className="text-muted text-xs">❤️ {num_favorite}</span>
                     </>
                   )}
                 </div>
               ) : num_favorite > 0 ? (
-                <div style={{ marginBottom: 14, color: '#6d7a8a', fontSize: 13 }}>❤️ {num_favorite} yêu thích</div>
+                <div className="mb-[14px] text-muted text-xs">❤️ {num_favorite} yêu thích</div>
               ) : null}
 
               {item.shortContent && (
-                <p style={{ color: '#6d7a8a', marginBottom: 20, lineHeight: 1.6 }}>{item.shortContent}</p>
+                <p className="text-muted mb-5 leading-[1.6]">{item.shortContent}</p>
               )}
 
               <div className="pdp-meta-grid">
@@ -142,25 +142,25 @@ export default async function PdpPage({ params }: Props) {
                   </div>
                 )}
                 {item.location && (
-                  <div className="pdp-meta-item" style={{ gridColumn: '1/-1' }}>
+                  <div className="pdp-meta-item col-span-full">
                     <span className="pdp-meta-label">Địa điểm</span>
                     <span className="pdp-meta-value">{item.location}</span>
                   </div>
                 )}
               </div>
 
-              <div style={{ margin: '24px 0', display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' }}>
-                <span style={{ fontSize: 32, fontWeight: 900, color: '#e73348' }}>{formatPrice(item.price)}</span>
+              <div className="my-6 flex items-baseline gap-3 flex-wrap">
+                <span className="text-[32px] font-black text-red">{formatPrice(item.price)}</span>
                 {hasDiscount && (
                   <>
-                    <span style={{ fontSize: 18, color: '#9aa5b1', textDecoration: 'line-through' }}>{formatPrice(item.orgPrice!)}</span>
-                    <span style={{ borderRadius: 999, padding: '4px 10px', background: '#e73348', color: 'white', fontSize: 13, fontWeight: 900 }}>-{discountPct}%</span>
+                    <span className="text-lg text-[#9aa5b1] line-through">{formatPrice(item.orgPrice!)}</span>
+                    <span className="rounded-full py-1 px-2.5 bg-red text-white text-xs font-black">-{discountPct}%</span>
                   </>
                 )}
               </div>
 
               <RegisterButton itemId={item.id} />
-              <button className="btn btn--outline" style={{ width: '100%', marginTop: 10 }}>
+              <button className="btn btn--outline w-full mt-[10px]">
                 Nhận tư vấn miễn phí
               </button>
             </div>
@@ -173,18 +173,18 @@ export default async function PdpPage({ params }: Props) {
         <section className="section">
           <div className="container">
             <span className="section-kicker">{author.role === 'teacher' ? 'Chuyên gia' : 'Trường học'}</span>
-            <h2 className="section-title" style={{ marginBottom: 24 }}>{author.name}</h2>
-            <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start', flexWrap: 'wrap', marginBottom: authorItems.length ? 40 : 0 }}>
-              <div style={{ width: 120, aspectRatio: '1/1', borderRadius: 20, overflow: 'hidden', flexShrink: 0, background: 'linear-gradient(135deg,#eef7ff,#e9fff3)', display: 'grid', placeItems: 'center', position: 'relative' }}>
+            <h2 className="section-title mb-6">{author.name}</h2>
+            <div className={`flex gap-6 items-start flex-wrap ${authorItems.length ? 'mb-10' : ''}`}>
+              <div className="w-[120px] aspect-square rounded-card overflow-hidden shrink-0 bg-[linear-gradient(135deg,#eef7ff,#e9fff3)] grid place-items-center relative">
                 {author.image
                   // eslint-disable-next-line @next/next/no-img-element
-                  ? <img src={author.image} alt={author.name} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-                  : <span style={{ fontSize: 48 }}>{author.role === 'teacher' ? '👨‍🏫' : '🏫'}</span>
+                  ? <img src={author.image} alt={author.name} className="absolute inset-0 w-full h-full object-cover" />
+                  : <span className="text-[48px]">{author.role === 'teacher' ? '👨‍🏫' : '🏫'}</span>
                 }
               </div>
-              <div style={{ flex: 1, minWidth: 200 }}>
-                {author.introduce && <p style={{ margin: '0 0 16px', color: '#6d7a8a', lineHeight: 1.7 }}>{author.introduce}</p>}
-                <Link href={`/search?mode=class&authorId=${author.id}`} className="btn btn--outline" style={{ fontSize: 14 }}>
+              <div className="flex-1 min-w-[200px]">
+                {author.introduce && <p className="m-0 mb-4 text-muted leading-[1.7]">{author.introduce}</p>}
+                <Link href={`/search?mode=class&authorId=${author.id}`} className="btn btn--outline text-sm">
                   Xem tất cả khóa học →
                 </Link>
               </div>
@@ -192,22 +192,21 @@ export default async function PdpPage({ params }: Props) {
 
             {authorItems.length > 0 && (
               <>
-                <h3 style={{ margin: '0 0 16px', fontWeight: 900, color: '#17212f', fontSize: 18 }}>Các khóa học khác</h3>
+                <h3 className="m-0 mb-4 font-black text-ink text-lg">Các khóa học khác</h3>
                 <ScrollRow>
                   {(authorItems as Item[]).map(it => (
-                    <Link key={it.id} href={getCourseUrl(it)} className="pdp-scroll-card" style={{ textDecoration: 'none' }}>
-                      <div style={{ aspectRatio: '1/1', borderRadius: 14, overflow: 'hidden', background: 'linear-gradient(135deg,#dff7e8,#e7f3ff)', position: 'relative', marginBottom: 10 }}>
+                    <Link key={it.id} href={getCourseUrl(it)} className="pdp-scroll-card no-underline">
+                      <div className="aspect-square rounded-[14px] overflow-hidden bg-[linear-gradient(135deg,#dff7e8,#e7f3ff)] relative mb-[10px]">
                         {it.image
                           // eslint-disable-next-line @next/next/no-img-element
-                          ? <img src={it.image} alt={it.title} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-                          : <div style={{ width: '100%', height: '100%', display: 'grid', placeItems: 'center', fontSize: 32 }}>📚</div>
+                          ? <img src={it.image} alt={it.title} className="absolute inset-0 w-full h-full object-cover" />
+                          : <div className="w-full h-full grid place-items-center text-[32px]">📚</div>
                         }
                       </div>
-                      <div style={{ fontSize: 14, fontWeight: 900, color: '#008244', lineHeight: 1.3, marginBottom: 6,
-                        display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                      <div className="text-sm font-black text-green-dark leading-[1.3] mb-[6px] line-clamp-2">
                         {it.title}
                       </div>
-                      <div style={{ fontSize: 15, fontWeight: 900, color: '#e73348' }}>{formatPrice(it.price)}</div>
+                      <div className="text-[15px] font-black text-red">{formatPrice(it.price)}</div>
                     </Link>
                   ))}
                 </ScrollRow>
@@ -222,34 +221,34 @@ export default async function PdpPage({ params }: Props) {
         <section className="section section--soft">
           <div className="container">
             <span className="section-kicker">Phản hồi</span>
-            <div style={{ marginBottom: 28 }}>
+            <div className="mb-7">
               <h2 className="section-title">Đánh giá từ học viên</h2>
               {rating != null && (
-                <p style={{ margin: '8px 0 0', color: '#6d7a8a' }}>
+                <p className="mt-2 mb-0 text-muted">
                   ⭐ <strong>{rating.toFixed(1)}</strong> / 5 · {reviews.length} đánh giá
                 </p>
               )}
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {reviews.slice(0, 6).map((r, i) => (
-                <div key={i} style={{ background: 'white', border: '1px solid #e6edf4', borderRadius: 18, padding: 20, boxShadow: '0 4px 12px rgba(15,23,42,0.05)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                <div key={i} className="bg-white border border-line rounded-[18px] p-5 shadow-[0_4px_12px_rgba(15,23,42,0.05)]">
+                  <div className="flex items-center gap-3 mb-3">
                     {r.user_image
                       // eslint-disable-next-line @next/next/no-img-element
-                      ? <img src={r.user_image} alt={r.user_name} style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover' }} />
-                      : <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'linear-gradient(135deg,#eef7ff,#e9fff3)', display: 'grid', placeItems: 'center', fontSize: 18 }}>👤</div>
+                      ? <img src={r.user_image} alt={r.user_name} className="w-10 h-10 rounded-full object-cover" />
+                      : <div className="w-10 h-10 rounded-full bg-[linear-gradient(135deg,#eef7ff,#e9fff3)] grid place-items-center text-lg">👤</div>
                     }
                     <div>
-                      <div style={{ fontWeight: 900, color: '#17212f', fontSize: 15 }}>{r.user_name}</div>
-                      <div style={{ color: '#ffca05', fontSize: 13 }}>{'★'.repeat(Math.round(Number(r.value)))}</div>
+                      <div className="font-black text-ink text-[15px]">{r.user_name}</div>
+                      <div className="text-yellow text-xs">{'★'.repeat(Math.round(Number(r.value)))}</div>
                     </div>
                   </div>
-                  {r.extra_value && <p style={{ margin: 0, color: '#2f3b4a', fontSize: 14, lineHeight: 1.6 }}>{r.extra_value}</p>}
+                  {r.extra_value && <p className="m-0 text-text text-sm leading-[1.6]">{r.extra_value}</p>}
                 </div>
               ))}
             </div>
             {reviews.length > 6 && (
-              <div style={{ textAlign: 'center', marginTop: 24 }}>
+              <div className="text-center mt-6">
                 <button className="btn btn--outline">Xem tất cả {reviews.length} đánh giá</button>
               </div>
             )}
@@ -260,9 +259,9 @@ export default async function PdpPage({ params }: Props) {
       {/* ── Nội dung ── */}
       {content.content_advantage && (
         <section className="section">
-          <div className="container" style={{ maxWidth: 860 }}>
+          <div className="container max-w-[860px]">
             <span className="section-kicker">Nội dung</span>
-            <h2 className="section-title" style={{ marginBottom: 24 }}>Thông tin khóa học</h2>
+            <h2 className="section-title mb-6">Thông tin khóa học</h2>
             <div className="pdp-content"
               dangerouslySetInnerHTML={{ __html: content.content_advantage }} />
           </div>
@@ -276,21 +275,20 @@ export default async function PdpPage({ params }: Props) {
             <span className="section-kicker">Khám phá thêm</span>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-4">
               {(hotItems as Item[]).map(it => (
-                <Link key={it.id} href={getCourseUrl(it)} style={{ textDecoration: 'none' }}>
-                  <article style={{ background: 'white', border: '1px solid #e6edf4', borderRadius: 18, overflow: 'hidden', boxShadow: '0 6px 18px rgba(15,23,42,0.06)' }}>
-                    <div style={{ aspectRatio: '1/1', background: 'linear-gradient(135deg,#dff7e8,#e7f3ff)', position: 'relative', overflow: 'hidden' }}>
+                <Link key={it.id} href={getCourseUrl(it)} className="no-underline">
+                  <article className="bg-white border border-line rounded-[18px] overflow-hidden shadow-[0_6px_18px_rgba(15,23,42,0.06)]">
+                    <div className="aspect-square bg-[linear-gradient(135deg,#dff7e8,#e7f3ff)] relative overflow-hidden">
                       {it.image
                         // eslint-disable-next-line @next/next/no-img-element
-                        ? <img src={it.image} alt={it.title} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-                        : <div style={{ width: '100%', height: '100%', display: 'grid', placeItems: 'center', fontSize: 32 }}>📚</div>
+                        ? <img src={it.image} alt={it.title} className="absolute inset-0 w-full h-full object-cover" />
+                        : <div className="w-full h-full grid place-items-center text-[32px]">📚</div>
                       }
                     </div>
-                    <div style={{ padding: '12px 14px' }}>
-                      <div style={{ fontSize: 13, fontWeight: 900, color: '#008244', lineHeight: 1.3, marginBottom: 6,
-                        display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                    <div className="px-3.5 py-3">
+                      <div className="text-xs font-black text-green-dark leading-[1.3] mb-[6px] line-clamp-2">
                         {it.title}
                       </div>
-                      <div style={{ fontSize: 14, fontWeight: 900, color: '#e73348' }}>{formatPrice(it.price)}</div>
+                      <div className="text-sm font-black text-red">{formatPrice(it.price)}</div>
                     </div>
                   </article>
                 </Link>

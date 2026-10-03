@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
-import { getCart, removeCartItem, checkout, CartItem } from '@/lib/api'
+import { getCart, removeCartItem, checkout, initiatePayment, getPendingOrders, cancelOrder, checkVoucher, CartItem, PendingOrder, VoucherResult } from '@/lib/api'
+import PaymentMethodSelector from '@/components/PaymentMethodSelector'
 import Link from 'next/link'
 
 function formatPrice(p: number) {
@@ -12,33 +13,46 @@ function formatPrice(p: number) {
   return p.toLocaleString('vi-VN') + ' đ'
 }
 
-const PAYMENT_METHODS = [
-  { value: 'bank_transfer', label: 'Chuyển khoản ngân hàng hoặc thanh toán tại trường' },
-  { value: 'card', label: 'Thanh toán trực tuyến bằng thẻ' },
-  { value: 'vnpay', label: 'Quét mã QR qua VNPay (giảm 1%) (trên 100 triệu)' },
-  { value: 'installment', label: 'Trả góp qua thẻ tín dụng (trên 3 triệu) (kỳ hạn 3 tháng) (0% lãi suất)' },
-]
-
 export default function CheckoutPage() {
-  const { user, token, refreshCartCount } = useAuth()
+  const { user, token, refreshCartCount, refreshUser, isAuthLoading } = useAuth()
   const router = useRouter()
   const [items, setItems] = useState<CartItem[]>([])
+  const [pendingOrders, setPendingOrders] = useState<PendingOrder[]>([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [toast, setToast] = useState('')
   const [paymentMethod, setPaymentMethod] = useState('bank_transfer')
   const [coupon, setCoupon] = useState('')
   const [points, setPoints] = useState('')
-  const [agreedTerms, setAgreedTerms] = useState(false)
+  const [agreedTerms, setAgreedTerms] = useState(true)
+
+  // Discount state
+  const [pointsApplied, setPointsApplied] = useState(0)
+  const [voucherResult, setVoucherResult] = useState<VoucherResult | null>(null)
+  const [voucherError, setVoucherError] = useState('')
+  const [voucherLoading, setVoucherLoading] = useState(false)
 
   useEffect(() => {
     if (!token) return
-    getCart(token).then(data => { setItems(data); setLoading(false) })
+    Promise.all([
+      getCart(token),
+      getPendingOrders(token),
+    ]).then(([cartData, pendingData]) => {
+      setItems(cartData)
+      setPendingOrders(pendingData)
+      setLoading(false)
+    })
   }, [token])
 
+  if (isAuthLoading) return null
   if (!user) { router.push('/login'); return null }
 
   const total = items.reduce((sum, i) => sum + i.price, 0)
+  const POINT_RATE = 1000                                              // 1 anyPoint = 1,000 VND
+  const pointsDiscount = Math.min(pointsApplied * POINT_RATE, total)
+  const voucherDiscount = voucherResult ? Math.min(voucherResult.discountValue, total) : 0
+  const finalTotal = Math.max(0, total - pointsDiscount - voucherDiscount)
 
   const handleRemove = async (id: number) => {
     if (!token) return
@@ -47,73 +61,120 @@ export default function CheckoutPage() {
     await refreshCartCount()
   }
 
+  const handleApplyPoints = () => {
+    const p = parseInt(points) || 0
+    if (p <= 0) { setPoints(''); return }
+    const capped = Math.min(p, user?.walletC ?? 0)
+    setPointsApplied(capped)
+    setPoints(String(capped))
+    showToast(`Đã áp dụng ${capped.toLocaleString()} anyPoint`)
+  }
+
+  const handleApplyCoupon = async () => {
+    if (!coupon.trim()) return
+    setVoucherLoading(true)
+    setVoucherError('')
+    setVoucherResult(null)
+    const { data, error: err } = await checkVoucher(coupon.trim(), total)
+    setVoucherLoading(false)
+    if (err || !data) { setVoucherError(err || 'Mã không hợp lệ'); return }
+    setVoucherResult(data)
+    showToast(data.message)
+  }
+
+  const showToast = (msg: string) => {
+    setToast(msg)
+    setTimeout(() => setToast(''), 3000)
+  }
+
+  const handleCancelPending = async (orderId: string) => {
+    if (!token) return
+    await cancelOrder(orderId, token)
+    setPendingOrders(prev => prev.filter(o => o.orderId !== orderId))
+    showToast('Đã hủy đơn hàng')
+  }
+
   const handleCheckout = async () => {
     if (!agreedTerms) { setError('Vui lòng đồng ý với điều khoản thanh toán'); return }
     if (!token) return
     setSubmitting(true)
     setError('')
-    const { data, error: err } = await checkout({
-      paymentMethod,
-      couponCode: coupon || undefined,
-      pointsUsed: points ? Number(points) : undefined,
-    }, token)
+    const { data, error: err } = await checkout({ paymentMethod, couponCode: coupon || undefined, pointsUsed: points ? Number(points) : undefined }, token)
+    if (err || !data) { setError(err || 'Thanh toán thất bại'); setSubmitting(false); return }
+
+    // Refresh user (walletC may have been deducted)
+    await refreshUser()
+
+    // Always call initiatePayment — it sets order to pay_pending and returns redirectUrl if needed
+    const { data: payData, error: payErr } = await initiatePayment(data.orderId, token)
     setSubmitting(false)
-    if (err || !data) { setError(err || 'Thanh toán thất bại'); return }
+    if (payErr) { setError(payErr || 'Không thể khởi tạo thanh toán'); return }
     await refreshCartCount()
-    router.push(`/order/${data.orderId}`)
+
+    if (payData?.redirectUrl) {
+      window.location.href = payData.redirectUrl
+    } else {
+      // bank_transfer: no gateway redirect, go to order page (shows bank info)
+      router.push(`/order/${data.orderId}`)
+    }
   }
 
   return (
     <div className="section section--soft">
-      <div className="container" style={{ maxWidth: 800 }}>
+      <div className="container max-w-[800px]">
+
+        {/* Toast */}
+        {toast && (
+          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-ink text-white py-2.5 px-5 rounded-xl text-sm font-semibold z-[9999] shadow-[0_4px_16px_rgba(0,0,0,0.2)] [animation:fadeIn_0.2s_ease]">
+            ✓ {toast}
+          </div>
+        )}
+
         {/* Đơn hàng */}
-        <div style={{ background: 'white', border: '1px solid #e6edf4', borderRadius: 20, marginBottom: 16, overflow: 'hidden' }}>
-          <div style={{ background: '#f7fafc', borderBottom: '1px solid #e6edf4', padding: '14px 20px', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 18 }}>🛒</span>
-            <span style={{ fontWeight: 900, color: '#17212f' }}>Đơn hàng của bạn</span>
+        <div className="bg-white border border-line rounded-card mb-4 overflow-hidden">
+          <div className="border-b border-line py-3.5 px-5 flex items-center gap-2">
+            <span className="text-lg">🛒</span>
+            <span className="font-black text-ink">Đơn hàng của bạn</span>
           </div>
           {loading ? (
-            <div style={{ padding: 20, color: '#6d7a8a' }}>Đang tải...</div>
+            <div className="p-5 text-muted">Đang tải...</div>
           ) : items.length === 0 ? (
-            <div style={{ padding: 20, textAlign: 'center' }}>
-              <p style={{ color: '#6d7a8a', marginBottom: 16 }}>Giỏ hàng trống</p>
+            <div className="p-5 text-center">
+              <p className="text-muted mb-4">Giỏ hàng trống</p>
               <Link href="/search" className="btn btn--green">Tìm khóa học</Link>
             </div>
           ) : (
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <table className="w-full border-collapse">
               <thead>
-                <tr style={{ borderBottom: '1px solid #e6edf4', background: '#f7fafc' }}>
-                  <td style={{ padding: '10px 20px', fontWeight: 700, fontSize: 13, color: '#6d7a8a', width: 30 }}>#</td>
-                  <td style={{ padding: '10px 0', fontWeight: 700, fontSize: 13, color: '#6d7a8a' }}>Khoá học/Sản phẩm</td>
-                  <td style={{ padding: '10px 20px', fontWeight: 700, fontSize: 13, color: '#6d7a8a', textAlign: 'right' }}>Đơn giá</td>
-                  <td style={{ padding: '10px 12px', width: 40 }}></td>
+                <tr className="border-b border-line bg-bg">
+                  <td className="py-2.5 px-5 font-bold text-xs text-muted w-[30px]">#</td>
+                  <td className="py-2.5 px-0 font-bold text-xs text-muted">Khoá học/Sản phẩm</td>
+                  <td className="py-2.5 px-5 font-bold text-xs text-muted text-right">Đơn giá</td>
+                  <td className="py-2.5 px-3 w-[40px]"></td>
                 </tr>
               </thead>
               <tbody>
                 {items.map((item, idx) => (
-                  <tr key={item.cartItemId} style={{ borderBottom: '1px solid #f0f0f0' }}>
-                    <td style={{ padding: '14px 20px', color: '#6d7a8a', fontSize: 14, verticalAlign: 'top' }}>{idx + 1}</td>
-                    <td style={{ padding: '14px 0', verticalAlign: 'top' }}>
-                      <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                  <tr key={item.cartItemId} className="border-b border-[#f0f0f0]">
+                    <td className="py-3.5 px-5 text-muted text-sm align-top">{idx + 1}</td>
+                    <td className="py-3.5 px-0 align-top">
+                      <div className="flex gap-3 items-start">
                         {item.image && (
                           // eslint-disable-next-line @next/next/no-img-element
-                          <img src={item.image} alt={item.title} style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: 10, flexShrink: 0 }} />
+                          <img src={item.image} alt={item.title} className="w-[60px] h-[60px] object-cover rounded-xl shrink-0" />
                         )}
                         <div>
-                          <div style={{ fontWeight: 900, color: '#008244', fontSize: 15, lineHeight: 1.3 }}>
+                          <div className="font-black text-green-dark text-[15px] leading-tight">
                             {item.title}
-                            {item.studentName && <span style={{ color: '#6d7a8a', fontWeight: 400 }}> ({item.studentName})</span>}
+                            {item.studentName && <span className="text-muted font-normal"> ({item.studentName})</span>}
                           </div>
-                          {item.dateStart && <div style={{ color: '#6d7a8a', fontSize: 13, marginTop: 4 }}>Bắt đầu từ ngày {new Date(item.dateStart).toLocaleDateString('vi-VN')}</div>}
+                          {item.dateStart && <div className="text-muted text-xs mt-1">Bắt đầu từ ngày {new Date(item.dateStart).toLocaleDateString('vi-VN')}</div>}
                         </div>
                       </div>
                     </td>
-                    <td style={{ padding: '14px 20px', textAlign: 'right', verticalAlign: 'top', fontWeight: 700 }}>{formatPrice(item.price)}</td>
-                    <td style={{ padding: '14px 12px', verticalAlign: 'top', textAlign: 'center' }}>
-                      <button onClick={() => handleRemove(item.cartItemId)} style={{
-                        width: 32, height: 32, borderRadius: '50%', background: 'white', border: '1px solid #e73348',
-                        color: '#e73348', cursor: 'pointer', fontSize: 14, display: 'grid', placeItems: 'center',
-                      }}>✕</button>
+                    <td className="py-3.5 px-5 text-right align-top font-bold">{formatPrice(item.price)}</td>
+                    <td className="py-3.5 px-3 align-top text-center">
+                      <button onClick={() => handleRemove(item.cartItemId)} className="w-8 h-8 rounded-full bg-white border border-red text-red cursor-pointer text-sm grid place-items-center">✕</button>
                     </td>
                   </tr>
                 ))}
@@ -122,61 +183,130 @@ export default function CheckoutPage() {
           )}
 
           {items.length > 0 && (
-            <div style={{ padding: 20, borderTop: '1px solid #e6edf4' }}>
-              {/* anyPoint */}
-              <div style={{ display: 'flex', gap: 10, marginBottom: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-                <input className="field" type="number" placeholder="Nhập anyPoint" value={points} onChange={e => setPoints(e.target.value)}
-                  style={{ maxWidth: 200, minHeight: 42 }} />
-                <button className="btn btn--yellow" style={{ padding: '10px 18px' }} onClick={() => setPoints(String(user.walletM ?? 0))}>
-                  Dùng hết
-                </button>
-                {user.walletM != null && <span style={{ color: '#6d7a8a', fontSize: 13 }}>Bạn đang có <strong style={{ color: '#008244' }}>{user.walletM}</strong> anyPoint</span>}
+            <>
+              {/* Section header */}
+              <div className="border-t border-b border-line bg-bg py-2.5 px-5 flex items-center gap-2">
+                <span className="text-sm">🎁</span>
+                <span className="text-sm font-bold text-muted">Đổi điểm & Mã khuyến mãi</span>
               </div>
-              {/* Coupon */}
-              <div style={{ display: 'flex', gap: 10, marginBottom: 20, alignItems: 'center' }}>
+
+              {/* anyPoint + Coupon */}
+              <div className="px-5 py-4 flex flex-col gap-3">
+                {/* anyPoint */}
                 <div>
-                  <label style={{ display: 'block', fontWeight: 700, fontSize: 13, color: '#6d7a8a', marginBottom: 5 }}>Mã giảm giá</label>
-                  <input className="field" type="text" placeholder="Nhập mã giảm giá" value={coupon} onChange={e => setCoupon(e.target.value)}
-                    style={{ maxWidth: 200, minHeight: 42 }} />
+                  <div className="flex items-baseline justify-between mb-1">
+                    <label className="font-bold text-xs text-muted">anyPoint</label>
+                    {user.walletC != null && (
+                      <span className="text-xs text-muted">
+                        Có <strong className="text-green-dark">{user.walletC}</strong> điểm
+                        {user.walletC > 0 && <span className="text-muted"> (~{formatPrice(user.walletC * 1000)})</span>}
+                        {' · '}
+                        <button className="text-blue font-bold border-0 bg-transparent cursor-pointer p-0 font-[inherit] text-xs"
+                          onClick={() => setPoints(String(user.walletC ?? 0))}>Dùng hết</button>
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <input className="field w-1/2 py-1.5 text-sm" style={{ minHeight: 'unset' }}
+                      type="number" placeholder="Nhập số điểm" value={points}
+                      onChange={e => { setPoints(e.target.value); setPointsApplied(0) }} />
+                    <button className="w-[88px] rounded-[18px] py-1.5 text-xs font-bold text-ink bg-[#fefce8] border border-[#fde68a] cursor-pointer hover:bg-[#fef9c3] transition-colors shrink-0"
+                      onClick={handleApplyPoints}>
+                      {pointsApplied > 0 ? '✓ Đã dùng' : 'Dùng điểm'}
+                    </button>
+                  </div>
+                  {pointsApplied > 0 && (
+                    <div className="text-right mt-1 text-xs text-green-dark">
+                      Giảm {formatPrice(pointsDiscount)} từ anyPoint
+                    </div>
+                  )}
                 </div>
-                <button className="btn btn--yellow" style={{ padding: '10px 18px', marginTop: 22 }}>Áp dụng</button>
+
+                {/* Coupon — dòng riêng */}
+                <div>
+                  <label className="block font-bold text-xs text-muted mb-1">Mã giảm giá</label>
+                  <div className="flex justify-end gap-2">
+                    <input className="field w-1/2 py-1.5 text-sm" style={{ minHeight: 'unset' }}
+                      type="text" placeholder="Nhập mã giảm giá" value={coupon}
+                      onChange={e => { setCoupon(e.target.value); setVoucherResult(null); setVoucherError('') }} />
+                    <button className="w-[88px] rounded-[18px] py-1.5 text-xs font-bold text-ink bg-[#fefce8] border border-[#fde68a] cursor-pointer hover:bg-[#fef9c3] transition-colors shrink-0"
+                      onClick={handleApplyCoupon} disabled={voucherLoading}>
+                      {voucherLoading ? '...' : voucherResult ? '✓ Đã dùng' : 'Áp dụng'}
+                    </button>
+                  </div>
+                  {voucherResult && (
+                    <div className="text-right mt-1 text-xs text-green-dark">
+                      Giảm {formatPrice(voucherDiscount)} từ mã {voucherResult.code}
+                    </div>
+                  )}
+                  {voucherError && (
+                    <div className="text-right mt-1 text-xs text-red">{voucherError}</div>
+                  )}
+                </div>
               </div>
-              {/* Tổng */}
-              <div style={{ fontWeight: 900, fontSize: 16, color: '#17212f' }}>
-                TỔNG TIỀN: <span style={{ color: '#e73348', fontSize: 18 }}>{formatPrice(total)}</span>
+
+              {/* Full-width divider + Total */}
+              <div className="border-t border-line flex justify-end px-5 py-4">
+                <div className="text-right mr-[52px]">
+                  {(pointsDiscount > 0 || voucherDiscount > 0) && (
+                    <div className="text-xs text-muted line-through mb-0.5">{formatPrice(total)}</div>
+                  )}
+                  <div className="text-xs text-muted font-bold uppercase tracking-wide mb-0.5">Tổng tiền</div>
+                  <div className="text-xl font-black text-red">{formatPrice(finalTotal)}</div>
+                </div>
               </div>
-            </div>
+            </>
           )}
         </div>
 
+        {/* Đơn hàng chờ thanh toán */}
+        {!loading && items.length === 0 && pendingOrders.length > 0 && (
+          <div className="bg-white border border-warn-line rounded-card mb-4 overflow-hidden">
+            <div className="bg-warn-soft border-b border-warn-line py-3.5 px-5 flex items-center gap-2">
+              <span className="text-lg">⏳</span>
+              <span className="font-black text-warn-text">Đơn hàng chờ thanh toán</span>
+            </div>
+            {pendingOrders.map(order => (
+              <div key={order.orderId} className="py-3.5 px-5 border-b border-[#fef3c7] flex items-center gap-3.5">
+                <div className="flex-1">
+                  <div className="font-bold text-sm text-ink mb-1">
+                    {order.items.map(i => i.title).join(', ')}
+                  </div>
+                  <div className="text-xs text-muted">
+                    {formatPrice(order.amount)} · {order.items.length} khóa học
+                  </div>
+                </div>
+                <Link href={`/order/${order.orderId}?status=pending`} className="btn btn--green py-2 px-4 text-xs whitespace-nowrap">
+                  Tiếp tục thanh toán
+                </Link>
+                <button onClick={() => handleCancelPending(order.orderId)} className="w-8 h-8 rounded-full bg-white border border-red text-red cursor-pointer text-sm grid place-items-center shrink-0" title="Hủy đơn hàng">
+                  ✕
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Phương thức thanh toán */}
         {items.length > 0 && (
-          <div style={{ background: 'white', border: '1px solid #e6edf4', borderRadius: 20, marginBottom: 16, overflow: 'hidden' }}>
-            <div style={{ background: '#f7fafc', borderBottom: '1px solid #e6edf4', padding: '14px 20px', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 18 }}>💳</span>
-              <span style={{ fontWeight: 900, color: '#17212f' }}>Phương thức Thanh toán</span>
+          <div className="bg-white border border-line rounded-card mb-4 overflow-hidden">
+            <div className="bg-white border-b border-line py-3.5 px-5 flex items-center gap-2">
+              <span className="text-lg">💳</span>
+              <span className="font-black text-ink">Phương thức Thanh toán</span>
             </div>
-            <div style={{ padding: '20px' }}>
-              {PAYMENT_METHODS.map(m => (
-                <label key={m.value} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, cursor: 'pointer' }}>
-                  <input type="radio" name="payment" value={m.value} checked={paymentMethod === m.value}
-                    onChange={() => setPaymentMethod(m.value)} style={{ accentColor: '#00a651' }} />
-                  <span style={{ fontSize: 15, color: '#17212f', lineHeight: 1.4 }}>{m.label}</span>
-                </label>
-              ))}
-
-              <div style={{ borderTop: '1px solid #e6edf4', paddingTop: 16, marginTop: 8 }}>
-                {error && <div style={{ background: '#fff5f5', border: '1px solid #ffc9c9', borderRadius: 10, padding: '10px 14px', marginBottom: 14, color: '#e73348', fontSize: 14 }}>{error}</div>}
-                <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 20, cursor: 'pointer' }}>
-                  <input type="checkbox" checked={agreedTerms} onChange={e => setAgreedTerms(e.target.checked)} style={{ marginTop: 2, accentColor: '#00a651' }} />
-                  <span style={{ fontSize: 13, color: '#6d7a8a', lineHeight: 1.5 }}>
+            <div className="p-5">
+              <PaymentMethodSelector total={total} value={paymentMethod} onChange={setPaymentMethod} />
+              <div className="border-t border-line pt-4 mt-2">
+                {error && <div className="bg-red-soft border border-[#ffc9c9] rounded-xl py-2.5 px-3.5 mb-3.5 text-red text-sm">{error}</div>}
+                <label className="flex items-start gap-2.5 mb-5 cursor-pointer">
+                  <input type="checkbox" checked={agreedTerms} onChange={e => setAgreedTerms(e.target.checked)} className="mt-[2px] accent-green" />
+                  <span className="text-xs text-muted leading-normal">
                     Tôi đồng ý với điều khoản thanh toán và{' '}
-                    <Link href="/terms" target="_blank" style={{ color: '#00539b', fontWeight: 700 }}>chính sách bảo mật</Link>
+                    <Link href="/terms" target="_blank" className="text-blue font-bold">chính sách bảo mật</Link>
                     {' '}của Công ty
                   </span>
                 </label>
-                <button onClick={handleCheckout} className="btn btn--green" disabled={submitting}
-                  style={{ width: '100%', fontSize: 17, padding: 16 }}>
+                <button onClick={handleCheckout} className="btn btn--green w-full text-[17px] p-4" disabled={submitting}>
                   {submitting ? 'Đang xử lý...' : 'THANH TOÁN'}
                 </button>
               </div>

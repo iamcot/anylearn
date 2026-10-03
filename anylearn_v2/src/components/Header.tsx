@@ -1,84 +1,139 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
+
+const NAV_LINKS = [
+  { href: '/info', label: 'Giới thiệu' },
+  { href: '/search?mode=school', label: 'anySCHOOL' },
+  { href: '/search?mode=teacher', label: 'anyPROFESSOR' },
+  { href: '/search', label: 'Tìm kiếm' },
+]
+
+const ACCOUNT_MENU = [
+  { href: '/account/profile', label: 'Thông tin cá nhân' },
+  { href: '/account/children', label: 'Tài khoản của con' },
+  { href: '/account/orders', label: 'Đơn hàng của tôi' },
+  { href: '/account/schedule', label: 'Lịch học' },
+  { href: '/account/course-codes', label: 'Mã code khóa học' },
+  { href: '/account/change-password', label: 'Đổi mật khẩu' },
+]
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [accountOpen, setAccountOpen] = useState(false)
   const { user, cartCount, logout, openAuthModal } = useAuth()
+  const accountRef = useRef<HTMLDivElement>(null)
+
+  // Close popup on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (accountRef.current && !accountRef.current.contains(e.target as Node)) {
+        setAccountOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
 
   return (
-    <header style={{
-      position: 'sticky', top: 0, zIndex: 50,
-      background: 'rgba(255,255,255,0.94)',
-      backdropFilter: 'blur(16px)',
-      borderBottom: '1px solid rgba(230,237,244,0.88)',
-      minHeight: 76,
-    }}>
-      <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 24, height: 76 }}>
+    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-line/90 min-h-[76px]">
+      <div className="container flex items-center justify-between gap-6 h-[76px]">
 
         {/* Logo */}
-        <Link href="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
+        <Link href="/" className="flex items-center no-underline">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/cdn/anylearn/img/LogoanyLEARN.svg" alt="anyLEARN" style={{ height: 60 }} />
+          <img src="/cdn/anylearn/img/LogoanyLEARN.svg" alt="anyLEARN" className="h-[60px]" />
         </Link>
 
         {/* Nav links */}
-        <nav style={{ display: 'flex', gap: 26, alignItems: 'center' }} className="hidden-mobile">
-          {[
-            { href: '/info', label: 'Giới thiệu' },
-            { href: '/search?mode=school', label: 'anySCHOOL' },
-            { href: '/search?mode=teacher', label: 'anyPROFESSOR' },
-            { href: '/search', label: 'Tìm kiếm' },
-          ].map(({ href, label }) => (
-            <Link key={label} href={href} style={{
-              fontWeight: 800, color: '#4d5968', fontSize: 15,
-              textDecoration: 'none', padding: '9px 0',
-              borderBottom: '2px solid transparent', transition: 'all 0.2s',
-            }}
-            onMouseEnter={e => { (e.target as HTMLElement).style.color = '#00539b'; (e.target as HTMLElement).style.borderBottomColor = '#00a651' }}
-            onMouseLeave={e => { (e.target as HTMLElement).style.color = '#4d5968'; (e.target as HTMLElement).style.borderBottomColor = 'transparent' }}>
+        <nav className="hidden-mobile flex gap-6 items-center">
+          {NAV_LINKS.map(({ href, label }) => (
+            <Link key={label} href={href}
+              className="font-extrabold text-[#4d5968] text-[15px] no-underline py-2 border-b-2 border-transparent transition-all duration-200 hover:text-blue hover:border-green">
               {label}
             </Link>
           ))}
         </nav>
 
         {/* Right actions */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }} className="hidden-mobile">
+        <div className="hidden-mobile flex items-center gap-2.5">
           {/* Cart */}
-          <Link href="/checkout" style={{ position: 'relative', textDecoration: 'none' }}>
-            <button style={{
-              width: 38, height: 38, borderRadius: '50%',
-              border: '1px solid #e6edf4', background: 'white',
-              display: 'grid', placeItems: 'center', cursor: 'pointer', fontSize: 18,
-            }}>🛒</button>
+          <Link href="/checkout" className="relative no-underline">
+            <button className="w-[38px] h-[38px] rounded-full border border-line bg-white grid place-items-center cursor-pointer text-lg">🛒</button>
             {cartCount > 0 && (
-              <span style={{
-                position: 'absolute', top: -5, right: -4,
-                minWidth: 18, height: 18, borderRadius: 999,
-                background: '#e73348', color: 'white',
-                fontSize: 11, fontWeight: 900,
-                display: 'grid', placeItems: 'center', padding: '0 4px',
-              }}>{cartCount}</span>
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full bg-red text-white text-[11px] font-black grid place-items-center px-1">
+                {cartCount}
+              </span>
             )}
           </Link>
 
           {/* Auth */}
           {user ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              {user.image
-                // eslint-disable-next-line @next/next/no-img-element
-                ? <img src={user.image} alt={user.name} style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover', border: '2px solid #e6edf4' }} />
-                : <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'linear-gradient(135deg,#00539b,#00a651)', display: 'grid', placeItems: 'center', color: 'white', fontWeight: 900, fontSize: 14 }}>
-                    {user.name?.charAt(0).toUpperCase()}
+            <div className="relative" ref={accountRef}>
+              {/* Avatar + name — click to open popup */}
+              <button
+                onClick={() => setAccountOpen(v => !v)}
+                className="flex items-center gap-2 border-0 bg-transparent cursor-pointer p-1 rounded-xl hover:bg-bg transition-colors"
+              >
+                {user.image
+                  // eslint-disable-next-line @next/next/no-img-element
+                  ? <img src={user.image} alt={user.name} className="w-[34px] h-[34px] rounded-full object-cover border-2 border-line" />
+                  : <div className="w-[34px] h-[34px] rounded-full bg-gradient-to-br from-blue to-green grid place-items-center text-white font-black text-sm">
+                      {user.name?.charAt(0).toUpperCase()}
+                    </div>
+                }
+                <span className="font-bold text-ink text-sm max-w-[120px] overflow-hidden text-ellipsis whitespace-nowrap">
+                  {user.name}
+                </span>
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className={`transition-transform ${accountOpen ? 'rotate-180' : ''}`}>
+                  <path d="M2 4l4 4 4-4" stroke="#6d7a8a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+
+              {/* Dropdown popup */}
+              {accountOpen && (
+                <div className="absolute right-0 top-full mt-2 w-56 bg-white border border-line rounded-card shadow-[0_12px_40px_rgba(15,23,42,0.12)] overflow-hidden z-50">
+                  {/* anyPoint — click to go to anypoint page */}
+                  <Link
+                    href="/account/anypoint"
+                    onClick={() => setAccountOpen(false)}
+                    className="px-4 py-3 flex items-center gap-2 bg-bg border-b border-line no-underline hover:bg-blue-soft transition-colors"
+                  >
+                    <span className="text-base">🟡</span>
+                    <span className="text-xs text-muted">anyPoint:</span>
+                    <span className="text-sm font-black text-ink">{(user.walletC ?? 0).toLocaleString()}</span>
+                  </Link>
+
+                  {/* Menu items */}
+                  <div className="py-1">
+                    {ACCOUNT_MENU.map(item => (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={() => setAccountOpen(false)}
+                        className="flex items-center px-4 py-2.5 text-sm text-ink font-medium no-underline hover:bg-bg transition-colors"
+                      >
+                        {item.label}
+                      </Link>
+                    ))}
                   </div>
-              }
-              <span style={{ fontWeight: 700, color: '#17212f', fontSize: 14, maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.name}</span>
-              <button onClick={logout} className="btn btn--outline" style={{ padding: '7px 14px', fontSize: 13 }}>Đăng xuất</button>
+
+                  {/* Logout */}
+                  <div className="border-t border-line py-1">
+                    <button
+                      onClick={() => { logout(); setAccountOpen(false) }}
+                      className="w-full flex items-center px-4 py-2.5 text-sm text-red font-bold border-0 bg-transparent cursor-pointer hover:bg-red-soft transition-colors text-left"
+                    >
+                      Đăng xuất
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
-            <button onClick={() => openAuthModal('login')} className="btn btn--blue" style={{ padding: '9px 18px', fontSize: 14 }}>
+            <button onClick={() => openAuthModal('login')} className="btn btn--blue py-2 px-4 text-sm">
               Đăng nhập
             </button>
           )}
@@ -86,29 +141,36 @@ export default function Header() {
 
         {/* Mobile toggle */}
         <button onClick={() => setMenuOpen(!menuOpen)}
-          style={{ display: 'none', width: 38, height: 38, borderRadius: 10, border: '1px solid #e6edf4', background: 'white', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 20 }}
-          className="show-mobile" aria-label="Mở menu">☰</button>
+          className="show-mobile hidden w-[38px] h-[38px] rounded-[10px] border border-line bg-white items-center justify-center cursor-pointer text-xl"
+          aria-label="Mở menu">☰</button>
       </div>
 
       {/* Mobile menu */}
       {menuOpen && (
-        <div style={{ borderTop: '1px solid #e6edf4', padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 12, background: 'white' }}>
-          {[
-            { href: '/info', label: 'Giới thiệu' },
-            { href: '/search', label: 'Tìm kiếm' },
-            { href: '/search?mode=school', label: 'anySCHOOL' },
-            { href: '/search?mode=teacher', label: 'anyPROFESSOR' },
-          ].map(({ href, label }) => (
+        <div className="border-t border-line px-5 py-4 flex flex-col gap-3 bg-white">
+          {NAV_LINKS.map(({ href, label }) => (
             <Link key={label} href={href} onClick={() => setMenuOpen(false)}
-              style={{ fontWeight: 800, color: '#4d5968', textDecoration: 'none', fontSize: 16 }}>
+              className="font-extrabold text-[#4d5968] no-underline text-base">
               {label}
             </Link>
           ))}
-          <div style={{ borderTop: '1px solid #e6edf4', paddingTop: 12 }}>
+          <div className="border-t border-line pt-3">
             {user ? (
-              <button onClick={logout} style={{ border: 0, background: 'transparent', color: '#e73348', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', fontSize: 15 }}>Đăng xuất</button>
+              <div className="flex flex-col gap-1">
+                {ACCOUNT_MENU.map(item => (
+                  <Link key={item.href} href={item.href} onClick={() => setMenuOpen(false)}
+                    className="text-sm text-ink no-underline py-1.5">
+                    {item.label}
+                  </Link>
+                ))}
+                <button onClick={logout}
+                  className="border-0 bg-transparent text-red font-bold cursor-pointer font-[inherit] text-[15px] text-left mt-1">
+                  Đăng xuất
+                </button>
+              </div>
             ) : (
-              <button onClick={() => { setMenuOpen(false); openAuthModal('login') }} className="btn btn--blue" style={{ width: '100%' }}>Đăng nhập</button>
+              <button onClick={() => { setMenuOpen(false); openAuthModal('login') }}
+                className="btn btn--blue w-full">Đăng nhập</button>
             )}
           </div>
         </div>

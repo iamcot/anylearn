@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
-import { useRouter, useParams } from 'next/navigation'
-import { getOrder, OrderData, getCourseUrl } from '@/lib/api'
+import { useRouter, useParams, useSearchParams } from 'next/navigation'
+import { getOrder, initiatePayment, getBankInfo, OrderData, BankInfo, getCourseUrl } from '@/lib/api'
+import PaymentMethodSelector from '@/components/PaymentMethodSelector'
 import Link from 'next/link'
+import CheckCircle from '@/components/CheckCircle'
 
 function formatPrice(p: number) {
   if (!p) return 'Liên hệ'
@@ -21,78 +23,180 @@ const PAYMENT_INSTRUCTIONS: Record<string, { title: string; steps: string[] }> =
       'Sau khi chuyển khoản, vui lòng gửi ảnh xác nhận qua Zalo: 0909xxxxxx',
     ],
   },
-  card: { title: 'Thanh toán bằng thẻ', steps: ['Đội ngũ anyLEARN sẽ liên hệ để hướng dẫn thanh toán trực tuyến.'] },
-  vnpay: { title: 'Thanh toán VNPay', steps: ['Quét mã QR được gửi qua SMS/email để hoàn tất thanh toán.'] },
+  card: { title: 'Thanh toán thẻ OnePay', steps: ['Giao dịch đang được xử lý. Vui lòng kiểm tra email xác nhận.'] },
+  vnpay: { title: 'Thanh toán VNPay', steps: ['Giao dịch đang được xử lý. Vui lòng kiểm tra email xác nhận.'] },
+  momo: { title: 'Thanh toán MoMo', steps: ['Giao dịch đang được xử lý. Vui lòng kiểm tra email xác nhận.'] },
   installment: { title: 'Đăng ký trả góp', steps: ['Đội ngũ anyLEARN sẽ liên hệ trong vòng 24h để hỗ trợ đăng ký trả góp 0% lãi suất.'] },
 }
 
 export default function OrderPage() {
-  const { user, token } = useAuth()
+  const { user, token, isAuthLoading } = useAuth()
   const router = useRouter()
   const { orderId } = useParams<{ orderId: string }>()
+  const searchParams = useSearchParams()
+  const paymentStatus = searchParams.get('status') // 'success' | 'fail' | 'pending' | null
+  const isPending = paymentStatus === 'pending'  // đến từ checkout, chưa thanh toán lần nào
+  const isFail = paymentStatus === 'fail'        // đến từ gateway sau khi thanh toán thất bại
   const [order, setOrder] = useState<OrderData | null>(null)
+  const [bankInfo, setBankInfo] = useState<BankInfo | null>(null)
   const [loading, setLoading] = useState(true)
+  const [retrying, setRetrying] = useState(false)
+  const [retryError, setRetryError] = useState('')
+  const [retryMethod, setRetryMethod] = useState('bank_transfer')
+
+  const handleRetry = async () => {
+    if (!token) return
+    setRetrying(true)
+    setRetryError('')
+    const { data, error } = await initiatePayment(orderId, token, retryMethod)
+    setRetrying(false)
+    if (error) { setRetryError(error); return }
+
+    if (retryMethod === 'bank_transfer') {
+      // Ghi nhận pay_pending, chuyển về trang hướng dẫn chuyển khoản
+      window.location.href = `/order/${orderId}`
+      return
+    }
+    if (!data?.redirectUrl) { setRetryError('Không thể khởi tạo thanh toán'); return }
+    window.location.href = data.redirectUrl
+  }
 
   useEffect(() => {
     if (!token) return
-    getOrder(orderId, token).then(d => { setOrder(d); setLoading(false) })
+    Promise.all([
+      getOrder(orderId, token),
+      getBankInfo(),
+    ]).then(([orderData, bank]) => {
+      setOrder(orderData)
+      setBankInfo(bank)
+      setLoading(false)
+    })
   }, [token, orderId])
 
+  if (isAuthLoading) return null
   if (!user) { router.push('/login'); return null }
 
   const instructions = order?.paymentMethod ? PAYMENT_INSTRUCTIONS[order.paymentMethod] : null
 
   return (
     <div className="section">
-      <div className="container" style={{ maxWidth: 680, textAlign: 'center' }}>
+      <div className="container max-w-[680px] text-center">
         {loading ? (
-          <p style={{ color: '#6d7a8a' }}>Đang tải...</p>
+          <p className="text-muted">Đang tải...</p>
         ) : !order ? (
           <div>
-            <p style={{ color: '#e73348', marginBottom: 16 }}>Không tìm thấy đơn hàng</p>
+            <p className="text-red mb-4">Không tìm thấy đơn hàng</p>
             <Link href="/" className="btn btn--outline">Về trang chủ</Link>
           </div>
-        ) : (
+        ) : (isFail || isPending) ? (
           <>
-            <div style={{ fontSize: 64, marginBottom: 16 }}>✅</div>
-            <h1 style={{ fontSize: 28, fontWeight: 900, color: '#17212f', marginBottom: 8 }}>Đặt hàng thành công!</h1>
-            <p style={{ color: '#6d7a8a', marginBottom: 32 }}>Cảm ơn bạn đã tin tưởng anyLEARN. Vui lòng hoàn tất thanh toán để xác nhận đăng ký.</p>
+            <div className="text-[64px] mb-4">{isFail ? '❌' : '🔔'}</div>
+            <h1 className={`text-[28px] font-black mb-2 ${isFail ? 'text-red' : 'text-ink'}`}>
+              {isFail ? 'Thanh toán thất bại' : 'Tiếp tục thanh toán'}
+            </h1>
+            <p className="text-muted mb-6">
+              {isFail
+                ? 'Giao dịch không thành công hoặc đã bị hủy. Chọn phương thức khác để thử lại.'
+                : 'Đơn hàng chưa được thanh toán. Vui lòng chọn một phương thức bên dưới.'}
+            </p>
+
+            {order.items.length > 0 && (
+              <div className="bg-white border border-line rounded-card mb-4 overflow-hidden text-left">
+                <div className="bg-bg border-b border-line py-3 px-5 font-black text-ink">Khóa học trong đơn</div>
+                {order.items.map((item, i) => (
+                  <div key={item.itemId} className={`flex gap-3 py-3 px-5 items-center ${i < order.items.length - 1 ? 'border-b border-[#f0f0f0]' : ''}`}>
+                    {item.image && <img src={item.image} alt={item.title} className="w-11 h-11 object-cover rounded-lg shrink-0" />}
+                    <span className="text-sm font-bold text-ink">{item.title}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Payment method selector */}
+            <div className="bg-white border border-line rounded-card mb-4 p-5 text-left">
+              <p className="font-bold text-ink mb-3">Chọn phương thức thanh toán</p>
+              <PaymentMethodSelector
+                total={order.items.reduce((s, i) => s + i.price, 0)}
+                value={retryMethod}
+                onChange={setRetryMethod}
+                name="retryMethod"
+              />
+            </div>
+
+            {retryError && <p className="text-red text-sm mb-3">{retryError}</p>}
+            <div className="flex gap-3 justify-center flex-wrap">
+              <button onClick={handleRetry} className="btn btn--green" disabled={retrying}>
+                {retrying ? 'Đang xử lý...' : 'Thử lại thanh toán'}
+              </button>
+              <Link href="/" className="btn btn--outline">Về trang chủ</Link>
+            </div>
+          </>
+        ) : (
+          /* Success or bank_transfer pending */
+          <>
+            <div className="mb-4"><CheckCircle size={64} /></div>
+            <h1 className="text-[28px] font-black text-ink mb-2">
+              {paymentStatus === 'success' ? 'Thanh toán thành công!' : 'Đặt hàng thành công!'}
+            </h1>
+            <p className="text-muted mb-8">
+              {paymentStatus === 'success'
+                ? 'Cảm ơn bạn đã thanh toán. Đăng ký của bạn đã được xác nhận.'
+                : 'Cảm ơn bạn đã tin tưởng anyLEARN. Vui lòng hoàn tất thanh toán để xác nhận đăng ký.'}
+            </p>
 
             {/* Danh sách khóa học đã đặt */}
-            <div style={{ background: 'white', border: '1px solid #e6edf4', borderRadius: 20, marginBottom: 20, overflow: 'hidden', textAlign: 'left' }}>
-              <div style={{ background: '#f7fafc', borderBottom: '1px solid #e6edf4', padding: '12px 20px', fontWeight: 900, color: '#17212f' }}>
+            <div className="bg-white border border-line rounded-card mb-5 overflow-hidden text-left">
+              <div className="bg-bg border-b border-line py-3 px-5 font-black text-ink">
                 Khóa học đã đặt
               </div>
               {order.items.map((item, i) => (
-                <div key={item.itemId} style={{ display: 'flex', gap: 14, padding: '14px 20px', borderBottom: i < order.items.length - 1 ? '1px solid #f0f0f0' : undefined, alignItems: 'center' }}>
+                <div key={item.itemId} className={`flex gap-3.5 py-3.5 px-5 items-center ${i < order.items.length - 1 ? 'border-b border-[#f0f0f0]' : ''}`}>
                   {item.image && (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={item.image} alt={item.title} style={{ width: 56, height: 56, objectFit: 'cover', borderRadius: 10, flexShrink: 0 }} />
+                    <img src={item.image} alt={item.title} className="w-14 h-14 object-cover rounded-xl shrink-0" />
                   )}
-                  <div style={{ flex: 1 }}>
-                    <Link href={getCourseUrl({ id: item.itemId, seoUrl: item.seoUrl })} style={{ fontWeight: 900, color: '#008244', fontSize: 15, textDecoration: 'none', lineHeight: 1.3, display: 'block' }}>
+                  <div className="flex-1">
+                    <Link href={getCourseUrl({ id: item.itemId, seoUrl: item.seoUrl })} className="font-black text-green-dark text-[15px] no-underline leading-tight block">
                       {item.title}
                     </Link>
-                    {item.dateStart && <div style={{ fontSize: 13, color: '#6d7a8a', marginTop: 3 }}>Bắt đầu: {new Date(item.dateStart).toLocaleDateString('vi-VN')}</div>}
+                    {item.dateStart && <div className="text-xs text-muted mt-[3px]">Bắt đầu: {new Date(item.dateStart).toLocaleDateString('vi-VN')}</div>}
                   </div>
-                  <div style={{ fontWeight: 900, color: '#e73348', fontSize: 15 }}>{formatPrice(item.price)}</div>
+                  <div className="font-black text-red text-[15px]">{formatPrice(item.price)}</div>
                 </div>
               ))}
             </div>
 
-            {/* Hướng dẫn thanh toán */}
-            {instructions && (
-              <div style={{ background: '#eef7ff', border: '1px solid #d8e9f8', borderRadius: 20, padding: 20, marginBottom: 24, textAlign: 'left' }}>
-                <h3 style={{ margin: '0 0 12px', fontWeight: 900, color: '#00539b', fontSize: 16 }}>{instructions.title}</h3>
-                <ol style={{ margin: 0, paddingLeft: 20 }}>
+            {/* Hướng dẫn chuyển khoản từ config */}
+            {order.paymentMethod === 'bank_transfer' && bankInfo && (
+              <div className="bg-blue-soft border border-[#d8e9f8] rounded-card p-5 mb-6 text-left">
+                <h3 className="m-0 mb-3 font-black text-blue text-base">Hướng dẫn chuyển khoản</h3>
+                <ol className="m-0 pl-5">
+                  <li className="text-text text-sm leading-[1.7] mb-1">
+                    Chuyển khoản đến tài khoản: <strong>{bankInfo.bankName} - {bankInfo.accountNumber} - {bankInfo.accountName}</strong>
+                  </li>
+                  <li className="text-text text-sm leading-[1.7] mb-1">
+                    Nội dung chuyển khoản: <strong>{bankInfo.transferContent}</strong>
+                  </li>
+                  <li className="text-text text-sm leading-[1.7] mb-1">
+                    Sau khi chuyển khoản, vui lòng gửi ảnh xác nhận qua Zalo: <strong>{bankInfo.zaloPhone}</strong>
+                  </li>
+                </ol>
+              </div>
+            )}
+
+            {/* Hướng dẫn cho các phương thức khác */}
+            {order.paymentMethod !== 'bank_transfer' && instructions && (
+              <div className="bg-blue-soft border border-[#d8e9f8] rounded-card p-5 mb-6 text-left">
+                <h3 className="m-0 mb-3 font-black text-blue text-base">{instructions.title}</h3>
+                <ol className="m-0 pl-5">
                   {instructions.steps.map((step, i) => (
-                    <li key={i} style={{ color: '#2f3b4a', fontSize: 14, lineHeight: 1.7, marginBottom: 4 }}>{step}</li>
+                    <li key={i} className="text-text text-sm leading-[1.7] mb-1">{step}</li>
                   ))}
                 </ol>
               </div>
             )}
 
-            <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <div className="flex gap-3 justify-center flex-wrap">
               <Link href="/" className="btn btn--outline">Về trang chủ</Link>
               <Link href="/search" className="btn btn--green">Tìm thêm khóa học</Link>
             </div>

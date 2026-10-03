@@ -22,77 +22,59 @@ const SUBTYPE_LABELS: Record<string, string> = {
 
 export default function CourseCard({ item }: Props) {
   return (
-    <article style={{
-      background: 'white', border: '1px solid #e6edf4',
-      borderRadius: 22, overflow: 'hidden',
-      boxShadow: '0 8px 24px rgba(15,23,42,0.06)',
-      display: 'flex', flexDirection: 'column',
-    }}>
+    <article className="bg-white border border-line rounded-card overflow-hidden shadow-[0_8px_24px_rgba(15,23,42,0.06)] flex flex-col">
       {/* Image area */}
-      <div style={{
-        aspectRatio: '1/1', background: 'linear-gradient(135deg, #dff7e8, #e7f3ff)',
-        display: 'grid', placeItems: 'center',
-        position: 'relative', overflow: 'hidden',
-      }}>
+      <div className="aspect-square bg-gradient-to-br from-green-soft to-blue-soft grid place-items-center relative overflow-hidden">
         {item.image ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={item.image} alt={item.title}
-            style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }} />
+          <img src={item.image} alt={item.title} className="w-full h-full object-cover absolute inset-0" />
         ) : (
-          <span style={{ fontSize: 46 }}>📚</span>
+          <span className="text-5xl">📚</span>
         )}
         {item.isHot ? (
-          <span style={{
-            position: 'absolute', top: 12, left: 12,
-            background: '#ffca05', color: '#17212f',
-            borderRadius: 999, padding: '6px 10px',
-            fontWeight: 900, fontSize: 12,
-          }}>HOT</span>
+          <span className="absolute top-3 left-3 bg-yellow text-ink rounded-full px-2.5 py-1.5 font-black text-xs">HOT</span>
         ) : null}
       </div>
 
       {/* Body */}
-      <div style={{ padding: 18, display: 'flex', flexDirection: 'column', flex: 1 }}>
-        <h3 style={{ margin: '0 0 6px', color: '#008244', lineHeight: 1.35, fontSize: 18, fontWeight: 900 }}>
+      <div className="p-[18px] flex flex-col flex-1">
+        <h3 className="m-0 mb-1.5 text-green-dark leading-[1.35] text-lg font-black">
           {item.title}
         </h3>
 
-        {/* Author */}
         {item.authorName && item.authorId && (
           <Link href={`/search?mode=class&authorId=${item.authorId}`}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, textDecoration: 'none' }}>
+            className="flex items-center gap-1.5 mb-2.5 no-underline">
             {item.authorImage
               // eslint-disable-next-line @next/next/no-img-element
-              ? <img src={item.authorImage} alt={item.authorName} style={{ width: 18, height: 18, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
-              : <span style={{ width: 18, height: 18, borderRadius: '50%', background: '#eef7ff', display: 'grid', placeItems: 'center', fontSize: 9, flexShrink: 0 }}>👤</span>
+              ? <img src={item.authorImage} alt={item.authorName} className="w-[18px] h-[18px] rounded-full object-cover shrink-0" />
+              : <span className="w-[18px] h-[18px] rounded-full bg-blue-soft grid place-items-center text-[9px] shrink-0">👤</span>
             }
-            <span style={{ fontSize: 13, color: '#6d7a8a', fontWeight: 700,
-              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <span className="text-xs text-muted font-bold overflow-hidden text-ellipsis whitespace-nowrap">
               {item.authorName}
             </span>
           </Link>
         )}
 
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
+        <div className="flex flex-wrap gap-1.5 mb-2.5">
           {item.subtype && (
-            <span style={{ borderRadius: 999, padding: '5px 9px', background: '#e9fff3', color: '#008244', fontSize: 12, fontWeight: 900 }}>
+            <span className="rounded-full px-2 py-1 bg-green-soft text-green-dark text-xs font-black">
               {SUBTYPE_LABELS[item.subtype] ?? item.subtype}
             </span>
           )}
         </div>
 
         {item.shortContent && (
-          <p style={{ color: '#6d7a8a', fontSize: 14, margin: '0 0 14px', flex: 1,
-            display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+          <p className="text-muted text-sm m-0 mb-3.5 flex-1 line-clamp-2">
             {item.shortContent}
           </p>
         )}
 
-        <div style={{ marginTop: 'auto' }}>
-          <div style={{ color: '#e73348', fontWeight: 900, fontSize: 18, marginBottom: 14 }}>
+        <div className="mt-auto">
+          <div className="text-red font-black text-lg mb-3.5">
             {formatPrice(item.price)}
           </div>
-          <Link href={getCourseUrl(item)} className="btn btn--green" style={{ textAlign: 'center', width: '100%' }}>
+          <Link href={getCourseUrl(item)} className="btn btn--green text-center w-full">
             Xem chi tiết
           </Link>
         </div>

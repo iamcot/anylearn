@@ -26,7 +26,7 @@ export default function SearchCard({ variant = 'home', initialTags = [] }: Props
   const [tags, setTags] = useState<TagItem[]>(initialTags)
 
   useEffect(() => {
-    if (initialTags.length > 0) return
+    if (initialTags.length > 0 || tags.length > 0) return
     fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080/v2/api'}/search-tags`)
       .then(r => r.json())
       .then(d => {
@@ -34,7 +34,8 @@ export default function SearchCard({ variant = 'home', initialTags = [] }: Props
         setTags(list.slice(0, 6).map(label => ({ label })))
       })
       .catch(() => {})
-  }, [initialTags])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()

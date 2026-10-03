@@ -3,6 +3,8 @@ package com.anylearn.backend.dto.response;
 import com.anylearn.backend.entity.User;
 import lombok.Getter;
 
+import java.time.LocalDate;
+
 @Getter
 public class UserInfoResponse {
     private final Long id;
@@ -18,6 +20,9 @@ public class UserInfoResponse {
     private final String introduce;
     private final String fullContent;
     private final String title;
+    private final String address;
+    private final LocalDate dob;
+    private final String sex;
     private final Long walletM;
     private final Long walletC;
     private final String refcode;
@@ -37,6 +42,9 @@ public class UserInfoResponse {
         this.introduce = user.getIntroduce();
         this.fullContent = user.getFullContent();
         this.title = user.getTitle();
+        this.address = user.getAddress();
+        this.dob = user.getDob();
+        this.sex = user.getSex();
         this.walletM = user.getWalletM();
         this.walletC = user.getWalletC();
         this.refcode = user.getRefcode();

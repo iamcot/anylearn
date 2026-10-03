@@ -10,11 +10,9 @@ export default function AuthModal() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  // Login form
   const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
 
-  // Register form
   const [name, setName] = useState('')
   const [regPhone, setRegPhone] = useState('')
   const [email, setEmail] = useState('')
@@ -51,102 +49,88 @@ export default function AuthModal() {
   const switchTab = (t: 'login' | 'register') => { setTab(t); setError('') }
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
-      onClick={closeAuthModal}>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(15,23,42,0.5)' }} />
-      <div style={{
-        position: 'relative', background: 'white', borderRadius: 24, width: '100%', maxWidth: 420,
-        boxShadow: '0 24px 60px rgba(15,23,42,0.18)', overflow: 'hidden',
-      }} onClick={e => e.stopPropagation()}>
-        {/* Header */}
-        <div style={{ display: 'flex', borderBottom: '1px solid #e6edf4' }}>
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" onClick={closeAuthModal}>
+      <div className="absolute inset-0 bg-ink/50" />
+      <div className="relative bg-white rounded-3xl w-full max-w-[420px] shadow-[0_24px_60px_rgba(15,23,42,0.18)] overflow-hidden"
+        onClick={e => e.stopPropagation()}>
+
+        {/* Tabs */}
+        <div className="flex border-b border-line">
           {(['login', 'register'] as const).map(t => (
-            <button key={t} onClick={() => switchTab(t)} style={{
-              flex: 1, padding: '18px 0', border: 0, cursor: 'pointer', fontFamily: 'inherit',
-              background: tab === t ? 'white' : '#f7fafc',
-              color: tab === t ? '#00539b' : '#6d7a8a',
-              fontWeight: tab === t ? 900 : 600, fontSize: 15,
-              borderBottom: tab === t ? '2px solid #00539b' : '2px solid transparent',
-            }}>
+            <button key={t} onClick={() => switchTab(t)}
+              className={`flex-1 py-[18px] border-0 cursor-pointer font-[inherit] text-[15px] transition-colors
+                ${tab === t
+                  ? 'bg-white text-blue font-black border-b-2 border-blue'
+                  : 'bg-bg text-muted font-semibold border-b-2 border-transparent'
+                }`}>
               {t === 'login' ? 'Đăng nhập' : 'Đăng ký'}
             </button>
           ))}
-          <button onClick={closeAuthModal} style={{
-            position: 'absolute', top: 14, right: 14, width: 32, height: 32, borderRadius: '50%',
-            border: '1px solid #e6edf4', background: 'white', cursor: 'pointer', fontSize: 16,
-            display: 'grid', placeItems: 'center',
-          }}>✕</button>
+          <button onClick={closeAuthModal}
+            className="absolute top-3.5 right-3.5 w-8 h-8 rounded-full border border-line bg-white cursor-pointer text-base grid place-items-center">
+            ✕
+          </button>
         </div>
 
-        <div style={{ padding: '28px 28px 24px' }}>
+        <div className="px-7 pt-7 pb-6">
           {error && (
-            <div style={{ background: '#fff5f5', border: '1px solid #ffc9c9', borderRadius: 10, padding: '10px 14px', marginBottom: 16, color: '#e73348', fontSize: 14 }}>
+            <div className="bg-red-soft border border-[#ffc9c9] rounded-xl px-3.5 py-2.5 mb-4 text-red text-sm">
               {error}
             </div>
           )}
 
           {tab === 'login' ? (
             <form onSubmit={handleLogin}>
-              <label style={{ display: 'block', fontWeight: 700, fontSize: 13, color: '#6d7a8a', marginBottom: 6 }}>Số điện thoại</label>
-              <input className="field" type="tel" placeholder="Nhập số điện thoại" value={phone}
-                onChange={e => setPhone(e.target.value)} required style={{ marginBottom: 14 }} />
-
-              <label style={{ display: 'block', fontWeight: 700, fontSize: 13, color: '#6d7a8a', marginBottom: 6 }}>Mật khẩu</label>
-              <input className="field" type="password" placeholder="Nhập mật khẩu" value={password}
-                onChange={e => setPassword(e.target.value)} required style={{ marginBottom: 20 }} />
-
-              <button type="submit" className="btn btn--green" style={{ width: '100%', fontSize: 16, padding: '14px' }} disabled={loading}>
+              <label className="block font-bold text-xs text-muted mb-1.5">Số điện thoại</label>
+              <input className="field mb-3.5" type="tel" placeholder="Nhập số điện thoại"
+                value={phone} onChange={e => setPhone(e.target.value)} required />
+              <label className="block font-bold text-xs text-muted mb-1.5">Mật khẩu</label>
+              <input className="field mb-5" type="password" placeholder="Nhập mật khẩu"
+                value={password} onChange={e => setPassword(e.target.value)} required />
+              <button type="submit" className="btn btn--green w-full text-base py-3.5" disabled={loading}>
                 {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
               </button>
-              <p style={{ textAlign: 'center', marginTop: 14, color: '#6d7a8a', fontSize: 14 }}>
+              <p className="text-center mt-3.5 text-muted text-sm">
                 Chưa có tài khoản?{' '}
                 <button type="button" onClick={() => switchTab('register')}
-                  style={{ border: 0, background: 'transparent', color: '#00539b', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+                  className="border-0 bg-transparent text-blue font-bold cursor-pointer font-[inherit]">
                   Đăng ký ngay
                 </button>
               </p>
             </form>
           ) : (
             <form onSubmit={handleRegister}>
-              <label style={{ display: 'block', fontWeight: 700, fontSize: 13, color: '#6d7a8a', marginBottom: 6 }}>Họ và tên</label>
-              <input className="field" type="text" placeholder="Nhập họ và tên" value={name}
-                onChange={e => setName(e.target.value)} required style={{ marginBottom: 12 }} />
-
-              <label style={{ display: 'block', fontWeight: 700, fontSize: 13, color: '#6d7a8a', marginBottom: 6 }}>Số điện thoại</label>
-              <input className="field" type="tel" placeholder="Nhập số điện thoại" value={regPhone}
-                onChange={e => setRegPhone(e.target.value)} required style={{ marginBottom: 12 }} />
-
-              <label style={{ display: 'block', fontWeight: 700, fontSize: 13, color: '#6d7a8a', marginBottom: 6 }}>Email</label>
-              <input className="field" type="email" placeholder="Nhập email" value={email}
-                onChange={e => setEmail(e.target.value)} style={{ marginBottom: 12 }} />
-
-              <label style={{ display: 'block', fontWeight: 700, fontSize: 13, color: '#6d7a8a', marginBottom: 6 }}>Mật khẩu</label>
-              <input className="field" type="password" placeholder="Nhập mật khẩu" value={regPassword}
-                onChange={e => setRegPassword(e.target.value)} required style={{ marginBottom: 12 }} />
-
-              <label style={{ display: 'block', fontWeight: 700, fontSize: 13, color: '#6d7a8a', marginBottom: 6 }}>Xác nhận mật khẩu</label>
-              <input className="field" type="password" placeholder="Nhập lại mật khẩu" value={confirmPassword}
-                onChange={e => setConfirmPassword(e.target.value)} required style={{ marginBottom: 14 }} />
-
-              <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 20, cursor: 'pointer' }}>
+              <label className="block font-bold text-xs text-muted mb-1.5">Họ và tên</label>
+              <input className="field mb-3" type="text" placeholder="Nhập họ và tên"
+                value={name} onChange={e => setName(e.target.value)} required />
+              <label className="block font-bold text-xs text-muted mb-1.5">Số điện thoại</label>
+              <input className="field mb-3" type="tel" placeholder="Nhập số điện thoại"
+                value={regPhone} onChange={e => setRegPhone(e.target.value)} required />
+              <label className="block font-bold text-xs text-muted mb-1.5">Email</label>
+              <input className="field mb-3" type="email" placeholder="Nhập email"
+                value={email} onChange={e => setEmail(e.target.value)} />
+              <label className="block font-bold text-xs text-muted mb-1.5">Mật khẩu</label>
+              <input className="field mb-3" type="password" placeholder="Nhập mật khẩu"
+                value={regPassword} onChange={e => setRegPassword(e.target.value)} required />
+              <label className="block font-bold text-xs text-muted mb-1.5">Xác nhận mật khẩu</label>
+              <input className="field mb-3.5" type="password" placeholder="Nhập lại mật khẩu"
+                value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required />
+              <label className="flex items-start gap-2.5 mb-5 cursor-pointer">
                 <input type="checkbox" checked={agreedTerms} onChange={e => setAgreedTerms(e.target.checked)}
-                  style={{ marginTop: 2, flexShrink: 0 }} />
-                <span style={{ fontSize: 13, color: '#6d7a8a', lineHeight: 1.5 }}>
+                  className="mt-0.5 shrink-0" />
+                <span className="text-xs text-muted leading-relaxed">
                   Tôi đồng ý với{' '}
-                  <Link href="/terms" target="_blank" style={{ color: '#00539b', fontWeight: 700 }}>
-                    điều khoản sử dụng
-                  </Link>
+                  <Link href="/terms" target="_blank" className="text-blue font-bold">điều khoản sử dụng</Link>
                   {' '}của anyLEARN
                 </span>
               </label>
-
-              <button type="submit" className="btn btn--green" style={{ width: '100%', fontSize: 16, padding: '14px' }} disabled={loading}>
+              <button type="submit" className="btn btn--green w-full text-base py-3.5" disabled={loading}>
                 {loading ? 'Đang đăng ký...' : 'Đăng ký'}
               </button>
-              <p style={{ textAlign: 'center', marginTop: 14, color: '#6d7a8a', fontSize: 14 }}>
+              <p className="text-center mt-3.5 text-muted text-sm">
                 Đã có tài khoản?{' '}
                 <button type="button" onClick={() => switchTab('login')}
-                  style={{ border: 0, background: 'transparent', color: '#00539b', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+                  className="border-0 bg-transparent text-blue font-bold cursor-pointer font-[inherit]">
                   Đăng nhập
                 </button>
               </p>

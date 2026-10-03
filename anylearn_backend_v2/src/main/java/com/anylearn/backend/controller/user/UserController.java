@@ -2,18 +2,24 @@ package com.anylearn.backend.controller.user;
 
 import com.anylearn.backend.dto.response.ApiResponse;
 import com.anylearn.backend.entity.User;
+import com.anylearn.backend.service.S3Service;
 import com.anylearn.backend.service.UserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
+@Slf4j
 public class UserController {
 
     private final UserService userService;
+    private final S3Service s3Service;
 
     @GetMapping("/users/{role}")
     public ApiResponse<?> usersList(@PathVariable String role,
@@ -36,18 +42,73 @@ public class UserController {
         return ApiResponse.ok(userService.userInfoLess(user));
     }
 
-    @GetMapping("/friends/{userId}")
-    public ApiResponse<?> friends(@PathVariable Long userId) {
-        return ApiResponse.fail("Not implemented");
+    @PostMapping("/user/edit")
+    public ApiResponse<?> edit(@RequestBody Map<String, Object> body,
+                               @AuthenticationPrincipal User user) {
+        return ApiResponse.ok(userService.editProfile(body, user));
     }
 
-    @PostMapping("/user/edit")
-    public ApiResponse<?> edit(@RequestBody Object body) {
-        return ApiResponse.fail("Not implemented");
+    @PostMapping("/user/changepass")
+    public ApiResponse<?> changePass(@RequestBody Map<String, Object> body,
+                                     @AuthenticationPrincipal User user) {
+        String oldPass = body.get("oldPass") != null ? body.get("oldPass").toString() : "";
+        String newPass = body.get("newPass") != null ? body.get("newPass").toString() : "";
+        if (newPass.length() < 6) return ApiResponse.fail("Mật khẩu mới phải có ít nhất 6 ký tự");
+        userService.changePassword(oldPass, newPass, user);
+        return ApiResponse.ok("Đổi mật khẩu thành công");
+    }
+
+    @GetMapping("/user/children")
+    public ApiResponse<?> listChildren(@AuthenticationPrincipal User user) {
+        return ApiResponse.ok(userService.getChildren(user));
+    }
+
+    @PostMapping("/user/children")
+    public ApiResponse<?> saveChildren(@RequestBody Map<String, Object> body,
+                                       @AuthenticationPrincipal User user) {
+        return ApiResponse.ok(userService.saveChild(body, user));
+    }
+
+    @DeleteMapping("/user/children/{childId}")
+    public ApiResponse<?> deleteChild(@PathVariable Long childId,
+                                      @AuthenticationPrincipal User user) {
+        userService.deleteChild(childId, user);
+        return ApiResponse.ok("Đã xóa tài khoản");
+    }
+
+    @GetMapping("/user/orders")
+    public ApiResponse<?> userOrders(@AuthenticationPrincipal User user) {
+        return ApiResponse.ok(userService.getUserOrders(user));
+    }
+
+    @GetMapping("/user/item-codes")
+    public ApiResponse<?> itemCodes(@AuthenticationPrincipal User user) {
+        return ApiResponse.ok(userService.getItemCodes(user));
+    }
+
+    @GetMapping("/user/wallet-c-history")
+    public ApiResponse<?> walletCHistory(@AuthenticationPrincipal User user) {
+        return ApiResponse.ok(userService.getWalletCHistory(user));
     }
 
     @PostMapping("/user/upload-image/{type}")
-    public ApiResponse<?> uploadImage(@PathVariable String type, @RequestParam MultipartFile file) {
+    public ApiResponse<?> uploadImage(@PathVariable String type,
+                                      @RequestParam("file") MultipartFile file,
+                                      @AuthenticationPrincipal User user) {
+        try {
+            String folder = "users/" + user.getId() + "/" + type;
+            String imageUrl = s3Service.uploadImage(file, folder);
+            return ApiResponse.ok(userService.updateImageUrl(type, imageUrl, user));
+        } catch (Exception e) {
+            log.error("Upload image error for user {}: {}", user.getId(), e.getMessage());
+            return ApiResponse.fail("Upload ảnh thất bại: " + e.getMessage());
+        }
+    }
+
+    // ── Stubs (keep for API compatibility) ───────────────────────────────────
+
+    @GetMapping("/friends/{userId}")
+    public ApiResponse<?> friends(@PathVariable Long userId) {
         return ApiResponse.fail("Not implemented");
     }
 
@@ -111,11 +172,6 @@ public class UserController {
         return ApiResponse.fail("Not implemented");
     }
 
-    @PostMapping("/user/changepass")
-    public ApiResponse<?> changePass(@RequestBody Object body) {
-        return ApiResponse.fail("Not implemented");
-    }
-
     @GetMapping("/user/delete")
     public ApiResponse<?> deleteAccount() {
         return ApiResponse.fail("Not implemented");
@@ -123,16 +179,6 @@ public class UserController {
 
     @GetMapping("/user/pending-orders")
     public ApiResponse<?> pendingOrders() {
-        return ApiResponse.fail("Not implemented");
-    }
-
-    @GetMapping("/user/children")
-    public ApiResponse<?> listChildren() {
-        return ApiResponse.fail("Not implemented");
-    }
-
-    @PostMapping("/user/children")
-    public ApiResponse<?> saveChildren(@RequestBody Object body) {
         return ApiResponse.fail("Not implemented");
     }
 

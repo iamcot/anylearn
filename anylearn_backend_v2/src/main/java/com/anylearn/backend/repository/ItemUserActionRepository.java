@@ -61,6 +61,11 @@ public interface ItemUserActionRepository extends JpaRepository<ItemUserAction, 
     @Query("SELECT iua FROM ItemUserAction iua WHERE iua.userId = :userId AND iua.type = 'cart' ORDER BY iua.id DESC")
     List<ItemUserAction> findCartByUser(@Param("userId") Long userId);
 
+    @Query("SELECT iua FROM ItemUserAction iua WHERE iua.userId = :userId AND iua.type = :type AND iua.value = :value ORDER BY iua.id DESC")
+    List<ItemUserAction> findByUserIdAndTypeAndValue(@Param("userId") Long userId,
+                                                     @Param("type") String type,
+                                                     @Param("value") String value);
+
     @Query(value = """
         SELECT * FROM item_user_actions
         WHERE user_id = :userId AND type = 'reg'

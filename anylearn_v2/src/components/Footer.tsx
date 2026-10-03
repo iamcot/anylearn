@@ -7,7 +7,7 @@ export default function Footer() {
         <div className="footer-grid">
           <div>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/cdn/anylearn/img/logo-white.svg" alt="anyLEARN" style={{ height: 40, marginBottom: 16 }} />
+            <img src="/cdn/anylearn/img/logo-white.svg" alt="anyLEARN" className="h-10 mb-4" />
             <p>Nền tảng giúp phụ huynh tìm kiếm, so sánh và đăng ký trường học, khóa học, chuyên gia phù hợp cho con.</p>
           </div>
 
@@ -38,21 +38,17 @@ export default function Footer() {
             <h4>Liên hệ anyLEARN</h4>
             <a href="tel:0374900344">📞 0374 900 344</a>
             <a href="mailto:info@anylearn.vn">✉️ info@anylearn.vn</a>
-            <p style={{ margin: '10px 0 0' }}>⏰ 8:30 - 18:00, Thứ 2 - Thứ 7</p>
-            <div style={{ display: 'flex', gap: 10, marginTop: 14 }}>
+            <p className="mt-2.5">⏰ 8:30 - 18:00, Thứ 2 - Thứ 7</p>
+            <div className="flex gap-2.5 mt-3.5">
               {[
                 { href: '#', src: '/cdn/img/youtube.png', title: 'YouTube' },
                 { href: '#', src: '/cdn/img/facebook.png', title: 'Facebook' },
                 { href: '#', src: '/cdn/img/zalo.png', title: 'Zalo' },
               ].map(s => (
-                <a key={s.title} href={s.href} title={s.title} style={{
-                  width: 36, height: 36, borderRadius: '50%',
-                  border: '1px solid rgba(255,255,255,0.25)',
-                  display: 'grid', placeItems: 'center',
-                  overflow: 'hidden',
-                }}>
+                <a key={s.title} href={s.href} title={s.title}
+                  className="w-9 h-9 rounded-full border border-white/25 grid place-items-center overflow-hidden">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={s.src} alt={s.title} style={{ width: 20, height: 20, objectFit: 'contain' }} />
+                  <img src={s.src} alt={s.title} className="w-5 h-5 object-contain" />
                 </a>
               ))}
             </div>

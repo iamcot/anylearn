@@ -33,19 +33,15 @@ export default async function HomePage() {
   return (
     <>
       {/* ── Hero ── */}
-      <section className="hero-section flex items-center" style={{
-        background: 'linear-gradient(135deg, #00539b, #00a651)', color: 'white',
-      }}>
+      <section className="hero-section flex items-center bg-[linear-gradient(135deg,#00539b,#00a651)] text-white">
         <div className="container">
-          <span className="inline-flex items-center rounded-full px-3.5 py-2 text-sm font-black mb-5"
-            style={{ background: 'rgba(255,255,255,0.16)', border: '1px solid rgba(255,255,255,0.24)' }}>
+          <span className="inline-flex items-center rounded-full px-3.5 py-2 text-sm font-black mb-5 bg-[rgba(255,255,255,0.16)] border border-[rgba(255,255,255,0.24)]">
             Nền tảng booking giáo dục cho phụ huynh
           </span>
-          <h1 className="font-black leading-none mb-5 max-w-3xl"
-            style={{ fontSize: 'clamp(38px,5.4vw,66px)', letterSpacing: -1.6 }}>
+          <h1 className="font-black leading-none mb-5 max-w-3xl text-[clamp(38px,5.4vw,66px)] tracking-[-1.6px]">
             Tìm khóa học, trường học và chuyên gia phù hợp cho con
           </h1>
-          <p className="text-lg mb-8 max-w-2xl" style={{ color: 'rgba(255,255,255,0.9)' }}>
+          <p className="text-lg mb-8 max-w-2xl text-[rgba(255,255,255,0.9)]">
             anyLEARN giúp phụ huynh tìm kiếm, so sánh, nhận tư vấn và đăng ký chương trình học chính quy, ngoại khóa, online và offline dễ dàng hơn
           </p>
           <SearchCard variant="home" initialTags={categories.slice(0, 6).map(c => ({ label: c.title, categoryUrl: c.url }))} />
@@ -57,9 +53,8 @@ export default async function HomePage() {
         <div className="container">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             {BENEFITS.map(b => (
-              <article key={b.title} className="bg-white border border-[#e6edf4] rounded-[18px] px-5 py-4 grid grid-cols-[44px_1fr] gap-3.5 items-center"
-                style={{ boxShadow: '0 10px 26px rgba(15,23,42,0.08)' }}>
-                <div className="feature-icon" style={{ margin: 0 }}>{b.emoji}</div>
+              <article key={b.title} className="bg-white border border-[#e6edf4] rounded-[18px] px-5 py-4 grid grid-cols-[44px_1fr] gap-3.5 items-center shadow-[0_10px_26px_rgba(15,23,42,0.08)]">
+                <div className="feature-icon m-0">{b.emoji}</div>
                 <div>
                   <h3 className="m-0 mb-1 text-[#17212f] text-base font-black">{b.title}</h3>
                   <p className="m-0 text-[#6d7a8a] text-sm leading-snug">{b.desc}</p>
@@ -84,8 +79,7 @@ export default async function HomePage() {
         </div>
         <div className="container grid grid-cols-3 gap-3">
           {categories.map(cat => (
-            <article key={cat.id} className="bg-white border border-[#e6edf4] rounded-2xl p-4"
-              style={{ boxShadow: '0 8px 24px rgba(15,23,42,0.05)' }}>
+            <article key={cat.id} className="bg-white border border-[#e6edf4] rounded-2xl p-4 shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
               <Link href={`/search?category=${cat.url}`} className="cat-link">
                 <div className="cat-icon">{CATEGORY_EMOJIS[cat.url] ?? DEFAULT_EMOJI}</div>
                 <h3 className="cat-title">{cat.title}</h3>
@@ -110,8 +104,7 @@ export default async function HomePage() {
             ? featuredItems.map(item => <CourseCard key={item.id} item={item} />)
             : Array.from({ length: 4 }).map((_, i) => (
                 <article key={i} className="bg-white border border-[#e6edf4] rounded-[22px] overflow-hidden">
-                  <div className="min-h-[165px] grid place-items-center"
-                    style={{ background: 'linear-gradient(135deg,#dff7e8,#e7f3ff)' }}>
+                  <div className="min-h-[165px] grid place-items-center bg-[linear-gradient(135deg,#dff7e8,#e7f3ff)]">
                     <span className="text-5xl">📚</span>
                   </div>
                   <div className="p-4">
@@ -135,10 +128,8 @@ export default async function HomePage() {
         </div>
         <div className="container grid grid-cols-1 md:grid-cols-3 gap-5">
           {events.map(e => (
-            <article key={e.id} className="rounded-[22px] overflow-hidden bg-white border border-[#e6edf4] flex flex-col"
-              style={{ boxShadow: '0 8px 24px rgba(15,23,42,0.06)' }}>
-              <div className="min-h-[190px] grid place-items-center p-6 text-center text-white font-black text-2xl leading-tight"
-                style={{ background: 'linear-gradient(135deg, #00539b, #00a651)' }}>
+            <article key={e.id} className="rounded-[22px] overflow-hidden bg-white border border-[#e6edf4] flex flex-col shadow-[0_8px_24px_rgba(15,23,42,0.06)]">
+              <div className="min-h-[190px] grid place-items-center p-6 text-center text-white font-black text-2xl leading-tight bg-[linear-gradient(135deg,#00539b,#00a651)]">
                 {e.title}
               </div>
               <div className="p-5 flex flex-col flex-1">
@@ -163,10 +154,8 @@ export default async function HomePage() {
           </div>
           <div className="container grid grid-cols-1 md:grid-cols-3 gap-5">
             {articles.map((a: any) => (
-              <article key={a.id} className="bg-white border border-[#e6edf4] rounded-[22px] overflow-hidden flex flex-col"
-                style={{ boxShadow: '0 8px 24px rgba(15,23,42,0.06)' }}>
-                <div className="min-h-[160px] grid place-items-center relative overflow-hidden"
-                  style={{ background: 'linear-gradient(135deg, #eef7ff, #e9fff3)' }}>
+              <article key={a.id} className="bg-white border border-[#e6edf4] rounded-[22px] overflow-hidden flex flex-col shadow-[0_8px_24px_rgba(15,23,42,0.06)]">
+                <div className="min-h-[160px] grid place-items-center relative overflow-hidden bg-[linear-gradient(135deg,#eef7ff,#e9fff3)]">
                   {a.image
                     // eslint-disable-next-line @next/next/no-img-element
                     ? <img src={a.image} alt={a.title} className="absolute inset-0 w-full h-full object-cover" />
