@@ -37,7 +37,11 @@ if command -v docker &>/dev/null; then
     echo "  ✓ Docker already installed ($(docker --version | cut -d' ' -f3 | tr -d ','))"
 else
     echo "  Installing Docker..."
-    curl -fsSL https://get.docker.com | sudo sh > /dev/null
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
+        | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+    sudo apt-get update -qq
+    sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin docker-buildx-plugin
     sudo usermod -aG docker "${SUDO_USER:-$USER}" 2>/dev/null || true
     echo "  ✓ Docker installed"
     echo "  ⚠ Log out and back in for Docker group to take effect (or use 'newgrp docker')"
