@@ -76,7 +76,7 @@ jobs:
       - name: Install dependencies
         working-directory: anylearn_v2
         run: |
-          npm ci --prefer-offline --no-audit
+          nice -n 19 npm ci --prefer-offline --no-audit
 
           # Update shared node_modules if package.json changed
           if [ ! -f "${{ env.DEPLOY_PATH }}/frontend/package.json" ] || \
@@ -86,7 +86,7 @@ jobs:
             sg anylearn-deploy -c "cp package.json ${{ env.DEPLOY_PATH }}/frontend/"
             sg anylearn-deploy -c "cp package-lock.json ${{ env.DEPLOY_PATH }}/frontend/"
             cd ${{ env.DEPLOY_PATH }}/frontend
-            sg anylearn-deploy -c "npm ci --prefer-offline --no-audit"
+            sg anylearn-deploy -c "nice -n 19 npm ci --prefer-offline --no-audit"
             echo "✓ Shared node_modules updated"
           fi
 
@@ -98,7 +98,7 @@ jobs:
       - name: Build Next.js
         working-directory: anylearn_v2
         run: |
-          npm run build
+          nice -n 19 npm run build
           [ -d ".next" ] || (echo "✗ .next not found after build" && exit 1)
 
       - name: Upload frontend artifact
