@@ -45,7 +45,7 @@ jobs:
 
       - name: Build with Maven
         working-directory: anylearn_backend_v2
-        run: mvn clean package -DskipTests -B
+        run: nice -n 19 mvn clean package -DskipTests -B
 
       - name: Upload backend artifact
         uses: actions/upload-artifact@v4
