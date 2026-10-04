@@ -443,14 +443,14 @@ function SearchPageInner() {
                         categorySearch={categorySearch} categories={categories} sort={sort} query={query}
                         activeAuthorId={activeAuthorId}
                         setCategorySearch={setCategorySearch} setActiveCategory={setActiveCategory}
-                        setFilters={setFilters} setSort={setSort}
+                        setFilters={setFilters as (v: Record<string, string>) => void} setSort={setSort}
                         pushSearch={pushSearch} doSearch={doSearch}
                         onClose={() => setFilterOpen(false)}
                         hideTitle
                       />
-                    </div>
                   </div>
                 </div>
+              </div>
               )}
 
               {/* Desktop: sidebar */}
@@ -464,7 +464,7 @@ function SearchPageInner() {
                   categorySearch={categorySearch} categories={categories} sort={sort} query={query}
                   activeAuthorId={activeAuthorId}
                   setCategorySearch={setCategorySearch} setActiveCategory={setActiveCategory}
-                  setFilters={setFilters} setSort={setSort}
+                  setFilters={setFilters as (v: Record<string, string>) => void} setSort={setSort}
                   pushSearch={pushSearch} doSearch={doSearch}
                 />
               </aside>
