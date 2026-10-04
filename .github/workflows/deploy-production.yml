@@ -236,7 +236,7 @@ jobs:
           fi
 
       - name: Deploy frontend
-        run: bash ${{ env.DEPLOY_PATH }}/scripts/deploy-frontend.sh /tmp/artifacts/frontend
+        run: bash deployment/scripts/deploy-frontend.sh /tmp/artifacts/frontend
 
   # ── Health Check & Rollback ──────────────────────────────────────────────────
 
