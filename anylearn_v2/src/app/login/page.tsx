@@ -44,7 +44,10 @@ function LoginForm() {
           <label className="block font-bold text-xs text-muted mb-1.5">Số điện thoại</label>
           <input className="field mb-3.5" type="tel" placeholder="Nhập số điện thoại"
             value={phone} onChange={e => setPhone(e.target.value)} required />
-          <label className="block font-bold text-xs text-muted mb-1.5">Mật khẩu</label>
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="font-bold text-xs text-muted">Mật khẩu</label>
+            <Link href="/forgot-password" className="text-xs text-blue hover:underline">Quên mật khẩu?</Link>
+          </div>
           <input className="field mb-6" type="password" placeholder="Nhập mật khẩu"
             value={password} onChange={e => setPassword(e.target.value)} required />
           <button type="submit" className="btn btn--green w-full text-base py-3.5" disabled={loading}>

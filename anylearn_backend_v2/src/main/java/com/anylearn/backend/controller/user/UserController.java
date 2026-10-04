@@ -2,6 +2,7 @@ package com.anylearn.backend.controller.user;
 
 import com.anylearn.backend.dto.response.ApiResponse;
 import com.anylearn.backend.entity.User;
+import com.anylearn.backend.service.NotificationService;
 import com.anylearn.backend.service.S3Service;
 import com.anylearn.backend.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ public class UserController {
 
     private final UserService userService;
     private final S3Service s3Service;
+    private final NotificationService notificationService;
 
     @GetMapping("/users/{role}")
     public ApiResponse<?> usersList(@PathVariable String role,
@@ -143,13 +145,21 @@ public class UserController {
     }
 
     @GetMapping("/user/notification")
-    public ApiResponse<?> notification() {
-        return ApiResponse.fail("Not implemented");
+    public ApiResponse<?> notification(@AuthenticationPrincipal User user,
+                                       @RequestParam(defaultValue = "0") int page) {
+        return ApiResponse.ok(notificationService.getUserNotifications(user.getId(), page));
     }
 
     @GetMapping("/user/notification/{id}")
-    public ApiResponse<?> notifRead(@PathVariable Long id) {
-        return ApiResponse.fail("Not implemented");
+    public ApiResponse<?> notifRead(@AuthenticationPrincipal User user, @PathVariable Long id) {
+        notificationService.markAsRead(id, user.getId());
+        return ApiResponse.ok(null);
+    }
+
+    @PostMapping("/user/notification/mark-all-read")
+    public ApiResponse<?> notifMarkAllRead(@AuthenticationPrincipal User user) {
+        notificationService.markAllAsRead(user.getId());
+        return ApiResponse.ok(null);
     }
 
     @GetMapping("/user/all-friends")

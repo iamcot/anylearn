@@ -32,7 +32,10 @@ public class Notification {
     @Column(name = "is_send", nullable = false)
     private Byte isSend;
 
+    @Column(name = "`send`")
     private LocalDateTime send;
+
+    @Column(name = "`read`")
     private LocalDateTime read;
 
     @Column(name = "created_at")

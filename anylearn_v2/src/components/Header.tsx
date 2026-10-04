@@ -1,8 +1,11 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { useAuth } from '@/context/AuthContext'
+import NotificationDropdown from './NotificationDropdown'
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080/v2/api'
 
 const NAV_LINKS = [
   { href: '/info', label: 'Giới thiệu' },
@@ -23,15 +26,92 @@ const ACCOUNT_MENU = [
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [accountOpen, setAccountOpen] = useState(false)
+  const [notifOpen, setNotifOpen] = useState(false)
+  const [unreadCount, setUnreadCount] = useState(0)
   const { user, cartCount, logout, openAuthModal } = useAuth()
   const accountRef = useRef<HTMLDivElement>(null)
+  const notifRef = useRef<HTMLDivElement>(null)
 
-  // Close popup on outside click
+  const fetchUnreadCount = useCallback(async () => {
+    if (!user) return
+    try {
+      const res = await fetch(`${API_BASE}/user/notification?page=0`, {
+        headers: { Authorization: `Bearer ${user.jwtToken}` },
+      })
+      const json = await res.json()
+      setUnreadCount(json?.data?.unread ?? 0)
+    } catch {}
+  }, [user])
+
+  // Register service worker for reliable browser notifications (Chrome requires this)
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {})
+    }
+  }, [])
+
+  // Request browser notification permission when user logs in
+  useEffect(() => {
+    if (!user) return
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission()
+    }
+  }, [user])
+
+  // SSE for real-time notifications + browser push
+  useEffect(() => {
+    if (!user) { setUnreadCount(0); return }
+    fetchUnreadCount()
+
+    const es = new EventSource(`${API_BASE}/user/notification/stream?api_token=${user.apiToken}`)
+
+    es.addEventListener('notification', async () => {
+      try {
+        const res = await fetch(`${API_BASE}/user/notification?page=0`, {
+          headers: { Authorization: `Bearer ${user.jwtToken}` },
+        })
+        const json = await res.json()
+        const count = json?.data?.unread ?? 0
+        setUnreadCount(count)
+
+        // Browser push notification
+        if ('Notification' in window) {
+          if (Notification.permission === 'granted') {
+            const latest = json?.data?.items?.find(
+              (n: { read?: string | null; type?: string }) =>
+                !n.read && n.type !== 'sms' && n.type !== 'zalo'
+            )
+            if (latest) {
+              const opts = {
+                body: latest.content as string,
+                icon: `${window.location.origin}/favicon-16x16.png`,
+                tag: `notif-${latest.id}`,
+                requireInteraction: true,
+                data: { url: `${window.location.origin}/` },
+              }
+              try {
+                const reg = await navigator.serviceWorker?.ready
+                if (reg) {
+                  await reg.showNotification(latest.title || 'anyLEARN', opts)
+                } else {
+                  new Notification(latest.title || 'anyLEARN', opts)
+                }
+              } catch {
+                new Notification(latest.title || 'anyLEARN', opts)
+              }
+            }
+          }
+        }
+      } catch {}
+    })
+
+    return () => es.close()
+  }, [user, fetchUnreadCount])
+
+  // Close account dropdown on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (accountRef.current && !accountRef.current.contains(e.target as Node)) {
-        setAccountOpen(false)
-      }
+      if (accountRef.current && !accountRef.current.contains(e.target as Node)) setAccountOpen(false)
     }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
@@ -68,6 +148,29 @@ export default function Header() {
               </span>
             )}
           </Link>
+
+          {/* Notification bell */}
+          {user && (
+            <div className="relative" ref={notifRef}>
+              <button
+                onClick={() => { setNotifOpen(v => !v); setAccountOpen(false) }}
+                className="w-[38px] h-[38px] rounded-full border border-line bg-white grid place-items-center cursor-pointer text-lg relative">
+                🔔
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full bg-red text-white text-[11px] font-black grid place-items-center px-1">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
+              </button>
+              {notifOpen && (
+                <NotificationDropdown
+                  token={user.jwtToken}
+                  onClose={() => setNotifOpen(false)}
+                  onUnreadChange={setUnreadCount}
+                />
+              )}
+            </div>
+          )}
 
           {/* Auth */}
           {user ? (

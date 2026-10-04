@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import Link from 'next/link'
 
@@ -20,6 +20,13 @@ export default function AuthModal() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [agreedTerms, setAgreedTerms] = useState(false)
 
+  // Restore last used phone number when modal opens — must be before early return
+  useEffect(() => {
+    if (!isAuthModalOpen) return
+    const saved = localStorage.getItem('anylearn_last_phone')
+    if (saved) setPhone(saved)
+  }, [isAuthModalOpen])
+
   if (!isAuthModalOpen) return null
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -29,6 +36,7 @@ export default function AuthModal() {
     const { error: err } = await login(phone, password)
     setLoading(false)
     if (err) { setError(err); return }
+    localStorage.setItem('anylearn_last_phone', phone)
     closeAuthModal()
     authModalOnSuccess?.()
   }
@@ -84,7 +92,10 @@ export default function AuthModal() {
               <label className="block font-bold text-xs text-muted mb-1.5">Số điện thoại</label>
               <input className="field mb-3.5" type="tel" placeholder="Nhập số điện thoại"
                 value={phone} onChange={e => setPhone(e.target.value)} required />
-              <label className="block font-bold text-xs text-muted mb-1.5">Mật khẩu</label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="font-bold text-xs text-muted">Mật khẩu</label>
+                <a href="/forgot-password" className="text-xs text-blue hover:underline">Quên mật khẩu?</a>
+              </div>
               <input className="field mb-5" type="password" placeholder="Nhập mật khẩu"
                 value={password} onChange={e => setPassword(e.target.value)} required />
               <button type="submit" className="btn btn--green w-full text-base py-3.5" disabled={loading}>

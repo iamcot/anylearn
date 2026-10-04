@@ -303,6 +303,83 @@ export async function loginApi(phone: string, password: string): Promise<{ user:
   }
 }
 
+// ── Password reset ────────────────────────────────────────────────────────────
+
+export async function sendPasswordOtp(phone: string): Promise<{ error?: string }> {
+  try {
+    const res = await fetch(`${BASE}/password/otp?phone=${encodeURIComponent(phone)}`)
+    const json = await res.json()
+    if (json?.resultCode === 0) return { error: json?.message || 'Không thể gửi OTP' }
+    return {}
+  } catch {
+    return { error: 'Không thể kết nối máy chủ' }
+  }
+}
+
+export async function verifyPasswordOtp(phone: string, otp: string): Promise<{ resetToken?: string; error?: string }> {
+  try {
+    const res = await fetch(`${BASE}/otp/check`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone, otp }),
+    })
+    const json = await res.json()
+    if (json?.resultCode === 0) return { error: json?.message || 'OTP không đúng' }
+    return { resetToken: json?.data?.resetToken }
+  } catch {
+    return { error: 'Không thể kết nối máy chủ' }
+  }
+}
+
+export async function resetPassword(token: string, newPassword: string): Promise<{ error?: string }> {
+  try {
+    const res = await fetch(`${BASE}/password/reset`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, newPassword }),
+    })
+    const json = await res.json()
+    if (json?.resultCode === 0) return { error: json?.message || 'Không thể đặt lại mật khẩu' }
+    return {}
+  } catch {
+    return { error: 'Không thể kết nối máy chủ' }
+  }
+}
+
+// ── Notifications ─────────────────────────────────────────────────────────────
+
+export interface AppNotification {
+  id: number
+  userId: number
+  type: string
+  title?: string
+  content: string
+  route?: string
+  extraContent?: string
+  isSend: number
+  read?: string
+  createdAt?: string
+}
+
+export interface NotificationListResult {
+  items: AppNotification[]
+  unread: number
+  page: number
+}
+
+export async function getNotifications(token: string, page = 0): Promise<NotificationListResult> {
+  const { data } = await authFetch<NotificationListResult>(`/user/notification?page=${page}`, token)
+  return data ?? { items: [], unread: 0, page }
+}
+
+export async function markAllNotificationsRead(token: string): Promise<void> {
+  await authFetch('/user/notification/mark-all-read', token, { method: 'POST' })
+}
+
+export async function markNotificationRead(id: number, token: string): Promise<void> {
+  await authFetch(`/user/notification/${id}`, token)
+}
+
 export async function registerApi(name: string, phone: string, email: string, password: string): Promise<{ user: AuthUser | null; error?: string }> {
   try {
     const res = await fetch(`${BASE}/register`, {

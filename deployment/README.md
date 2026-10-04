@@ -232,4 +232,65 @@ ls -la /opt/anylearn/frontend/releases/
 - **Database**: Java và PHP dùng chung DB `anylearn`. Flyway chỉ `validate` — không tự migrate khi deploy.
 - **Payment callbacks**: Gateway đăng ký URL `anylearn.vn/payment-notify/*` (không có `/v2`). Nginx rewrite tự động.
 - **MeiliSearch key**: `MEILI_MASTER_KEY` trong GitHub Secrets phải giống với `meilisearch/.env`.
+
+---
+
+## Admin API — Gửi thông báo đến user
+
+Tất cả admin endpoints yêu cầu `?api_token=ADMIN_TOKEN` (api_token của user có `role='admin'` trong DB).
+
+### Gửi thông báo in-app cho một user
+
+```bash
+POST https://anylearn.vn/v2/admin/notification/send?api_token=ADMIN_TOKEN
+Content-Type: application/json
+
+{
+  "phone": "0374900344",
+  "type": "system_notif",
+  "title": "Tiêu đề thông báo",
+  "content": "Nội dung thông báo hiển thị cho user.",
+  "route": "/account"
+}
+```
+
+**Các giá trị `type` phổ biến:**
+| type | Ý nghĩa | Icon hiển thị |
+|---|---|---|
+| `system_notif` | Thông báo hệ thống | 📢 |
+| `order` | Liên quan đến đơn hàng | 🛒 |
+| `payment` | Liên quan đến thanh toán | 💳 |
+| `voucher_partner_sent` | Gửi mã voucher | 🎁 |
+
+**Các giá trị `route` được hỗ trợ trên FE:**
+| route | Điều hướng tới |
+|---|---|
+| `/account` hoặc `/account/edit` | Trang thông tin cá nhân |
+| `/account/calendar` | Lịch học |
+| `/transaction` hoặc `/foundation` | Ví anyPoint |
+| `/pdp` (kèm `extraContent: "itemId"`) | Trang chi tiết khóa học |
+| `/article` (kèm `extraContent: "articleId"`) | Bài viết |
+| *(bỏ trống)* | Chỉ mark as read, không điều hướng |
+
+**Gửi voucher có thể copy:**
+```json
+{
+  "phone": "0374900344",
+  "type": "voucher_partner_sent",
+  "title": "Bạn nhận được mã giảm giá!",
+  "content": "Dùng mã bên dưới để được giảm 20% học phí.",
+  "route": "VOUCHER_CODE_XYZ",
+  "extraContent": "copy"
+}
+```
+
+**Response thành công:**
+```json
+{
+  "resultCode": 1,
+  "data": { "notificationId": 42, "userId": 123 }
+}
+```
+
+Thông báo sẽ xuất hiện ngay lập tức trên bell icon nếu user đang mở trình duyệt (SSE push). Nếu user đã cấp quyền push notification cho browser, sẽ nhận được thông báo kể cả khi tab đang ở background.
 - **node_modules**: Workflow tự detect khi `package.json` thay đổi và cập nhật shared `node_modules`.

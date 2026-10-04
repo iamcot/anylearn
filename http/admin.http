@@ -5,3 +5,65 @@ POST {{baseUrl}}/admin/reindex?api_token={{$dotenv ADMIN_TOKEN}}
 
 ### Reindex all schools/teachers into Meilisearch (admin only)
 POST {{baseUrl}}/admin/reindex/users?api_token={{$dotenv ADMIN_TOKEN}}
+
+### ── Notification ────────────────────────────────────────────────────────────
+
+### Send system notification to user by phone
+POST {{baseUrl}}/admin/notification/send?api_token={{$dotenv ADMIN_TOKEN}}
+Content-Type: application/json
+
+{
+  "phone": "0395359198",
+  "type": "system_notif",
+  "title": "Thông báo từ anyLEARN",
+  "content": "Nội dung thông báo hiển thị cho user.",
+  "route": ""
+}
+
+### Send voucher (user nhấn để copy mã)
+POST {{baseUrl}}/admin/notification/send?api_token={{$dotenv ADMIN_TOKEN}}
+Content-Type: application/json
+
+{
+  "phone": "0395359198",
+  "type": "voucher_partner_sent",
+  "title": "Bạn nhận được mã giảm giá!",
+  "content": "Dùng mã bên dưới để được giảm 20% học phí tại anyLEARN.",
+  "route": "VOUCHER20",
+  "extraContent": "copy"
+}
+
+### Send notification → link tới khóa học (itemId trong extraContent)
+POST {{baseUrl}}/admin/notification/send?api_token={{$dotenv ADMIN_TOKEN}}
+Content-Type: application/json
+
+{
+  "phone": "0395359198",
+  "type": "system_notif",
+  "title": "Khóa học bạn quan tâm đang có ưu đãi",
+  "content": "Khóa học Tiếng Anh Giao Tiếp vừa mở đăng ký với ưu đãi 15% trong hôm nay.",
+  "route": "/pdp",
+  "extraContent": "123"
+}
+
+### Send notification → link tới bài viết (articleId trong extraContent)
+POST {{baseUrl}}/admin/notification/send?api_token={{$dotenv ADMIN_TOKEN}}
+Content-Type: application/json
+
+{
+  "phone": "0395359198",
+  "type": "system_notif",
+  "title": "Bài viết mới",
+  "content": "Cách chọn trường mầm non phù hợp cho con — bài viết mới từ anyLEARN.",
+  "route": "/article",
+  "extraContent": "168"
+}
+
+### ── ZNS (Zalo Token Setup) ─────────────────────────────────────────────────
+
+### Bước 1: Lấy Zalo OAuth URL (mở URL này trong browser)
+GET {{baseUrl}}/admin/zns/authorize?api_token={{$dotenv ADMIN_TOKEN}}
+
+### Bước 2: Sau khi Zalo redirect về callback, copy code và chạy request này
+# Thay CODE_FROM_ZALO bằng code lấy từ URL bar
+GET {{baseUrl}}/admin/zns/callback?code=CODE_FROM_ZALO&api_token={{$dotenv ADMIN_TOKEN}}
