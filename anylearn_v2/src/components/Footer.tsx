@@ -49,11 +49,11 @@ export default async function Footer() {
             <p className="mt-2.5">⏰ 8:30 - 18:00, Thứ 2 - Thứ 7</p>
             <div className="flex gap-2.5 mt-3.5">
               {[
-                { href: '#', src: '/cdn/img/youtube.png', title: 'YouTube' },
-                { href: '#', src: '/cdn/img/facebook.png', title: 'Facebook' },
-                { href: '#', src: '/cdn/img/zalo.png', title: 'Zalo' },
+                { href: 'https://www.youtube.com/channel/UCam71id1lM8tZuMfjy2DDRw', src: '/cdn/img/youtube.png', title: 'YouTube' },
+                { href: 'https://www.facebook.com/anylearnhockhonggioihan', src: '/cdn/img/facebook.png', title: 'Facebook' },
+                { href: 'https://zalo.me/0374900344', src: '/cdn/img/zalo.png', title: 'Zalo' },
               ].map(s => (
-                <a key={s.title} href={s.href} title={s.title}
+                <a key={s.title} href={s.href} title={s.title} target="_blank" rel="noopener noreferrer"
                   className="w-9 h-9 rounded-full overflow-hidden">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={s.src} alt={s.title} className="w-full h-full object-cover" />

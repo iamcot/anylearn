@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
+import { getArticleUrl } from '@/lib/api'
 
 interface Promo {
   id: number
@@ -49,7 +50,7 @@ export default function PromoSlider({ promos }: { promos: Promo[] }) {
                       {promo.short_content}
                     </p>
                   )}
-                  <Link href="/search" className="btn btn--yellow">Tìm hiểu chương trình</Link>
+                  <Link href={getArticleUrl(promo)} className="btn btn--yellow">Tìm hiểu chương trình</Link>
                 </div>
                 <div style={{ display: 'grid', placeItems: 'center', padding: 28, overflow: 'hidden' }} className="promo-image-col">
                   {promo.image ? (

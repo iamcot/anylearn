@@ -1,7 +1,7 @@
 import SearchCard from '@/components/SearchCard'
 import CourseCard from '@/components/CourseCard'
 import PromoSlider from '@/components/PromoSlider'
-import { getHomeV2, Category } from '@/lib/api'
+import { getHomeV2, Category, getArticleUrl, Article } from '@/lib/api'
 import Link from 'next/link'
 
 const CATEGORY_EMOJIS: Record<string, string> = {
@@ -24,11 +24,9 @@ export default async function HomePage() {
   const homeData = await getHomeV2()
   const featuredItems = homeData?.home_classes?.flatMap(b => b.classes ?? []).slice(0, 8) ?? []
   const categories: Category[] = homeData?.categories?.slice(0, 10) ?? []
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const articles: any[] = (homeData as any)?.articles?.slice(0, 3) ?? []
-  const events = homeData?.events?.slice(0, 3) ?? []
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const promos: any[] = (homeData as any)?.promotions ?? []
+  const articles: Article[] = homeData?.articles?.slice(0, 3) ?? []
+  const events: Article[] = homeData?.events?.slice(0, 3) ?? []
+  const promos: Article[] = homeData?.promotions ?? []
 
   return (
     <>
@@ -133,8 +131,8 @@ export default async function HomePage() {
                 {e.title}
               </div>
               <div className="p-5 flex flex-col flex-1">
-                {e.shortContent && <p className="text-[#6d7a8a] flex-1 mb-4">{e.shortContent}</p>}
-                <Link href="/search" className="btn btn--green mt-auto">Xem chi tiết</Link>
+                {e.short_content && <p className="text-[#6d7a8a] flex-1 mb-4">{e.short_content}</p>}
+                <Link href={getArticleUrl(e)} className="btn btn--green mt-auto">Xem chi tiết</Link>
               </div>
             </article>
           ))}
@@ -150,10 +148,10 @@ export default async function HomePage() {
               <h2 className="section-title">Học và hỏi cùng anyLEARN</h2>
               <p className="section-desc">Khám phá các bài viết hữu ích về giáo dục, kỹ năng và hành trình học tập của con</p>
             </div>
-            <Link href="/search" className="btn btn--outline">Xem tất cả bài viết</Link>
+          <Link href="/article" className="btn btn--outline">Xem tất cả bài viết</Link>
           </div>
           <div className="container grid grid-cols-1 md:grid-cols-3 gap-5">
-            {articles.map((a: any) => (
+            {articles.map((a) => (
               <article key={a.id} className="bg-white border border-[#e6edf4] rounded-[22px] overflow-hidden flex flex-col shadow-[0_8px_24px_rgba(15,23,42,0.06)]">
                 <div className="min-h-[160px] grid place-items-center relative overflow-hidden bg-[linear-gradient(135deg,#eef7ff,#e9fff3)]">
                   {a.image
@@ -170,7 +168,7 @@ export default async function HomePage() {
                   {a.short_content && (
                     <p className="mb-4 text-[#6d7a8a] text-sm flex-1 line-clamp-2">{a.short_content}</p>
                   )}
-                  <Link href="/search" className="text-[#008244] font-black text-sm no-underline mt-auto">
+                  <Link href={getArticleUrl(a)} className="text-[#008244] font-black text-sm no-underline mt-auto">
                     Đọc thêm →
                   </Link>
                 </div>

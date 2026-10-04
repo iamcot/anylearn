@@ -73,11 +73,11 @@ export interface Category {
 
 export interface HomeData {
   new_banners: unknown[]
-  articles: unknown[]
+  articles: Article[]
   configs: Record<string, unknown>
   home_classes: { title: string; classes: Item[] }[]
-  promotions: unknown[]
-  events: Item[]
+  promotions: Article[]
+  events: Article[]
   categories: Category[]
 }
 
@@ -188,6 +188,56 @@ export function getCourseUrl(item: { id: number; seoUrl?: string; title?: string
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
   return `/class/${item.id}/${slug}`
+}
+
+export interface Article {
+  id: number
+  title: string
+  type: string
+  image?: string
+  short_content?: string
+  view?: number
+  like?: number
+  createdAt?: string
+}
+
+export interface ArticleDetail extends Article {
+  content?: string
+  video?: string
+  tags?: string
+  userId?: number
+}
+
+export interface ArticleListResult {
+  items: Article[]
+  page: number
+  limit: number
+  total: number
+}
+
+export function getArticleUrl(article: { id: number; title: string }): string {
+  const slug = article.title.toLowerCase()
+    .replace(/[àáạảãâầấậẩẫăằắặẳẵ]/g, 'a')
+    .replace(/[èéẹẻẽêềếệểễ]/g, 'e')
+    .replace(/[ìíịỉĩ]/g, 'i')
+    .replace(/[òóọỏõôồốộổỗơờớợởỡ]/g, 'o')
+    .replace(/[ùúụủũưừứựửữ]/g, 'u')
+    .replace(/[ỳýỵỷỹ]/g, 'y')
+    .replace(/đ/g, 'd')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+  return `/article/${article.id}/${slug}.html`
+}
+
+export async function getArticles(page = 0, limit = 12, type?: string): Promise<ArticleListResult> {
+  let path = `/article?page=${page}&limit=${limit}`
+  if (type) path += `&type=${encodeURIComponent(type)}`
+  const result = await apiFetch<ArticleListResult>(path)
+  return result ?? { items: [], page, limit, total: 0 }
+}
+
+export async function getArticle(id: number): Promise<ArticleDetail | null> {
+  return apiFetch<ArticleDetail>(`/article/${id}`)
 }
 export async function getHomeV2(): Promise<HomeData | null> {
   return apiFetch<HomeData>('/config/homev2/buyer')
