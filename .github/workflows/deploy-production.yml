@@ -215,8 +215,11 @@ jobs:
 
       - name: Create frontend .env.production
         run: |
-          mkdir -p ${{ env.DEPLOY_PATH }}/frontend
-          echo "NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}" > ${{ env.DEPLOY_PATH }}/frontend/.env.production
+          sg anylearn-deploy -c "mkdir -p ${{ env.DEPLOY_PATH }}/frontend"
+          sg anylearn-deploy -c "tee ${{ env.DEPLOY_PATH }}/frontend/.env.production > /dev/null" << 'EOF'
+          NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
+          EOF
+          sg anylearn-deploy -c "chmod 640 ${{ env.DEPLOY_PATH }}/frontend/.env.production" || true
 
       - name: Download frontend artifact
         uses: actions/download-artifact@v4
