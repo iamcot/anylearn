@@ -1,6 +1,6 @@
 # AnyLearn — Project Overview
 
-## Architecture: 3 Apps, 1 Database
+## Architecture: 4 Apps, 1 Database
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -8,7 +8,7 @@
 │  Port: 8000 (php artisan serve)                         │
 │  Serving both web UI and REST API at /api/*             │
 └─────────────────────────────────────────────────────────┘
-         ↓ đang được port sang 2 app mới ↓
+         ↓ đang được port sang 3 app mới ↓
 
 ┌──────────────────────────┐   ┌──────────────────────────┐
 │  anylearn_v2             │   │  anylearn_backend_v2      │
@@ -16,7 +16,14 @@
 │  Tailwind CSS v4         │   │  Port: 8080               │
 │  Port: 3000              │   │  Context path: /v2        │
 │  FE (buyer-facing)       │   │  REST API: /v2/api/*      │
-└──────────────────────────┘   └──────────────────────────┘
+└──────────────────────────┘   │  Admin API: /v2/admin/*   │
+                               └──────────────────────────┘
+┌──────────────────────────┐           │
+│  anylearn_admin          │───────────┘
+│  Vite + SAPUI5 React     │
+│  Port: 5173              │
+│  Back office (admin)     │
+└──────────────────────────┘
                                         │
                           ┌─────────────┴─────────────┐
                           │  MySQL: anylearn           │
@@ -42,7 +49,12 @@ cd anylearn_backend_v2
 ./mvnw spring-boot:run
 # → http://localhost:8080/v2/api
 
-# 3. Start Next.js FE
+# 3. Start Admin (back office)
+cd anylearn_admin
+npm run dev
+# → http://localhost:5173
+
+# 4. Start Next.js FE
 cd anylearn_v2
 npm run dev
 # → http://localhost:3000
@@ -84,7 +96,7 @@ Thư mục `http/` chứa VS Code REST Client files cho mọi endpoint:
 - `ask.http` — Q&A threads, voting
 - `transaction.http` — history, deposit, withdraw, order
 - `me.http` — dashboard, classes, students, cart (partner/student view)
-- `admin.http` — reindex MeiliSearch
+- `admin.http` — admin login, dashboard, CRUD users/items/orders/transactions/articles, config, ZNS
 
 ## Porting Status (Portal → v2 + backend)
 
@@ -100,7 +112,7 @@ Thư mục `http/` chứa VS Code REST Client files cho mọi endpoint:
 | Article/blog | ✅ | partial | ❌ |
 | Q&A (ask) | ✅ | ✅ | ❌ |
 | Transaction/wallet | ✅ | ✅ | ❌ |
-| Admin panel | ✅ | minimal | ❌ |
+| Admin panel | ✅ | ✅ | ✅ (anylearn_admin) |
 | Knowledge base | ✅ | entity only | ❌ |
 | Social feed | ✅ | minimal | ❌ |
 

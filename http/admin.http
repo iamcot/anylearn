@@ -1,10 +1,176 @@
 @baseUrl = {{$dotenv BE_BASE_URL}}
 
+### ── Auth ────────────────────────────────────────────────────────────────────
+
+### Admin login (trả JWT, dùng cho admin app)
+POST {{baseUrl}}/admin/login
+Content-Type: application/json
+
+{
+  "phone": "0395359198",
+  "password": "password"
+}
+
 ### Reindex all items into Meilisearch (admin only)
 POST {{baseUrl}}/admin/reindex?api_token={{$dotenv ADMIN_TOKEN}}
 
 ### Reindex all schools/teachers into Meilisearch (admin only)
 POST {{baseUrl}}/admin/reindex/users?api_token={{$dotenv ADMIN_TOKEN}}
+
+### ── Dashboard ───────────────────────────────────────────────────────────────
+
+### Stats tổng quan theo kỳ
+GET {{baseUrl}}/admin/dashboard/stats?from=2025-01-01&to=2025-12-31
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+### Chart tăng trưởng user
+GET {{baseUrl}}/admin/dashboard/chart/users?from=2025-01-01&to=2025-12-31
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+### Chart GMV
+GET {{baseUrl}}/admin/dashboard/chart/gmv?from=2025-01-01&to=2025-12-31
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+### Top partners
+GET {{baseUrl}}/admin/dashboard/top-partners?from=2025-01-01&to=2025-12-31&limit=10
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+### Top items (khóa học)
+GET {{baseUrl}}/admin/dashboard/top-items?from=2025-01-01&to=2025-12-31&limit=10
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+### ── Users ────────────────────────────────────────────────────────────────────
+
+### Danh sách thành viên
+GET {{baseUrl}}/admin/users?page=0&size=20
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+### Lọc theo role
+GET {{baseUrl}}/admin/users?role=teacher&page=0&size=20
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+### Tìm kiếm
+GET {{baseUrl}}/admin/users?q=nguyen&page=0&size=20
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+### Chi tiết user
+GET {{baseUrl}}/admin/users/1
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+### Cập nhật user
+PUT {{baseUrl}}/admin/users/1
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+Content-Type: application/json
+
+{
+  "status": 1,
+  "role": "user"
+}
+
+### ── Items ────────────────────────────────────────────────────────────────────
+
+### Danh sách khóa học
+GET {{baseUrl}}/admin/items?page=0&size=20
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+### Chi tiết khóa học
+GET {{baseUrl}}/admin/items/1
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+### Cập nhật khóa học
+PUT {{baseUrl}}/admin/items/1
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+Content-Type: application/json
+
+{
+  "status": 1,
+  "userStatus": 1
+}
+
+### ── Orders ───────────────────────────────────────────────────────────────────
+
+### Danh sách đơn hàng
+GET {{baseUrl}}/admin/orders?page=0&size=20
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+### Lọc theo trạng thái
+GET {{baseUrl}}/admin/orders?status=pending&page=0&size=20
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+### Chi tiết đơn hàng
+GET {{baseUrl}}/admin/orders/1
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+### Xác nhận thanh toán bank transfer (bulk)
+POST {{baseUrl}}/admin/orders/confirm
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+Content-Type: application/json
+
+{ "ids": [1, 2, 3] }
+
+### Huỷ đơn hàng (bulk)
+POST {{baseUrl}}/admin/orders/cancel
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+Content-Type: application/json
+
+{ "ids": [1, 2, 3] }
+
+### ── Transactions ─────────────────────────────────────────────────────────────
+
+### Danh sách giao dịch (pending)
+GET {{baseUrl}}/admin/transactions?status=0&page=0&size=20
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+### Chi tiết giao dịch
+GET {{baseUrl}}/admin/transactions/1
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+### Duyệt giao dịch (bulk)
+POST {{baseUrl}}/admin/transactions/approve
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+Content-Type: application/json
+
+{ "ids": [1, 2, 3] }
+
+### Từ chối giao dịch (bulk)
+POST {{baseUrl}}/admin/transactions/reject
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+Content-Type: application/json
+
+{ "ids": [1, 2, 3] }
+
+### ── Articles ─────────────────────────────────────────────────────────────────
+
+### Danh sách bài viết
+GET {{baseUrl}}/admin/articles?page=0&size=20
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+### Chi tiết bài viết
+GET {{baseUrl}}/admin/articles/1
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+### Cập nhật bài viết
+PUT {{baseUrl}}/admin/articles/1
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+Content-Type: application/json
+
+{
+  "status": 1,
+  "isHot": 0
+}
+
+### ── Config ───────────────────────────────────────────────────────────────────
+
+### Xem tất cả config
+GET {{baseUrl}}/admin/config
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+### Cập nhật config key
+PUT {{baseUrl}}/admin/config/some_key
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+Content-Type: application/json
+
+{ "value": "new_value" }
 
 ### ── Notification ────────────────────────────────────────────────────────────
 
@@ -20,50 +186,12 @@ Content-Type: application/json
   "route": ""
 }
 
-### Send voucher (user nhấn để copy mã)
-POST {{baseUrl}}/admin/notification/send?api_token={{$dotenv ADMIN_TOKEN}}
-Content-Type: application/json
-
-{
-  "phone": "0395359198",
-  "type": "voucher_partner_sent",
-  "title": "Bạn nhận được mã giảm giá!",
-  "content": "Dùng mã bên dưới để được giảm 20% học phí tại anyLEARN.",
-  "route": "VOUCHER20",
-  "extraContent": "copy"
-}
-
-### Send notification → link tới khóa học (itemId trong extraContent)
-POST {{baseUrl}}/admin/notification/send?api_token={{$dotenv ADMIN_TOKEN}}
-Content-Type: application/json
-
-{
-  "phone": "0395359198",
-  "type": "system_notif",
-  "title": "Khóa học bạn quan tâm đang có ưu đãi",
-  "content": "Khóa học Tiếng Anh Giao Tiếp vừa mở đăng ký với ưu đãi 15% trong hôm nay.",
-  "route": "/pdp",
-  "extraContent": "123"
-}
-
-### Send notification → link tới bài viết (articleId trong extraContent)
-POST {{baseUrl}}/admin/notification/send?api_token={{$dotenv ADMIN_TOKEN}}
-Content-Type: application/json
-
-{
-  "phone": "0395359198",
-  "type": "system_notif",
-  "title": "Bài viết mới",
-  "content": "Cách chọn trường mầm non phù hợp cho con — bài viết mới từ anyLEARN.",
-  "route": "/article",
-  "extraContent": "168"
-}
-
 ### ── ZNS (Zalo Token Setup) ─────────────────────────────────────────────────
 
 ### Bước 1: Lấy Zalo OAuth URL (mở URL này trong browser)
-GET {{baseUrl}}/admin/zns/authorize?api_token={{$dotenv ADMIN_TOKEN}}
+GET {{baseUrl}}/admin/zns/authorize
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
 
-### Bước 2: Sau khi Zalo redirect về callback, copy code và chạy request này
-# Thay CODE_FROM_ZALO bằng code lấy từ URL bar
-GET {{baseUrl}}/admin/zns/callback?code=CODE_FROM_ZALO&api_token={{$dotenv ADMIN_TOKEN}}
+### Bước 2: Zalo tự redirect về /admin/zns/callback?code=... (không cần gọi thủ công)
+# Nếu cần test: GET {{baseUrl}}/admin/zns/callback?code=CODE_FROM_ZALO
+

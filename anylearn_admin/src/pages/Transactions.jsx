@@ -1,0 +1,93 @@
+import { App, Button, Drawer, Popconfirm, Select, Space, Table, Tag } from 'antd'
+import { useState } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import client from '../api/client'
+import { usePagination } from '../hooks/usePagination'
+import { Field } from '../components/Field'
+
+const STATUS = { 0: ['Chờ duyệt', 'orange'], 1: ['Đã duyệt', 'green'], '-1': ['Từ chối', 'red'] }
+const statusTag = (v) => { const [label, color] = STATUS[String(v)] ?? ['?', 'default']; return <Tag color={color}>{label}</Tag> }
+
+export default function Transactions() {
+  const { message } = App.useApp()
+  const qc = useQueryClient()
+  const [statusFilter, setStatusFilter] = useState('')
+  const [typeFilter, setTypeFilter] = useState('')
+  const [payMethod, setPayMethod] = useState('wallet_c')
+  const { page, setPage, paginationProps } = usePagination()
+  const [selectedKeys, setSelectedKeys] = useState([])
+  const [drawerTxn, setDrawerTxn] = useState(null)
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['admin-txns', statusFilter, typeFilter, payMethod, page],
+    queryFn: () => client.get('/admin/transactions', {
+      params: {
+        ...(statusFilter !== '' && { status: statusFilter }),
+        ...(typeFilter && { type: typeFilter }),
+        ...(payMethod && { payMethod }),
+        page: page - 1, size: 20,
+      }
+    }).then(r => r.data?.data ?? r.data),
+  })
+
+  const approve = useMutation({
+    mutationFn: (ids) => client.post('/admin/transactions/approve', { ids }),
+    onSuccess: () => { qc.invalidateQueries(['admin-txns']); setSelectedKeys([]); message.success('Đã duyệt') },
+  })
+
+  const reject = useMutation({
+    mutationFn: (ids) => client.post('/admin/transactions/reject', { ids }),
+    onSuccess: () => { qc.invalidateQueries(['admin-txns']); setSelectedKeys([]); message.success('Đã từ chối') },
+  })
+
+  const columns = [
+    { title: 'ID', dataIndex: 'id', width: 70 },
+    { title: 'Người dùng', dataIndex: 'userName' },
+    { title: 'Loại', dataIndex: 'type' },
+    { title: 'anyPoint', dataIndex: 'amount', render: v => Number(v ?? 0).toLocaleString() },
+    { title: 'Trạng thái', dataIndex: 'status', render: statusTag },
+    { title: 'Ngày tạo', dataIndex: 'createdAt', render: v => v?.split('T')[0] },
+  ]
+
+  const rowSelection = { selectedRowKeys: selectedKeys, onChange: setSelectedKeys }
+
+  return (
+    <div style={{ padding: 24 }}>
+      <Space style={{ marginBottom: 16, flexWrap: 'wrap' }}>
+        <Select value={statusFilter} onChange={v => { setStatusFilter(v); setPage(1) }} style={{ width: 150 }}
+          options={[{ value: '', label: 'Tất cả trạng thái' }, { value: '0', label: 'Chờ duyệt' }, { value: '1', label: 'Đã duyệt' }, { value: '-1', label: 'Từ chối' }]}
+        />
+        <Select value={typeFilter} onChange={v => { setTypeFilter(v); setPage(1) }} style={{ width: 150 }}
+          options={[{ value: '', label: 'Tất cả loại' }, { value: 'deposit', label: 'Nạp tiền' }, { value: 'withdraw', label: 'Rút tiền' }, { value: 'partner', label: 'Đối tác' }, { value: 'commission', label: 'Hoa hồng' }]}
+        />
+     
+        {selectedKeys.length > 0 && (
+          <>
+            <Popconfirm title={`Duyệt ${selectedKeys.length} giao dịch?`} onConfirm={() => approve.mutate(selectedKeys)}>
+              <Button type="primary" loading={approve.isPending}>Duyệt ({selectedKeys.length})</Button>
+            </Popconfirm>
+            <Popconfirm title={`Từ chối ${selectedKeys.length} giao dịch?`} onConfirm={() => reject.mutate(selectedKeys)} okButtonProps={{ danger: true }}>
+              <Button danger loading={reject.isPending}>Từ chối ({selectedKeys.length})</Button>
+            </Popconfirm>
+          </>
+        )}
+      </Space>
+      <Table
+        columns={columns} dataSource={data?.content ?? []} rowKey="id" loading={isLoading} size="small"
+        rowSelection={rowSelection}
+        pagination={paginationProps(data?.content)}
+        onRow={row => ({ onClick: () => setDrawerTxn(row), style: { cursor: 'pointer' } })}
+      />
+      <Drawer title={`Giao dịch #${drawerTxn?.id}`} open={!!drawerTxn} onClose={() => setDrawerTxn(null)} size="large">
+        <Field label="Loại" viewValue={drawerTxn?.type} />
+        <Field label="anyPoint" viewValue={`${Number(drawerTxn?.amount ?? 0).toLocaleString()}`} />
+        <Field label="Trạng thái" viewValue={statusTag(drawerTxn?.status)} />
+        <Field label="Thông tin TT" viewValue={<pre style={{ margin: 0, fontSize: 12, whiteSpace: 'pre-wrap' }}>{drawerTxn?.payInfo}</pre>} />
+        <Field label="Nội dung" viewValue={drawerTxn?.content} />
+        {drawerTxn?.orderId && <Field label="Đơn hàng #" viewValue={drawerTxn.orderId} />}
+        <Field label="Người dùng" viewValue={drawerTxn?.userName} />
+        <Field label="Ngày tạo" viewValue={drawerTxn?.createdAt?.split('T')[0]} />
+      </Drawer>
+    </div>
+  )
+}

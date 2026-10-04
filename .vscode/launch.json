@@ -33,6 +33,15 @@
       "runtimeArgs": ["run", "dev"],
       "cwd": "${workspaceFolder}/anylearn_v2",
       "console": "integratedTerminal"
+    },
+    {
+      "type": "node",
+      "name": "Admin (Vite dev)",
+      "request": "launch",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "cwd": "${workspaceFolder}/anylearn_admin",
+      "console": "integratedTerminal"
     }
   ]
 }
