@@ -84,19 +84,6 @@ jobs:
         run: |
           nice -n 19 npm ci --prefer-offline --no-audit
 
-          # Update shared node_modules if package.json changed
-          SHARED_DIR="${{ env.DEPLOY_PATH }}/frontend"
-          if [ ! -f "${SHARED_DIR}/package.json" ] || \
-             ! cmp -s package.json "${SHARED_DIR}/package.json"; then
-            echo "Updating shared node_modules..."
-            mkdir -p "${SHARED_DIR}"
-            cp package.json "${SHARED_DIR}/"
-            cp package-lock.json "${SHARED_DIR}/"
-            cd "${SHARED_DIR}"
-            nice -n 19 npm ci --prefer-offline --no-audit
-            echo "✓ Shared node_modules updated"
-          fi
-
       - name: Create .env.production
         working-directory: anylearn_v2
         run: |

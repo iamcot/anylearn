@@ -30,7 +30,17 @@ cp    "${BUILD_PATH}/next.config.js" "${RELEASE_PATH}/" 2>/dev/null || true
 cp -r "${BUILD_PATH}/public"        "${RELEASE_PATH}/" 2>/dev/null || true
 echo "✓ Copied build artifacts"
 
-# Link to shared node_modules (installed once in DEPLOY_PATH)
+# Install shared node_modules if not present or package.json changed
+if [ ! -d "${DEPLOY_PATH}/node_modules" ] || \
+   ! cmp -s "${BUILD_PATH}/package.json" "${DEPLOY_PATH}/package.json" 2>/dev/null; then
+    echo "Installing shared node_modules..."
+    cp "${BUILD_PATH}/package.json" "${DEPLOY_PATH}/"
+    cp "${BUILD_PATH}/package-lock.json" "${DEPLOY_PATH}/" 2>/dev/null || true
+    cd "${DEPLOY_PATH}" && nice -n 19 npm ci --prefer-offline --no-audit
+    echo "✓ Shared node_modules installed"
+fi
+
+# Link to shared node_modules
 ln -s "${DEPLOY_PATH}/node_modules" "${RELEASE_PATH}/node_modules"
 echo "✓ Linked shared node_modules"
 
