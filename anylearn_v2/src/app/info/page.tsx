@@ -1,8 +1,6 @@
 import SearchCard from '@/components/SearchCard'
 import Link from 'next/link'
 
-const BASE = ''
-
 const PROBLEMS = [
   { emoji: '⏳', title: 'Mất thời gian tìm kiếm', desc: 'Thông tin trường học, khóa học và chuyên gia thường nằm rải rác trên nhiều kênh khác nhau' },
   { emoji: '⚖️', title: 'Khó so sánh lựa chọn', desc: 'Không có công cụ so sánh rõ ràng về chương trình, học phí, đánh giá và phù hợp với con' },
@@ -24,43 +22,43 @@ const ECOSYSTEM = [
 ]
 
 const STATS = [
-  { img: `${BASE}/cdn/anylearn/img/landing_number1.png`, num: '500+', label: 'Đối tác' },
-  { img: `${BASE}/cdn/anylearn/img/landing_number2.png`, num: '2500+', label: 'Khoá học' },
-  { img: `${BASE}/cdn/anylearn/img/landing_number3.png`, num: '200+', label: 'Chuyên gia' },
-  { img: `${BASE}/cdn/anylearn/img/landing_number4.png`, num: '15000+', label: 'Học viên' },
+  { img: '/cdn/anylearn/img/landing_number1.png', num: '500+', label: 'Đối tác' },
+  { img: '/cdn/anylearn/img/landing_number2.png', num: '2500+', label: 'Khoá học' },
+  { img: '/cdn/anylearn/img/landing_number3.png', num: '200+', label: 'Chuyên gia' },
+  { img: '/cdn/anylearn/img/landing_number4.png', num: '15000+', label: 'Học viên' },
 ]
 
 const TESTIMONIALS = [
   {
-    img: `${BASE}/cdn/onepage/images/feedbacks/kimchi.jpg`,
+    img: '/cdn/onepage/images/feedbacks/kimchi.jpg',
     quote: 'Tôi thấy ứng dụng anyLEARN rất hữu ích. Nhờ ứng dụng, khi đăng ký khóa học cho con, tôi có thể dễ dàng so sánh và chọn được chương trình phù hợp nhất.',
     name: 'Chị Kim Chi', title: 'Phụ huynh',
   },
   {
-    img: `${BASE}/cdn/onepage/images/feedbacks/kimpham.jpg`,
+    img: '/cdn/onepage/images/feedbacks/kimpham.jpg',
     quote: 'Sau khi con hoàn thành khóa học Tư duy MMS đăng ký trên anyLEARN, con có nhiều thay đổi tích cực rõ rệt. Rất hài lòng với dịch vụ tư vấn và hỗ trợ của anyLEARN.',
     name: 'Chị Kim Phạm', title: 'Phụ huynh',
   },
   {
-    img: `${BASE}/cdn/onepage/images/feedbacks/xuanhoa.jpg`,
+    img: '/cdn/onepage/images/feedbacks/xuanhoa.jpg',
     quote: 'Các trường và trung tâm đào tạo trên anyLEARN được sàng lọc kỹ lưỡng nên tôi rất yên tâm khi đăng ký cho con. Giao diện dễ dùng, tìm kiếm nhanh.',
     name: 'Anh Xuân Hòa', title: 'Phụ huynh',
   },
 ]
 
 const TEAM = [
-  { img: `${BASE}/cdn/anylearn/img/Trinh.png`, name: 'Đặng Thị Hoài Trinh', title: 'Founder & CEO' },
-  { img: `${BASE}/cdn/anylearn/img/Thang.png`, name: 'Trương Công Thắng', title: 'Co-Founder & CTO' },
-  { img: `${BASE}/cdn/anylearn/img/msNhu.png`, name: 'Tôn Thị Quỳnh Như', title: 'Co-Founder' },
-  { img: `${BASE}/cdn/anylearn/img/mrHuyen.jpg`, name: 'Lê Thế Huyên', title: 'Legal Team Leader' },
-  { img: `${BASE}/cdn/anylearn/img/msDung.jpg`, name: 'Nguyễn Thị Viên Dung', title: 'Head of Partner Relationship' },
-  { img: `${BASE}/cdn/anylearn/img/msNgoc.jpg`, name: 'Nguyễn Thị Vui', title: 'HR Development Manager' },
+  { img: '/cdn/anylearn/img/Trinh.png',   name: 'Đặng Thị Hoài Trinh',   title: 'Founder & CEO' },
+  { img: '/cdn/anylearn/img/Thang.png',   name: 'Trương Công Thắng',     title: 'Co-Founder & CTO' },
+  { img: '/cdn/anylearn/img/msNhu.png',   name: 'Tôn Thị Quỳnh Như',    title: 'Co-Founder' },
+  { img: '/cdn/anylearn/img/mrHuyen.jpg', name: 'Lê Thế Huyên',         title: 'Legal Team Leader' },
+  { img: '/cdn/anylearn/img/msDung.jpg',  name: 'Nguyễn Thị Viên Dung', title: 'Head of Partner Relationship' },
+  { img: '/cdn/anylearn/img/msNgoc.jpg',  name: 'Nguyễn Thị Vui',       title: 'HR Development Manager' },
 ]
 
 const PRESS = [
-  { img: `${BASE}/cdn/anylearn/img/GDTD.png`, name: 'Giáo dục & Thời đại' },
-  { img: `${BASE}/cdn/anylearn/img/VTV1.png`, name: 'VTV1' },
-  { img: `${BASE}/cdn/anylearn/img/htv9.png`, name: 'HTV9' },
+  { img: '/cdn/anylearn/img/GDTD.png', name: 'Giáo dục & Thời đại' },
+  { img: '/cdn/anylearn/img/VTV1.png',  name: 'VTV1' },
+  { img: '/cdn/anylearn/img/htv9.png',  name: 'HTV9' },
 ]
 
 const PARTNER_LOGOS = [
@@ -79,26 +77,21 @@ const PARTNER_LOGOS = [
   'W-63.png','W-64.png','W-65.png','W-66.jpg',
 ].map(f => `/cdn/onepage/images/schools/${f}`)
 
+const CARD = 'bg-white border border-[#e6edf4] rounded-[22px] p-6 shadow-[0_8px_24px_rgba(15,23,42,0.05)]'
+
 export default function InfoPage() {
   return (
     <>
       {/* ── Hero ── */}
-      <section style={{
-        minHeight: 580,
-        background: 'linear-gradient(135deg, #00539b, #00a651)',
-        color: 'white', display: 'flex', alignItems: 'center',
-        padding: '80px 0 120px',
-      }}>
+      <section className="hero-section flex items-center bg-[linear-gradient(135deg,#00539b,#00a651)] text-white">
         <div className="container">
-          <span style={{
-            display: 'inline-flex', borderRadius: 999, padding: '8px 14px',
-            background: 'rgba(255,255,255,0.16)', border: '1px solid rgba(255,255,255,0.24)',
-            fontSize: 14, fontWeight: 900, marginBottom: 18,
-          }}>Giới thiệu anyLEARN</span>
-          <h1 style={{ fontSize: 'clamp(36px,5vw,62px)', fontWeight: 900, lineHeight: 1.04, letterSpacing: -1.4, margin: '0 0 18px', maxWidth: 780 }}>
+          <span className="inline-flex rounded-full px-3.5 py-2 text-sm font-black mb-5 bg-[rgba(255,255,255,0.16)] border border-[rgba(255,255,255,0.24)]">
+            Giới thiệu anyLEARN
+          </span>
+          <h1 className="font-black leading-none mb-5 max-w-3xl text-[clamp(36px,5vw,62px)] tracking-[-1.4px]">
             Tìm trường học, khóa học và chuyên gia phù hợp cho con
           </h1>
-          <p style={{ fontSize: 18, margin: '0 0 32px', color: 'rgba(255,255,255,0.9)', maxWidth: 620 }}>
+          <p className="text-lg mb-8 max-w-2xl text-[rgba(255,255,255,0.9)]">
             anyLEARN giúp phụ huynh tìm kiếm, so sánh và đăng ký chương trình học chính quy, ngoại khóa, online và offline trong một hành trình rõ ràng hơn
           </p>
           <SearchCard variant="about" />
@@ -107,18 +100,18 @@ export default function InfoPage() {
 
       {/* ── Intro ── */}
       <section className="section">
-        <div className="container grid-intro" style={{ display: 'grid', gridTemplateColumns: '0.9fr 1.1fr', gap: 56, alignItems: 'center' }}>
-          <div style={{ fontSize: 'clamp(72px,12vw,150px)', fontWeight: 900, lineHeight: 0.9, letterSpacing: -6, userSelect: 'none' }}>
-            <div style={{ color: '#00539b' }}>any</div>
-            <div style={{ color: '#00a651' }}>LEARN</div>
+        <div className="container grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-14 items-center">
+          <div className="text-[clamp(64px,12vw,130px)] font-black leading-[0.88] tracking-[-6px] select-none">
+            <div className="text-[#00539b]">any</div>
+            <div className="text-[#00a651]">LEARN</div>
           </div>
           <div>
             <span className="section-kicker">anyLEARN là gì?</span>
             <h2 className="section-title">Nền tảng booking giáo dục cho phụ huynh hiện đại</h2>
-            <p style={{ fontSize: 18, color: '#6d7a8a', margin: '16px 0 24px' }}>
+            <p className="text-[17px] text-[#6d7a8a] mt-4 mb-6">
               anyLEARN giúp cha mẹ tìm và đăng ký các chương trình học tập chính quy và ngoại khóa, offline hoặc online tại các trường quốc tế, học viện và trung tâm đào tạo chất lượng cao.
             </p>
-            <div className="quick-tags" style={{ marginTop: 0 }}>
+            <div className="quick-tags">
               {['Tìm kiếm', 'So sánh', 'Tư vấn', 'Đăng ký', 'Thanh toán'].map(t => (
                 <span key={t} className="tag">{t}</span>
               ))}
@@ -128,14 +121,14 @@ export default function InfoPage() {
       </section>
 
       {/* ── Stats ── */}
-      <section style={{ background: '#f7fafc', padding: '56px 0' }}>
-        <div className="container grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 20, textAlign: 'center' }}>
+      <section className="section section--soft">
+        <div className="container grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
           {STATS.map(s => (
-            <div key={s.label} style={{ background: 'white', border: '1px solid #e6edf4', borderRadius: 22, padding: '28px 20px', boxShadow: '0 8px 24px rgba(15,23,42,0.05)' }}>
+            <div key={s.label} className={CARD}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={s.img} alt={s.label} style={{ width: 56, height: 56, objectFit: 'contain', marginBottom: 12 }} />
-              <div style={{ fontSize: 40, fontWeight: 900, color: '#00539b', marginBottom: 6 }}>{s.num}</div>
-              <div style={{ color: '#6d7a8a', fontWeight: 700 }}>{s.label}</div>
+              <img src={s.img} alt={s.label} className="w-14 h-14 object-contain mx-auto mb-3" />
+              <div className="text-[38px] font-black text-[#00539b] mb-1.5">{s.num}</div>
+              <div className="text-[#6d7a8a] font-bold">{s.label}</div>
             </div>
           ))}
         </div>
@@ -149,12 +142,12 @@ export default function InfoPage() {
             <h2 className="section-title">Phụ huynh cần một hành trình chọn khóa học rõ ràng hơn</h2>
           </div>
         </div>
-        <div className="container grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 20 }}>
+        <div className="container grid grid-cols-1 sm:grid-cols-3 gap-5">
           {PROBLEMS.map(p => (
-            <article key={p.title} style={{ background: 'white', border: '1px solid #e6edf4', borderRadius: 22, padding: 24, boxShadow: '0 8px 24px rgba(15,23,42,0.05)' }}>
+            <article key={p.title} className={CARD}>
               <div className="feature-icon">{p.emoji}</div>
-              <h3 style={{ margin: '0 0 10px', color: '#17212f', fontSize: 21, fontWeight: 900 }}>{p.title}</h3>
-              <p style={{ margin: 0, color: '#6d7a8a' }}>{p.desc}</p>
+              <h3 className="mt-0 mb-2.5 text-[#17212f] text-xl font-black">{p.title}</h3>
+              <p className="m-0 text-[#6d7a8a]">{p.desc}</p>
             </article>
           ))}
         </div>
@@ -168,12 +161,12 @@ export default function InfoPage() {
             <h2 className="section-title">Cam kết chất lượng từ anyLEARN</h2>
           </div>
         </div>
-        <div className="container" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 20 }}>
+        <div className="container grid grid-cols-1 sm:grid-cols-3 gap-5">
           {COMMITS.map(c => (
-            <article key={c.num} style={{ background: 'white', border: '1px solid #e6edf4', borderRadius: 22, padding: 24, boxShadow: '0 8px 24px rgba(15,23,42,0.05)' }}>
-              <div style={{ width: 46, height: 46, borderRadius: 16, background: '#00a651', color: 'white', fontWeight: 900, fontSize: 20, marginBottom: 16, display: 'grid', placeItems: 'center' }}>{c.num}</div>
-              <h3 style={{ margin: '0 0 10px', color: '#17212f', fontSize: 21, fontWeight: 900 }}>{c.title}</h3>
-              <p style={{ margin: 0, color: '#6d7a8a' }}>{c.desc}</p>
+            <article key={c.num} className={CARD}>
+              <div className="w-11 h-11 rounded-2xl bg-[#00a651] text-white font-black text-xl grid place-items-center mb-4">{c.num}</div>
+              <h3 className="mt-0 mb-2.5 text-[#17212f] text-xl font-black">{c.title}</h3>
+              <p className="m-0 text-[#6d7a8a]">{c.desc}</p>
             </article>
           ))}
         </div>
@@ -187,15 +180,17 @@ export default function InfoPage() {
             <h2 className="section-title">anyLEARN có gì?</h2>
           </div>
         </div>
-        <div className="container grid-5" style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 16 }}>
+        <div className="container grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           {ECOSYSTEM.map(e => (
-            <article key={e.name} style={{ background: 'white', border: '1px solid #e6edf4', borderRadius: 22, padding: 24, minHeight: 200, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: '0 8px 24px rgba(15,23,42,0.05)' }}>
+            <article key={e.name} className={`${CARD} flex flex-col justify-between min-h-[200px]`}>
               <div>
                 <div className="icon-square">{e.emoji}</div>
-                <h3 style={{ margin: '0 0 8px', color: '#00539b', fontSize: 20, fontWeight: 900 }}>{e.name}</h3>
-                <p style={{ margin: 0, color: '#6d7a8a', fontSize: 14 }}>{e.desc}</p>
+                <h3 className="mt-0 mb-2 text-[#00539b] text-lg font-black">{e.name}</h3>
+                <p className="m-0 text-[#6d7a8a] text-sm">{e.desc}</p>
               </div>
-              <Link href="/search" style={{ color: '#008244', fontWeight: 900, marginTop: 16, textDecoration: 'none' }}>Xem {e.name} →</Link>
+              <Link href="/search" className="text-[#008244] font-black mt-4 no-underline hover:underline text-sm">
+                Xem {e.name} →
+              </Link>
             </article>
           ))}
         </div>
@@ -209,11 +204,11 @@ export default function InfoPage() {
             <h2 className="section-title">Đối tác của anyLEARN</h2>
           </div>
         </div>
-        <div className="container grid-8" style={{ display: 'grid', gridTemplateColumns: 'repeat(8,1fr)', gap: 12 }}>
+        <div className="container grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-3">
           {PARTNER_LOGOS.map((src, i) => (
             // eslint-disable-next-line @next/next/no-img-element
             <img key={i} src={src} alt={`Đối tác ${i + 1}`}
-              style={{ width: '100%', aspectRatio: '1/1', objectFit: 'contain', borderRadius: 12, background: 'white', padding: 8, border: '1px solid #e6edf4' }} />
+              className="w-full aspect-square object-contain rounded-xl bg-white p-2 border border-[#e6edf4]" />
           ))}
         </div>
       </section>
@@ -226,18 +221,18 @@ export default function InfoPage() {
             <h2 className="section-title">Phụ huynh nói gì về anyLEARN?</h2>
           </div>
         </div>
-        <div className="container" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 20 }}>
+        <div className="container grid grid-cols-1 md:grid-cols-3 gap-5">
           {TESTIMONIALS.map((t, i) => (
-            <article key={i} style={{ background: 'white', border: '1px solid #e6edf4', borderRadius: 22, padding: 28, boxShadow: '0 8px 24px rgba(15,23,42,0.05)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18 }}>
+            <article key={i} className={CARD}>
+              <div className="flex items-center gap-3.5 mb-4">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={t.img} alt={t.name} style={{ width: 56, height: 56, borderRadius: '50%', objectFit: 'cover', border: '2px solid #e6edf4' }} />
+                <img src={t.img} alt={t.name} className="w-14 h-14 rounded-full object-cover border-2 border-[#e6edf4] flex-shrink-0" />
                 <div>
-                  <div style={{ fontWeight: 900, color: '#17212f' }}>{t.name}</div>
-                  <div style={{ fontSize: 13, color: '#6d7a8a' }}>{t.title}</div>
+                  <div className="font-black text-[#17212f]">{t.name}</div>
+                  <div className="text-[13px] text-[#6d7a8a]">{t.title}</div>
                 </div>
               </div>
-              <p style={{ margin: 0, color: '#2f3b4a', lineHeight: 1.6, fontStyle: 'italic' }}>{t.quote}</p>
+              <p className="m-0 text-[#2f3b4a] leading-relaxed italic">{t.quote}</p>
             </article>
           ))}
         </div>
@@ -251,11 +246,11 @@ export default function InfoPage() {
             <h2 className="section-title">Báo chí nói gì về chúng tôi</h2>
           </div>
         </div>
-        <div className="container" style={{ display: 'flex', gap: 32, justifyContent: 'center', flexWrap: 'wrap' }}>
+        <div className="container flex gap-6 justify-center flex-wrap">
           {PRESS.map(p => (
-            <div key={p.name} style={{ background: 'white', border: '1px solid #e6edf4', borderRadius: 18, padding: '20px 40px', display: 'flex', alignItems: 'center', boxShadow: '0 8px 24px rgba(15,23,42,0.05)' }}>
+            <div key={p.name} className="bg-white border border-[#e6edf4] rounded-[18px] px-10 py-5 flex items-center shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={p.img} alt={p.name} style={{ height: 52, objectFit: 'contain' }} />
+              <img src={p.img} alt={p.name} className="h-12 object-contain" />
             </div>
           ))}
         </div>
@@ -269,14 +264,14 @@ export default function InfoPage() {
             <h2 className="section-title">Đội ngũ anyLEARN</h2>
           </div>
         </div>
-        <div className="container" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 24 }}>
+        <div className="container grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {TEAM.map(m => (
-            <article key={m.name} style={{ background: 'white', border: '1px solid #e6edf4', borderRadius: 22, overflow: 'hidden', boxShadow: '0 8px 24px rgba(15,23,42,0.05)' }}>
+            <article key={m.name} className="bg-white border border-[#e6edf4] rounded-[22px] overflow-hidden shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={m.img} alt={m.name} style={{ width: '100%', aspectRatio: '4/3', objectFit: 'cover', display: 'block' }} />
-              <div style={{ padding: '18px 20px' }}>
-                <div style={{ fontWeight: 900, color: '#17212f', fontSize: 18 }}>{m.name}</div>
-                <div style={{ fontSize: 14, color: '#00539b', fontWeight: 700, marginTop: 6 }}>{m.title}</div>
+              <img src={m.img} alt={m.name} className="w-full aspect-[4/3] object-cover block" />
+              <div className="px-5 py-4">
+                <div className="font-black text-[#17212f] text-lg">{m.name}</div>
+                <div className="text-sm text-[#00539b] font-bold mt-1.5">{m.title}</div>
               </div>
             </article>
           ))}
