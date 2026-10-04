@@ -46,8 +46,11 @@ echo "✓ Linked shared node_modules"
 
 # Copy environment file
 cp "${DEPLOY_PATH}/.env.production" "${RELEASE_PATH}/.env.production"
-chmod 644 "${RELEASE_PATH}/.env.production"
 echo "✓ Copied .env.production"
+
+# Fix ownership so anylearn-app service can read all files
+sudo chown -R anylearn-app:anylearn-deploy "${RELEASE_PATH}"
+echo "✓ Fixed ownership"
 
 # Atomic symlink switch (zero downtime)
 ln -sfn "${RELEASE_PATH}" "${DEPLOY_PATH}/current"

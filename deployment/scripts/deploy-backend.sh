@@ -24,6 +24,7 @@ mkdir -p "${RELEASE_PATH}"
 # Copy artifact and environment file
 cp "${ARTIFACT_PATH}" "${RELEASE_PATH}/backend-v2.jar"
 cp "${DEPLOY_PATH}/.env" "${RELEASE_PATH}/.env"
+sudo chown -R anylearn-app:anylearn-deploy "${RELEASE_PATH}"
 echo "✓ Copied artifact and env"
 
 # Atomic symlink switch (zero downtime)
