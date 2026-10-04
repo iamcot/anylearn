@@ -63,5 +63,5 @@ echo "✓ Service restarted"
 echo "✓ Frontend deployed successfully (release ${RELEASE_ID})"
 
 # Cleanup: keep only last 5 releases
-cd "${DEPLOY_PATH}/releases" && ls -t | tail -n +6 | xargs -r rm -rf
+cd "${DEPLOY_PATH}/releases" && ls -t | tail -n +6 | xargs -r sudo rm -rf
 echo "✓ Old releases cleaned up"

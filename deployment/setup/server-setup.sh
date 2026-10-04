@@ -123,6 +123,8 @@ anylearn-app ALL=(ALL) NOPASSWD: /bin/systemctl restart anylearn-backend.service
 anylearn-app ALL=(ALL) NOPASSWD: /bin/systemctl restart anylearn-frontend.service
 anylearn-app ALL=(ALL) NOPASSWD: /bin/systemctl is-active anylearn-backend.service
 anylearn-app ALL=(ALL) NOPASSWD: /bin/systemctl is-active anylearn-frontend.service
+%anylearn-deploy ALL=(ALL) NOPASSWD: /bin/rm -rf /opt/anylearn/backend/releases/release-*
+%anylearn-deploy ALL=(ALL) NOPASSWD: /bin/rm -rf /opt/anylearn/frontend/releases/release-*
 SUDOERS
 
 sudo chmod 0440 /etc/sudoers.d/anylearn-deploy
