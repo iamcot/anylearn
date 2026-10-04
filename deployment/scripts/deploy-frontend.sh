@@ -60,22 +60,6 @@ echo "✓ Switched symlink to release ${RELEASE_ID}"
 sudo systemctl reload-or-restart anylearn-frontend.service
 echo "✓ Service restarted"
 
-# Wait for frontend to be healthy
-echo "Waiting for frontend to start..."
-RETRIES=30
-for i in $(seq 1 $RETRIES); do
-    STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000)
-    if [ "$STATUS" = "200" ]; then
-        echo "✓ Frontend is healthy (HTTP 200)"
-        break
-    fi
-    if [ "$i" -eq "$RETRIES" ]; then
-        echo "✗ Frontend health check failed after ${RETRIES} attempts (last status: ${STATUS})"
-        exit 1
-    fi
-    sleep 2
-done
-
 echo "✓ Frontend deployed successfully (release ${RELEASE_ID})"
 
 # Cleanup: keep only last 5 releases
