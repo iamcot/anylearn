@@ -46,6 +46,7 @@ echo "✓ Linked shared node_modules"
 
 # Copy environment file
 cp "${DEPLOY_PATH}/.env.production" "${RELEASE_PATH}/.env.production"
+chmod 644 "${RELEASE_PATH}/.env.production"
 echo "✓ Copied .env.production"
 
 # Atomic symlink switch (zero downtime)
