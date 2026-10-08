@@ -81,6 +81,7 @@ public class AdminItemController {
             @RequestParam(required = false) Integer status,
             @RequestParam(required = false) Integer userStatus,
             @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) Long userId,
             @RequestParam(required = false) String q) {
         if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
 
@@ -91,6 +92,7 @@ public class AdminItemController {
                   (status != null ? " AND i.status=" + status : "") +
                   (userStatus != null ? " AND i.user_status=" + userStatus : "") +
                   (categoryId != null ? " AND EXISTS (SELECT 1 FROM items_categories ic WHERE ic.item_id = i.id AND ic.category_id=" + categoryId + ")" : "") +
+                  (userId != null ? " AND i.user_id=" + userId : "") +
                   (q != null && !q.isBlank() ? " AND i.title LIKE '%" + q.replace("'","''") + "%'" : "") +
                   " ORDER BY i.id DESC LIMIT " + size + " OFFSET " + (long) page * size;
 
@@ -109,14 +111,15 @@ public class AdminItemController {
             return m;
         }).toList();
 
-        return ApiResponse.ok(Map.of("content", content, "total", buildTotal(status, userStatus, categoryId, q), "page", page, "size", size));
+        return ApiResponse.ok(Map.of("content", content, "total", buildTotal(status, userStatus, categoryId, userId, q), "page", page, "size", size));
     }
 
-    private long buildTotal(Integer status, Integer userStatus, Long categoryId, String q) {
+    private long buildTotal(Integer status, Integer userStatus, Long categoryId, Long userId, String q) {
         var sql = "SELECT COUNT(*) FROM items i WHERE i.is_test = 0" +
                   (status != null ? " AND i.status=" + status : "") +
                   (userStatus != null ? " AND i.user_status=" + userStatus : "") +
                   (categoryId != null ? " AND EXISTS (SELECT 1 FROM items_categories ic WHERE ic.item_id = i.id AND ic.category_id=" + categoryId + ")" : "") +
+                  (userId != null ? " AND i.user_id=" + userId : "") +
                   (q != null && !q.isBlank() ? " AND i.title LIKE '%" + q.replace("'","''") + "%'" : "");
         return ((Number) em.createNativeQuery(sql).getSingleResult()).longValue();
     }

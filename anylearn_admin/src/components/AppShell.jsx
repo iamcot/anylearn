@@ -12,8 +12,8 @@ import '../styles/themes.css'
 
 const NAV_ITEMS = [
   { key: '/dashboard',   icon: <DashboardOutlined />, label: 'Tổng quan'  },
-  { key: '/users',       icon: <TeamOutlined />,      label: 'Thành viên' },
   { key: '/items',       icon: <BookOutlined />,       label: 'Khóa học'  },
+  { key: '/users',       icon: <TeamOutlined />,      label: 'Thành viên' },
   { key: '/orders',      icon: <OrderedListOutlined />, label: 'Đơn hàng' },
   { key: '/transactions',icon: <SwapOutlined />,      label: 'anyPoints'  },
   { key: '/finance',     icon: <FundOutlined />,      label: 'Tài chính'  },

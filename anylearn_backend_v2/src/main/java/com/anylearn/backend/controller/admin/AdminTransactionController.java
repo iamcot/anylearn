@@ -57,7 +57,10 @@ public class AdminTransactionController {
             m.put("createdAt", t.getCreatedAt() != null ? t.getCreatedAt().toString() : null);
             return m;
         }).toList();
-        return ApiResponse.ok(Map.of("content", content, "page", page, "size", size));
+
+        long total = transactionRepository.countForAdmin(userId, type, status);
+
+        return ApiResponse.ok(Map.of("content", content, "total", total, "page", page, "size", size));
     }
 
     // ── Approve ────────────────────────────────────────────────────────────────

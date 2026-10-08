@@ -34,13 +34,15 @@ public class AdminArticleController {
             @RequestParam(required = false) String q) {
         if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
 
+        var conditions =
+                  (status != null ? " AND a.status=" + status : "") +
+                  (type != null && !type.isBlank() ? " AND a.type='" + type.replace("'","''") + "'" : "") +
+                  (q != null && !q.isBlank() ? " AND a.title LIKE '%" + q.replace("'","''") + "%'" : "");
+
         var sql = "SELECT a.id, a.title, a.type, a.status, a.is_hot, a.view, a.created_at, " +
                   "u.name AS authorName " +
                   "FROM articles a LEFT JOIN users u ON a.user_id = u.id WHERE 1=1" +
-                  (status != null ? " AND a.status=" + status : "") +
-                  (type != null && !type.isBlank() ? " AND a.type='" + type.replace("'","''") + "'" : "") +
-                  (q != null && !q.isBlank() ? " AND a.title LIKE '%" + q.replace("'","''") + "%'" : "") +
-                  " ORDER BY a.id DESC LIMIT " + size + " OFFSET " + (long) page * size;
+                  conditions + " ORDER BY a.id DESC LIMIT " + size + " OFFSET " + (long) page * size;
 
         @SuppressWarnings("unchecked")
         List<Object[]> rows = em.createNativeQuery(sql).getResultList();
@@ -55,7 +57,11 @@ public class AdminArticleController {
             return m;
         }).toList();
 
-        return ApiResponse.ok(Map.of("content", content, "page", page, "size", size));
+        long total = ((Number) em.createNativeQuery(
+                "SELECT COUNT(*) FROM articles a WHERE 1=1" + conditions)
+                .getSingleResult()).longValue();
+
+        return ApiResponse.ok(Map.of("content", content, "total", total, "page", page, "size", size));
     }
 
     @GetMapping("/{id}")

@@ -1,9 +1,8 @@
-import { App, Button, Drawer, Popconfirm, Select, Space, Table, Tag } from 'antd'
+import { App, Button, Drawer, Popconfirm, Select, Space, Table, Tag, Typography } from 'antd'
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import client from '../api/client'
 import { fmtVND, fmtDate, fmtDateTime } from '../utils/format'
-import { usePagination } from '../hooks/usePagination'
 import { Field } from '../components/Field'
 
 const STATUS = { 0: ['Chờ duyệt', 'orange'], 1: ['Đã duyệt', 'green'], 99: ['Từ chối', 'red'], '-1': ['Từ chối', 'red'] }
@@ -15,7 +14,7 @@ export default function Transactions() {
   const [statusFilter, setStatusFilter] = useState('')
   const [typeFilter, setTypeFilter] = useState('')
   const [payMethod, setPayMethod] = useState('wallet_c')
-  const { page, setPage, paginationProps } = usePagination()
+  const [page, setPage] = useState(1)
   const [selectedKeys, setSelectedKeys] = useState([])
   const [drawerTxn, setDrawerTxn] = useState(null)
 
@@ -72,29 +71,37 @@ const unitOf = (type) => VND_TYPES.has(type) ? 'VND' : 'anyPoint'
         <span className="page-subtitle">Duyệt và quản lý giao dịch điểm</span>
       </div>
       <div className="page-content">
-      <Space style={{ marginBottom: 16, flexWrap: 'wrap' }}>
-        <Select value={statusFilter} onChange={v => { setStatusFilter(v); setPage(1) }} style={{ width: 150 }}
-          options={[{ value: '', label: 'Tất cả trạng thái' }, { value: '0', label: 'Chờ duyệt' }, { value: '1', label: 'Đã duyệt' }, { value: '-1', label: 'Từ chối' }]}
-        />
-        <Select value={typeFilter} onChange={v => { setTypeFilter(v); setPage(1) }} style={{ width: 150 }}
-          options={[{ value: '', label: 'Tất cả loại' }, { value: 'deposit', label: 'Nạp tiền' }, { value: 'withdraw', label: 'Rút tiền' }, { value: 'partner', label: 'Đối tác' }, { value: 'commission', label: 'Hoa hồng' }]}
-        />
-     
-        {selectedKeys.length > 0 && (
-          <>
-            <Popconfirm title={`Duyệt ${selectedKeys.length} giao dịch?`} onConfirm={() => approve.mutate(selectedKeys)}>
-              <Button type="primary" loading={approve.isPending}>Duyệt ({selectedKeys.length})</Button>
-            </Popconfirm>
-            <Popconfirm title={`Từ chối ${selectedKeys.length} giao dịch?`} onConfirm={() => reject.mutate(selectedKeys)} okButtonProps={{ danger: true }}>
-              <Button danger loading={reject.isPending}>Từ chối ({selectedKeys.length})</Button>
-            </Popconfirm>
-          </>
-        )}
+      <Space style={{ marginBottom: 16, flexWrap: 'wrap', width: '100%', justifyContent: 'space-between' }}>
+        <Space wrap>
+          <Select value={statusFilter} onChange={v => { setStatusFilter(v); setPage(1) }} style={{ width: 150 }}
+            options={[{ value: '', label: 'Tất cả trạng thái' }, { value: '0', label: 'Chờ duyệt' }, { value: '1', label: 'Đã duyệt' }, { value: '-1', label: 'Từ chối' }]}
+          />
+          <Select value={typeFilter} onChange={v => { setTypeFilter(v); setPage(1) }} style={{ width: 150 }}
+            options={[{ value: '', label: 'Tất cả loại' }, { value: 'deposit', label: 'Nạp tiền' }, { value: 'withdraw', label: 'Rút tiền' }, { value: 'partner', label: 'Đối tác' }, { value: 'commission', label: 'Hoa hồng' }]}
+          />
+        </Space>
+        <Space>
+          {data?.total != null && <Typography.Text type="secondary">{data.total.toLocaleString('vi-VN')} giao dịch</Typography.Text>}
+          {selectedKeys.length > 0 && (
+            <>
+              <Popconfirm title={`Duyệt ${selectedKeys.length} giao dịch?`} onConfirm={() => approve.mutate(selectedKeys)}>
+                <Button type="primary" loading={approve.isPending}>Duyệt ({selectedKeys.length})</Button>
+              </Popconfirm>
+              <Popconfirm title={`Từ chối ${selectedKeys.length} giao dịch?`} onConfirm={() => reject.mutate(selectedKeys)} okButtonProps={{ danger: true }}>
+                <Button danger loading={reject.isPending}>Từ chối ({selectedKeys.length})</Button>
+              </Popconfirm>
+            </>
+          )}
+        </Space>
       </Space>
       <Table
         columns={columns} dataSource={data?.content ?? []} rowKey="id" loading={isLoading} size="small"
         rowSelection={rowSelection}
-        pagination={paginationProps(data?.content)}
+        pagination={{
+          current: page, pageSize: 20, total: data?.total,
+          showSizeChanger: false, onChange: setPage,
+          showTotal: (t, range) => `${range[0]}–${range[1]} / ${t}`,
+        }}
         onRow={row => ({ onClick: () => setDrawerTxn(row), style: { cursor: 'pointer' } })}
       />
       </div>

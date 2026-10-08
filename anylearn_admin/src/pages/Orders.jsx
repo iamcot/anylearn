@@ -3,7 +3,6 @@ import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import client from '../api/client'
 import { fmtVND, fmtDate, fmtDateTime } from '../utils/format'
-import { usePagination } from '../hooks/usePagination'
 import { Field } from '../components/Field'
 
 const STATUS_MAP = {
@@ -26,7 +25,7 @@ export default function Orders() {
   const [q, setQ] = useState('')
   const [status, setStatus] = useState('')
   const [payment, setPayment] = useState('')
-  const { page, setPage, paginationProps } = usePagination()
+  const [page, setPage] = useState(1)
   const [selectedKeys, setSelectedKeys] = useState([])
   const [drawerOrder, setDrawerOrder] = useState(null)
 
@@ -70,29 +69,38 @@ export default function Orders() {
         <span className="page-subtitle">Quản lý và duyệt đơn hàng</span>
       </div>
       <div className="page-content">
-      <Space style={{ marginBottom: 16, flexWrap: 'wrap' }}>
-        <Input.Search placeholder="Tìm người mua" value={q} onChange={e => { setQ(e.target.value); setPage(1) }} onSearch={() => {}} allowClear style={{ width: 200 }} />
-        <Select value={status} onChange={v => { setStatus(v); setPage(1) }} style={{ width: 150 }}
-          options={[{ value: '', label: 'Tất cả trạng thái' }, { value: 'new', label: 'Mới' }, { value: 'pay_pending', label: 'Chờ thanh toán' }, { value: 'delivered', label: 'Hoàn thành' }, { value: 'cancel_buyer', label: 'Đã hủy' }]}
-        />
-        <Select value={payment} onChange={v => { setPayment(v); setPage(1) }} style={{ width: 150 }}
-          options={[{ value: '', label: 'Tất cả PTTT' }, { value: 'bank_transfer', label: 'bank_transfer' }, { value: 'vnpay', label: 'vnpay' }, { value: 'momo', label: 'momo' }]}
-        />
-        {selectedKeys.length > 0 && (
-          <>
-            <Popconfirm title={`Xác nhận ${selectedKeys.length} đơn?`} onConfirm={() => confirm.mutate(selectedKeys)}>
-              <Button type="primary" loading={confirm.isPending}>Xác nhận ({selectedKeys.length})</Button>
-            </Popconfirm>
-            <Popconfirm title={`Huỷ ${selectedKeys.length} đơn?`} onConfirm={() => cancel.mutate(selectedKeys)} okButtonProps={{ danger: true }}>
-              <Button danger loading={cancel.isPending}>Huỷ đơn ({selectedKeys.length})</Button>
-            </Popconfirm>
-          </>
-        )}
+      <Space style={{ marginBottom: 16, flexWrap: 'wrap', width: '100%', justifyContent: 'space-between' }}>
+        <Space wrap>
+          <Input.Search placeholder="Tìm người mua" value={q} onChange={e => { setQ(e.target.value); setPage(1) }} onSearch={() => {}} allowClear style={{ width: 200 }} />
+          <Select value={status} onChange={v => { setStatus(v); setPage(1) }} style={{ width: 150 }}
+            options={[{ value: '', label: 'Tất cả trạng thái' }, { value: 'new', label: 'Mới' }, { value: 'pay_pending', label: 'Chờ thanh toán' }, { value: 'delivered', label: 'Hoàn thành' }, { value: 'cancel_buyer', label: 'Đã hủy' }]}
+          />
+          <Select value={payment} onChange={v => { setPayment(v); setPage(1) }} style={{ width: 150 }}
+            options={[{ value: '', label: 'Tất cả PTTT' }, { value: 'bank_transfer', label: 'bank_transfer' }, { value: 'vnpay', label: 'vnpay' }, { value: 'momo', label: 'momo' }]}
+          />
+        </Space>
+        <Space>
+          {data?.total != null && <Typography.Text type="secondary">{data.total.toLocaleString('vi-VN')} đơn hàng</Typography.Text>}
+          {selectedKeys.length > 0 && (
+            <>
+              <Popconfirm title={`Xác nhận ${selectedKeys.length} đơn?`} onConfirm={() => confirm.mutate(selectedKeys)}>
+                <Button type="primary" loading={confirm.isPending}>Xác nhận ({selectedKeys.length})</Button>
+              </Popconfirm>
+              <Popconfirm title={`Huỷ ${selectedKeys.length} đơn?`} onConfirm={() => cancel.mutate(selectedKeys)} okButtonProps={{ danger: true }}>
+                <Button danger loading={cancel.isPending}>Huỷ đơn ({selectedKeys.length})</Button>
+              </Popconfirm>
+            </>
+          )}
+        </Space>
       </Space>
       <Table
         columns={columns} dataSource={data?.content ?? []} rowKey="id" loading={isLoading} size="small"
         rowSelection={rowSelection}
-        pagination={paginationProps(data?.content)}
+        pagination={{
+          current: page, pageSize: 20, total: data?.total,
+          showSizeChanger: false, onChange: setPage,
+          showTotal: (t, range) => `${range[0]}–${range[1]} / ${t}`,
+        }}
         onRow={row => ({ onClick: () => setDrawerOrder(row), style: { cursor: 'pointer' } })}
       />
       </div>

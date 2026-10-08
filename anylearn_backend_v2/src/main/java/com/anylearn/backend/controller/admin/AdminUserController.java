@@ -34,24 +34,15 @@ public class AdminUserController {
             @RequestParam(required = false) String q) {
         if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
 
-        var sb = new StringBuilder("SELECT u.* FROM users u WHERE 1=1");
-        if (role != null && !role.isBlank()) sb.append(" AND u.role = '").append(role.replace("'", "")).append("'");
-        if (status != null) sb.append(" AND u.status = ").append(status);
-        if (q != null && !q.isBlank()) {
-            String safe = q.replace("'", "''");
-            sb.append(" AND (u.name LIKE '%").append(safe).append("%'")
-              .append(" OR u.phone LIKE '%").append(safe).append("%'")
-              .append(" OR u.email LIKE '%").append(safe).append("%')");
-        }
-        sb.append(" ORDER BY u.id DESC LIMIT ").append(size).append(" OFFSET ").append((long) page * size);
+        var conditions =
+                (role != null && !role.isBlank() ? " AND role='" + role.replace("'", "") + "'" : "") +
+                (status != null ? " AND status=" + status : "") +
+                (q != null && !q.isBlank() ? " AND (name LIKE '%" + q.replace("'","''") + "%' OR phone LIKE '%" + q.replace("'","''") + "%' OR email LIKE '%" + q.replace("'","''") + "%')" : "");
 
         @SuppressWarnings("unchecked")
         List<Object[]> rows = em.createNativeQuery(
-                "SELECT id,name,phone,email,role,status,image,wallet_m,wallet_c,commission_rate,created_at FROM users u WHERE 1=1" +
-                (role != null && !role.isBlank() ? " AND role='" + role.replace("'", "") + "'" : "") +
-                (status != null ? " AND status=" + status : "") +
-                (q != null && !q.isBlank() ? " AND (name LIKE '%" + q.replace("'","''") + "%' OR phone LIKE '%" + q.replace("'","''") + "%' OR email LIKE '%" + q.replace("'","''") + "%')" : "") +
-                " ORDER BY id DESC LIMIT " + size + " OFFSET " + (long) page * size)
+                "SELECT id,name,phone,email,role,status,image,wallet_m,wallet_c,commission_rate,created_at FROM users WHERE 1=1" +
+                conditions + " ORDER BY id DESC LIMIT " + size + " OFFSET " + (long) page * size)
                 .getResultList();
 
         var content = rows.stream().map(r -> {
@@ -65,7 +56,11 @@ public class AdminUserController {
             return m;
         }).toList();
 
-        return ApiResponse.ok(Map.of("content", content, "page", page, "size", size));
+        long total = ((Number) em.createNativeQuery(
+                "SELECT COUNT(*) FROM users WHERE 1=1" + conditions)
+                .getSingleResult()).longValue();
+
+        return ApiResponse.ok(Map.of("content", content, "total", total, "page", page, "size", size));
     }
 
     @GetMapping("/{id}")

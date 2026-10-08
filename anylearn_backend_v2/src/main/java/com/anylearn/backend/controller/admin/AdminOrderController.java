@@ -36,13 +36,14 @@ public class AdminOrderController {
             @RequestParam(required = false) String q) {
         if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
 
-        var sql = "SELECT o.id, o.amount, o.status, o.payment, o.created_at, " +
-                  "u.name, u.phone " +
-                  "FROM orders o LEFT JOIN users u ON o.user_id = u.id WHERE 1=1" +
+        var conditions =
                   (status != null && !status.isBlank() ? " AND o.status='" + status.replace("'","''") + "'" : "") +
                   (payment != null && !payment.isBlank() ? " AND o.payment='" + payment.replace("'","''") + "'" : "") +
-                  (q != null && !q.isBlank() ? " AND (u.name LIKE '%" + q.replace("'","''") + "%' OR u.phone LIKE '%" + q.replace("'","''") + "%')" : "") +
-                  " ORDER BY o.id DESC LIMIT " + size + " OFFSET " + (long) page * size;
+                  (q != null && !q.isBlank() ? " AND (u.name LIKE '%" + q.replace("'","''") + "%' OR u.phone LIKE '%" + q.replace("'","''") + "%')" : "");
+
+        var sql = "SELECT o.id, o.amount, o.status, o.payment, o.created_at, u.name, u.phone " +
+                  "FROM orders o LEFT JOIN users u ON o.user_id = u.id WHERE 1=1" +
+                  conditions + " ORDER BY o.id DESC LIMIT " + size + " OFFSET " + (long) page * size;
 
         @SuppressWarnings("unchecked")
         List<Object[]> rows = em.createNativeQuery(sql).getResultList();
@@ -55,7 +56,11 @@ public class AdminOrderController {
             return m;
         }).toList();
 
-        return ApiResponse.ok(Map.of("content", content, "page", page, "size", size));
+        long total = ((Number) em.createNativeQuery(
+                "SELECT COUNT(*) FROM orders o LEFT JOIN users u ON o.user_id = u.id WHERE 1=1" + conditions)
+                .getSingleResult()).longValue();
+
+        return ApiResponse.ok(Map.of("content", content, "total", total, "page", page, "size", size));
     }
 
     @GetMapping("/{id}")

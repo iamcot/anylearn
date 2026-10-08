@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import client from '../api/client'
 import { fmtVND, fmtDate, fmtDateTime } from '../utils/format'
-import { usePagination } from '../hooks/usePagination'
 import { Field } from '../components/Field'
 
 const MEMBER_ROLES = ['member', 'teacher', 'school']
@@ -15,7 +14,7 @@ export default function Users() {
   const qc = useQueryClient()
   const [q, setQ] = useState('')
   const [role, setRole] = useState('')
-  const { page, setPage, paginationProps } = usePagination()
+  const [page, setPage] = useState(1)
   const [selected, setSelected] = useState(null)
   const [editing, setEditing] = useState(false)
   const [form] = Form.useForm()
@@ -66,15 +65,24 @@ export default function Users() {
         <span className="page-subtitle">Quản lý người dùng hệ thống</span>
       </div>
       <div className="page-content">
-        <Space style={{ marginBottom: 16 }}>
-        <Input.Search placeholder="Tên / SĐT / email" value={q} onChange={e => { setQ(e.target.value); setPage(1) }} onSearch={() => {}} allowClear style={{ width: 220 }} />
-        <Select value={role} onChange={v => { setRole(v); setPage(1) }} style={{ width: 140 }}
-          options={[{ value: '', label: 'Tất cả role' }, ...MEMBER_ROLES.map(r => ({ value: r, label: r }))]}
-        />
-      </Space>
+        <Space style={{ marginBottom: 16, flexWrap: 'wrap', width: '100%', justifyContent: 'space-between' }}>
+          <Space wrap>
+            <Input.Search placeholder="Tên / SĐT / email" value={q} onChange={e => { setQ(e.target.value); setPage(1) }} onSearch={() => {}} allowClear style={{ width: 220 }} />
+            <Select value={role} onChange={v => { setRole(v); setPage(1) }} style={{ width: 140 }}
+              options={[{ value: '', label: 'Tất cả role' }, ...MEMBER_ROLES.map(r => ({ value: r, label: r }))]}
+            />
+          </Space>
+          <Space>
+            {data?.total != null && <Typography.Text type="secondary">{data.total.toLocaleString('vi-VN')} thành viên</Typography.Text>}
+          </Space>
+        </Space>
       <Table
         columns={columns} dataSource={data?.content ?? []} rowKey="id" loading={isLoading} size="small"
-        pagination={paginationProps(data?.content)}
+        pagination={{
+          current: page, pageSize: 20, total: data?.total,
+          showSizeChanger: false, onChange: setPage,
+          showTotal: (t, range) => `${range[0]}–${range[1]} / ${t}`,
+        }}
         onRow={row => ({ onClick: () => openDrawer(row), style: { cursor: 'pointer' } })}
       />
       </div>

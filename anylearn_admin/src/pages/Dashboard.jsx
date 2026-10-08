@@ -306,7 +306,7 @@ export default function Dashboard() {
                 <span style={{ fontSize: 13, fontWeight: 700, color: i < 3 ? ['#faad14','#aaa','#d46b08'][i] : '#ccc', width: 18, textAlign: 'center' }}>{i + 1}</span>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 13, fontWeight: 600, color: '#222', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name || p.phone}</div>
-                  <div style={{ fontSize: 11, color: '#aaa' }}>{p.phone} · {p.orderCount} đơn</div>
+                  <div style={{ fontSize: 11, color: '#aaa' }}>{p.orderCount} đơn</div>
                 </div>
                 <div style={{ fontSize: 13, fontWeight: 700, color: '#52c41a', flexShrink: 0 }}>{fmtM(p.revenue)} tr</div>
               </div>
@@ -319,7 +319,10 @@ export default function Dashboard() {
             {(topItems ?? []).map((item, i) => (
               <div key={item.itemId} style={{ display: 'flex', alignItems: 'center', padding: '8px 0', borderBottom: i < (topItems.length - 1) ? '1px solid #f5f5f5' : 'none', gap: 10 }}>
                 <span style={{ fontSize: 13, fontWeight: 700, color: i < 3 ? ['#faad14','#aaa','#d46b08'][i] : '#ccc', width: 18, textAlign: 'center' }}>{i + 1}</span>
-                <div style={{ flex: 1, fontSize: 13, fontWeight: 500, color: '#222', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 500, color: '#222', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</div>
+                  {item.ownerName && <div style={{ fontSize: 11, color: '#aaa' }}>{item.ownerName}</div>}
+                </div>
                 <div style={{ fontSize: 13, fontWeight: 700, color: '#1677ff', flexShrink: 0 }}>{item.orderCount} đơn</div>
               </div>
             ))}

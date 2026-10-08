@@ -126,16 +126,18 @@ public class AdminDashboardController {
 
         @SuppressWarnings("unchecked")
         List<Object[]> rows = em.createNativeQuery(
-                "SELECT i.id, i.title, COUNT(od.id) AS orderCount " +
+                "SELECT i.id, i.title, COUNT(od.id) AS orderCount, u.name AS ownerName " +
                 "FROM order_details od " +
                 "JOIN orders o ON od.order_id = o.id AND o.status = 'delivered' " +
                 "JOIN items i ON od.item_id = i.id " +
+                "JOIN users u ON i.user_id = u.id " +
                 "WHERE od.created_at BETWEEN ?1 AND ?2 " +
                 "GROUP BY i.id ORDER BY orderCount DESC LIMIT ?3")
                 .setParameter(1, start).setParameter(2, end).setParameter(3, limit)
                 .getResultList();
         return ApiResponse.ok(rows.stream().map(r -> Map.of(
-                "itemId", r[0], "title", r[1] != null ? r[1] : "", "orderCount", r[2])).toList());
+                "itemId", r[0], "title", r[1] != null ? r[1] : "",
+                "orderCount", r[2], "ownerName", r[3] != null ? r[3] : "")).toList());
     }
 
     @GetMapping("/chart/items")

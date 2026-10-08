@@ -35,5 +35,11 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             @Param("userId") Long userId, @Param("type") String type,
             @Param("status") Integer status, @Param("size") int size, @Param("offset") long offset);
 
+    @Query(value = "SELECT COUNT(*) FROM transactions " +
+                   "WHERE (:userId IS NULL OR user_id = :userId) " +
+                   "AND (:type IS NULL OR type = :type) " +
+                   "AND (:status IS NULL OR status = :status)", nativeQuery = true)
+    long countForAdmin(@Param("userId") Long userId, @Param("type") String type, @Param("status") Integer status);
+
     List<Transaction> findByUserIdAndStatus(Long userId, int status);
 }

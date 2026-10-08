@@ -15,6 +15,7 @@ export default function Items() {
   const status     = searchParams.get('status') ?? ''
   const userStatus = searchParams.get('userStatus') ?? ''
   const categoryId = searchParams.get('categoryId') ?? ''
+  const partnerId  = searchParams.get('partnerId') ?? ''
   const page       = Number(searchParams.get('page') ?? '1')
 
   function updateParam(key, value) {
@@ -30,15 +31,21 @@ export default function Items() {
   }
 
   const { data, isLoading } = useQuery({
-    queryKey: ['admin-items', q, status, userStatus, categoryId, page],
+    queryKey: ['admin-items', q, status, userStatus, categoryId, partnerId, page],
     queryFn: () => client.get('/admin/items', {
-      params: { q, ...(status !== '' && { status }), ...(userStatus !== '' && { userStatus }), ...(categoryId && { categoryId }), page: page - 1, size: 20 }
+      params: { q, ...(status !== '' && { status }), ...(userStatus !== '' && { userStatus }), ...(categoryId && { categoryId }), ...(partnerId && { userId: partnerId }), page: page - 1, size: 20 }
     }).then(r => r.data?.data ?? r.data),
   })
 
   const { data: categories } = useQuery({
     queryKey: ['admin-categories'],
     queryFn: () => client.get('/admin/categories').then(r => r.data?.data ?? []),
+    staleTime: 5 * 60_000,
+  })
+
+  const { data: partners } = useQuery({
+    queryKey: ['admin-partners'],
+    queryFn: () => client.get('/admin/partners').then(r => r.data?.data ?? []),
     staleTime: 5 * 60_000,
   })
 
@@ -71,7 +78,7 @@ export default function Items() {
         <Typography.Text onClick={() => navigate(`/items/${row.id}`)} style={{ cursor: 'pointer' }}>{text}</Typography.Text>
       ),
     },
-    { title: 'Đối tác', dataIndex: 'ownerName', width: 140 },
+    { title: 'Đối tác', dataIndex: 'ownerName' },
     { title: 'Học phí', dataIndex: 'price', width: 120, render: v => fmtVND(v) },
     { title: 'Đã bán', dataIndex: 'soldCount', width: 75 },
     { title: 'Ngày bắt đầu', dataIndex: 'dateStart', width: 115 },
@@ -116,6 +123,11 @@ export default function Items() {
             placeholder="Tìm tiêu đề khóa học" value={q}
             onChange={e => updateParam('q', e.target.value)}
             onSearch={() => {}} allowClear style={{ width: 240 }}
+          />
+          <Select value={partnerId || undefined} onChange={v => updateParam('partnerId', v ?? '')}
+            style={{ width: 180 }} showSearch optionFilterProp="label" allowClear
+            placeholder="Tất cả đối tác"
+            options={(partners ?? []).map(p => ({ value: String(p.id), label: p.name || p.phone }))}
           />
           <Select value={status} onChange={v => updateParam('status', v)} style={{ width: 140 }}
             options={[{ value: '', label: 'Tất cả trạng thái' }, { value: '1', label: 'Hiển thị' }, { value: '0', label: 'Ẩn' }]}

@@ -215,7 +215,7 @@ export default function Finance() {
   return (
     <div style={{ padding: 24 }}>
       <div className="page-header">
-        <div className="page-title"><FundOutlined style={{ marginRight: 8 }} />Tài chính anyPoint</div>
+        <div className="page-title">Tài chính</div>
         <span className="page-subtitle">Tổng quan dòng tiền, nghĩa vụ thanh toán và doanh thu ròng</span>
       </div>
       <div style={{ background: '#fff', borderRadius: 10, padding: '16px 24px', boxShadow: '0 2px 14px rgba(99,102,241,.07)' }}>

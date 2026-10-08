@@ -1,17 +1,16 @@
-import { Button, Drawer, Form, Input, Select, Space, Table, Tag } from 'antd'
+import { Button, Drawer, Form, Input, Select, Space, Table, Tag, Typography } from 'antd'
 import { CloseOutlined, EditOutlined, SaveOutlined } from '@ant-design/icons'
 import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import client from '../api/client'
 import { fmtVND, fmtDate, fmtDateTime } from '../utils/format'
-import { usePagination } from '../hooks/usePagination'
 import { Field } from '../components/Field'
 
 export default function Articles() {
   const qc = useQueryClient()
   const [q, setQ] = useState('')
   const [status, setStatus] = useState('')
-  const { page, setPage, paginationProps } = usePagination()
+  const [page, setPage] = useState(1)
   const [selected, setSelected] = useState(null)
   const [editing, setEditing] = useState(false)
   const [form] = Form.useForm()
@@ -49,15 +48,24 @@ export default function Articles() {
         <span className="page-subtitle">Quản lý nội dung bài viết</span>
       </div>
       <div className="page-content">
-      <Space style={{ marginBottom: 16 }}>
-        <Input.Search placeholder="Tìm tiêu đề" value={q} onChange={e => { setQ(e.target.value); setPage(1) }} onSearch={() => {}} allowClear style={{ width: 220 }} />
-        <Select value={status} onChange={v => { setStatus(v); setPage(1) }} style={{ width: 150 }}
-          options={[{ value: '', label: 'Tất cả' }, { value: '1', label: 'Đã đăng' }, { value: '0', label: 'Ẩn' }]}
-        />
+      <Space style={{ marginBottom: 16, flexWrap: 'wrap', width: '100%', justifyContent: 'space-between' }}>
+        <Space wrap>
+          <Input.Search placeholder="Tìm tiêu đề" value={q} onChange={e => { setQ(e.target.value); setPage(1) }} onSearch={() => {}} allowClear style={{ width: 220 }} />
+          <Select value={status} onChange={v => { setStatus(v); setPage(1) }} style={{ width: 150 }}
+            options={[{ value: '', label: 'Tất cả' }, { value: '1', label: 'Đã đăng' }, { value: '0', label: 'Ẩn' }]}
+          />
+        </Space>
+        <Space>
+          {data?.total != null && <Typography.Text type="secondary">{data.total.toLocaleString('vi-VN')} bài viết</Typography.Text>}
+        </Space>
       </Space>
       <Table
         columns={columns} dataSource={data?.content ?? []} rowKey="id" loading={isLoading} size="small"
-        pagination={paginationProps(data?.content)}
+        pagination={{
+          current: page, pageSize: 20, total: data?.total,
+          showSizeChanger: false, onChange: setPage,
+          showTotal: (t, range) => `${range[0]}–${range[1]} / ${t}`,
+        }}
         onRow={row => ({ onClick: () => openDrawer(row), style: { cursor: 'pointer' } })}
       />
       </div>
