@@ -8,6 +8,10 @@ import com.anylearn.backend.entity.OrderStatus;
 import com.anylearn.backend.entity.Transaction;
 import com.anylearn.backend.entity.User;
 import com.anylearn.backend.repository.*;
+import com.anylearn.backend.service.points.CommissionConfig;
+import com.anylearn.backend.service.points.PointsBreakdown;
+import com.anylearn.backend.service.points.PointsEngine;
+import com.anylearn.backend.service.NotificationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,15 +35,11 @@ public class CartService {
     private final TransactionRepository transactionRepository;
     private final ConfigurationRepository configurationRepository;
     private final ConfigService configService;
+    private final PointsEngine pointsEngine;
+    private final NotificationService notificationService;
     private final ObjectMapper objectMapper;
 
-    private static final int POINT_RATE = 1000; // 1 anyPoint = 1,000 VND
-
-    private double getConfig(String key, double def) {
-        return configurationRepository.findByKey(key)
-                .map(c -> { try { return Double.parseDouble(c.getValue()); } catch (Exception e) { return def; } })
-                .orElse(def);
-    }
+    private static final int POINT_RATE = 1000; // 1 anyPoint = 1,000 VND (kept for reference)
 
     public Map<String, Object> getCartInfo(Long itemId, User currentUser) {
         Item item = itemRepository.findById(itemId)
@@ -247,6 +247,9 @@ public class CartService {
 
         itemUserActionRepository.deleteAll(cartItems);
 
+        // Notify admins so they can review and approve
+        notifyAdminsNewOrder(order, currentUser, orderedItems);
+
         // Deduct anyPoints from wallet_c and create pending transaction
         if (pointsUsed != null && pointsUsed > 0) {
             User user = userRepository.findById(currentUser.getId()).orElse(currentUser);
@@ -272,6 +275,24 @@ public class CartService {
         }
 
         return Map.of("orderId", String.valueOf(order.getId()), "items", orderedItems, "paymentMethod", paymentMethod);
+    }
+
+    private void notifyAdminsNewOrder(Order order, User buyer, List<Map<String, Object>> orderedItems) {
+        String itemNames = orderedItems.stream()
+                .map(i -> (String) i.get("title"))
+                .limit(2)
+                .reduce((a, b) -> a + ", " + b)
+                .orElse("") + (orderedItems.size() > 2 ? " +" + (orderedItems.size() - 2) + " khác" : "");
+        String content = "Đơn #" + order.getId() + " · " + (buyer.getName() != null ? buyer.getName() : buyer.getPhone())
+                + " · " + itemNames;
+        userRepository.findByRole("admin").forEach(admin -> {
+            try {
+                notificationService.createNotification(admin.getId(), "system_notif",
+                        "Đơn hàng mới cần duyệt", content, "/admin/orders", null);
+            } catch (Exception e) {
+                log.warn("[checkout] failed to notify admin {}: {}", admin.getId(), e.getMessage());
+            }
+        });
     }
 
     public Map<String, Object> getOrder(String orderId, User currentUser) {
@@ -310,62 +331,100 @@ public class CartService {
         long price = item.getPrice() != null ? item.getPrice() : 0L;
         if (price <= 0) return;
 
-        double bonusRate  = getConfig("bonus_rate", 1000.0);
-        double discRate   = getConfig("discount", 0.1);
-        double commRate   = getConfig("commission", 0.2);
-        int    friendTree = (int) getConfig("friend_tree", 2.0);
+        // Load global config
+        Map<String, String> configMap = new java.util.HashMap<>();
+        configurationRepository.findAll().forEach(c -> configMap.put(c.getKey(), c.getValue()));
+        CommissionConfig baseConfig = CommissionConfig.fromMap(configMap);
 
-        // Determine commission rate: item override > author rate > system default
-        double itemCommRate;
-        if (item.getCommissionRate() != null && item.getCommissionRate() == -1.0) {
-            return; // explicitly disabled for this item
-        } else if (item.getCommissionRate() != null && item.getCommissionRate() > 0) {
-            itemCommRate = item.getCommissionRate();
-        } else {
-            var author = userRepository.findById(item.getUserId()).orElse(null);
-            itemCommRate = (author != null && author.getCommissionRate() != null && author.getCommissionRate() > 0)
-                    ? author.getCommissionRate() : commRate;
+        // Merge per-item company_commission JSON overrides
+        CommissionConfig config = pointsEngine.mergeCompanyCommission(baseConfig, item.getCompanyCommission());
+
+        // Resolve effective commission rate: item > author > system default
+        User author = userRepository.findById(item.getUserId()).orElse(null);
+        double commRate = pointsEngine.resolveCommissionRate(
+                item.getCommissionRate(),
+                author != null ? author.getCommissionRate() : null,
+                config.commission()
+        );
+
+        // Count buyer's referral chain depth
+        int referralDepth = 0;
+        Long walkId = buyer.getUserId();
+        for (int i = 0; i < config.friendTree() && walkId != null; i++) {
+            User ref = userRepository.findById(walkId).orElse(null);
+            if (ref == null) break;
+            referralDepth++;
+            walkId = ref.getUserId();
         }
 
-        // 1. Partner (author/teacher) commission → wallet_c pending
-        long authorAmt = (long) Math.floor(price * itemCommRate / bonusRate);
-        if (authorAmt > 0) {
-            saveTx(item.getUserId(), "partner", authorAmt, "wallet_c", detail.getId(),
-                    "Doanh thu từ bán khóa học: " + item.getTitle());
-        }
+        // Check if author's referrer qualifies for refSeller bonus
+        boolean authorHasRefSeller = author != null
+                && author.getUserId() != null
+                && Boolean.TRUE.equals(author.getGetRefSeller());
 
-        // 2. Buyer commission (anyPoint reward) pending
-        long buyerAmt = (long) Math.floor(price * itemCommRate * discRate / bonusRate);
-        if (buyerAmt > 0) {
-            String childSuffix = "";
-            if (detail.getUserId() != null && !detail.getUserId().equals(buyer.getId())) {
-                childSuffix = userRepository.findById(detail.getUserId())
-                        .map(u -> " [" + u.getName() + "]").orElse("");
+        // Calculate distribution (pure, no DB side-effects)
+        PointsBreakdown bd = pointsEngine.calculate(price, commRate, config, referralDepth, authorHasRefSeller);
+
+        // When commissions disabled (rate=-1), company keeps full price; skip point txs
+        if (!bd.disabled()) {
+            // 1. Author/teacher → wallet_c pending
+            if (bd.authorPoints() > 0 && author != null) {
+                saveTx(author.getId(), null, "partner", bd.authorPoints(), "wallet_c", detail.getId(),
+                        "Doanh thu từ bán khóa học: " + item.getTitle() + ", tỉ lệ " + fmtRate(commRate));
             }
-            saveTx(buyer.getId(), "commission", buyerAmt, "wallet_c", detail.getId(),
-                    "Nhận điểm từ khóa học đã mua: " + item.getTitle() + childSuffix);
-        }
 
-        // 3. Referral chain (up to friendTree levels)
-        long refAmt = (long) Math.floor(price * itemCommRate * commRate / bonusRate);
-        if (refAmt > 0) {
+            // 2. Buyer direct reward → wallet_c pending
+            if (bd.buyerPoints() > 0) {
+                String label = item.getTitle();
+                if (detail.getUserId() != null && !detail.getUserId().equals(buyer.getId())) {
+                    label += userRepository.findById(detail.getUserId())
+                            .map(u -> " [" + u.getName() + "]").orElse("");
+                }
+                saveTx(buyer.getId(), null, "commission", bd.buyerPoints(), "wallet_c", detail.getId(),
+                        "Nhận điểm từ khóa học đã mua: " + label);
+            }
+
+            // 3. Referral chain → wallet_c pending (one transaction per level)
             Long currentUserId = buyer.getUserId();
-            for (int i = 0; i < friendTree && currentUserId != null; i++) {
-                var refUser = userRepository.findById(currentUserId).orElse(null);
+            for (int i = 0; i < bd.referralAmounts().size() && currentUserId != null; i++) {
+                long refAmt = bd.referralAmounts().get(i);
+                User refUser = userRepository.findById(currentUserId).orElse(null);
                 if (refUser == null) break;
-                saveTx(currentUserId, "commission", refAmt, "wallet_c", detail.getId(),
-                        "Nhận điểm từ " + buyer.getName() + " mua khóa học: " + item.getTitle());
+                if (refAmt > 0) {
+                    saveTx(currentUserId, buyer.getId(), "commission", refAmt, "wallet_c", detail.getId(),
+                            "Nhận điểm từ " + buyer.getName() + " mua khóa học: " + item.getTitle());
+                }
                 currentUserId = refUser.getUserId();
             }
+
+            // 4. RefSeller → author's referrer wallet_c pending
+            if (bd.refSellerPoints() > 0 && author != null && author.getUserId() != null) {
+                saveTx(author.getUserId(), author.getId(), "commission", bd.refSellerPoints(), "wallet_c", detail.getId(),
+                        "Thưởng giới thiệu đối tác: " + item.getTitle());
+            }
+
+            // 5. Foundation → pending accounting (approved with order, no wallet_c credit)
+            if (bd.foundationPoints() > 0) {
+                saveTx(buyer.getId(), null, "foundation", bd.foundationPoints(), "wallet_c", detail.getId(),
+                        "Quỹ vận hành từ đơn hàng #" + order.getId() + ": " + item.getTitle());
+            }
         }
 
-        log.info("[checkout] pending commissions created for detail {} item {}", detail.getId(), item.getId());
+        // 6. Company net revenue → pending (approved with order, stored as VND, no wallet_c credit)
+        if (bd.companyRevenueVnd() > 0) {
+            saveTx(buyer.getId(), null, "net_revenue", bd.companyRevenueVnd(), "company", detail.getId(),
+                    "Doanh thu ròng từ đơn hàng #" + order.getId() + ": " + item.getTitle() + ", tỉ lệ đối tác " + fmtRate(commRate));
+        }
+
+        log.info("[checkout] commissions created detail={} item={} commRate={} author={}pts buyer={}pts revenueVnd={}",
+                detail.getId(), item.getId(), commRate, bd.authorPoints(), bd.buyerPoints(), bd.companyRevenueVnd());
     }
 
-    private Transaction saveTx(Long userId, String type, long amount, String payMethod,
+    private Transaction saveTx(Long userId, Long refUserId, String type, long amount, String payMethod,
                                 Long orderId, String content) {
         Transaction tx = new Transaction();
         tx.setUserId(userId);
+        tx.setRefUserId(refUserId);
         tx.setType(type);
         tx.setAmount(amount);
         tx.setPayMethod(payMethod);
@@ -379,5 +438,10 @@ public class CartService {
 
     private List<ItemUserAction> findCartItems(Long userId) {
         return itemUserActionRepository.findCartByUser(userId);
+    }
+
+    private String fmtRate(double rate) {
+        int pct = (int) Math.round(rate * 100);
+        return pct + "%";
     }
 }

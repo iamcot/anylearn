@@ -28,7 +28,7 @@ export default function Header() {
   const [accountOpen, setAccountOpen] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
-  const { user, cartCount, logout, openAuthModal } = useAuth()
+  const { user, cartCount, logout, openAuthModal, refreshUser } = useAuth()
   const accountRef = useRef<HTMLDivElement>(null)
   const notifRef = useRef<HTMLDivElement>(null)
 
@@ -73,6 +73,9 @@ export default function Header() {
         const json = await res.json()
         const count = json?.data?.unread ?? 0
         setUnreadCount(count)
+
+        // Refresh wallet_c and user profile so anyPoint balance is up to date
+        refreshUser()
 
         // Browser push notification
         if ('Notification' in window) {
@@ -242,10 +245,44 @@ export default function Header() {
           )}
         </div>
 
-        {/* Mobile toggle */}
-        <button onClick={() => setMenuOpen(!menuOpen)}
-          className="show-mobile hidden w-[38px] h-[38px] rounded-[10px] border border-line bg-white items-center justify-center cursor-pointer text-xl"
-          aria-label="Mở menu">☰</button>
+        {/* Mobile toggle + icons */}
+        <div className="show-mobile hidden items-center gap-2">
+          {/* Cart on mobile */}
+          <Link href="/checkout" className="relative no-underline">
+            <button className="w-[38px] h-[38px] rounded-full border border-line bg-white grid place-items-center cursor-pointer text-lg">🛒</button>
+            {cartCount > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full bg-red text-white text-[11px] font-black grid place-items-center px-1">
+                {cartCount}
+              </span>
+            )}
+          </Link>
+          {/* Bell on mobile */}
+          {user && (
+            <div className="relative">
+              <button
+                onClick={() => { setNotifOpen(v => !v); setAccountOpen(false) }}
+                className="w-[38px] h-[38px] rounded-full border border-line bg-white grid place-items-center cursor-pointer text-lg relative">
+                🔔
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full bg-red text-white text-[11px] font-black grid place-items-center px-1">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
+              </button>
+              {notifOpen && (
+                <NotificationDropdown
+                  token={user.jwtToken}
+                  onClose={() => setNotifOpen(false)}
+                  onUnreadChange={setUnreadCount}
+                />
+              )}
+            </div>
+          )}
+          {/* Hamburger */}
+          <button onClick={() => setMenuOpen(!menuOpen)}
+            className="w-[38px] h-[38px] rounded-[10px] border border-line bg-white flex items-center justify-center cursor-pointer text-xl"
+            aria-label="Mở menu">☰</button>
+        </div>
       </div>
 
       {/* Mobile menu */}

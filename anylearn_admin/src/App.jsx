@@ -5,8 +5,11 @@ import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-d
 import AppShell from './components/AppShell'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import Articles from './pages/Articles'
+import Audit from './pages/Audit'
 import Dashboard from './pages/Dashboard'
+import Finance from './pages/Finance'
 import Items from './pages/Items'
+import ItemDetail from './pages/ItemDetail'
 import Login from './pages/Login'
 import Orders from './pages/Orders'
 import Transactions from './pages/Transactions'
@@ -70,9 +73,12 @@ export default function App() {
                   <Route path="dashboard" element={<Dashboard />} />
                   <Route path="users" element={<Users />} />
                   <Route path="items" element={<Items />} />
+                  <Route path="items/:id" element={<ItemDetail />} />
                   <Route path="orders" element={<Orders />} />
                   <Route path="transactions" element={<Transactions />} />
                   <Route path="articles" element={<Articles />} />
+                  <Route path="audit" element={<Audit />} />
+                  <Route path="finance" element={<Finance />} />
                 </Route>
                 <Route path="*" element={<Navigate to="/dashboard" replace />} />
               </Routes>

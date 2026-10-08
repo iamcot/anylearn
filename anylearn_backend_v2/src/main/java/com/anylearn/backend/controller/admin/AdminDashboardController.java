@@ -102,6 +102,7 @@ public class AdminDashboardController {
         List<Object[]> rows = em.createNativeQuery(
                 "SELECT u.id, u.name, u.phone, COUNT(od.id) AS orderCount, COALESCE(SUM(od.paid_price),0) AS revenue " +
                 "FROM order_details od " +
+                "JOIN orders o ON od.order_id = o.id AND o.status = 'delivered' " +
                 "JOIN items i ON od.item_id = i.id " +
                 "JOIN users u ON i.user_id = u.id " +
                 "WHERE od.created_at BETWEEN ?1 AND ?2 " +
@@ -126,13 +127,51 @@ public class AdminDashboardController {
         @SuppressWarnings("unchecked")
         List<Object[]> rows = em.createNativeQuery(
                 "SELECT i.id, i.title, COUNT(od.id) AS orderCount " +
-                "FROM order_details od JOIN items i ON od.item_id = i.id " +
+                "FROM order_details od " +
+                "JOIN orders o ON od.order_id = o.id AND o.status = 'delivered' " +
+                "JOIN items i ON od.item_id = i.id " +
                 "WHERE od.created_at BETWEEN ?1 AND ?2 " +
                 "GROUP BY i.id ORDER BY orderCount DESC LIMIT ?3")
                 .setParameter(1, start).setParameter(2, end).setParameter(3, limit)
                 .getResultList();
         return ApiResponse.ok(rows.stream().map(r -> Map.of(
                 "itemId", r[0], "title", r[1] != null ? r[1] : "", "orderCount", r[2])).toList());
+    }
+
+    @GetMapping("/chart/items")
+    public ApiResponse<?> chartItems(
+            @AuthenticationPrincipal User user,
+            @RequestParam(required = false) String from,
+            @RequestParam(required = false) String to,
+            @RequestParam(defaultValue = "day") String granularity) {
+        if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
+        LocalDateTime start = from != null ? LocalDate.parse(from).atStartOfDay() : LocalDateTime.now().minusMonths(1);
+        LocalDateTime end   = to   != null ? LocalDate.parse(to).atTime(23, 59, 59) : LocalDateTime.now();
+        String[] exprs = groupExprs(granularity);
+        @SuppressWarnings("unchecked")
+        List<Object[]> rows = em.createNativeQuery(
+                "SELECT " + exprs[1] + " AS d, COUNT(*) AS c FROM items " +
+                "WHERE is_test=0 AND created_at BETWEEN ?1 AND ?2 GROUP BY " + exprs[0] + " ORDER BY " + exprs[0])
+                .setParameter(1, start).setParameter(2, end).getResultList();
+        return ApiResponse.ok(rows.stream().map(r -> Map.of("date", r[0].toString(), "count", r[1])).toList());
+    }
+
+    @GetMapping("/chart/orders")
+    public ApiResponse<?> chartOrders(
+            @AuthenticationPrincipal User user,
+            @RequestParam(required = false) String from,
+            @RequestParam(required = false) String to,
+            @RequestParam(defaultValue = "day") String granularity) {
+        if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
+        LocalDateTime start = from != null ? LocalDate.parse(from).atStartOfDay() : LocalDateTime.now().minusMonths(1);
+        LocalDateTime end   = to   != null ? LocalDate.parse(to).atTime(23, 59, 59) : LocalDateTime.now();
+        String[] exprs = groupExprs(granularity);
+        @SuppressWarnings("unchecked")
+        List<Object[]> rows = em.createNativeQuery(
+                "SELECT " + exprs[1] + " AS d, COUNT(*) AS c FROM orders " +
+                "WHERE created_at BETWEEN ?1 AND ?2 GROUP BY " + exprs[0] + " ORDER BY " + exprs[0])
+                .setParameter(1, start).setParameter(2, end).getResultList();
+        return ApiResponse.ok(rows.stream().map(r -> Map.of("date", r[0].toString(), "count", r[1])).toList());
     }
 
     /** Returns [groupByExpr, labelExpr] */

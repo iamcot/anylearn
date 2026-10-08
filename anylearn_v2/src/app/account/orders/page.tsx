@@ -1,14 +1,19 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { useAuth } from '@/context/AuthContext'
 import { getUserOrders, UserOrder } from '@/lib/api'
+
+const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080/v2/api'
 
 function formatPrice(p: number) {
   if (!p) return '0 đ'
   if (p >= 1_000_000) return `${(p / 1_000_000).toFixed(1).replace('.0', '')} triệu`
   return p.toLocaleString('vi-VN') + ' đ'
 }
+
+const UNPAID_STATUSES = new Set(['new', 'pay_pending'])
 
 const STATUS_LABELS: Record<string, { label: string; cls: string }> = {
   new:           { label: 'Mới',           cls: 'bg-bg text-muted' },
@@ -31,11 +36,29 @@ export default function OrdersPage() {
   const { token } = useAuth()
   const [orders, setOrders] = useState<UserOrder[]>([])
   const [loading, setLoading] = useState(true)
+  const [cancellingId, setCancellingId] = useState<string | null>(null)
+  const [confirmId, setConfirmId] = useState<string | null>(null)
 
   useEffect(() => {
     if (!token) return
     getUserOrders(token).then(data => { setOrders(data); setLoading(false) })
   }, [token])
+
+  async function handleCancel(orderId: string) {
+    setCancellingId(orderId)
+    try {
+      await fetch(`${BASE}/order/${orderId}/cancel`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      setOrders(prev => prev.map(o =>
+        o.orderId === orderId ? { ...o, status: 'cancel_buyer' } : o
+      ))
+    } finally {
+      setCancellingId(null)
+      setConfirmId(null)
+    }
+  }
 
   return (
     <div className="bg-white border border-line rounded-card overflow-hidden">
@@ -68,7 +91,39 @@ export default function OrdersPage() {
                       {statusInfo.label}
                     </span>
                   </div>
-                  <span className="text-xs font-mono text-muted shrink-0">#{order.orderId}</span>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {UNPAID_STATUSES.has(order.status) && (
+                      <>
+                        <Link href={`/order/${order.orderId}`}
+                          className="text-xs font-bold text-white bg-[#00539b] px-3 py-1 rounded-full no-underline hover:opacity-90">
+                          Thanh toán ngay
+                        </Link>
+                        {confirmId === order.orderId ? (
+                          <div className="flex items-center gap-1">
+                            <span className="text-xs text-muted">Xác nhận hủy?</span>
+                            <button
+                              onClick={() => handleCancel(order.orderId)}
+                              disabled={cancellingId === order.orderId}
+                              className="text-xs font-bold text-white bg-red-500 px-2 py-0.5 rounded-full border-0 cursor-pointer">
+                              {cancellingId === order.orderId ? '...' : 'Hủy'}
+                            </button>
+                            <button
+                              onClick={() => setConfirmId(null)}
+                              className="text-xs text-muted px-2 py-0.5 rounded-full border border-line bg-white cursor-pointer">
+                              Thôi
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setConfirmId(order.orderId)}
+                            className="text-xs font-bold text-[#e73348] bg-white border border-[#e73348] px-3 py-1 rounded-full cursor-pointer hover:bg-red-50">
+                            Hủy đơn
+                          </button>
+                        )}
+                      </>
+                    )}
+                    <span className="text-xs font-mono text-muted">#{order.orderId}</span>
+                  </div>
                 </div>
 
                 {/* All items — show directly, no expand */}

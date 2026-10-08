@@ -1,8 +1,9 @@
-import { Button, Drawer, Form, Input, Select, Space, Table, Tag } from 'antd'
+import { Button, Drawer, Form, Input, Select, Space, Table, Tag, Typography } from 'antd'
 import { EditOutlined, SaveOutlined, CloseOutlined } from '@ant-design/icons'
 import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import client from '../api/client'
+import { fmtVND, fmtDate, fmtDateTime } from '../utils/format'
 import { usePagination } from '../hooks/usePagination'
 import { Field } from '../components/Field'
 
@@ -52,7 +53,7 @@ export default function Users() {
     { title: 'Điện thoại', dataIndex: 'phone' },
     { title: 'Role', dataIndex: 'role' },
     { title: 'Trạng thái', dataIndex: 'status', render: statusTag },
-    { title: 'Ngày tạo', dataIndex: 'createdAt', render: v => v?.split('T')[0] },
+    { title: 'Ngày tạo', dataIndex: 'createdAt', render: v => fmtDate(v) },
   ]
 
   function openDrawer(row) { setSelected(row); setEditing(false) }
@@ -60,7 +61,12 @@ export default function Users() {
 
   return (
     <div style={{ padding: 24 }}>
-      <Space style={{ marginBottom: 16 }}>
+      <div className="page-header">
+        <div className="page-title">Thành viên</div>
+        <span className="page-subtitle">Quản lý người dùng hệ thống</span>
+      </div>
+      <div className="page-content">
+        <Space style={{ marginBottom: 16 }}>
         <Input.Search placeholder="Tên / SĐT / email" value={q} onChange={e => { setQ(e.target.value); setPage(1) }} onSearch={() => {}} allowClear style={{ width: 220 }} />
         <Select value={role} onChange={v => { setRole(v); setPage(1) }} style={{ width: 140 }}
           options={[{ value: '', label: 'Tất cả role' }, ...MEMBER_ROLES.map(r => ({ value: r, label: r }))]}
@@ -71,6 +77,7 @@ export default function Users() {
         pagination={paginationProps(data?.content)}
         onRow={row => ({ onClick: () => openDrawer(row), style: { cursor: 'pointer' } })}
       />
+      </div>
 
       <Drawer
         title={selected?.name || selected?.phone}
@@ -114,7 +121,7 @@ export default function Users() {
             editing={editing}
           />
           <Field label="anyPoint" viewValue={`${(selected?.walletC ?? 0).toLocaleString()}`} editing={false} />
-          <Field label="Ngày tạo" viewValue={selected?.createdAt?.split('T')[0]} editing={false} />
+          <Field label="Ngày tạo" viewValue={fmtDate(selected?.createdAt)} editing={false} />
         </Form>
       </Drawer>
     </div>

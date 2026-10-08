@@ -3,6 +3,7 @@ package com.anylearn.backend.controller.admin;
 import com.anylearn.backend.dto.response.ApiResponse;
 import com.anylearn.backend.entity.User;
 import com.anylearn.backend.repository.OrderRepository;
+import com.anylearn.backend.service.payment.PaymentApprovalService;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -18,6 +19,7 @@ import java.util.Map;
 public class AdminOrderController {
 
     private final OrderRepository orderRepository;
+    private final PaymentApprovalService paymentApprovalService;
     private final EntityManager em;
 
     private boolean isAdmin(User user) {
@@ -62,8 +64,11 @@ public class AdminOrderController {
 
         @SuppressWarnings("unchecked")
         List<Object[]> details = em.createNativeQuery(
-                "SELECT od.id, od.item_id, i.title, od.unit_price, od.paid_price, od.status " +
-                "FROM order_details od JOIN items i ON od.item_id = i.id WHERE od.order_id = ?1")
+                "SELECT od.id, od.item_id, i.title, od.unit_price, od.paid_price, od.status, " +
+                "u.name AS studentName, u.is_child " +
+                "FROM order_details od JOIN items i ON od.item_id = i.id " +
+                "LEFT JOIN users u ON od.user_id = u.id " +
+                "WHERE od.order_id = ?1")
                 .setParameter(1, id).getResultList();
 
         return orderRepository.findById(id).map(o -> {
@@ -73,6 +78,9 @@ public class AdminOrderController {
                 var d = new LinkedHashMap<String, Object>();
                 d.put("id", r[0]); d.put("itemId", r[1]); d.put("title", r[2] != null ? r[2] : "");
                 d.put("unitPrice", r[3]); d.put("paidPrice", r[4]); d.put("status", r[5] != null ? r[5] : "");
+                d.put("studentName", r[6] != null ? r[6] : "");
+                boolean isChild = r[7] != null && ((Number) r[7]).intValue() == 1;
+                d.put("isChild", isChild);
                 return d;
             }).toList());
             return ApiResponse.ok(m);
@@ -88,12 +96,17 @@ public class AdminOrderController {
         var ids = (List<Number>) body.get("ids");
         if (ids == null || ids.isEmpty()) return ApiResponse.fail("ids required");
 
-        ids.forEach(idNum -> orderRepository.findById(idNum.longValue()).ifPresent(o -> {
-            if ("bank_transfer".equals(o.getPayment()) && !"delivered".equals(o.getStatus())) {
-                o.setStatus("delivered");
-                orderRepository.save(o);
-            }
-        }));
+        ids.forEach(idNum -> {
+            long orderId = idNum.longValue();
+            orderRepository.findById(orderId).ifPresent(o -> {
+                if (!"delivered".equals(o.getStatus())) {
+                    // Delegate to PaymentApprovalService: updates order + order_details,
+                    // approves all pending anyPoint transactions, credits wallet_c, sends notifications
+                    paymentApprovalService.adminApproveOrder(orderId,
+                            o.getPayment() != null ? o.getPayment() : "bank_transfer");
+                }
+            });
+        });
         return ApiResponse.ok("Confirmed");
     }
 
@@ -106,12 +119,8 @@ public class AdminOrderController {
         var ids = (List<Number>) body.get("ids");
         if (ids == null || ids.isEmpty()) return ApiResponse.fail("ids required");
 
-        ids.forEach(idNum -> orderRepository.findById(idNum.longValue()).ifPresent(o -> {
-            if (!"delivered".equals(o.getStatus()) && !"cancelled".equals(o.getStatus())) {
-                o.setStatus("cancelled");
-                orderRepository.save(o);
-            }
-        }));
+        ids.forEach(idNum ->
+            paymentApprovalService.cancelOrder(idNum.longValue(), "admin"));
         return ApiResponse.ok("Cancelled");
     }
 }

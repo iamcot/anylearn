@@ -25,4 +25,7 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
         """)
     List<java.util.Map<String, Object>> findRegisteredItemsByUser(@Param("userId") Long userId,
             org.springframework.data.domain.Pageable pageable);
+    List<OrderDetail> findByItemIdOrderByIdDesc(Long itemId);
+
+    long countDistinctUserIdByItemId(Long itemId);
 }

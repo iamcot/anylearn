@@ -134,7 +134,7 @@ export default function OrderPage() {
         ) : (
           /* Success or bank_transfer pending */
           <>
-            <div className="mb-4"><CheckCircle size={64} /></div>
+            <div className="mb-4 flex justify-center"><CheckCircle size={64} /></div>
             <h1 className="text-[28px] font-black text-ink mb-2">
               {paymentStatus === 'success' ? 'Thanh toán thành công!' : 'Đặt hàng thành công!'}
             </h1>

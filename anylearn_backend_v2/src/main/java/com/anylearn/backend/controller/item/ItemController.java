@@ -2,7 +2,9 @@ package com.anylearn.backend.controller.item;
 
 import com.anylearn.backend.dto.response.ApiResponse;
 import com.anylearn.backend.entity.User;
+import com.anylearn.backend.repository.ItemRepository;
 import com.anylearn.backend.service.ItemService;
+import com.anylearn.backend.service.S3Service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +16,8 @@ import org.springframework.web.multipart.MultipartFile;
 public class ItemController {
 
     private final ItemService itemService;
+    private final com.anylearn.backend.repository.ItemRepository itemRepository;
+    private final com.anylearn.backend.service.S3Service s3Service;
 
     @GetMapping("/pdp/{id}")
     public ApiResponse<?> pdp(@PathVariable Long id,
@@ -62,8 +66,21 @@ public class ItemController {
     }
 
     @PostMapping("/item/{itemId}/upload-image")
-    public ApiResponse<?> uploadImage(@PathVariable Long itemId, @RequestParam MultipartFile file) {
-        return ApiResponse.fail("Not implemented");
+    public ApiResponse<?> uploadImage(@PathVariable Long itemId, @RequestParam MultipartFile file,
+                                       @AuthenticationPrincipal User user) {
+        try {
+            String url = s3Service.uploadImage(file, "items/" + itemId);
+            // Update item image if caller owns it or is admin
+            itemRepository.findById(itemId).ifPresent(item -> {
+                if (user != null && ("admin".equals(user.getRole()) || user.getId().equals(item.getUserId()))) {
+                    item.setImage(url);
+                    itemRepository.save(item);
+                }
+            });
+            return ApiResponse.ok(java.util.Map.of("url", url));
+        } catch (Exception e) {
+            return ApiResponse.fail("Upload ảnh thất bại: " + e.getMessage());
+        }
     }
 
     @GetMapping("/item/{itemId}/user-status/{newStatus}")

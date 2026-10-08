@@ -21,6 +21,12 @@ public class NotificationSseController {
 
     @GetMapping(value = "/user/notification/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter stream(@AuthenticationPrincipal User user) {
+        if (user == null) {
+            // Unauthenticated — return an immediately-completed emitter
+            SseEmitter emitter = new SseEmitter(0L);
+            emitter.complete();
+            return emitter;
+        }
         log.debug("[SSE] New connection for user {}", user.getId());
         return sseService.createEmitter(user.getId());
     }

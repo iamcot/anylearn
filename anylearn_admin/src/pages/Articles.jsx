@@ -3,6 +3,7 @@ import { CloseOutlined, EditOutlined, SaveOutlined } from '@ant-design/icons'
 import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import client from '../api/client'
+import { fmtVND, fmtDate, fmtDateTime } from '../utils/format'
 import { usePagination } from '../hooks/usePagination'
 import { Field } from '../components/Field'
 
@@ -43,6 +44,11 @@ export default function Articles() {
 
   return (
     <div style={{ padding: 24 }}>
+      <div className="page-header">
+        <div className="page-title">Bài viết</div>
+        <span className="page-subtitle">Quản lý nội dung bài viết</span>
+      </div>
+      <div className="page-content">
       <Space style={{ marginBottom: 16 }}>
         <Input.Search placeholder="Tìm tiêu đề" value={q} onChange={e => { setQ(e.target.value); setPage(1) }} onSearch={() => {}} allowClear style={{ width: 220 }} />
         <Select value={status} onChange={v => { setStatus(v); setPage(1) }} style={{ width: 150 }}
@@ -54,6 +60,7 @@ export default function Articles() {
         pagination={paginationProps(data?.content)}
         onRow={row => ({ onClick: () => openDrawer(row), style: { cursor: 'pointer' } })}
       />
+      </div>
       <Drawer
         title={selected?.title} open={!!selected} onClose={closeDrawer} size="large"
         extra={
@@ -86,7 +93,7 @@ export default function Articles() {
           />
           <Field label="Lượt xem" viewValue={selected?.view} editing={false} />
           <Field label="Tác giả" viewValue={selected?.authorName} editing={false} />
-          <Field label="Ngày tạo" viewValue={selected?.createdAt?.split('T')[0]} editing={false} />
+          <Field label="Ngày tạo" viewValue={fmtDate(selected?.createdAt)} editing={false} />
           <Field label="Tóm tắt"
             viewValue={<div style={{ whiteSpace: 'pre-wrap', fontSize: 13 }}>{selected?.shortContent}</div>}
             editContent={<Form.Item name="shortContent" noStyle><Input.TextArea size="small" rows={4} /></Form.Item>}

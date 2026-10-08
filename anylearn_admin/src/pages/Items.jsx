@@ -1,100 +1,160 @@
-import { Button, Drawer, Form, Input, Select, Space, Table, Tag } from 'antd'
-import { CloseOutlined, EditOutlined, SaveOutlined } from '@ant-design/icons'
-import { useEffect, useState } from 'react'
+import { App, Input, Select, Space, Switch, Table, Tag, Tooltip, Typography } from 'antd'
+import { FireOutlined, PlusOutlined } from '@ant-design/icons'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import client from '../api/client'
-import { usePagination } from '../hooks/usePagination'
-import { Field } from '../components/Field'
-
-const statusTag = (v) => v == 1 ? <Tag color="green">Hiển thị</Tag> : <Tag color="default">Ẩn</Tag>
-const userStatusTag = (v) => v == 1 ? <Tag color="blue">Đã duyệt</Tag> : <Tag color="orange">Chờ duyệt</Tag>
+import { fmtVND } from '../utils/format'
 
 export default function Items() {
+  const { message } = App.useApp()
   const qc = useQueryClient()
-  const [q, setQ] = useState('')
-  const [status, setStatus] = useState('')
-  const { page, setPage, paginationProps } = usePagination()
-  const [selected, setSelected] = useState(null)
-  const [editing, setEditing] = useState(false)
-  const [form] = Form.useForm()
+  const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  const q          = searchParams.get('q') ?? ''
+  const status     = searchParams.get('status') ?? ''
+  const userStatus = searchParams.get('userStatus') ?? ''
+  const categoryId = searchParams.get('categoryId') ?? ''
+  const page       = Number(searchParams.get('page') ?? '1')
+
+  function updateParam(key, value) {
+    const next = new URLSearchParams(searchParams)
+    if (value) next.set(key, value); else next.delete(key)
+    next.set('page', '1')
+    setSearchParams(next)
+  }
+  function setPage(p) {
+    const next = new URLSearchParams(searchParams)
+    next.set('page', String(p))
+    setSearchParams(next)
+  }
 
   const { data, isLoading } = useQuery({
-    queryKey: ['admin-items', q, status, page],
-    queryFn: () => client.get('/admin/items', { params: { q, ...(status !== '' && { status }), page: page - 1, size: 20 } }).then(r => r.data?.data ?? r.data),
+    queryKey: ['admin-items', q, status, userStatus, categoryId, page],
+    queryFn: () => client.get('/admin/items', {
+      params: { q, ...(status !== '' && { status }), ...(userStatus !== '' && { userStatus }), ...(categoryId && { categoryId }), page: page - 1, size: 20 }
+    }).then(r => r.data?.data ?? r.data),
   })
 
-  const mutation = useMutation({
-    mutationFn: (values) => client.put(`/admin/items/${selected.id}`, { ...values, price: Number(values.price), status: Number(values.status), userStatus: Number(values.userStatus), isHot: Number(values.isHot) }),
-    onSuccess: () => { qc.invalidateQueries(['admin-items']); setEditing(false) },
+  const { data: categories } = useQuery({
+    queryKey: ['admin-categories'],
+    queryFn: () => client.get('/admin/categories').then(r => r.data?.data ?? []),
+    staleTime: 5 * 60_000,
   })
 
-  useEffect(() => {
-    if (selected && editing) form.setFieldsValue({ title: selected.title, price: selected.price, status: String(selected.status), userStatus: String(selected.userStatus), isHot: String(selected.isHot ?? 0) })
-  }, [selected, editing])
+  const statusMutation = useMutation({
+    mutationFn: ({ id, field, value }) => client.put(`/admin/items/${id}`, { [field]: value ? 1 : 0 }),
+    onSuccess: () => qc.invalidateQueries(['admin-items']),
+    onError: () => message.error('Cập nhật thất bại'),
+  })
+
+  const hotMutation = useMutation({
+    mutationFn: (id) => client.put(`/admin/items/${id}/toggle-hot`),
+    onSuccess: () => qc.invalidateQueries(['admin-items']),
+  })
 
   const columns = [
-    { title: 'ID', dataIndex: 'id', width: 70 },
-    { title: 'Tiêu đề', dataIndex: 'title', ellipsis: true },
-    { title: 'Giá', dataIndex: 'price', render: v => Number(v ?? 0).toLocaleString() },
-    { title: 'Đối tác', dataIndex: 'ownerName' },
-    { title: 'Trạng thái', dataIndex: 'status', render: statusTag },
-    { title: 'Duyệt', dataIndex: 'userStatus', render: userStatusTag },
+    {
+      title: <Tooltip title="Nổi bật"><FireOutlined /></Tooltip>,
+      dataIndex: 'isHot', width: 55,
+      render: (v, row) => (
+        <Switch
+          size="small" checked={v == 1}
+          onChange={() => hotMutation.mutate(row.id)}
+          onClick={(_, e) => e?.stopPropagation()}
+        />
+      ),
+    },
+    {
+      title: 'Tiêu đề', dataIndex: 'title', ellipsis: true,
+      render: (text, row) => (
+        <Typography.Text onClick={() => navigate(`/items/${row.id}`)} style={{ cursor: 'pointer' }}>{text}</Typography.Text>
+      ),
+    },
+    { title: 'Đối tác', dataIndex: 'ownerName', width: 140 },
+    { title: 'Học phí', dataIndex: 'price', width: 120, render: v => fmtVND(v) },
+    { title: 'Đã bán', dataIndex: 'soldCount', width: 75 },
+    { title: 'Ngày bắt đầu', dataIndex: 'dateStart', width: 115 },
+    {
+      title: 'Platform', dataIndex: 'status', width: 100,
+      render: (v, row) => (
+        <Switch
+          size="small" checked={v == 1}
+          checkedChildren="Hiện" unCheckedChildren="Ẩn"
+          loading={statusMutation.isPending}
+          onChange={val => { statusMutation.mutate({ id: row.id, field: 'status', value: val }); row.status = val ? 1 : 0 }}
+          onClick={(_, e) => e?.stopPropagation()}
+        />
+      ),
+    },
+    {
+      title: 'Đối tác duyệt', dataIndex: 'userStatus', width: 120,
+      render: (v, row) => (
+        <Switch
+          size="small" checked={v == 1}
+          checkedChildren="Duyệt" unCheckedChildren="Chờ"
+          loading={statusMutation.isPending}
+          onChange={val => { statusMutation.mutate({ id: row.id, field: 'userStatus', value: val }); row.userStatus = val ? 1 : 0 }}
+          onClick={(_, e) => e?.stopPropagation()}
+        />
+      ),
+    },
   ]
 
-  function openDrawer(row) { setSelected(row); setEditing(false) }
-  function closeDrawer() { setSelected(null); setEditing(false) }
+  const total = data?.total
 
   return (
     <div style={{ padding: 24 }}>
-      <Space style={{ marginBottom: 16 }}>
-        <Input.Search placeholder="Tìm tiêu đề" value={q} onChange={e => { setQ(e.target.value); setPage(1) }} onSearch={() => {}} allowClear style={{ width: 220 }} />
-        <Select value={status} onChange={v => { setStatus(v); setPage(1) }} style={{ width: 150 }}
-          options={[{ value: '', label: 'Tất cả' }, { value: '1', label: 'Hiển thị' }, { value: '0', label: 'Ẩn' }]}
-        />
+      <div className="page-header">
+        <div className="page-title">Khóa học</div>
+        <span className="page-subtitle">Quản lý danh sách khóa học của các đối tác</span>
+      </div>
+      <div className="page-content">
+      <Space style={{ marginBottom: 16, flexWrap: 'wrap', width: '100%', justifyContent: 'space-between' }}>
+        <Space wrap>
+          <Input.Search
+            placeholder="Tìm tiêu đề khóa học" value={q}
+            onChange={e => updateParam('q', e.target.value)}
+            onSearch={() => {}} allowClear style={{ width: 240 }}
+          />
+          <Select value={status} onChange={v => updateParam('status', v)} style={{ width: 140 }}
+            options={[{ value: '', label: 'Tất cả trạng thái' }, { value: '1', label: 'Hiển thị' }, { value: '0', label: 'Ẩn' }]}
+          />
+          <Select value={userStatus} onChange={v => updateParam('userStatus', v)} style={{ width: 150 }}
+            options={[{ value: '', label: 'Tất cả duyệt' }, { value: '1', label: 'Đã duyệt' }, { value: '0', label: 'Chờ duyệt' }]}
+          />
+          <Select value={categoryId} onChange={v => updateParam('categoryId', v)}
+            style={{ width: 160 }} showSearch optionFilterProp="label"
+            options={[{ value: '', label: 'Tất cả lĩnh vực' }, ...(categories ?? []).map(c => ({ value: String(c.id), label: c.title }))]}
+          />
+        </Space>
+        <Space>
+          {total != null && <Typography.Text type="secondary">{fmtVND(total)} khóa học</Typography.Text>}
+          <a href="/items/new" onClick={e => { e.preventDefault(); navigate('/items/new') }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 12px', background: '#1677ff', color: '#fff', borderRadius: 6, fontSize: 14 }}>
+            <PlusOutlined /> Tạo khóa học
+          </a>
+        </Space>
       </Space>
+
       <Table
-        columns={columns} dataSource={data?.content ?? []} rowKey="id" loading={isLoading} size="small"
-        pagination={paginationProps(data?.content)}
-        onRow={row => ({ onClick: () => openDrawer(row), style: { cursor: 'pointer' } })}
-      />
-      <Drawer
-        title={selected?.title} open={!!selected} onClose={closeDrawer} size="large"
-        extra={
-          editing ? (
-            <Space>
-              <Button icon={<CloseOutlined />} onClick={() => setEditing(false)}>Huỷ</Button>
-              <Button type="primary" icon={<SaveOutlined />} loading={mutation.isPending} onClick={() => form.submit()}>Lưu</Button>
-            </Space>
-          ) : (
-            <Button icon={<EditOutlined />} onClick={() => setEditing(true)}>Sửa</Button>
-          )
-        }
-      >
-        <Form form={form} onFinish={mutation.mutate}>
-          <Field label="Tiêu đề" viewValue={selected?.title}
-            editContent={<Form.Item name="title" noStyle><Input size="small" /></Form.Item>}
-            editing={editing}
-          />
-          <Field label="Giá" viewValue={`${Number(selected?.price ?? 0).toLocaleString()}đ`}
-            editContent={<Form.Item name="price" noStyle><Input size="small" type="number" suffix="đ" /></Form.Item>}
-            editing={editing}
-          />
-          <Field label="Trạng thái" viewValue={statusTag(selected?.status)}
-            editContent={<Form.Item name="status" noStyle><Select size="small" style={{ width: '100%' }} options={[{ value: '1', label: 'Hiển thị' }, { value: '0', label: 'Ẩn' }]} /></Form.Item>}
-            editing={editing}
-          />
-          <Field label="Duyệt" viewValue={userStatusTag(selected?.userStatus)}
-            editContent={<Form.Item name="userStatus" noStyle><Select size="small" style={{ width: '100%' }} options={[{ value: '1', label: 'Đã duyệt' }, { value: '0', label: 'Chờ duyệt' }]} /></Form.Item>}
-            editing={editing}
-          />
-          <Field label="Nổi bật" viewValue={selected?.isHot == 1 ? 'Có' : 'Không'}
-            editContent={<Form.Item name="isHot" noStyle><Select size="small" style={{ width: '100%' }} options={[{ value: '1', label: 'Có' }, { value: '0', label: 'Không' }]} /></Form.Item>}
-            editing={editing}
-          />
-          <Field label="Đối tác" viewValue={selected?.ownerName} editing={false} />
-          <Field label="Ngày tạo" viewValue={selected?.createdAt?.split('T')[0]} editing={false} />
-        </Form>
-      </Drawer>
+          columns={columns}
+          dataSource={data?.content ?? []}
+          rowKey="id"
+          loading={isLoading}
+          size="small"
+          scroll={{ x: 'max-content' }}
+          pagination={{
+            current: page,
+            pageSize: 20,
+            total: total,
+            showSizeChanger: false,
+            onChange: setPage,
+            showTotal: (t, range) => `${fmtVND(range[0])}–${fmtVND(range[1])} / ${fmtVND(t)}`,
+          }}
+          onRow={row => ({ onClick: () => navigate(`/items/${row.id}`), style: { cursor: 'pointer' } })}
+        />
+      </div>
     </div>
   )
 }

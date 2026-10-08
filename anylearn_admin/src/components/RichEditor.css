@@ -1,0 +1,8 @@
+.ProseMirror {
+  outline: none;
+  background: #fff;
+  min-height: 200px;
+}
+.ProseMirror p { margin: 0.35em 0; }
+.ProseMirror ul, .ProseMirror ol { padding-left: 1.5em; }
+.ProseMirror a { color: #1677ff; }

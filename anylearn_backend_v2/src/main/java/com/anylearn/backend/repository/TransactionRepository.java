@@ -17,7 +17,23 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     @Query("SELECT t FROM Transaction t WHERE t.orderId = :orderId AND t.type = :type ORDER BY t.id DESC")
     List<Transaction> findByOrderIdAndType(@Param("orderId") Long orderId, @Param("type") String type);
 
-    // Find pending commission/partner transactions for a list of order_detail IDs
-    @Query("SELECT t FROM Transaction t WHERE t.orderId IN :detailIds AND t.type IN ('partner','commission') AND t.status = 0")
+    // Find pending partner/commission/foundation/net_revenue transactions for a list of order_detail IDs
+    @Query("SELECT t FROM Transaction t WHERE t.orderId IN :detailIds AND t.type IN ('partner','commission','foundation','net_revenue') AND t.status = 0")
     List<Transaction> findPendingCommissionsByDetailIds(@Param("detailIds") List<Long> detailIds);
+
+    // Paginated history for a user, all types, newest first
+    @Query(value = "SELECT * FROM transactions WHERE user_id = :userId ORDER BY id DESC LIMIT :size OFFSET :offset", nativeQuery = true)
+    List<Transaction> findByUserIdOrderedPaged(@Param("userId") Long userId, @Param("size") int size, @Param("offset") long offset);
+
+    // For admin: filter by type and/or status and/or userId
+    @Query(value = "SELECT * FROM transactions " +
+                   "WHERE (:userId IS NULL OR user_id = :userId) " +
+                   "AND (:type IS NULL OR type = :type) " +
+                   "AND (:status IS NULL OR status = :status) " +
+                   "ORDER BY id DESC LIMIT :size OFFSET :offset", nativeQuery = true)
+    List<Transaction> findForAdmin(
+            @Param("userId") Long userId, @Param("type") String type,
+            @Param("status") Integer status, @Param("size") int size, @Param("offset") long offset);
+
+    List<Transaction> findByUserIdAndStatus(Long userId, int status);
 }

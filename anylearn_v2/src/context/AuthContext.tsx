@@ -48,6 +48,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsAuthLoading(false)
   }, [])
 
+  // Refresh profile on every page load so wallet_c and other fields are always current
+  useEffect(() => {
+    if (!isAuthLoading) refreshUser()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthLoading])
+
   const refreshCartCount = useCallback(async () => {
     if (!token) { setCartCount(0); return }
     const items = await getCart(token)

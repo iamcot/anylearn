@@ -76,11 +76,9 @@ public class PaymentController {
         if (order == null) return ApiResponse.fail("Không tìm thấy đơn hàng");
         if (!OrderStatus.NEW.equals(order.getStatus()) && !OrderStatus.PAY_PENDING.equals(order.getStatus()))
             return ApiResponse.fail("Không thể hủy đơn hàng ở trạng thái " + order.getStatus());
-        order.setStatus(OrderStatus.CANCEL_BUYER);
-        order.setUpdatedAt(java.time.LocalDateTime.now());
-        orderRepository.save(order);
+        String result = approvalService.cancelOrder(orderId, "buyer");
         log.info("cancelOrder: order {} cancelled by user {}", orderId, user.getId());
-        return ApiResponse.ok("Đã hủy đơn hàng");
+        return "OK".equals(result) ? ApiResponse.ok("Đã hủy đơn hàng") : ApiResponse.fail(result);
     }
 
     // ── Pending orders ────────────────────────────────────────────────────────

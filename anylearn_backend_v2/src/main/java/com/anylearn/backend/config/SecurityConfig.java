@@ -63,6 +63,9 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/admin/login").permitAll()
                 // Admin ZNS OAuth callback (browser redirect from Zalo, no JWT possible)
                 .requestMatchers(HttpMethod.GET, "/admin/zns/callback").permitAll()
+                // SSE stream: auth done by ApiTokenFilter on initial request;
+                // async re-dispatch loses SecurityContext so this must be permitAll
+                .requestMatchers(HttpMethod.GET, "/api/user/notification/stream").permitAll()
                 // Everything else requires auth
                 .anyRequest().authenticated()
             )
