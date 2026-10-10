@@ -2,8 +2,7 @@ package com.anylearn.backend.controller.admin;
 
 import com.anylearn.backend.dto.response.ApiResponse;
 import com.anylearn.backend.entity.Item;
-import com.anylearn.backend.entity.ItemCategory;
-import com.anylearn.backend.entity.ItemReview;
+import com.anylearn.backend.entity.ItemUserAction;
 import com.anylearn.backend.entity.User;
 import com.anylearn.backend.repository.*;
 import com.anylearn.backend.service.MeilisearchService;
@@ -26,10 +25,9 @@ public class AdminItemController {
 
     private final ItemRepository itemRepository;
     private final ItemCategoryRepository itemCategoryRepository;
-    private final ItemReviewRepository itemReviewRepository;
+    private final ItemUserActionRepository itemUserActionRepository;
     private final OrderDetailRepository orderDetailRepository;
     private final UserRepository userRepository;
-    private final CategoryRepository categoryRepository;
     private final MeilisearchService meilisearchService;
     private final EntityManager em;
 
@@ -333,17 +331,20 @@ public class AdminItemController {
     }
 
     // ── Reviews ───────────────────────────────────────────────────────────────
+    // All read/write uses item_user_actions (type='rating') — same table as PDP
 
     @GetMapping("/{id:\\d+}/reviews")
     public ApiResponse<?> reviews(@AuthenticationPrincipal User user, @PathVariable Long id) {
         if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
-        var reviews = itemReviewRepository.findByItemIdOrderByCreatedAtDesc(id);
+        var reviews = itemUserActionRepository.findReviewsByItemId(id);
         var result = reviews.stream().map(r -> {
             var m = new LinkedHashMap<String, Object>();
-            m.put("id", r.getId()); m.put("userId", r.getUserId());
-            m.put("rating", r.getRating()); m.put("comment", r.getComment());
-            m.put("createdAt", r.getCreatedAt() != null ? r.getCreatedAt().toString() : "");
-            userRepository.findById(r.getUserId()).ifPresent(u -> { m.put("userName", u.getName()); m.put("userPhone", u.getPhone()); });
+            m.put("id",        r.get("id"));
+            m.put("userId",    r.get("user_id"));
+            m.put("userName",  r.get("user_name"));
+            m.put("rating",    r.get("value"));
+            m.put("comment",   r.get("extra_value"));
+            m.put("createdAt", r.get("created_at") != null ? r.get("created_at").toString() : "");
             return m;
         }).toList();
         return ApiResponse.ok(result);
@@ -355,12 +356,21 @@ public class AdminItemController {
             @PathVariable Long id,
             @RequestBody Map<String, Object> body) {
         if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
-        var review = new ItemReview();
-        review.setItemId(id);
-        review.setUserId(user.getId());
-        review.setRating(toNum(body.get("rating")).doubleValue());
-        review.setComment((String) body.get("comment"));
-        return ApiResponse.ok(itemReviewRepository.save(review));
+        int rating = toNum(body.get("rating")).intValue();
+        String comment = body.get("comment") instanceof String s ? s : "";
+        // Upsert: update if this user already reviewed this item
+        var existing = itemUserActionRepository.findRatingByItemAndUser(id, user.getId());
+        var action = existing.orElseGet(ItemUserAction::new);
+        action.setItemId(id);
+        action.setUserId(user.getId());
+        action.setType("rating");
+        action.setValue(String.valueOf(rating));
+        action.setExtraValue(comment);
+        action.setUpdatedAt(java.time.LocalDateTime.now());
+        if (action.getCreatedAt() == null) action.setCreatedAt(java.time.LocalDateTime.now());
+        var saved = itemUserActionRepository.save(action);
+        itemRepository.findById(id).ifPresent(meilisearchService::updateItemPopularityScoreAsync);
+        return ApiResponse.ok(Map.of("id", saved.getId()));
     }
 
     @DeleteMapping("/{id:\\d+}/reviews/{reviewId:\\d+}")
@@ -369,7 +379,8 @@ public class AdminItemController {
             @PathVariable Long id,
             @PathVariable Long reviewId) {
         if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
-        itemReviewRepository.deleteById(reviewId);
+        itemUserActionRepository.deleteById(reviewId);
+        itemRepository.findById(id).ifPresent(meilisearchService::updateItemPopularityScoreAsync);
         return ApiResponse.ok("Deleted");
     }
 

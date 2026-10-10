@@ -80,6 +80,25 @@ public class AdminDashboardController {
         return ApiResponse.ok(rows.stream().map(r -> Map.of("date", r[0].toString(), "count", r[1])).toList());
     }
 
+    @GetMapping("/chart/profit")
+    public ApiResponse<?> chartProfit(
+            @AuthenticationPrincipal User user,
+            @RequestParam(required = false) String from,
+            @RequestParam(required = false) String to,
+            @RequestParam(defaultValue = "day") String granularity) {
+        if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
+        LocalDateTime start = from != null ? LocalDate.parse(from).atStartOfDay() : LocalDateTime.now().minusMonths(1);
+        LocalDateTime end   = to   != null ? LocalDate.parse(to).atTime(23, 59, 59) : LocalDateTime.now();
+        String[] exprs = groupExprs(granularity);
+        @SuppressWarnings("unchecked")
+        List<Object[]> rows = em.createNativeQuery(
+                "SELECT " + exprs[1] + " AS d, COALESCE(SUM(amount),0) AS amt FROM transactions " +
+                "WHERE type='net_revenue' AND status=1 AND created_at BETWEEN ?1 AND ?2 " +
+                "GROUP BY " + exprs[0] + " ORDER BY " + exprs[0])
+                .setParameter(1, start).setParameter(2, end).getResultList();
+        return ApiResponse.ok(rows.stream().map(r -> Map.of("date", r[0].toString(), "amount", r[1])).toList());
+    }
+
     @GetMapping("/chart/gmv")
     public ApiResponse<?> chartGmv(
             @AuthenticationPrincipal User user,

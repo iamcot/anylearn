@@ -160,6 +160,7 @@ export default function Dashboard() {
   const { data: sItem }       = useQuery({ ...sq('si'),   queryFn: () => chart('chart/items', sGran),  enabled: sTarget > 0 })
   const { data: sOrder }      = useQuery({ ...sq('so'),   queryFn: () => chart('chart/orders', sGran), enabled: sTarget > 0 })
   const { data: sGmv }        = useQuery({ ...sq('sg'),   queryFn: () => chart('chart/gmv', sGran).then(rows => rows.map(r => ({ ...r, amount: Math.round(r.amount / 1_000_000) }))), enabled: sTarget > 0 })
+  const { data: sProfit }     = useQuery({ ...sq('spr'),  queryFn: () => chart('chart/profit', sGran).then(rows => rows.map(r => ({ ...r, amount: Math.round(r.amount / 1_000_000) }))), enabled: sTarget > 0 })
   const { data: topPartners } = useQuery({ ...q('tp'),    queryFn: () => client.get(`/admin/dashboard/top-partners?from=${from}&to=${to}`).then(r => r.data?.data ?? []) })
   const { data: topItems }    = useQuery({ ...q('ti'),    queryFn: () => client.get(`/admin/dashboard/top-items?from=${from}&to=${to}`).then(r => r.data?.data ?? []) })
 
@@ -212,7 +213,7 @@ export default function Dashboard() {
   const row2 = [
     { title: 'Đơn hàng',  icon: <OrderedListOutlined />, color: '#fa8c16', total: stats?.totalOrders,         period: stats?.newOrders,            isMoney: false, sparkPoints: sp(sOrder, 'count'),  sparkKey: 'count',  tooltip: '% đơn hàng mới trong kỳ / tổng'       },
     { title: 'Doanh thu', icon: <DollarOutlined />,      color: '#52c41a', total: stats?.totalRevenue,        period: stats?.periodRevenue,        isMoney: true,  sparkPoints: sp(sGmv,   'amount'), sparkKey: 'amount', tooltip: '% doanh thu kỳ này / tổng'             },
-    { title: 'Lợi nhuận', icon: <RiseOutlined />,        color: '#eb2f96', total: finance?.companyRevenueVnd, period: finance?.companyRevenueVnd,  isMoney: true,  sparkPoints: sp(sGmv,   'amount'), sparkKey: 'amount', tooltip: 'Doanh thu ròng tích lũy của công ty'  },
+    { title: 'Lợi nhuận', icon: <RiseOutlined />,        color: '#eb2f96', total: finance?.companyRevenueVnd, period: finance?.companyRevenueVnd,  isMoney: true,  sparkPoints: sp(sProfit, 'amount'), sparkKey: 'amount', tooltip: 'Doanh thu ròng tích lũy của công ty'  },
   ]
 
   const today = new Date().toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })
