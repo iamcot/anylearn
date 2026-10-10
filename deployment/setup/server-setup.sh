@@ -125,17 +125,24 @@ echo ""
 echo "▶ Configuring sudo permissions..."
 
 cat << 'SUDOERS' | sudo tee /etc/sudoers.d/anylearn-deploy > /dev/null
-# anylearn-app service account
 anylearn-app ALL=(ALL) NOPASSWD: /bin/systemctl reload-or-restart anylearn-backend.service
 anylearn-app ALL=(ALL) NOPASSWD: /bin/systemctl reload-or-restart anylearn-frontend.service
 anylearn-app ALL=(ALL) NOPASSWD: /bin/systemctl restart anylearn-backend.service
 anylearn-app ALL=(ALL) NOPASSWD: /bin/systemctl restart anylearn-frontend.service
 anylearn-app ALL=(ALL) NOPASSWD: /bin/systemctl is-active anylearn-backend.service
 anylearn-app ALL=(ALL) NOPASSWD: /bin/systemctl is-active anylearn-frontend.service
-
-# Deploy group — release management
-%anylearn-deploy ALL=(ALL) NOPASSWD: /bin/chown -R anylearn-app\:anylearn-deploy /opt/anylearn/*
-%anylearn-deploy ALL=(ALL) NOPASSWD: /bin/chmod -R * /opt/anylearn/*
+%anylearn-deploy ALL=(ALL) NOPASSWD: /bin/mkdir -p /opt/anylearn/backend
+%anylearn-deploy ALL=(ALL) NOPASSWD: /bin/mkdir -p /opt/anylearn/frontend
+%anylearn-deploy ALL=(ALL) NOPASSWD: /usr/bin/tee /opt/anylearn/backend/.env
+%anylearn-deploy ALL=(ALL) NOPASSWD: /usr/bin/tee /opt/anylearn/frontend/.env.production
+%anylearn-deploy ALL=(ALL) NOPASSWD: /bin/chown anylearn-app\:anylearn-deploy /opt/anylearn/backend/.env
+%anylearn-deploy ALL=(ALL) NOPASSWD: /bin/chmod 640 /opt/anylearn/backend/.env
+%anylearn-deploy ALL=(ALL) NOPASSWD: /bin/chown anylearn-app\:anylearn-deploy /opt/anylearn/frontend/.env.production
+%anylearn-deploy ALL=(ALL) NOPASSWD: /bin/chmod 640 /opt/anylearn/frontend/.env.production
+%anylearn-deploy ALL=(ALL) NOPASSWD: /bin/chown -R anylearn-app\:anylearn-deploy /opt/anylearn/backend/releases/*
+%anylearn-deploy ALL=(ALL) NOPASSWD: /bin/chown -R anylearn-app\:anylearn-deploy /opt/anylearn/frontend/releases/*
+%anylearn-deploy ALL=(ALL) NOPASSWD: /bin/chown -R anylearn-app\:anylearn-deploy /opt/anylearn/admin/releases/*
+%anylearn-deploy ALL=(ALL) NOPASSWD: /bin/chmod -R a+rX /opt/anylearn/admin/releases/*
 %anylearn-deploy ALL=(ALL) NOPASSWD: /bin/systemctl reload nginx
 %anylearn-deploy ALL=(ALL) NOPASSWD: /bin/rm -rf /opt/anylearn/backend/releases/release-*
 %anylearn-deploy ALL=(ALL) NOPASSWD: /bin/rm -rf /opt/anylearn/frontend/releases/release-*
