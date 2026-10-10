@@ -126,13 +126,16 @@ export default async function HomePage() {
         </div>
         <div className="container grid grid-cols-1 md:grid-cols-3 gap-5">
           {events.map(e => (
-            <article key={e.id} className="rounded-[22px] overflow-hidden bg-white border border-[#e6edf4] flex flex-col shadow-[0_8px_24px_rgba(15,23,42,0.06)]">
+            <article key={e.id} className="rounded-[22px] overflow-hidden bg-white border border-[#e6edf4] flex flex-col shadow-[0_8px_24px_rgba(15,23,42,0.06)] relative cursor-pointer">
+              <Link href={getArticleUrl(e)} className="absolute inset-0 z-10" aria-label={e.title} />
               <div className="min-h-[190px] grid place-items-center p-6 text-center text-white font-black text-2xl leading-tight bg-[linear-gradient(135deg,#00539b,#00a651)]">
                 {e.title}
               </div>
               <div className="p-5 flex flex-col flex-1">
                 {e.short_content && <p className="text-[#6d7a8a] flex-1 mb-4">{e.short_content}</p>}
-                <Link href={getArticleUrl(e)} className="btn btn--green mt-auto">Xem chi tiết</Link>
+                <div className="text-right mt-auto">
+                  <span className="text-[#008244] font-black text-sm">Xem chi tiết →</span>
+                </div>
               </div>
             </article>
           ))}
@@ -152,7 +155,8 @@ export default async function HomePage() {
           </div>
           <div className="container grid grid-cols-1 md:grid-cols-3 gap-5">
             {articles.map((a) => (
-              <article key={a.id} className="bg-white border border-[#e6edf4] rounded-[22px] overflow-hidden flex flex-col shadow-[0_8px_24px_rgba(15,23,42,0.06)]">
+              <article key={a.id} className="bg-white border border-[#e6edf4] rounded-[22px] overflow-hidden flex flex-col shadow-[0_8px_24px_rgba(15,23,42,0.06)] relative cursor-pointer">
+                <Link href={getArticleUrl(a)} className="absolute inset-0 z-10" aria-label={a.title} />
                 <div className="min-h-[160px] grid place-items-center relative overflow-hidden bg-[linear-gradient(135deg,#eef7ff,#e9fff3)]">
                   {a.image
                     // eslint-disable-next-line @next/next/no-img-element
@@ -168,9 +172,9 @@ export default async function HomePage() {
                   {a.short_content && (
                     <p className="mb-4 text-[#6d7a8a] text-sm flex-1 line-clamp-2">{a.short_content}</p>
                   )}
-                  <Link href={getArticleUrl(a)} className="text-[#008244] font-black text-sm no-underline mt-auto">
-                    Đọc thêm →
-                  </Link>
+                  <div className="text-right mt-auto">
+                    <span className="text-[#008244] font-black text-sm no-underline">Đọc thêm →</span>
+                  </div>
                 </div>
               </article>
             ))}

@@ -160,9 +160,6 @@ export default async function PdpPage({ params }: Props) {
               </div>
 
               <RegisterButton itemId={item.id} />
-              <button className="btn btn--outline w-full mt-[10px]">
-                Nhận tư vấn miễn phí
-              </button>
             </div>
           </div>
         </div>

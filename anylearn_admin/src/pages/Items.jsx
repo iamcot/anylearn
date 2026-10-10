@@ -85,16 +85,6 @@ export default function Items() {
       ),
     },
     {
-      title: 'Tiêu đề', dataIndex: 'title', ellipsis: true,
-      render: (text, row) => (
-        <Typography.Text onClick={() => navigate(`/items/${row.id}`)} style={{ cursor: 'pointer' }}>{text}</Typography.Text>
-      ),
-    },
-    { title: 'Đối tác', dataIndex: 'ownerName' },
-    { title: 'Học phí', dataIndex: 'price', width: 120, render: v => fmtVND(v) },
-    { title: 'Đã bán', dataIndex: 'soldCount', width: 75 },
-    { title: 'Ngày bắt đầu', dataIndex: 'dateStart', width: 115 },
-    {
       title: 'Platform', dataIndex: 'status', width: 100,
       render: (v, row) => (
         <Switch
@@ -118,6 +108,16 @@ export default function Items() {
         />
       ),
     },
+    {
+      title: 'Tiêu đề', dataIndex: 'title', ellipsis: true,
+      render: (text, row) => (
+        <Typography.Text onClick={() => navigate(`/items/${row.id}`)} style={{ cursor: 'pointer' }}>{text}</Typography.Text>
+      ),
+    },
+    { title: 'Đối tác', dataIndex: 'ownerName' },
+    { title: 'Học phí', dataIndex: 'price', width: 120, render: v => fmtVND(v) },
+    { title: 'Đã bán', dataIndex: 'soldCount', width: 75 },
+    { title: 'Ngày bắt đầu', dataIndex: 'dateStart', width: 115 },
     {
       dataIndex: 'id', width: 36, align: 'center',
       render: () => <RightOutlined style={{ color: '#bbb', fontSize: 11 }} />,

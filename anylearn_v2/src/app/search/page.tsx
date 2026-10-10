@@ -566,8 +566,10 @@ function SearchPageInner() {
             {mode === 'class' && filteredResults.length > 0 && (
               <div className="grid grid-cols-2 gap-3">
                 {filteredResults.map(item => (
-                  <article key={item.id} className="bg-white border border-[#e6edf4] rounded-2xl overflow-hidden flex flex-col md:grid md:grid-cols-[160px_1fr]"
+                  <article key={item.id} className="bg-white border border-[#e6edf4] rounded-2xl overflow-hidden flex flex-col md:grid md:grid-cols-[160px_1fr] relative cursor-pointer"
                     style={{ boxShadow: '0 8px 24px rgba(15,23,42,0.05)' }}>
+                    {/* Clickable overlay */}
+                    <Link href={getCourseUrl(item)} className="absolute inset-0 z-10" aria-label={item.title} />
                     {/* Ảnh — mobile: vuông, desktop: full height */}
                     <div className="relative overflow-hidden grid place-items-center shrink-0 aspect-square md:aspect-auto"
                       style={{ background: 'linear-gradient(135deg,#e9fff3,#eef7ff)' }}>
@@ -588,7 +590,7 @@ function SearchPageInner() {
                             : <span className="w-3.5 h-3.5 rounded-full bg-[#eef7ff] grid place-items-center text-[7px] shrink-0">👤</span>
                           }
                           <Link href={`/search?mode=class&authorId=${item.authorId}`}
-                            className="text-[10px] md:text-xs text-[#6d7a8a] font-bold no-underline truncate"
+                            className="relative z-20 text-[10px] md:text-xs text-[#6d7a8a] font-bold no-underline truncate"
                             onClick={e => e.stopPropagation()}>
                             {item.authorName}
                           </Link>
@@ -609,12 +611,12 @@ function SearchPageInner() {
                       {item.shortContent && (
                         <p className="m-0 text-[#6d7a8a] text-[10px] md:text-sm line-clamp-2 flex-1">{item.shortContent}</p>
                       )}
-                      <div className="flex items-center justify-between gap-1 mt-auto pt-1">
-                        <span className="text-[#e73348] font-black text-xs md:text-base">{formatPrice(item.price)}</span>
+                      <div className="mt-auto pt-1">
+                        <div className="text-[#e73348] font-black text-xs md:text-base mb-1">{formatPrice(item.price)}</div>
+                        <div className="text-right">
+                          <span className="text-[#008244] font-black text-[10px] md:text-sm">Tìm hiểu thêm →</span>
+                        </div>
                       </div>
-                      <Link href={getCourseUrl(item)} className="btn btn--green w-full text-center mt-2" style={{ padding: '8px 10px', fontSize: 12 }}>
-                        Xem chi tiết
-                      </Link>
                     </div>
                   </article>
                 ))}
@@ -625,8 +627,10 @@ function SearchPageInner() {
             {(mode === 'school' || mode === 'teacher') && userResults.length > 0 && (
               <div className="grid grid-cols-2 gap-3">
                 {userResults.map(u => (
-                  <article key={u.id} className="bg-white border border-[#e6edf4] rounded-2xl overflow-hidden flex flex-col md:grid md:grid-cols-[160px_1fr]"
+                  <article key={u.id} className="bg-white border border-[#e6edf4] rounded-2xl overflow-hidden flex flex-col md:grid md:grid-cols-[160px_1fr] relative cursor-pointer"
                     style={{ boxShadow: '0 8px 24px rgba(15,23,42,0.05)' }}>
+                    {/* Clickable overlay */}
+                    <Link href={`/search?mode=class&authorId=${u.id}`} className="absolute inset-0 z-10" aria-label={u.name} />
                     {/* Ảnh — mobile: vuông, desktop: full height */}
                     <div className="relative overflow-hidden grid place-items-center shrink-0 aspect-square md:aspect-auto"
                       style={{ background: 'linear-gradient(135deg,#eef7ff,#e9fff3)' }}>
@@ -648,9 +652,9 @@ function SearchPageInner() {
                       {u.introduce && (
                         <p className="m-0 text-[#6d7a8a] text-[10px] md:text-sm line-clamp-2 flex-1">{u.introduce}</p>
                       )}
-                      <Link href={`/search?mode=class&authorId=${u.id}`} className="btn btn--green w-full text-center mt-auto" style={{ padding: '8px 10px', fontSize: 12 }}>
-                        Xem khóa học →
-                      </Link>
+                      <div className="text-right mt-auto pt-1">
+                        <span className="text-[#008244] font-black text-[10px] md:text-sm">Xem khóa học →</span>
+                      </div>
                     </div>
                   </article>
                 ))}

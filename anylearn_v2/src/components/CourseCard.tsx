@@ -21,8 +21,12 @@ const SUBTYPE_LABELS: Record<string, string> = {
 }
 
 export default function CourseCard({ item }: Props) {
+  const courseUrl = getCourseUrl(item)
   return (
-    <article className="bg-white border border-line rounded-card overflow-hidden shadow-[0_8px_24px_rgba(15,23,42,0.06)] flex flex-col">
+    <article className="bg-white border border-line rounded-card overflow-hidden shadow-[0_8px_24px_rgba(15,23,42,0.06)] flex flex-col relative">
+      {/* Full-card clickable overlay */}
+      <Link href={courseUrl} className="absolute inset-0 z-10" aria-label={item.title} />
+
       {/* Image area */}
       <div className="aspect-square bg-gradient-to-br from-green-soft to-blue-soft grid place-items-center relative overflow-hidden">
         {item.image ? (
@@ -32,7 +36,7 @@ export default function CourseCard({ item }: Props) {
           <span className="text-5xl">📚</span>
         )}
         {item.isHot ? (
-          <span className="absolute top-3 left-3 bg-yellow text-ink rounded-full px-2.5 py-1.5 font-black text-xs">HOT</span>
+          <span className="absolute top-3 left-3 bg-yellow text-ink rounded-full px-2.5 py-1.5 font-black text-xs z-10">HOT</span>
         ) : null}
       </div>
 
@@ -44,7 +48,7 @@ export default function CourseCard({ item }: Props) {
 
         {item.authorName && item.authorId && (
           <Link href={`/search?mode=class&authorId=${item.authorId}`}
-            className="flex items-center gap-1.5 mb-2.5 no-underline">
+            className="relative z-10 flex items-center gap-1.5 mb-2.5 no-underline">
             {item.authorImage
               // eslint-disable-next-line @next/next/no-img-element
               ? <img src={item.authorImage} alt={item.authorName} className="w-[18px] h-[18px] rounded-full object-cover shrink-0" />
@@ -71,12 +75,14 @@ export default function CourseCard({ item }: Props) {
         )}
 
         <div className="mt-auto">
-          <div className="text-red font-black text-lg mb-3.5">
+          <div className="text-red font-black text-lg mb-2">
             {formatPrice(item.price)}
           </div>
-          <Link href={getCourseUrl(item)} className="btn btn--green text-center w-full">
-            Xem chi tiết
-          </Link>
+          <div className="text-right">
+            <span className="text-[#008244] font-black text-sm no-underline">
+              Tìm hiểu thêm →
+            </span>
+          </div>
         </div>
       </div>
     </article>
