@@ -62,7 +62,7 @@ export default function App() {
       <AntApp>
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
-            <Router>
+            <Router basename="/admin">
               <Routes>
                 <Route path="/login" element={<Login />} />
                 <Route

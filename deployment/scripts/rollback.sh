@@ -1,15 +1,15 @@
 #!/bin/bash
 set -e
 
-SERVICE=$1  # "backend" or "frontend"
+SERVICE=$1  # "backend", "frontend", or "admin"
 
 if [ -z "$SERVICE" ]; then
-    echo "Usage: $0 <backend|frontend>"
+    echo "Usage: $0 <backend|frontend|admin>"
     exit 1
 fi
 
-if [ "$SERVICE" != "backend" ] && [ "$SERVICE" != "frontend" ]; then
-    echo "✗ Invalid service: $SERVICE (must be 'backend' or 'frontend')"
+if [ "$SERVICE" != "backend" ] && [ "$SERVICE" != "frontend" ] && [ "$SERVICE" != "admin" ]; then
+    echo "✗ Invalid service: $SERVICE (must be 'backend', 'frontend', or 'admin')"
     exit 1
 fi
 
@@ -35,16 +35,22 @@ echo "  Previous: ${PREVIOUS_RELEASE}"
 ln -sfn "${DEPLOY_PATH}/releases/${PREVIOUS_RELEASE}" "${DEPLOY_PATH}/current"
 echo "✓ Symlink updated"
 
-# Restart service
-sudo systemctl restart "anylearn-${SERVICE}.service"
-echo "✓ Service restarted"
-
-# Verify
-sleep 5
-if sudo systemctl is-active --quiet "anylearn-${SERVICE}.service"; then
-    echo "✅ Rollback successful for ${SERVICE}"
+if [ "$SERVICE" = "admin" ]; then
+    # Admin is static files — just reload nginx
+    sudo systemctl reload nginx
+    echo "✓ nginx reloaded"
+    echo "✅ Rollback successful for admin"
 else
-    echo "✗ Service failed to start after rollback — check logs:"
-    echo "  journalctl -u anylearn-${SERVICE}.service -n 50"
-    exit 1
+    # backend/frontend have systemd services
+    sudo systemctl restart "anylearn-${SERVICE}.service"
+    echo "✓ Service restarted"
+
+    sleep 5
+    if sudo systemctl is-active --quiet "anylearn-${SERVICE}.service"; then
+        echo "✅ Rollback successful for ${SERVICE}"
+    else
+        echo "✗ Service failed to start after rollback — check logs:"
+        echo "  journalctl -u anylearn-${SERVICE}.service -n 50"
+        exit 1
+    fi
 fi

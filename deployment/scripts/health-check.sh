@@ -36,3 +36,14 @@ for i in $(seq 1 $RETRIES); do
 done
 
 echo "✅ All services healthy"
+
+# Admin static check
+echo "Checking admin (https://anylearn.vn/admin/)..."
+STATUS=$(curl -sk -o /dev/null -w "%{http_code}" https://anylearn.vn/admin/ 2>/dev/null || echo "000")
+if [ "$STATUS" = "200" ]; then
+    echo "✓ Admin healthy (HTTP 200)"
+else
+    echo "⚠ Admin returned HTTP ${STATUS} — check nginx and /opt/anylearn/admin/current/"
+fi
+
+echo "✅ All services healthy"

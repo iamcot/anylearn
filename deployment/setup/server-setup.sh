@@ -77,17 +77,24 @@ fi
 echo ""
 echo "▶ Creating directory structure..."
 
-sudo mkdir -p /opt/anylearn/{backend,frontend}/{releases,logs}
+sudo mkdir -p /opt/anylearn/{backend,frontend,admin}/{releases,logs}
 sudo mkdir -p /opt/anylearn/meilisearch
 sudo mkdir -p /opt/anylearn/scripts
 echo "  ✓ Created /opt/anylearn directory tree"
 
-# Set ownership and permissions
-sudo chown -R anylearn-app:anylearn-deploy /opt/anylearn
-sudo chmod -R 775 /opt/anylearn
-# Setgid so new files inherit group
-sudo chmod g+s /opt/anylearn /opt/anylearn/backend /opt/anylearn/frontend
-echo "  ✓ Set ownership and permissions"
+# Set ownership and permissions — only on first run (skip if releases already exist)
+if [ ! -d "/opt/anylearn/frontend/releases" ] || [ -z "$(ls -A /opt/anylearn/frontend/releases 2>/dev/null)" ]; then
+    sudo chown -R anylearn-app:anylearn-deploy /opt/anylearn
+    sudo chmod -R 775 /opt/anylearn
+    sudo chmod g+s /opt/anylearn /opt/anylearn/backend /opt/anylearn/frontend /opt/anylearn/admin
+    echo "  ✓ Set ownership and permissions"
+else
+    # Server already has releases — only fix new admin dir, don't touch existing releases
+    sudo chown -R anylearn-app:anylearn-deploy /opt/anylearn/admin
+    sudo chmod -R 775 /opt/anylearn/admin
+    sudo chmod g+s /opt/anylearn/admin
+    echo "  ✓ Set ownership on new admin dir (skipped chown/chmod on existing releases)"
+fi
 
 # ── Part 4: Copy deployment scripts ───────────────────────────────────────────
 
@@ -110,6 +117,7 @@ sudo systemctl daemon-reload
 sudo systemctl enable anylearn-backend.service
 sudo systemctl enable anylearn-frontend.service
 echo "  ✓ Systemd services installed and enabled"
+echo "  ℹ Admin panel is static files — no systemd service needed (served by nginx)"
 
 # ── Part 6: Configure sudo permissions ───────────────────────────────────────
 
@@ -117,14 +125,21 @@ echo ""
 echo "▶ Configuring sudo permissions..."
 
 cat << 'SUDOERS' | sudo tee /etc/sudoers.d/anylearn-deploy > /dev/null
+# anylearn-app service account
 anylearn-app ALL=(ALL) NOPASSWD: /bin/systemctl reload-or-restart anylearn-backend.service
 anylearn-app ALL=(ALL) NOPASSWD: /bin/systemctl reload-or-restart anylearn-frontend.service
 anylearn-app ALL=(ALL) NOPASSWD: /bin/systemctl restart anylearn-backend.service
 anylearn-app ALL=(ALL) NOPASSWD: /bin/systemctl restart anylearn-frontend.service
 anylearn-app ALL=(ALL) NOPASSWD: /bin/systemctl is-active anylearn-backend.service
 anylearn-app ALL=(ALL) NOPASSWD: /bin/systemctl is-active anylearn-frontend.service
+
+# Deploy group — release management
+%anylearn-deploy ALL=(ALL) NOPASSWD: /bin/chown -R anylearn-app\:anylearn-deploy /opt/anylearn/*
+%anylearn-deploy ALL=(ALL) NOPASSWD: /bin/chmod -R * /opt/anylearn/*
+%anylearn-deploy ALL=(ALL) NOPASSWD: /bin/systemctl reload nginx
 %anylearn-deploy ALL=(ALL) NOPASSWD: /bin/rm -rf /opt/anylearn/backend/releases/release-*
 %anylearn-deploy ALL=(ALL) NOPASSWD: /bin/rm -rf /opt/anylearn/frontend/releases/release-*
+%anylearn-deploy ALL=(ALL) NOPASSWD: /bin/rm -rf /opt/anylearn/admin/releases/release-*
 SUDOERS
 
 sudo chmod 0440 /etc/sudoers.d/anylearn-deploy
@@ -165,5 +180,8 @@ echo ""
 echo "7. Deploy frontend (npm run build locally first):"
 echo "   bash deployment/scripts/deploy-frontend.sh /path/to/build-dir"
 echo ""
-echo "8. Verify:"
+echo "8. Deploy admin panel (npm run build locally first):"
+echo "   bash deployment/scripts/deploy-admin.sh /path/to/admin-dist"
+echo ""
+echo "9. Verify:"
 echo "   bash deployment/scripts/health-check.sh"

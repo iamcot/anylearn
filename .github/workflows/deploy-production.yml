@@ -13,6 +13,11 @@ on:
         required: true
         default: true
         type: boolean
+      deploy_admin:
+        description: 'Deploy admin panel (Vite)'
+        required: true
+        default: false
+        type: boolean
 
 env:
   JAVA_VERSION: '21'
@@ -107,6 +112,45 @@ jobs:
             anylearn_v2/public
           retention-days: 7
           include-hidden-files: true
+
+  build-admin:
+    name: Build Admin
+    runs-on: [self-hosted, production]
+    if: github.event.inputs.deploy_admin == 'true'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Disable sparse checkout
+        run: git sparse-checkout disable
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Cache npm
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-admin-${{ hashFiles('anylearn_admin/package-lock.json') }}
+          restore-keys: ${{ runner.os }}-admin-
+
+      - name: Install dependencies
+        working-directory: anylearn_admin
+        run: nice -n 19 npm ci --prefer-offline --no-audit
+
+      - name: Build Vite
+        working-directory: anylearn_admin
+        run: |
+          nice -n 19 npm run build
+          [ -d "dist" ] || (echo "✗ dist/ not found after build" && exit 1)
+
+      - name: Upload admin artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: admin-build
+          path: anylearn_admin/dist
+          retention-days: 7
 
   # ── Deploy ───────────────────────────────────────────────────────────────────
 
@@ -251,13 +295,34 @@ jobs:
       - name: Deploy frontend
         run: bash deployment/scripts/deploy-frontend.sh /tmp/artifacts/frontend
 
+  deploy-admin:
+    name: Deploy Admin
+    runs-on: [self-hosted, production]
+    needs: build-admin
+    if: ${{ !cancelled() && needs.build-admin.result == 'success' }}
+    steps:
+      - name: Checkout deploy scripts
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: deployment/
+          sparse-checkout-cone-mode: false
+
+      - name: Download admin artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: admin-build
+          path: /tmp/artifacts/admin
+
+      - name: Deploy admin
+        run: bash deployment/scripts/deploy-admin.sh /tmp/artifacts/admin
+
   # ── Health Check & Rollback ──────────────────────────────────────────────────
 
   health-check:
     name: Health Check
     runs-on: [self-hosted, production]
-    needs: [deploy-backend, deploy-frontend]
-    if: ${{ !cancelled() && (needs.deploy-backend.result == 'success' || needs.deploy-frontend.result == 'success') }}
+    needs: [deploy-backend, deploy-frontend, deploy-admin]
+    if: ${{ !cancelled() && (needs.deploy-backend.result == 'success' || needs.deploy-frontend.result == 'success' || needs.deploy-admin.result == 'success') }}
     steps:
       - name: Run health check
         run: bash ${{ env.DEPLOY_PATH }}/scripts/health-check.sh
@@ -270,7 +335,7 @@ jobs:
   rollback:
     name: Rollback on Failure
     runs-on: [self-hosted, production]
-    needs: [deploy-backend, deploy-frontend, health-check]
+    needs: [deploy-backend, deploy-frontend, deploy-admin, health-check]
     if: failure()
     steps:
       - name: Rollback backend
@@ -281,6 +346,11 @@ jobs:
       - name: Rollback frontend
         if: needs.deploy-frontend.result == 'failure' || needs.health-check.result == 'failure'
         run: bash ${{ env.DEPLOY_PATH }}/scripts/rollback.sh frontend
+        continue-on-error: true
+
+      - name: Rollback admin
+        if: needs.deploy-admin.result == 'failure' || needs.health-check.result == 'failure'
+        run: bash ${{ env.DEPLOY_PATH }}/scripts/rollback.sh admin
         continue-on-error: true
 
       - name: Report failure
