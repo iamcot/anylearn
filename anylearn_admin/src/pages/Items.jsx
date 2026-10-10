@@ -1,6 +1,6 @@
 import { App, Input, Select, Space, Switch, Table, Tag, Tooltip, Typography } from 'antd'
 import { FireOutlined, PlusOutlined, RightOutlined } from '@ant-design/icons'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import client from '../api/client'
 import { fmtVND } from '../utils/format'
@@ -37,6 +37,8 @@ export default function Items() {
     queryFn: () => client.get('/admin/items', {
       params: { q, ...(status !== '' && { status }), ...(userStatus !== '' && { userStatus }), ...(categoryId && { categoryId }), ...(partnerId && { userId: partnerId }), page: page - 1, size: 20, sortDir }
     }).then(r => r.data?.data ?? r.data),
+    staleTime: 30_000,
+    placeholderData: keepPreviousData,
   })
 
   const { data: categories } = useQuery({
