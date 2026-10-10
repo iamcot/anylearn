@@ -98,7 +98,7 @@ export default function Users() {
     { title: 'Role', dataIndex: 'role' },
     { title: 'anyPoint', dataIndex: 'walletC', width: 100, render: v => (v ?? 0).toLocaleString('vi-VN') },
     { title: 'Trạng thái', dataIndex: 'status', render: statusTag },
-    { title: 'Ngày tạo', dataIndex: 'createdAt', render: v => fmtDate(v) },
+    { title: 'Ngày tạo', dataIndex: 'createdAt', render: v => fmtDateTime(v) },
     { dataIndex: 'id', key: 'arrow', width: 36, align: 'center', render: () => <RightOutlined style={{ color: '#bbb', fontSize: 11 }} /> },
   ]
 
@@ -201,7 +201,7 @@ export default function Users() {
             editing={editing}
           />
           <Field label="anyPoint" viewValue={`${(selected?.walletC ?? 0).toLocaleString()}`} editing={false} />
-          <Field label="Ngày tạo" viewValue={fmtDate(selected?.createdAt)} editing={false} />
+          <Field label="Ngày tạo" viewValue={fmtDateTime(selected?.createdAt)} editing={false} />
           <Field label="Người giới thiệu" viewValue={selected?.refName || (selected?.refUserId ? '#' + selected.refUserId : '—')} editing={false} />
           <Field label="Giới thiệu ngắn" viewValue={selected?.introduce}
             editContent={<Form.Item name="introduce" noStyle><Input.TextArea size="small" rows={2} /></Form.Item>}

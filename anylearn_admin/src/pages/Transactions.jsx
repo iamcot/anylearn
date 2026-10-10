@@ -78,7 +78,7 @@ const unitOf = (type) => VND_TYPES.has(type) ? 'VND' : 'anyPoint'
       render: (type) => <span style={{ fontSize: 11, color: '#888' }}>{unitOf(type)}</span>,
     },
     { title: 'Trạng thái', dataIndex: 'status', render: statusTag },
-    { title: 'Ngày tạo', dataIndex: 'createdAt', render: v => fmtDate(v) },
+    { title: 'Ngày tạo', dataIndex: 'createdAt', render: v => fmtDateTime(v) },
     { dataIndex: 'id', width: 36, align: 'center', render: () => <RightOutlined style={{ color: '#bbb', fontSize: 11 }} /> },
   ]
 
@@ -169,7 +169,7 @@ const unitOf = (type) => VND_TYPES.has(type) ? 'VND' : 'anyPoint'
         <Field label="Nội dung" viewValue={drawerTxn?.content} />
         {drawerTxn?.orderId && <Field label="Đơn hàng #" viewValue={drawerTxn.orderId} />}
         <Field label="Người dùng" viewValue={drawerTxn?.userName} />
-        <Field label="Ngày tạo" viewValue={fmtDate(drawerTxn?.createdAt)} />
+        <Field label="Ngày tạo" viewValue={fmtDateTime(drawerTxn?.createdAt)} />
       </Drawer>
     </div>
   )

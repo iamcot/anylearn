@@ -46,6 +46,47 @@ export default function AppShell() {
   const [notifOpen, setNotifOpen] = useState(false)
   const esRef = useRef(null)
 
+  // Drag-to-scroll for all horizontal tables
+  useEffect(() => {
+    const onMouseDown = (e) => {
+      if (e.button !== 0) return
+      const body = e.target.closest('.ant-table-content')
+      if (!body) return
+
+      const startX = e.pageX
+      const startLeft = body.scrollLeft
+      let dragged = false
+
+      const onMove = (e) => {
+        const dx = e.pageX - startX
+        if (!dragged && Math.abs(dx) > 5) {
+          dragged = true
+          body.style.cursor = 'grabbing'
+          body.style.userSelect = 'none'
+        }
+        if (dragged) body.scrollLeft = startLeft - dx
+      }
+
+      const onUp = () => {
+        if (dragged) {
+          body.style.cursor = ''
+          body.style.userSelect = ''
+          // Block the click that follows mouseup so row onClick doesn't fire
+          const suppress = (e) => { e.stopPropagation(); document.removeEventListener('click', suppress, true) }
+          document.addEventListener('click', suppress, true)
+        }
+        document.removeEventListener('mousemove', onMove)
+        document.removeEventListener('mouseup', onUp)
+      }
+
+      document.addEventListener('mousemove', onMove)
+      document.addEventListener('mouseup', onUp)
+    }
+
+    document.addEventListener('mousedown', onMouseDown)
+    return () => document.removeEventListener('mousedown', onMouseDown)
+  }, [])
+
   useEffect(() => {
     if (!user) return
     const fetchCount = () =>
@@ -212,7 +253,7 @@ export default function AppShell() {
         </Layout.Sider>
 
         {/* bg-mesh-blue-purple — swap class name to switch theme */}
-        <Layout.Content className="bg-mesh-blue-purple" style={{ overflow: 'auto', minHeight: 'calc(100vh - 48px)' }}>
+        <Layout.Content className="bg-mesh-blue-purple" style={{ overflowX: 'hidden', overflowY: 'auto', minHeight: 'calc(100vh - 48px)' }}>
           <Outlet />
         </Layout.Content>
       </Layout>

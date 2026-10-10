@@ -102,7 +102,7 @@ export default function Orders() {
       }
     },
     { title: 'Trạng thái', dataIndex: 'status', render: statusTag },
-    { title: 'Ngày đặt', dataIndex: 'createdAt', render: v => fmtDate(v) },
+    { title: 'Ngày đặt', dataIndex: 'createdAt', render: v => fmtDateTime(v) },
     { dataIndex: 'id', width: 36, align: 'center', render: () => <RightOutlined style={{ color: '#bbb', fontSize: 11 }} /> },
   ]
 
@@ -162,7 +162,7 @@ export default function Orders() {
         <Field label="Thanh toán" viewValue={drawerOrder?.payment} />
         <Field label="Tổng tiền" viewValue={`${Number(drawerOrder?.amount ?? 0).toLocaleString()}đ`} />
         <Field label="Trạng thái" viewValue={statusTag(drawerOrder?.status)} />
-        <Field label="Ngày đặt" viewValue={fmtDate(drawerOrder?.createdAt)} />
+        <Field label="Ngày đặt" viewValue={fmtDateTime(drawerOrder?.createdAt)} />
         {orderDetail?.items?.length > 0 && (
           <div style={{ marginTop: 16 }}>
             <div style={{ fontWeight: 600, marginBottom: 8 }}>Sản phẩm</div>

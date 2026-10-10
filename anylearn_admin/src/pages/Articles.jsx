@@ -3,7 +3,7 @@ import { CloseOutlined, EditOutlined, SaveOutlined, RightOutlined, UploadOutline
 import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import client from '../api/client'
-import { fmtDate } from '../utils/format'
+import { fmtDate, fmtDateTime } from '../utils/format'
 import { Field } from '../components/Field'
 import RichEditor from '../components/RichEditor'
 
@@ -224,7 +224,7 @@ export default function Articles() {
           />
           <Field label="Lượt xem" viewValue={detailData?.view} editing={false} />
           <Field label="Tác giả" viewValue={detailData?.authorName} editing={false} />
-          <Field label="Ngày tạo" viewValue={fmtDate(detailData?.createdAt)} editing={false} />
+          <Field label="Ngày tạo" viewValue={fmtDateTime(detailData?.createdAt)} editing={false} />
           <Field label="Tóm tắt"
             viewValue={<div style={{ whiteSpace: 'pre-wrap', fontSize: 13 }}>{detailData?.shortContent}</div>}
             editContent={<Form.Item name="shortContent" noStyle><Input.TextArea size="small" rows={4} /></Form.Item>}

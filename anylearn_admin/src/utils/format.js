@@ -6,23 +6,22 @@ export const fmtVND = (v) =>
 export const fmtM = (v) =>
   Math.round((v ?? 0) / 1_000_000).toLocaleString('vi-VN')
 
-/** Format datetime: HH:MM DD/MM/YYYY */
+/** Format datetime: HH:mm DD/MM/YYYY — works with "2026-10-10 10:28:40" or "2026-10-10T10:28:40.0" */
 export const fmtDateTime = (v) => {
   if (!v) return '—'
-  const d = new Date(v)
-  if (isNaN(d.getTime())) return v
-  const HH = String(d.getHours()).padStart(2, '0')
-  const mm = String(d.getMinutes()).padStart(2, '0')
-  const DD = String(d.getDate()).padStart(2, '0')
-  const MM = String(d.getMonth() + 1).padStart(2, '0')
-  const YYYY = d.getFullYear()
-  return `${HH}:${mm} ${DD}/${MM}/${YYYY}`
+  const s = String(v).trim()
+  const [datePart, timePart] = s.split(/[T ]/)
+  if (!datePart) return s
+  const [year, month, day] = datePart.split('-')
+  if (!year || !month || !day) return s
+  const [hour = '00', minute = '00'] = (timePart || '').split(':')
+  return `${hour.padStart(2, '0')}:${minute.padStart(2, '0')} ${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`
 }
 
 /** Format date only: DD/MM/YYYY from ISO string or Date */
 export const fmtDate = (v) => {
   if (!v) return '—'
-  const s = typeof v === 'string' ? v.split('T')[0] : v
+  const s = typeof v === 'string' ? v.split('T')[0].split(' ')[0] : v
   const parts = s.split('-')
   if (parts.length !== 3) return v
   return `${parts[2]}/${parts[1]}/${parts[0]}`

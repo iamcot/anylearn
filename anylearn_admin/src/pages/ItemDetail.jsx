@@ -10,7 +10,7 @@ import {
 } from '@ant-design/icons'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import dayjs from 'dayjs'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import client from '../api/client'
 import RichEditor from '../components/RichEditor'
@@ -130,10 +130,25 @@ export default function ItemDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const [exiting, setExiting] = useState(false)
+  const rootRef = useRef(null)
+
+  useEffect(() => {
+    // Traverse up from root div to find the actual scroll container
+    let el = rootRef.current?.parentElement
+    while (el && el !== document.body) {
+      const { overflowY } = window.getComputedStyle(el)
+      if (overflowY === 'auto' || overflowY === 'scroll') {
+        el.scrollTop = 0
+        return
+      }
+      el = el.parentElement
+    }
+    window.scrollTo(0, 0)
+  }, [])
 
   function goBack() {
     setExiting(true)
-    setTimeout(() => navigate(-1), 200)
+    setTimeout(() => navigate(-1), 220)
   }
   const { message } = App.useApp()
   const qc = useQueryClient()
@@ -587,7 +602,7 @@ export default function ItemDetail() {
 
   return (
     // component={false}: outer Form manages state without rendering <form> HTML
-    <div className={exiting ? 'page-slide-out' : 'page-slide-in'}>
+    <div ref={rootRef} className={exiting ? 'page-slide-out' : 'page-slide-in'}>
     <Form form={form} component={false} onValuesChange={() => setDirty(true)}>
       <div style={{ position: 'sticky', top: 0, zIndex: 10, background: '#fff', borderBottom: '1px solid #f0f0f0', padding: '8px 24px' }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>

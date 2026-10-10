@@ -38,6 +38,7 @@ export default function Items() {
       params: { q, ...(status !== '' && { status }), ...(userStatus !== '' && { userStatus }), ...(categoryId && { categoryId }), ...(partnerId && { userId: partnerId }), page: page - 1, size: 20, sortDir }
     }).then(r => r.data?.data ?? r.data),
     staleTime: 30_000,
+    gcTime: 10 * 60_000,
     placeholderData: keepPreviousData,
   })
 
@@ -112,9 +113,7 @@ export default function Items() {
     },
     {
       title: 'Tiêu đề', dataIndex: 'title', ellipsis: true,
-      render: (text, row) => (
-        <Typography.Text onClick={() => navigate(`/items/${row.id}`)} style={{ cursor: 'pointer' }}>{text}</Typography.Text>
-      ),
+      render: (text) => <Typography.Text>{text}</Typography.Text>,
     },
     { title: 'Đối tác', dataIndex: 'ownerName' },
     { title: 'Học phí', dataIndex: 'price', width: 120, render: v => fmtVND(v) },
