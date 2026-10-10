@@ -74,6 +74,9 @@ public class User {
     @Column(name = "boost_score")
     private Integer boostScore;
 
+    @Column(name = "popularity_score", nullable = false)
+    private Integer popularityScore = 0;
+
     @Column(columnDefinition = "TEXT")
     private String image;
 

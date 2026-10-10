@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { href: '/account/profile', label: 'Thông tin cá nhân', icon: '👤' },
   { href: '/account/children', label: 'Tài khoản của con', icon: '👶' },
   { href: '/account/orders', label: 'Đơn hàng của tôi', icon: '📦' },
+  { href: '/account/favorites', label: 'Yêu thích', icon: '❤️' },
   { href: '/account/schedule', label: 'Lịch học', icon: '📅' },
   { href: '/account/course-codes', label: 'Mã code khóa học', icon: '🔑' },
   { href: '/account/change-password', label: 'Đổi mật khẩu', icon: '🔒' },

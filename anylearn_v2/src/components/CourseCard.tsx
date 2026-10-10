@@ -75,11 +75,15 @@ export default function CourseCard({ item }: Props) {
         )}
 
         <div className="mt-auto">
-          <div className="text-red font-black text-lg mb-2">
+          <div className="text-red font-black text-lg mb-1.5">
             {formatPrice(item.price)}
           </div>
-          <div className="text-right">
-            <span className="text-[#008244] font-black text-sm no-underline">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 text-xs text-muted">
+              {item.rating != null && item.rating > 0 && <span>⭐ {item.rating.toFixed(1)}</span>}
+              {item.num_favorite != null && item.num_favorite > 0 && <span>❤️ {item.num_favorite}</span>}
+            </div>
+            <span className="text-[#008244] font-black text-sm no-underline shrink-0">
               Tìm hiểu thêm →
             </span>
           </div>

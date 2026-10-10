@@ -53,16 +53,28 @@ public class AdminDashboardController {
             @AuthenticationPrincipal User user,
             @RequestParam(required = false) String from,
             @RequestParam(required = false) String to,
-            @RequestParam(defaultValue = "day") String granularity) {
+            @RequestParam(defaultValue = "day") String granularity,
+            @RequestParam(required = false) String role,
+            @RequestParam(required = false) String roleNot) {
         if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
         LocalDateTime start = from != null ? LocalDate.parse(from).atStartOfDay() : LocalDateTime.now().minusMonths(1);
         LocalDateTime end   = to   != null ? LocalDate.parse(to).atTime(23, 59, 59) : LocalDateTime.now();
 
         String[] exprs = groupExprs(granularity);
+        String roleFilter = (role != null && !role.isBlank())
+                ? " AND role IN (" + java.util.Arrays.stream(role.split(","))
+                    .map(r -> "'" + r.trim().replace("'", "") + "'")
+                    .collect(java.util.stream.Collectors.joining(",")) + ")"
+                : "";
+        String roleNotFilter = (roleNot != null && !roleNot.isBlank())
+                ? " AND (role IS NULL OR role NOT IN (" + java.util.Arrays.stream(roleNot.split(","))
+                    .map(r -> "'" + r.trim().replace("'", "") + "'")
+                    .collect(java.util.stream.Collectors.joining(",")) + "))"
+                : "";
         @SuppressWarnings("unchecked")
         List<Object[]> rows = em.createNativeQuery(
                 "SELECT " + exprs[1] + " AS d, COUNT(*) AS c FROM users " +
-                "WHERE created_at BETWEEN ?1 AND ?2 GROUP BY " + exprs[0] + " ORDER BY " + exprs[0])
+                "WHERE created_at BETWEEN ?1 AND ?2" + roleFilter + roleNotFilter + " GROUP BY " + exprs[0] + " ORDER BY " + exprs[0])
                 .setParameter(1, start).setParameter(2, end)
                 .getResultList();
         return ApiResponse.ok(rows.stream().map(r -> Map.of("date", r[0].toString(), "count", r[1])).toList());

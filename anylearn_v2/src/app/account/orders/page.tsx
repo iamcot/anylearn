@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/context/AuthContext'
-import { getUserOrders, UserOrder } from '@/lib/api'
+import { getUserOrders, UserOrder, getCourseUrl } from '@/lib/api'
+import OrderItemRating from '@/components/OrderItemRating'
 
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080/v2/api'
 
@@ -127,25 +128,35 @@ export default function OrdersPage() {
                 </div>
 
                 {/* All items — show directly, no expand */}
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-3">
                   {order.items.map(item => (
-                    <div key={item.itemId} className="flex items-center gap-3">
-                      {item.image && (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={item.image} alt={item.title} className="w-11 h-11 rounded-lg object-cover shrink-0" />
+                    <div key={item.itemId}>
+                      <div className="flex items-center gap-3">
+                        {item.image && (
+                          <Link href={getCourseUrl({ id: item.itemId, title: item.title, type: 'class' })} target="_blank" rel="noopener noreferrer">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={item.image} alt={item.title} className="w-11 h-11 rounded-lg object-cover shrink-0" />
+                          </Link>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <Link href={getCourseUrl({ id: item.itemId, title: item.title, type: 'class' })} target="_blank" rel="noopener noreferrer"
+                            className="text-sm font-bold text-ink truncate block no-underline hover:underline">
+                            {item.title}
+                          </Link>
+                          {item.studentName && (
+                            <div className="text-xs text-muted">Học sinh: {item.studentName}</div>
+                          )}
+                        </div>
+                        <div className="shrink-0 text-right">
+                          <div className="font-black text-red text-base">{formatPrice(item.paidPrice)}</div>
+                          {order.items.indexOf(item) === 0 && (
+                            <div className="text-xs text-muted">{paymentLabel}</div>
+                          )}
+                        </div>
+                      </div>
+                      {order.status === 'delivered' && (
+                        <OrderItemRating itemId={item.itemId} itemTitle={item.title} />
                       )}
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-bold text-ink truncate">{item.title}</div>
-                        {item.studentName && (
-                          <div className="text-xs text-muted">Học sinh: {item.studentName}</div>
-                        )}
-                      </div>
-                      <div className="shrink-0 text-right">
-                        <div className="font-black text-red text-base">{formatPrice(item.paidPrice)}</div>
-                        {order.items.indexOf(item) === 0 && (
-                          <div className="text-xs text-muted">{paymentLabel}</div>
-                        )}
-                      </div>
                     </div>
                   ))}
                 </div>

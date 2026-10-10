@@ -5,6 +5,8 @@ import type { Metadata } from 'next'
 import ScrollRow from '@/components/ScrollRow'
 import BackButton from '@/components/BackButton'
 import RegisterButton from './RegisterButton'
+import FavButton from '@/components/FavButton'
+import ReviewsSection from '@/components/ReviewsSection'
 
 const SUBTYPE_LABELS: Record<string, string> = {
   extra: 'Ngoại khóa', offline: 'Học trực tiếp', online: 'Học online',
@@ -48,7 +50,7 @@ export default async function PdpPage({ params }: Props) {
   const data: PdpData | null = await getPdpData(Number(id))
   if (!data) notFound()
 
-  const { item, author, categories, reviews, rating, num_favorite, authorItems, hotItems } = data
+  const { item, author, categories, reviews, rating, num_favorite, authorItems, hotItems, is_fav } = data
   const content = parseContent(item.content)
   const ageLabel = formatAge(item.agesMin, item.agesMax)
   const hasDiscount = item.orgPrice && item.orgPrice > item.price
@@ -88,23 +90,26 @@ export default async function PdpPage({ params }: Props) {
                 {item.title}
               </h1>
 
-              {rating != null ? (
-                <div className="flex items-center gap-2 mb-[14px] flex-wrap">
-                  <span className="text-yellow text-base tracking-[1px]">
-                    {'★'.repeat(Math.round(rating))}{'☆'.repeat(5 - Math.round(rating))}
-                  </span>
-                  <span className="font-black text-ink">{rating.toFixed(1)}</span>
-                  <span className="text-muted text-xs">({reviews.length} đánh giá)</span>
-                  {num_favorite > 0 && (
+              {/* Fav + Rating row — below title */}
+              <div className="flex items-center gap-4 mb-[14px] flex-wrap">
+                <FavButton itemId={item.id} initialFaved={is_fav} initialCount={num_favorite} />
+                <a href="#reviews-section" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  {rating != null && rating > 0 ? (
                     <>
-                      <span className="text-[#9aa5b1]">·</span>
-                      <span className="text-muted text-xs">❤️ {num_favorite}</span>
+                      <span style={{ fontSize: 14, color: '#f5a623', letterSpacing: 1 }}>
+                        {'★'.repeat(Math.round(rating))}{'☆'.repeat(5 - Math.round(rating))}
+                      </span>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: '#333' }}>{rating.toFixed(1)}</span>
+                      <span style={{ fontSize: 12, color: '#9aa5b1' }}>({reviews.length})</span>
+                    </>
+                  ) : (
+                    <>
+                      <span style={{ fontSize: 14, color: '#ccc', letterSpacing: 1 }}>☆☆☆☆☆</span>
+                      <span style={{ fontSize: 12, color: '#9aa5b1' }}>Chưa có đánh giá</span>
                     </>
                   )}
-                </div>
-              ) : num_favorite > 0 ? (
-                <div className="mb-[14px] text-muted text-xs">❤️ {num_favorite} yêu thích</div>
-              ) : null}
+                </a>
+              </div>
 
               {item.shortContent && (
                 <p className="text-muted mb-5 leading-[1.6]">{item.shortContent}</p>
@@ -189,7 +194,7 @@ export default async function PdpPage({ params }: Props) {
 
             {authorItems.length > 0 && (
               <>
-                <h3 className="m-0 mb-4 font-black text-ink text-lg">Các khóa học khác</h3>
+                <h3 className="section-kicker mb-4">Các khóa học khác</h3>
                 <ScrollRow>
                   {(authorItems as Item[]).map(it => (
                     <Link key={it.id} href={getCourseUrl(it)} className="pdp-scroll-card no-underline">
@@ -214,51 +219,19 @@ export default async function PdpPage({ params }: Props) {
       )}
 
       {/* ── Đánh giá ── */}
-      {reviews.length > 0 && (
-        <section className="section section--soft">
-          <div className="container">
-            <span className="section-kicker">Phản hồi</span>
-            <div className="mb-7">
-              <h2 className="section-title">Đánh giá từ học viên</h2>
-              {rating != null && (
-                <p className="mt-2 mb-0 text-muted">
-                  ⭐ <strong>{rating.toFixed(1)}</strong> / 5 · {reviews.length} đánh giá
-                </p>
-              )}
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {reviews.slice(0, 6).map((r, i) => (
-                <div key={i} className="bg-white border border-line rounded-[18px] p-5 shadow-[0_4px_12px_rgba(15,23,42,0.05)]">
-                  <div className="flex items-center gap-3 mb-3">
-                    {r.user_image
-                      // eslint-disable-next-line @next/next/no-img-element
-                      ? <img src={r.user_image} alt={r.user_name} className="w-10 h-10 rounded-full object-cover" />
-                      : <div className="w-10 h-10 rounded-full bg-[linear-gradient(135deg,#eef7ff,#e9fff3)] grid place-items-center text-lg">👤</div>
-                    }
-                    <div>
-                      <div className="font-black text-ink text-[15px]">{r.user_name}</div>
-                      <div className="text-yellow text-xs">{'★'.repeat(Math.round(Number(r.value)))}</div>
-                    </div>
-                  </div>
-                  {r.extra_value && <p className="m-0 text-text text-sm leading-[1.6]">{r.extra_value}</p>}
-                </div>
-              ))}
-            </div>
-            {reviews.length > 6 && (
-              <div className="text-center mt-6">
-                <button className="btn btn--outline">Xem tất cả {reviews.length} đánh giá</button>
-              </div>
-            )}
-          </div>
-        </section>
-      )}
+      <section className="section section--soft" id="reviews-section">
+        <div className="container">
+          <h2 className="section-kicker mb-5">Đánh giá từ học viên</h2>
+
+          <ReviewsSection itemId={item.id} initialReviews={reviews} initialRating={rating} />
+        </div>
+      </section>
 
       {/* ── Nội dung ── */}
       {content.content_advantage && (
         <section className="section">
-          <div className="container max-w-[860px]">
-            <span className="section-kicker">Nội dung</span>
-            <h2 className="section-title mb-6">Thông tin khóa học</h2>
+          <div className="container">
+          <h2 className="section-kicker mb-5">Thông tin khóa học</h2>
             <div className="pdp-content"
               dangerouslySetInnerHTML={{ __html: content.content_advantage }} />
           </div>

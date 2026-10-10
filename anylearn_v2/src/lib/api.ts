@@ -42,6 +42,8 @@ export interface Item {
   authorRole?: string
   categoryTitles?: string
   seoUrl?: string
+  rating?: number
+  num_favorite?: number
 }
 
 export interface UserResult {
@@ -170,10 +172,20 @@ export interface PdpData {
   }[]
   num_schedule: number
   is_fav: boolean
+  has_purchased: boolean
 }
 
 export async function getPdpData(id: number): Promise<PdpData | null> {
-  return apiFetch<PdpData>(`/pdp/${id}`)
+  // no-store: PDP has personalized data (is_fav, has_purchased) and engagement counts
+  // that must be fresh on every load. ISR would show stale fav counts and ratings.
+  try {
+    const res = await fetch(`${BASE}/pdp/${id}`, { cache: 'no-store' })
+    if (!res.ok) return null
+    const json = await res.json()
+    return json?.data ?? json
+  } catch {
+    return null
+  }
 }
 
 export function getCourseUrl(item: { id: number; seoUrl?: string; title?: string }): string {

@@ -22,6 +22,7 @@ public class ItemService {
     private final ItemCategoryRepository itemCategoryRepository;
     private final MeilisearchService meilisearchService;
     private final ConfigService configService;
+    private final OrderDetailRepository orderDetailRepository;
 
     public Map<String, Object> pdpData(Long itemId, User currentUser) {
         Item item = itemRepository.findById(itemId)
@@ -78,6 +79,8 @@ public class ItemService {
 
         boolean isFav = currentUser != null &&
                 itemUserActionRepository.findFavByItemAndUser(itemId, currentUser.getId()).isPresent();
+        boolean hasPurchased = currentUser != null &&
+                orderDetailRepository.existsDeliveredByUserIdAndItemId(currentUser.getId(), itemId) > 0;
 
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("item", item);
@@ -91,6 +94,7 @@ public class ItemService {
         result.put("plans", new ArrayList<>(plansGrouped.values()));
         result.put("num_schedule", rawPlans.size());
         result.put("is_fav", isFav);
+        result.put("has_purchased", hasPurchased);
         // Author items
         List<Long> authorItemIds = itemRepository.findByAuthor(item.getUserId(), itemId, PageRequest.of(0, 8))
                 .stream().map(Item::getId).toList();

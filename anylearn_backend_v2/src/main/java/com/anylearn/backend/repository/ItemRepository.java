@@ -36,4 +36,6 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
         """)
     List<Item> findByAuthor(@Param("userId") Long userId, @Param("itemId") Long itemId,
                             org.springframework.data.domain.Pageable pageable);
+
+    List<Item> findByUserId(Long userId);
 }

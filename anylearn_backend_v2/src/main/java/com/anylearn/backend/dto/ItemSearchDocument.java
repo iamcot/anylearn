@@ -23,6 +23,7 @@ public record ItemSearchDocument(
         int userStatus,
         int isHot,
         int boostScore,
+        int popularityScore,
         String image,
         String dateStart
 ) {}

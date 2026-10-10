@@ -132,9 +132,6 @@ export default function Articles() {
             showSizeChanger: false, onChange: setPage,
             showTotal: (t, range) => `${range[0]}–${range[1]} / ${t}`,
           }}
-          onChange={(_, __, sorter) => {
-            setPage(1)
-          }}
           onRow={row => ({ onClick: () => openDrawer(row), style: { cursor: 'pointer' } })}
         />
       </div>

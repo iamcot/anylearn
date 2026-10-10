@@ -155,9 +155,6 @@ const unitOf = (type) => VND_TYPES.has(type) ? 'VND' : 'anyPoint'
           showSizeChanger: false, onChange: setPage,
           showTotal: (t, range) => `${range[0]}–${range[1]} / ${t}`,
         }}
-        onChange={(_, __, sorter) => {
-          setPage(1)
-        }}
         onRow={row => ({ onClick: () => setDrawerTxn(row), style: { cursor: 'pointer' } })}
       />
       </div>

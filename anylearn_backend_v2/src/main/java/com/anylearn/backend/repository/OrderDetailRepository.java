@@ -28,4 +28,12 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
     List<OrderDetail> findByItemIdOrderByIdDesc(Long itemId);
 
     long countDistinctUserIdByItemId(Long itemId);
+
+    @Query(value = "SELECT COUNT(*) FROM order_details od JOIN orders o ON o.id = od.order_id WHERE od.item_id = :id AND o.status = 'delivered'",
+           nativeQuery = true)
+    int countDeliveredByItemId(@Param("id") Long id);
+
+    @Query(value = "SELECT COUNT(*) FROM order_details od JOIN orders o ON o.id = od.order_id WHERE od.user_id = :userId AND od.item_id = :itemId AND o.status = 'delivered'",
+           nativeQuery = true)
+    int existsDeliveredByUserIdAndItemId(@Param("userId") Long userId, @Param("itemId") Long itemId);
 }

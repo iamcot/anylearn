@@ -3,6 +3,7 @@ package com.anylearn.backend.controller.admin;
 import com.anylearn.backend.dto.response.ApiResponse;
 import com.anylearn.backend.entity.User;
 import com.anylearn.backend.repository.UserRepository;
+import com.anylearn.backend.service.MeilisearchService;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -21,6 +22,7 @@ public class AdminUserController {
     private final UserRepository userRepository;
     private final EntityManager em;
     private final PasswordEncoder passwordEncoder;
+    private final MeilisearchService meilisearchService;
 
     private boolean isAdmin(User user) {
         return user != null && "admin".equals(user.getRole());
@@ -34,24 +36,28 @@ public class AdminUserController {
             @RequestParam(required = false) String role,
             @RequestParam(required = false) Integer status,
             @RequestParam(required = false) Integer statusFilter,
+            @RequestParam(required = false) Integer isSigned,
             @RequestParam(required = false) String q,
-            @RequestParam(defaultValue = "desc") String sortDir) {
+            @RequestParam(defaultValue = "desc") String sortDir,
+            @RequestParam(defaultValue = "id") String sortBy) {
         if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
 
         String safeSort = "asc".equalsIgnoreCase(sortDir) ? "ASC" : "DESC";
+        String safeSortCol = "popularityScore".equalsIgnoreCase(sortBy) ? "u.popularity_score" : "u.id";
 
         var conditions =
                 (role != null && !role.isBlank() ? " AND u.role='" + role.replace("'", "") + "'" : "") +
                 (status != null ? " AND u.status=" + status : "") +
                 (statusFilter != null ? " AND u.status=" + statusFilter : "") +
+                (isSigned != null ? " AND u.is_signed=" + isSigned : "") +
                 (q != null && !q.isBlank() ? " AND (u.name LIKE '%" + q.replace("'","''") + "%' OR u.phone LIKE '%" + q.replace("'","''") + "%' OR u.email LIKE '%" + q.replace("'","''") + "%')" : "");
 
         @SuppressWarnings("unchecked")
         List<Object[]> rows = em.createNativeQuery(
                 "SELECT u.id, u.name, u.phone, u.email, u.role, u.status, u.image, u.wallet_m, u.wallet_c, u.commission_rate, u.created_at, " +
-                "u.introduce, u.full_content, u.user_id, ru.name AS refName " +
+                "u.introduce, u.full_content, u.user_id, ru.name AS refName, u.is_signed, u.popularity_score " +
                 "FROM users u LEFT JOIN users ru ON u.user_id = ru.id " +
-                "WHERE 1=1" + conditions + " ORDER BY u.id " + safeSort + " LIMIT " + size + " OFFSET " + (long) page * size)
+                "WHERE 1=1" + conditions + " ORDER BY " + safeSortCol + " " + safeSort + " LIMIT " + size + " OFFSET " + (long) page * size)
                 .getResultList();
 
         var content = rows.stream().map(r -> {
@@ -66,6 +72,8 @@ public class AdminUserController {
             m.put("fullContent", r[12] != null ? r[12] : "");
             m.put("refUserId", r[13]);
             m.put("refName", r[14] != null ? r[14] : "");
+            m.put("isSigned", r[15]);
+            m.put("popularityScore", r[16] != null ? r[16] : 0);
             return m;
         }).toList();
 
@@ -126,6 +134,18 @@ public class AdminUserController {
             userRepository.save(user);
             return ApiResponse.ok(Map.of("newPassword", newPassword));
         }).orElse(ApiResponse.fail("User not found"));
+    }
+
+    @PutMapping("/{id}/toggle-signed")
+    public ApiResponse<?> toggleSigned(@AuthenticationPrincipal User admin, @PathVariable Long id) {
+        if (!isAdmin(admin)) return ApiResponse.fail("Forbidden");
+        return userRepository.findById(id).map(user -> {
+            byte newVal = (byte)(user.getIsSigned() != null && user.getIsSigned() == 1 ? 0 : 1);
+            user.setIsSigned(newVal);
+            userRepository.save(user);
+            meilisearchService.indexUser(id);
+            return ApiResponse.ok(Map.of("isSigned", newVal));
+        }).orElse(ApiResponse.fail("Not found"));
     }
 
     private Number toNumber(Object v) {

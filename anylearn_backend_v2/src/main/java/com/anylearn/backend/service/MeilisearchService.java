@@ -4,8 +4,10 @@ import com.anylearn.backend.dto.ItemSearchDocument;
 import com.anylearn.backend.dto.UserSearchDocument;
 import com.anylearn.backend.entity.Item;
 import com.anylearn.backend.repository.ItemCategoryRepository;
+import com.anylearn.backend.repository.ItemEventRepository;
 import com.anylearn.backend.repository.ItemRepository;
 import com.anylearn.backend.repository.ItemUserActionRepository;
+import com.anylearn.backend.repository.OrderDetailRepository;
 import com.anylearn.backend.repository.TagRepository;
 import com.anylearn.backend.repository.UserRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -14,12 +16,14 @@ import com.meilisearch.sdk.Client;
 import com.meilisearch.sdk.SearchRequest;
 import com.meilisearch.sdk.exceptions.MeilisearchException;
 import com.meilisearch.sdk.model.SearchResult;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -38,6 +42,8 @@ public class MeilisearchService {
     private final ItemCategoryRepository itemCategoryRepository;
     private final TagRepository tagRepository;
     private final ItemUserActionRepository itemUserActionRepository;
+    private final ItemEventRepository itemEventRepository;
+    private final OrderDetailRepository orderDetailRepository;
     private final com.anylearn.backend.repository.UserLocationRepository userLocationRepository;
     private final ObjectMapper objectMapper;
 
@@ -45,10 +51,26 @@ public class MeilisearchService {
     @Autowired
     private ConfigService configService;
 
+    @PostConstruct
+    public void initIndexSettings() {
+        try {
+            meilisearchClient.index("items").updateSortableAttributesSettings(
+                new String[]{"price", "isHot", "boostScore", "popularityScore", "id"});
+            meilisearchClient.index("users").updateFilterableAttributesSettings(
+                new String[]{"status", "isTest", "role", "id", "isSigned"});
+            meilisearchClient.index("users").updateSortableAttributesSettings(
+                new String[]{"isHot", "boostScore", "popularityScore", "id"});
+            log.info("MeiliSearch index settings updated");
+        } catch (Exception e) {
+            log.warn("Failed to update MeiliSearch index settings: {}", e.getMessage());
+        }
+    }
+
     @Async
     public void indexItem(Long itemId) {
         itemRepository.findById(itemId).ifPresent(item -> {
             try {
+                updateItemPopularityScore(item);
                 var doc = buildDocument(item);
                 String json = objectMapper.writeValueAsString(List.of(doc));
                 meilisearchClient.index("items").addDocuments(json, "id");
@@ -105,7 +127,7 @@ public class MeilisearchService {
                 case "newest"    -> new String[]{"id:desc"};
                 case "priceLow"  -> new String[]{"price:asc"};
                 case "priceHigh" -> new String[]{"price:desc"};
-                default          -> new String[]{"isHot:desc", "boostScore:desc"};
+                default          -> new String[]{"popularityScore:desc"};
             };
 
             var request = SearchRequest.builder()
@@ -179,7 +201,7 @@ public class MeilisearchService {
             var request = SearchRequest.builder()
                     .q(title != null ? title : "")
                     .filter(filters.toArray(new String[0]))
-                    .sort(new String[]{"isHot:desc", "boostScore:desc"})
+                    .sort(new String[]{"popularityScore:desc"})
                     .limit(limit + 1)
                     .build();
 
@@ -202,13 +224,17 @@ public class MeilisearchService {
         int batchSize = 100;
         int indexed = 0;
 
-        log.info("Starting full reindex...");
+        log.info("Starting full reindex (items + popularity scores)...");
         while (true) {
             var items = itemRepository.findAll(PageRequest.of(page, batchSize));
             if (items.isEmpty()) break;
 
             try {
-                var docs = items.stream().map(this::buildDocument).toList();
+                // Update popularity score in DB, then build MeiliSearch document
+                var docs = items.stream().map(item -> {
+                    updateItemPopularityScore(item);
+                    return buildDocument(item);
+                }).toList();
                 String json = objectMapper.writeValueAsString(docs);
                 meilisearchClient.index("items").addDocuments(json, "id");
                 indexed += docs.size();
@@ -219,6 +245,38 @@ public class MeilisearchService {
             page++;
         }
         log.info("Reindex complete. Total: {}", indexed);
+    }
+
+    private int computeItemScore(Item item) {
+        int isHot = item.getIsHot() != null ? item.getIsHot() : 0;
+        int boost = item.getBoostScore() != null ? item.getBoostScore() : 0;
+        int sold  = orderDetailRepository.countDeliveredByItemId(item.getId());
+        int cart  = itemEventRepository.countByItemAndType(item.getId(), "cart");
+        int view  = itemEventRepository.countByItemAndType(item.getId(), "view");
+        Long favRaw = itemUserActionRepository.countFav(item.getId());
+        int favPts  = Math.min((favRaw != null ? favRaw.intValue() : 0) * 5, 50);
+        Double avgRaw   = itemUserActionRepository.avgRating(item.getId());
+        int ratingPts   = avgRaw != null ? (int)(avgRaw * 10) : 0; // max 50 for 5.0 stars
+        return (isHot == 1 ? 350 : 0)
+             + Math.min(sold, 30) * 10
+             + Math.min(cart, 30) * 5
+             + (int)(Math.min(view, 100) * 1.5)
+             + favPts
+             + ratingPts
+             + Math.min(boost, 50);
+    }
+
+    private void updateItemPopularityScore(Item item) {
+        int score = computeItemScore(item);
+        if (item.getPopularityScore() == null || item.getPopularityScore() != score) {
+            item.setPopularityScore(score);
+            itemRepository.save(item);
+        }
+    }
+
+    @Async
+    public void updateItemPopularityScoreAsync(Item item) {
+        updateItemPopularityScore(item);
     }
 
     private ItemSearchDocument buildDocument(Item item) {
@@ -236,6 +294,10 @@ public class MeilisearchService {
 
         List<String> categoryUrls = itemCategoryRepository.findAllCategoryUrlsByItemId(item.getId());
         String tags = tagRepository.findTagsByItemId(item.getId());
+
+        int isHot  = item.getIsHot() != null ? item.getIsHot() : 0;
+        int boost  = item.getBoostScore() != null ? item.getBoostScore() : 0;
+        int score  = item.getPopularityScore() != null ? item.getPopularityScore() : 0;
 
         return new ItemSearchDocument(
                 item.getId(),
@@ -256,8 +318,9 @@ public class MeilisearchService {
                 item.getAgesMax() != null ? item.getAgesMax().intValue() : null,
                 item.getStatus() != null ? item.getStatus() : 0,
                 item.getUserStatus() != null ? item.getUserStatus() : 0,
-                item.getIsHot() != null ? item.getIsHot() : 0,
-                item.getBoostScore() != null ? item.getBoostScore() : 0,
+                isHot,
+                boost,
+                score,
                 item.getImage(),
                 item.getDateStart() != null ? item.getDateStart().toString() : null
         );
@@ -270,6 +333,7 @@ public class MeilisearchService {
         userRepository.findById(userId).ifPresent(user -> {
             if (!List.of("school", "teacher").contains(user.getRole())) return;
             try {
+                updateUserPopularityScore(user);
                 var doc = buildUserDocument(user);
                 String json = objectMapper.writeValueAsString(List.of(doc));
                 meilisearchClient.index("users").addDocuments(json, "id");
@@ -291,13 +355,13 @@ public class MeilisearchService {
 
     public Map<String, Object> searchUsers(String query, String role, int page, int pageSize, String sort, Long authorId) {
         try {
-            List<String> filters = new java.util.ArrayList<>(List.of("status = 1", "isTest = 0"));
+            List<String> filters = new java.util.ArrayList<>(List.of("status = 1", "isTest = 0", "isSigned = 1"));
             if (role != null && !role.isBlank()) filters.add("role = \"" + role + "\"");
             if (authorId != null) filters.add("id = " + authorId);
 
             String[] sortClause = switch (sort != null ? sort : "popular") {
                 case "newest" -> new String[]{"id:desc"};
-                default       -> new String[]{"isHot:desc", "boostScore:desc"};
+                default       -> new String[]{"popularityScore:desc"};
             };
 
             var request = SearchRequest.builder()
@@ -331,14 +395,17 @@ public class MeilisearchService {
 
     public void reindexAllUsers() {
         int page = 0, batchSize = 100, indexed = 0;
-        log.info("Starting full user reindex...");
+        log.info("Starting full user reindex (users + popularity scores)...");
         while (true) {
             var users = userRepository.findAll(org.springframework.data.domain.PageRequest.of(page, batchSize));
             if (users.isEmpty()) break;
             try {
                 var docs = users.stream()
                         .filter(u -> List.of("school", "teacher").contains(u.getRole()) && u.getStatus() == 1)
-                        .map(this::buildUserDocument)
+                        .map(u -> {
+                            updateUserPopularityScore(u);
+                            return buildUserDocument(u);
+                        })
                         .toList();
                 if (!docs.isEmpty()) {
                     String json = objectMapper.writeValueAsString(docs);
@@ -353,8 +420,37 @@ public class MeilisearchService {
         log.info("User reindex complete. Total: {}", indexed);
     }
 
+    private int computeUserScore(com.anylearn.backend.entity.User user) {
+        int isHot = user.getIsHot() != null ? user.getIsHot() : 0;
+        int boost = user.getBoostScore() != null ? user.getBoostScore() : 0;
+        int totalOrders = itemRepository.findByUserId(user.getId()).stream()
+                .mapToInt(i -> orderDetailRepository.countDeliveredByItemId(i.getId())).sum();
+        int totalCarts = itemRepository.findByUserId(user.getId()).stream()
+                .mapToInt(i -> itemEventRepository.countByItemAndType(i.getId(), "cart")).sum();
+        int totalViews = itemRepository.findByUserId(user.getId()).stream()
+                .mapToInt(i -> itemEventRepository.countByItemAndType(i.getId(), "view")).sum();
+        return (isHot == 1 ? 350 : 0)
+             + Math.min(totalOrders, 30) * 10
+             + Math.min(totalCarts, 30) * 5
+             + (int)(Math.min(totalViews, 100) * 1.5)
+             + Math.min(boost, 50);
+    }
+
+    private void updateUserPopularityScore(com.anylearn.backend.entity.User user) {
+        int score = computeUserScore(user);
+        if (user.getPopularityScore() == null || user.getPopularityScore() != score) {
+            user.setPopularityScore(score);
+            userRepository.save(user);
+        }
+    }
+
     private UserSearchDocument buildUserDocument(com.anylearn.backend.entity.User user) {
         Double rating = itemUserActionRepository.avgRatingByOwner(user.getId());
+        int isHot    = user.getIsHot()          != null ? user.getIsHot()          : 0;
+        int boost    = user.getBoostScore()       != null ? user.getBoostScore()       : 0;
+        int isSigned = user.getIsSigned()         != null ? user.getIsSigned()         : 0;
+        int score    = user.getPopularityScore()  != null ? user.getPopularityScore()  : 0;
+
         return new UserSearchDocument(
                 user.getId(),
                 user.getName(),
@@ -363,11 +459,21 @@ public class MeilisearchService {
                 user.getIntroduce(),
                 user.getImage(),
                 user.getBanner(),
-                user.getIsHot() != null ? user.getIsHot() : 0,
-                user.getBoostScore() != null ? user.getBoostScore() : 0,
+                isHot,
+                boost,
                 user.getStatus() != null ? user.getStatus() : 0,
                 user.getIsTest() != null ? user.getIsTest() : 0,
+                isSigned,
+                score,
                 rating
         );
+    }
+
+    @Scheduled(cron = "0 0 5 * * *")
+    public void scheduledReindex() {
+        log.info("Scheduled 5AM reindex starting...");
+        reindexAll();
+        reindexAllUsers();
+        log.info("Scheduled 5AM reindex complete");
     }
 }

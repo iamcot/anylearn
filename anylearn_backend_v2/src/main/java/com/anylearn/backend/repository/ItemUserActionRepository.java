@@ -50,7 +50,8 @@ public interface ItemUserActionRepository extends JpaRepository<ItemUserAction, 
     java.util.Optional<ItemUserAction> findFavByItemAndUser(@Param("itemId") Long itemId, @Param("userId") Long userId);
 
     @Query(value = """
-        SELECT iua.*, CASE WHEN u.name = 'Admin' THEN 'anyLEARN' ELSE u.name END AS user_name,
+        SELECT iua.id, iua.item_id, iua.value, iua.extra_value, iua.created_at,
+               CASE WHEN u.name = 'Admin' THEN 'anyLEARN' ELSE u.name END AS user_name,
                u.id AS user_id, u.image AS user_image
         FROM item_user_actions iua
         JOIN users u ON u.id = iua.user_id
@@ -60,6 +61,9 @@ public interface ItemUserActionRepository extends JpaRepository<ItemUserAction, 
     List<java.util.Map<String, Object>> findReviewsByItemId(@Param("itemId") Long itemId);
     @Query("SELECT iua FROM ItemUserAction iua WHERE iua.userId = :userId AND iua.type = 'cart' ORDER BY iua.id DESC")
     List<ItemUserAction> findCartByUser(@Param("userId") Long userId);
+
+    @Query("SELECT iua FROM ItemUserAction iua WHERE iua.itemId = :itemId AND iua.userId = :userId AND iua.type = 'rating'")
+    java.util.Optional<ItemUserAction> findRatingByItemAndUser(@Param("itemId") Long itemId, @Param("userId") Long userId);
 
     @Query("SELECT iua FROM ItemUserAction iua WHERE iua.userId = :userId AND iua.type = :type AND iua.value = :value ORDER BY iua.id DESC")
     List<ItemUserAction> findByUserIdAndTypeAndValue(@Param("userId") Long userId,

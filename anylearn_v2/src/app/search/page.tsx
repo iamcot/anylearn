@@ -566,12 +566,12 @@ function SearchPageInner() {
             {mode === 'class' && filteredResults.length > 0 && (
               <div className="grid grid-cols-2 gap-3">
                 {filteredResults.map(item => (
-                  <article key={item.id} className="bg-white border border-[#e6edf4] rounded-2xl overflow-hidden flex flex-col md:grid md:grid-cols-[160px_1fr] relative cursor-pointer"
+                  <article key={item.id} className="bg-white border border-[#e6edf4] rounded-2xl overflow-hidden flex flex-col xl:grid xl:grid-cols-[160px_1fr] relative cursor-pointer"
                     style={{ boxShadow: '0 8px 24px rgba(15,23,42,0.05)' }}>
                     {/* Clickable overlay */}
                     <Link href={getCourseUrl(item)} className="absolute inset-0 z-10" aria-label={item.title} />
                     {/* Ảnh — mobile: vuông, desktop: full height */}
-                    <div className="relative overflow-hidden grid place-items-center shrink-0 aspect-square md:aspect-auto"
+                    <div className="relative overflow-hidden grid place-items-center shrink-0 aspect-square xl:aspect-auto"
                       style={{ background: 'linear-gradient(135deg,#e9fff3,#eef7ff)' }}>
                       {item.image
                         // eslint-disable-next-line @next/next/no-img-element
@@ -613,8 +613,12 @@ function SearchPageInner() {
                       )}
                       <div className="mt-auto pt-1">
                         <div className="text-[#e73348] font-black text-xs md:text-base mb-1">{formatPrice(item.price)}</div>
-                        <div className="text-right">
-                          <span className="text-[#008244] font-black text-[10px] md:text-sm">Tìm hiểu thêm →</span>
+                        <div className="flex items-center justify-between gap-1">
+                          <div className="flex items-center gap-2 text-[10px] md:text-xs text-[#9aa5b1]">
+                            {item.rating != null && item.rating > 0 && <span>⭐ {item.rating.toFixed(1)}</span>}
+                            {item.num_favorite != null && item.num_favorite > 0 && <span>❤️ {item.num_favorite}</span>}
+                          </div>
+                          <span className="text-[#008244] font-black text-[10px] md:text-sm shrink-0">Tìm hiểu thêm →</span>
                         </div>
                       </div>
                     </div>
@@ -627,12 +631,12 @@ function SearchPageInner() {
             {(mode === 'school' || mode === 'teacher') && userResults.length > 0 && (
               <div className="grid grid-cols-2 gap-3">
                 {userResults.map(u => (
-                  <article key={u.id} className="bg-white border border-[#e6edf4] rounded-2xl overflow-hidden flex flex-col md:grid md:grid-cols-[160px_1fr] relative cursor-pointer"
+                  <article key={u.id} className="bg-white border border-[#e6edf4] rounded-2xl overflow-hidden flex flex-col xl:grid xl:grid-cols-[160px_1fr] relative cursor-pointer"
                     style={{ boxShadow: '0 8px 24px rgba(15,23,42,0.05)' }}>
                     {/* Clickable overlay */}
                     <Link href={`/search?mode=class&authorId=${u.id}`} className="absolute inset-0 z-10" aria-label={u.name} />
                     {/* Ảnh — mobile: vuông, desktop: full height */}
-                    <div className="relative overflow-hidden grid place-items-center shrink-0 aspect-square md:aspect-auto"
+                    <div className="relative overflow-hidden grid place-items-center shrink-0 aspect-square xl:aspect-auto"
                       style={{ background: 'linear-gradient(135deg,#eef7ff,#e9fff3)' }}>
                       {u.image
                         // eslint-disable-next-line @next/next/no-img-element

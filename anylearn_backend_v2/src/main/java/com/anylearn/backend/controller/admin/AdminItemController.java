@@ -83,21 +83,26 @@ public class AdminItemController {
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) Long userId,
             @RequestParam(required = false) String q,
-            @RequestParam(defaultValue = "desc") String sortDir) {
+            @RequestParam(defaultValue = "desc") String sortDir,
+            @RequestParam(defaultValue = "id") String sortBy) {
         if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
 
         String safeSort = "asc".equalsIgnoreCase(sortDir) ? "ASC" : "DESC";
+        String safeSortCol = "popularityScore".equalsIgnoreCase(sortBy) ? "i.popularity_score" : "i.id";
 
         var sql = "SELECT i.id, i.title, i.price, i.org_price, i.status, i.user_status, i.is_hot, " +
                   "i.date_start, i.subtype, u.name AS ownerName, u.phone AS ownerPhone, " +
-                  "(SELECT COUNT(DISTINCT od.user_id) FROM order_details od WHERE od.item_id = i.id) AS soldCount " +
+                  "(SELECT COUNT(DISTINCT od.user_id) FROM order_details od WHERE od.item_id = i.id) AS soldCount, " +
+                  "i.popularity_score, " +
+                  "(SELECT COUNT(*) FROM item_user_actions iua WHERE iua.item_id = i.id AND iua.type = 'fav' AND iua.value = '1') AS favCount, " +
+                  "(SELECT AVG(CAST(iua2.value AS DECIMAL)) FROM item_user_actions iua2 WHERE iua2.item_id = i.id AND iua2.type = 'rating') AS avgRating " +
                   "FROM items i LEFT JOIN users u ON i.user_id = u.id WHERE i.is_test = 0" +
                   (status != null ? " AND i.status=" + status : "") +
                   (userStatus != null ? " AND i.user_status=" + userStatus : "") +
                   (categoryId != null ? " AND EXISTS (SELECT 1 FROM items_categories ic WHERE ic.item_id = i.id AND ic.category_id=" + categoryId + ")" : "") +
                   (userId != null ? " AND i.user_id=" + userId : "") +
                   (q != null && !q.isBlank() ? " AND i.title LIKE '%" + q.replace("'","''") + "%'" : "") +
-                  " ORDER BY i.id " + safeSort + " LIMIT " + size + " OFFSET " + (long) page * size;
+                  " ORDER BY " + safeSortCol + " " + safeSort + " LIMIT " + size + " OFFSET " + (long) page * size;
 
         @SuppressWarnings("unchecked")
         List<Object[]> rows = em.createNativeQuery(sql).getResultList();
@@ -111,6 +116,9 @@ public class AdminItemController {
             m.put("subtype", r[8] != null ? r[8] : "");
             m.put("ownerName", r[9] != null ? r[9] : ""); m.put("ownerPhone", r[10] != null ? r[10] : "");
             m.put("soldCount", r[11]);
+            m.put("popularityScore", r[12] != null ? r[12] : 0);
+            m.put("favCount", r[13] != null ? r[13] : 0);
+            m.put("avgRating", r[14] != null ? ((Number) r[14]).doubleValue() : null);
             return m;
         }).toList();
 
@@ -244,6 +252,7 @@ public class AdminItemController {
         return itemRepository.findById(id).map(item -> {
             item.setUserStatus((byte) 1);
             itemRepository.save(item);
+            meilisearchService.indexItem(id);
             return ApiResponse.ok("Approved");
         }).orElse(ApiResponse.fail("Not found"));
     }
@@ -254,6 +263,7 @@ public class AdminItemController {
         return itemRepository.findById(id).map(item -> {
             item.setIsHot((byte) (item.getIsHot() == 1 ? 0 : 1));
             itemRepository.save(item);
+            meilisearchService.indexItem(id);
             return ApiResponse.ok(Map.of("isHot", item.getIsHot()));
         }).orElse(ApiResponse.fail("Not found"));
     }

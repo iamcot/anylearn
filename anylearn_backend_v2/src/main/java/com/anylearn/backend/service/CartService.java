@@ -38,6 +38,7 @@ public class CartService {
     private final PointsEngine pointsEngine;
     private final NotificationService notificationService;
     private final ObjectMapper objectMapper;
+    private final ItemTrackingService itemTrackingService;
 
     private static final int POINT_RATE = 1000; // 1 anyPoint = 1,000 VND (kept for reference)
 
@@ -109,6 +110,7 @@ public class CartService {
         action.setCreatedAt(LocalDateTime.now());
         action.setUpdatedAt(LocalDateTime.now());
         itemUserActionRepository.save(action);
+        itemTrackingService.record(itemId, currentUser.getId(), "cart");
 
         long cartCount = findCartItems(currentUser.getId()).size();
         return Map.of("cartItemId", action.getId(), "cartCount", cartCount);

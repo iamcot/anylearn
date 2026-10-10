@@ -85,6 +85,9 @@ public class Item {
     @Column(name = "boost_score", nullable = false)
     private Integer boostScore;
 
+    @Column(name = "popularity_score", nullable = false)
+    private Integer popularityScore = 0;
+
     @Column(name = "seo_title", columnDefinition = "TEXT")
     private String seoTitle;
 

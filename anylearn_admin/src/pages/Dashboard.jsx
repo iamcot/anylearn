@@ -155,7 +155,8 @@ export default function Dashboard() {
   const { data: userChart }   = useQuery({ ...q('uc'),    queryFn: () => chart('chart/users') })
   const { data: gmvChart }    = useQuery({ ...q('gc'),    queryFn: () => chart('chart/gmv').then(rows => rows.map(r => ({ ...r, amount: Math.round(r.amount / 1_000_000) }))) })
   // Spark charts (use sGran — may be 'day' even for quarter)
-  const { data: sUser }       = useQuery({ ...sq('su'),   queryFn: () => chart('chart/users', sGran),  enabled: sTarget > 0 })
+  const { data: sUser }       = useQuery({ ...sq('su'),   queryFn: () => client.get(`/admin/dashboard/chart/users?from=${from}&to=${to}&granularity=${sGran}&roleNot=teacher,school,admin`).then(r => r.data?.data ?? []),  enabled: sTarget > 0 })
+  const { data: sPartner }    = useQuery({ ...sq('sp'),   queryFn: () => client.get(`/admin/dashboard/chart/users?from=${from}&to=${to}&granularity=${sGran}&role=teacher,school`).then(r => r.data?.data ?? []), enabled: sTarget > 0 })
   const { data: sItem }       = useQuery({ ...sq('si'),   queryFn: () => chart('chart/items', sGran),  enabled: sTarget > 0 })
   const { data: sOrder }      = useQuery({ ...sq('so'),   queryFn: () => chart('chart/orders', sGran), enabled: sTarget > 0 })
   const { data: sGmv }        = useQuery({ ...sq('sg'),   queryFn: () => chart('chart/gmv', sGran).then(rows => rows.map(r => ({ ...r, amount: Math.round(r.amount / 1_000_000) }))), enabled: sTarget > 0 })
@@ -205,7 +206,7 @@ export default function Dashboard() {
 
   const row1 = [
     { title: 'Thành viên',      icon: <TeamOutlined />,        color: '#1677ff', total: stats?.totalUsers,          period: stats?.newUsers,            isMoney: false, sparkPoints: sp(sUser,  'count'),  sparkKey: 'count',  tooltip: '% user mới trong kỳ / tổng user'     },
-    { title: 'Đối tác',   icon: <UserAddOutlined />,     color: '#722ed1', total: stats?.totalPartners,       period: stats?.newPartners,          isMoney: false, sparkPoints: sp(sUser,  'count'),  sparkKey: 'count',  tooltip: '% đối tác mới trong kỳ / tổng'        },
+    { title: 'Đối tác',   icon: <UserAddOutlined />,     color: '#722ed1', total: stats?.totalPartners,       period: stats?.newPartners,          isMoney: false, sparkPoints: sp(sPartner, 'count'),  sparkKey: 'count',  tooltip: '% đối tác mới trong kỳ / tổng'        },
     { title: 'Khóa học',  icon: <BookOutlined />,        color: '#13c2c2', total: stats?.totalItems,          period: stats?.newItems,             isMoney: false, sparkPoints: sp(sItem,  'count'),  sparkKey: 'count',  tooltip: '% khóa học mới trong kỳ / tổng'       },
   ]
   const row2 = [

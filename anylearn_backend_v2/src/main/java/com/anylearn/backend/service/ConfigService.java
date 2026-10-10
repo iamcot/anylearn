@@ -22,6 +22,7 @@ public class ConfigService {
     private final TagRepository tagRepository;
     private final ObjectMapper objectMapper;
     private final com.anylearn.backend.repository.UserRepository userRepository;
+    private final ItemUserActionRepository itemUserActionRepository;
 
     public Map<String, Object> homeV2(String role) {
         Map<String, Object> result = new LinkedHashMap<>();
@@ -148,6 +149,8 @@ public class ConfigService {
         m.put("price",        item.getPrice());
         m.put("dateStart",    item.getDateStart() != null ? item.getDateStart().toString() : null);
         m.put("isHot",        item.getIsHot());
+        m.put("rating",       itemUserActionRepository.avgRating(item.getId()));
+        m.put("num_favorite", itemUserActionRepository.countFav(item.getId()));
         userRepository.findById(item.getUserId()).ifPresent(u -> {
             m.put("authorName",  u.getName());
             m.put("authorImage", u.getImage());

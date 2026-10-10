@@ -1,5 +1,5 @@
-import { Button, Drawer, Form, Input, Modal, Radio, Select, Space, Switch, Table, Tag, Typography, Upload } from 'antd'
-import { CopyOutlined, EditOutlined, SaveOutlined, CloseOutlined, RightOutlined, UploadOutlined } from '@ant-design/icons'
+import { Button, Drawer, Form, Input, Modal, Radio, Select, Space, Switch, Table, Tag, Tooltip, Typography, Upload } from 'antd'
+import { CopyOutlined, EditOutlined, InfoCircleOutlined, SaveOutlined, CloseOutlined, RightOutlined, UploadOutlined } from '@ant-design/icons'
 import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import client from '../api/client'
@@ -38,8 +38,10 @@ export default function Users() {
   const [q, setQ] = useState('')
   const [role, setRole] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
+  const [isSignedFilter, setIsSignedFilter] = useState('')
   const [page, setPage] = useState(1)
   const [sortDir, setSortDir] = useState('desc')
+  const [sortBy, setSortBy] = useState('id')
   const [selected, setSelected] = useState(null)
   const [editing, setEditing] = useState(false)
   const [form] = Form.useForm()
@@ -49,8 +51,13 @@ export default function Users() {
   const [newPwdResult, setNewPwdResult] = useState(null)
 
   const { data, isLoading } = useQuery({
-    queryKey: ['admin-users', q, role, statusFilter, page, sortDir],
-    queryFn: () => client.get('/admin/users', { params: { q, role: role || undefined, ...(statusFilter !== '' && { status: statusFilter }), page: page - 1, size: 20, sortDir } }).then(r => r.data?.data ?? r.data),
+    queryKey: ['admin-users', q, role, statusFilter, isSignedFilter, page, sortDir, sortBy],
+    queryFn: () => client.get('/admin/users', { params: { q, role: role || undefined, ...(statusFilter !== '' && { status: statusFilter }), ...(isSignedFilter !== '' && { isSigned: isSignedFilter }), page: page - 1, size: 20, sortDir, sortBy } }).then(r => r.data?.data ?? r.data),
+  })
+
+  const toggleSignedMutation = useMutation({
+    mutationFn: (id) => client.put(`/admin/users/${id}/toggle-signed`),
+    onSuccess: () => qc.invalidateQueries(['admin-users']),
   })
 
   const mutation = useMutation({
@@ -83,20 +90,56 @@ export default function Users() {
     })
   }, [selected, editing])
 
+  const makeSortHeader = (label, col) => () => (
+    <span onClick={() => {
+      if (sortBy === col) { setSortDir(d => d === 'asc' ? 'desc' : 'asc') }
+      else { setSortBy(col); setSortDir('desc') }
+      setPage(1)
+    }} style={{ cursor: 'pointer', userSelect: 'none' }}>
+      {label}{' '}
+      {sortBy === col
+        ? <span style={{ color: '#1677ff', fontSize: 10 }}>{sortDir === 'asc' ? '↑' : '↓'}</span>
+        : <span style={{ color: '#ccc', fontSize: 10 }}>↕</span>
+      }
+    </span>
+  )
+
   const columns = [
-    {
-      title: () => (
-        <span onClick={() => { setSortDir(d => d === 'asc' ? 'desc' : 'asc'); setPage(1) }}
-          style={{ cursor: 'pointer', userSelect: 'none' }}>
-          ID <span style={{ color: '#1677ff', fontSize: 10 }}>{sortDir === 'asc' ? '↑' : '↓'}</span>
-        </span>
-      ),
-      dataIndex: 'id', width: 70,
-    },
+    { title: makeSortHeader('ID', 'id'), dataIndex: 'id', width: 70 },
     { title: 'Tên', dataIndex: 'name' },
     { title: 'Điện thoại', dataIndex: 'phone' },
     { title: 'Role', dataIndex: 'role' },
     { title: 'anyPoint', dataIndex: 'walletC', width: 100, render: v => (v ?? 0).toLocaleString('vi-VN') },
+    {
+      title: 'Ký HĐ', dataIndex: 'isSigned', width: 75,
+      render: (v, row) => (row.role === 'teacher' || row.role === 'school') ? (
+        <Switch size="small" checked={v == 1}
+          onChange={() => toggleSignedMutation.mutate(row.id)}
+          onClick={(_, e) => e?.stopPropagation()}
+        />
+      ) : null,
+    },
+    {
+      title: () => (
+        <Space size={4}>
+          {makeSortHeader('Điểm PL', 'popularityScore')()}
+          <Tooltip title={
+            <div style={{ fontSize: 12, lineHeight: 1.6 }}>
+              <b>Công thức popularity (thành viên):</b><br />
+              isHot=1 → +350<br />
+              Lượt xem profile × 2 (max 100)<br />
+              Tổng điểm khóa học (max 500)<br />
+              Boost Score (max 50)<br />
+              <span style={{ color: '#aaa' }}>Cập nhật mỗi 30 phút</span>
+            </div>
+          } placement="topRight">
+            <InfoCircleOutlined style={{ color: '#1677ff', fontSize: 11, cursor: 'help' }} />
+          </Tooltip>
+        </Space>
+      ),
+      dataIndex: 'popularityScore', width: 105,
+      render: v => <span style={{ color: v > 0 ? '#1677ff' : '#bbb' }}>{v ?? 0}</span>,
+    },
     { title: 'Trạng thái', dataIndex: 'status', render: statusTag },
     { title: 'Ngày tạo', dataIndex: 'createdAt', render: v => fmtDateTime(v) },
     { dataIndex: 'id', key: 'arrow', width: 36, align: 'center', render: () => <RightOutlined style={{ color: '#bbb', fontSize: 11 }} /> },
@@ -120,6 +163,9 @@ export default function Users() {
             />
             <Select value={statusFilter} onChange={v => { setStatusFilter(v); setPage(1) }} style={{ width: 160 }}
               options={[{ value: '', label: 'Tất cả trạng thái' }, { value: '1', label: 'Hoạt động' }, { value: '0', label: 'Khoá' }]}
+            />
+            <Select value={isSignedFilter} onChange={v => { setIsSignedFilter(v); setPage(1) }} style={{ width: 150 }}
+              options={[{ value: '', label: 'Tất cả HĐ' }, { value: '1', label: 'Đã ký HĐ' }, { value: '0', label: 'Chưa ký HĐ' }]}
             />
           </Space>
           <Space>

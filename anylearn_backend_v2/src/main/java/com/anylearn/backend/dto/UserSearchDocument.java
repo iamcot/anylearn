@@ -12,5 +12,7 @@ public record UserSearchDocument(
         int boostScore,
         int status,
         int isTest,
+        int isSigned,
+        int popularityScore,
         Double rating
 ) {}

@@ -5,6 +5,7 @@ import com.anylearn.backend.entity.User;
 import com.anylearn.backend.service.NotificationService;
 import com.anylearn.backend.service.S3Service;
 import com.anylearn.backend.service.UserService;
+import com.anylearn.backend.service.UserTrackingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -22,6 +23,7 @@ public class UserController {
     private final UserService userService;
     private final S3Service s3Service;
     private final NotificationService notificationService;
+    private final UserTrackingService userTrackingService;
 
     @GetMapping("/users/{role}")
     public ApiResponse<?> usersList(@PathVariable String role,
@@ -30,7 +32,9 @@ public class UserController {
     }
 
     @GetMapping("/user/profile/{userId}")
-    public ApiResponse<?> profile(@PathVariable Long userId) {
+    public ApiResponse<?> profile(@PathVariable Long userId,
+                                  @AuthenticationPrincipal User currentUser) {
+        userTrackingService.recordView(userId, currentUser != null ? currentUser.getId() : null);
         return ApiResponse.ok(userService.profile(userId));
     }
 

@@ -1,5 +1,5 @@
 import { App, Input, Select, Space, Switch, Table, Tag, Tooltip, Typography } from 'antd'
-import { FireOutlined, PlusOutlined, RightOutlined } from '@ant-design/icons'
+import { FireOutlined, InfoCircleOutlined, PlusOutlined, RightOutlined } from '@ant-design/icons'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import client from '../api/client'
@@ -18,12 +18,13 @@ export default function Items() {
   const partnerId  = searchParams.get('partnerId') ?? ''
   const page       = Number(searchParams.get('page') ?? '1')
   const sortDir    = searchParams.get('sortDir') ?? 'desc'
+  const sortBy     = searchParams.get('sortBy') ?? 'id'
 
   function updateParam(key, value) {
     const next = new URLSearchParams(searchParams)
     if (value) next.set(key, value); else next.delete(key)
     next.set('page', '1')
-    if (key !== 'sortDir') next.delete('sortDir')
+    if (key !== 'sortDir' && key !== 'sortBy') next.delete('sortDir')
     setSearchParams(next)
   }
   function setPage(p) {
@@ -33,9 +34,9 @@ export default function Items() {
   }
 
   const { data, isLoading } = useQuery({
-    queryKey: ['admin-items', q, status, userStatus, categoryId, partnerId, page, sortDir],
+    queryKey: ['admin-items', q, status, userStatus, categoryId, partnerId, page, sortDir, sortBy],
     queryFn: () => client.get('/admin/items', {
-      params: { q, ...(status !== '' && { status }), ...(userStatus !== '' && { userStatus }), ...(categoryId && { categoryId }), ...(partnerId && { userId: partnerId }), page: page - 1, size: 20, sortDir }
+      params: { q, ...(status !== '' && { status }), ...(userStatus !== '' && { userStatus }), ...(categoryId && { categoryId }), ...(partnerId && { userId: partnerId }), page: page - 1, size: 20, sortDir, sortBy }
     }).then(r => r.data?.data ?? r.data),
     staleTime: 30_000,
     gcTime: 10 * 60_000,
@@ -65,17 +66,21 @@ export default function Items() {
     onSuccess: () => qc.invalidateQueries(['admin-items']),
   })
 
+  const makeSortHeader = (label, col) => () => (
+    <span onClick={() => {
+      if (sortBy === col) { updateParam('sortDir', sortDir === 'asc' ? 'desc' : 'asc') }
+      else { const next = new URLSearchParams(searchParams); next.set('sortBy', col); next.set('sortDir', 'desc'); next.set('page', '1'); setSearchParams(next) }
+    }} style={{ cursor: 'pointer', userSelect: 'none' }}>
+      {label}{' '}
+      {sortBy === col
+        ? <span style={{ color: '#1677ff', fontSize: 10 }}>{sortDir === 'asc' ? '↑' : '↓'}</span>
+        : <span style={{ color: '#ccc', fontSize: 10 }}>↕</span>
+      }
+    </span>
+  )
+
   const columns = [
-    {
-      key: 'sortById',
-      title: () => (
-        <span onClick={() => updateParam('sortDir', sortDir === 'asc' ? 'desc' : 'asc')}
-          style={{ cursor: 'pointer', userSelect: 'none' }}>
-          ID <span style={{ color: '#1677ff', fontSize: 10 }}>{sortDir === 'asc' ? '↑' : '↓'}</span>
-        </span>
-      ),
-      dataIndex: 'id', width: 70,
-    },
+    { key: 'sortById', title: makeSortHeader('ID', 'id'), dataIndex: 'id', width: 70 },
     {
       title: <Tooltip title="Nổi bật"><FireOutlined /></Tooltip>,
       dataIndex: 'isHot', width: 55,
@@ -111,14 +116,45 @@ export default function Items() {
         />
       ),
     },
-    {
-      title: 'Tiêu đề', dataIndex: 'title', ellipsis: true,
+    { title: 'Tiêu đề', dataIndex: 'title', ellipsis: true,
       render: (text) => <Typography.Text>{text}</Typography.Text>,
     },
     { title: 'Đối tác', dataIndex: 'ownerName' },
     { title: 'Học phí', dataIndex: 'price', width: 120, render: v => fmtVND(v) },
     { title: 'Đã bán', dataIndex: 'soldCount', width: 75 },
+    {
+      title: () => (
+        <Space size={4}>
+          {makeSortHeader('Điểm PL', 'popularityScore')()}
+          <Tooltip title={
+            <div style={{ fontSize: 12, lineHeight: 1.6 }}>
+              <b>Công thức popularity (khóa học):</b><br />
+              isHot=1 → +350<br />
+              Đơn thành công × 10 (max 30)<br />
+              Add to cart × 5 (max 30)<br />
+              Lượt xem × 1.5 (max 100)<br />
+              Lượt tim × 5 (max 50)<br />
+              Rating trung bình × 10 (max 50)<br />
+              Boost Score (max 50)<br />
+              <span style={{ color: '#aaa' }}>Cập nhật mỗi 30 phút</span>
+            </div>
+          } placement="topRight">
+            <InfoCircleOutlined style={{ color: '#1677ff', fontSize: 11, cursor: 'help' }} />
+          </Tooltip>
+        </Space>
+      ),
+      dataIndex: 'popularityScore', width: 110,
+      render: v => <span style={{ color: v > 0 ? '#1677ff' : '#bbb' }}>{v ?? 0}</span>,
+    },
     { title: 'Ngày bắt đầu', dataIndex: 'dateStart', width: 115 },
+    {
+      title: '❤️', dataIndex: 'favCount', width: 55, align: 'center',
+      render: v => <span style={{ color: v > 0 ? '#e73348' : '#bbb', fontSize: 12 }}>{v ?? 0}</span>,
+    },
+    {
+      title: '⭐', dataIndex: 'avgRating', width: 55, align: 'center',
+      render: v => v != null ? <span style={{ color: '#f5a623', fontSize: 12, fontWeight: 700 }}>{Number(v).toFixed(1)}</span> : <span style={{ color: '#bbb', fontSize: 12 }}>—</span>,
+    },
     {
       dataIndex: 'id', width: 36, align: 'center',
       render: () => <RightOutlined style={{ color: '#bbb', fontSize: 11 }} />,
