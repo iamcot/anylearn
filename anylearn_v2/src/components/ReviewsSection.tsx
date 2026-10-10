@@ -121,7 +121,7 @@ export default function ReviewsSection({ itemId, initialReviews, initialRating }
             <span className="text-sm text-[#008244] font-bold flex-1">Đánh giá của bạn</span>
             <button
               onClick={startEdit}
-              style={{ fontSize: 12, color: '#00539b', fontWeight: 700, background: 'none', border: 'none', cursor: 'pointer', padding: '4px 10px', borderRadius: 8, border: '1px solid #00539b' } as React.CSSProperties}
+              style={{ fontSize: 12, color: '#00539b', fontWeight: 700, background: 'none', cursor: 'pointer', padding: '4px 10px', borderRadius: 8, border: '1px solid #00539b' } as React.CSSProperties}
             >
               Sửa
             </button>

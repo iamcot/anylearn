@@ -57,7 +57,7 @@ export default function FavoritesPage() {
         <div className="divide-y divide-line">
           {items.map(item => (
             <div key={item.id} className="flex items-center gap-3 px-5 py-4">
-              <Link href={getCourseUrl({ id: item.id, title: item.title, type: 'class' })} target="_blank" rel="noopener noreferrer"
+              <Link href={getCourseUrl({ id: item.id, title: item.title })} target="_blank" rel="noopener noreferrer"
                 className="shrink-0">
                 {item.image
                   // eslint-disable-next-line @next/next/no-img-element
@@ -66,7 +66,7 @@ export default function FavoritesPage() {
                 }
               </Link>
               <div className="flex-1 min-w-0">
-                <Link href={getCourseUrl({ id: item.id, title: item.title, type: 'class' })} target="_blank" rel="noopener noreferrer"
+                <Link href={getCourseUrl({ id: item.id, title: item.title })} target="_blank" rel="noopener noreferrer"
                   className="text-sm font-black text-ink no-underline hover:underline line-clamp-2 block">
                   {item.title}
                 </Link>
@@ -74,7 +74,7 @@ export default function FavoritesPage() {
                   <p className="text-xs text-muted m-0 mt-0.5 line-clamp-1">{item.shortContent}</p>
                 )}
               </div>
-              <Link href={getCourseUrl({ id: item.id, title: item.title, type: 'class' })} target="_blank" rel="noopener noreferrer"
+              <Link href={getCourseUrl({ id: item.id, title: item.title })} target="_blank" rel="noopener noreferrer"
                 className="shrink-0 text-xs font-bold text-[#00539b] no-underline hover:underline">
                 Xem →
               </Link>

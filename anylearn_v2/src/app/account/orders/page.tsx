@@ -133,13 +133,13 @@ export default function OrdersPage() {
                     <div key={item.itemId}>
                       <div className="flex items-center gap-3">
                         {item.image && (
-                          <Link href={getCourseUrl({ id: item.itemId, title: item.title, type: 'class' })} target="_blank" rel="noopener noreferrer">
+                          <Link href={getCourseUrl({ id: item.itemId, title: item.title })} target="_blank" rel="noopener noreferrer">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src={item.image} alt={item.title} className="w-11 h-11 rounded-lg object-cover shrink-0" />
                           </Link>
                         )}
                         <div className="flex-1 min-w-0">
-                          <Link href={getCourseUrl({ id: item.itemId, title: item.title, type: 'class' })} target="_blank" rel="noopener noreferrer"
+                          <Link href={getCourseUrl({ id: item.itemId, title: item.title })} target="_blank" rel="noopener noreferrer"
                             className="text-sm font-bold text-ink truncate block no-underline hover:underline">
                             {item.title}
                           </Link>
