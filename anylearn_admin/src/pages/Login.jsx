@@ -3,6 +3,7 @@ import { LockOutlined, PhoneOutlined } from '@ant-design/icons'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import logo from '/LogoanyLEARN.svg'
 
 export default function Login() {
   const [loading, setLoading] = useState(false)
@@ -27,7 +28,7 @@ export default function Login() {
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#f5f5f5' }}>
       <Card style={{ width: 380 }}>
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
-          <img src="/LogoanyLEARN.svg" alt="AnyLearn" style={{ height: 40, marginBottom: 8 }} />
+          <img src={logo} alt="AnyLearn" style={{ height: 40, marginBottom: 8 }} />
           <Typography.Title level={4} style={{ margin: 0 }}>AnyLearn Admin</Typography.Title>
         </div>
 

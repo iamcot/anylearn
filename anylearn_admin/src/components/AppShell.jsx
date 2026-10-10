@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import client from '../api/client'
+import logo from '/LogoanyLEARN.svg'
 import '../styles/themes.css'
 
 const NAV_ITEMS = [
@@ -88,7 +89,7 @@ export default function AppShell() {
       <Layout.Header style={{ background: '#fff', height: 48, lineHeight: '48px', padding: '0 24px', borderBottom: '1px solid #f0f0f0', position: 'sticky', top: 0, zIndex: 100 }}>
         <Flex align="center" justify="space-between" style={{ height: '100%' }}>
           <Flex align="center" gap={12}>
-            <img src="/LogoanyLEARN.svg" alt="AnyLearn" style={{ height: 30 }} />
+            <img src={logo} alt="AnyLearn" style={{ height: 30 }} />
             <span style={{ borderLeft: '1px solid #e8e8e8', height: 16 }} />
             <Typography.Text strong>Admin</Typography.Text>
           </Flex>
