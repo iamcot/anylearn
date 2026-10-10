@@ -31,6 +31,7 @@ export default function Header() {
   const { user, cartCount, logout, openAuthModal, refreshUser } = useAuth()
   const accountRef = useRef<HTMLDivElement>(null)
   const notifRef = useRef<HTMLDivElement>(null)
+  const closeNotif = useCallback(() => setNotifOpen(false), [])
 
   const fetchUnreadCount = useCallback(async () => {
     if (!user) return
@@ -166,11 +167,14 @@ export default function Header() {
                 )}
               </button>
               {notifOpen && (
-                <NotificationDropdown
-                  token={user.jwtToken}
-                  onClose={() => setNotifOpen(false)}
-                  onUnreadChange={setUnreadCount}
-                />
+                <>
+                  <div className="fixed inset-0 z-40" onClick={closeNotif} />
+                  <NotificationDropdown
+                    token={user.jwtToken}
+                    onClose={closeNotif}
+                    onUnreadChange={setUnreadCount}
+                  />
+                </>
               )}
             </div>
           )}
@@ -270,11 +274,14 @@ export default function Header() {
                 )}
               </button>
               {notifOpen && (
-                <NotificationDropdown
-                  token={user.jwtToken}
-                  onClose={() => setNotifOpen(false)}
-                  onUnreadChange={setUnreadCount}
-                />
+                <>
+                  <div className="fixed inset-0 z-40" onClick={closeNotif} />
+                  <NotificationDropdown
+                    token={user.jwtToken}
+                    onClose={closeNotif}
+                    onUnreadChange={setUnreadCount}
+                  />
+                </>
               )}
             </div>
           )}

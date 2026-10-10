@@ -22,7 +22,10 @@ function getDates(key) {
   const d = new Date(now); d.setDate(d.getDate() - p.days)
   return { from: toIso(d), to }
 }
-const fmtM = (v) => Math.round((v ?? 0) / 1_000_000).toLocaleString('vi-VN')
+const fmtM = (v) => {
+  const m = (v ?? 0) / 1_000_000
+  return m.toLocaleString('vi-VN', { maximumFractionDigits: 1 })
+}
 const fmtN = (v) => (v ?? 0).toLocaleString('vi-VN')
 
 // Bucket raw daily/monthly data into exactly `target` evenly-spaced points.

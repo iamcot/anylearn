@@ -42,6 +42,7 @@ export default function AppShell() {
   const [unreadCount, setUnreadCount] = useState(0)
   const [notifItems, setNotifItems] = useState([])
   const [notifLoading, setNotifLoading] = useState(false)
+  const [notifOpen, setNotifOpen] = useState(false)
   const esRef = useRef(null)
 
   useEffect(() => {
@@ -61,8 +62,13 @@ export default function AppShell() {
     return () => { es.close(); esRef.current = null }
   }, [user])
 
-  const settingsMenu = [
-    ...SETTINGS_MENU,
+  function markAllRead() {
+    client.post('/api/user/notification/mark-all-read').catch(() => {})
+    setUnreadCount(0)
+    setNotifItems(prev => prev.map(n => ({ ...n, read: n.read ?? new Date().toISOString() })))
+  }
+
+  const settingsMenu = [    ...SETTINGS_MENU,
     { type: 'divider' },
     { key: 'audit', icon: <AuditOutlined />, label: 'Kiểm toán anyPoint', onClick: () => navigate('/audit') },
   ]
@@ -89,8 +95,18 @@ export default function AppShell() {
 
           <Flex align="center" gap={20}>
             <Popover
-              title="Thông báo"
+              title={
+                <Flex justify="space-between" align="center">
+                  <span>Thông báo</span>
+                  {unreadCount > 0 && (
+                    <Typography.Link style={{ fontSize: 12, fontWeight: 400 }} onClick={markAllRead}>
+                      Đánh dấu tất cả đã đọc
+                    </Typography.Link>
+                  )}
+                </Flex>
+              }
               trigger="click"
+              open={notifOpen}
               placement="bottomRight"
               styles={{ body: { padding: 0 } }}
               content={
@@ -106,7 +122,20 @@ export default function AppShell() {
                       renderItem={item => (
                         <List.Item
                           style={{ padding: '10px 16px', background: item.read ? '#fff' : '#e6f4ff', cursor: item.route ? 'pointer' : 'default' }}
-                          onClick={() => item.route && navigate(item.route.replace('/admin', ''))}
+                          onClick={() => {
+                            if (!item.read) {
+                              client.get(`/api/user/notification/${item.id}`).catch(() => {})
+                              setNotifItems(prev => prev.map(n => n.id === item.id ? { ...n, read: new Date().toISOString() } : n))
+                              setUnreadCount(prev => Math.max(0, prev - 1))
+                            }
+                            setNotifOpen(false)
+                            if (item.route) {
+                              const path = item.route.startsWith('/admin')
+                                ? item.route.slice('/admin'.length)
+                                : item.route
+                              navigate(path || '/')
+                            }
+                          }}
                         >
                           <div>
                             <Typography.Text strong style={{ fontSize: 13 }}>{item.title}</Typography.Text>
@@ -120,14 +149,12 @@ export default function AppShell() {
                 </div>
               }
               onOpenChange={open => {
+                setNotifOpen(open)
                 if (open) {
                   setNotifLoading(true)
                   client.get('/api/user/notification', { params: { page: 0 } })
                     .then(r => { setNotifItems(r.data?.data?.items ?? []); setNotifLoading(false) })
                     .catch(() => setNotifLoading(false))
-                } else if (unreadCount > 0) {
-                  client.post('/api/user/notification/mark-all-read').catch(() => {})
-                  setUnreadCount(0)
                 }
               }}
             >

@@ -1,4 +1,5 @@
-import { App, Button, Drawer, Popconfirm, Select, Space, Table, Tag, Typography } from 'antd'
+import { App, Button, Drawer, Input, Popconfirm, Select, Space, Table, Tag, Typography } from 'antd'
+import { RightOutlined } from '@ant-design/icons'
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import client from '../api/client'
@@ -13,18 +14,28 @@ export default function Transactions() {
   const qc = useQueryClient()
   const [statusFilter, setStatusFilter] = useState('')
   const [typeFilter, setTypeFilter] = useState('')
-  const [payMethod, setPayMethod] = useState('wallet_c')
+  const [phone, setPhone] = useState('')
+  const [partnerId, setPartnerId] = useState('')
+  const [sortDir, setSortDir] = useState('desc')
   const [page, setPage] = useState(1)
   const [selectedKeys, setSelectedKeys] = useState([])
   const [drawerTxn, setDrawerTxn] = useState(null)
 
+  const { data: partners } = useQuery({
+    queryKey: ['admin-partners'],
+    queryFn: () => client.get('/admin/partners').then(r => r.data?.data ?? []),
+    staleTime: 5 * 60_000,
+  })
+
   const { data, isLoading } = useQuery({
-    queryKey: ['admin-txns', statusFilter, typeFilter, payMethod, page],
+    queryKey: ['admin-txns', statusFilter, typeFilter, phone, partnerId, sortDir, page],
     queryFn: () => client.get('/admin/transactions', {
       params: {
         ...(statusFilter !== '' && { status: statusFilter }),
         ...(typeFilter && { type: typeFilter }),
-        ...(payMethod && { payMethod }),
+        ...(phone && { phone }),
+        ...(partnerId && { userId: partnerId }),
+        sortDir,
         page: page - 1, size: 20,
       }
     }).then(r => r.data?.data ?? r.data),
@@ -44,7 +55,15 @@ const VND_TYPES = new Set(['order', 'net_revenue', 'deposit', 'withdraw'])
 const unitOf = (type) => VND_TYPES.has(type) ? 'VND' : 'anyPoint'
 
   const columns = [
-    { title: 'ID', dataIndex: 'id', width: 70 },
+    {
+      title: () => (
+        <span onClick={() => { setSortDir(d => d === 'asc' ? 'desc' : 'asc'); setPage(1) }}
+          style={{ cursor: 'pointer', userSelect: 'none' }}>
+          ID <span style={{ color: '#1677ff', fontSize: 10 }}>{sortDir === 'asc' ? '↑' : '↓'}</span>
+        </span>
+      ),
+      dataIndex: 'id', width: 70,
+    },
     {
       title: 'Người dùng', dataIndex: 'userName',
       render: (v, row) => v || <span style={{ color: '#bbb' }}>ID {row.userId}</span>,
@@ -60,6 +79,7 @@ const unitOf = (type) => VND_TYPES.has(type) ? 'VND' : 'anyPoint'
     },
     { title: 'Trạng thái', dataIndex: 'status', render: statusTag },
     { title: 'Ngày tạo', dataIndex: 'createdAt', render: v => fmtDate(v) },
+    { dataIndex: 'id', width: 36, align: 'center', render: () => <RightOutlined style={{ color: '#bbb', fontSize: 11 }} /> },
   ]
 
   const rowSelection = { selectedRowKeys: selectedKeys, onChange: setSelectedKeys }
@@ -76,8 +96,40 @@ const unitOf = (type) => VND_TYPES.has(type) ? 'VND' : 'anyPoint'
           <Select value={statusFilter} onChange={v => { setStatusFilter(v); setPage(1) }} style={{ width: 150 }}
             options={[{ value: '', label: 'Tất cả trạng thái' }, { value: '0', label: 'Chờ duyệt' }, { value: '1', label: 'Đã duyệt' }, { value: '-1', label: 'Từ chối' }]}
           />
-          <Select value={typeFilter} onChange={v => { setTypeFilter(v); setPage(1) }} style={{ width: 150 }}
-            options={[{ value: '', label: 'Tất cả loại' }, { value: 'deposit', label: 'Nạp tiền' }, { value: 'withdraw', label: 'Rút tiền' }, { value: 'partner', label: 'Đối tác' }, { value: 'commission', label: 'Hoa hồng' }]}
+          <Select value={typeFilter} onChange={v => { setTypeFilter(v); setPage(1) }} style={{ width: 160 }}
+            options={[
+              { value: '', label: 'Tất cả loại' },
+              { value: 'deposit', label: 'deposit' },
+              { value: 'withdraw', label: 'withdraw' },
+              { value: 'partner', label: 'partner' },
+              { value: 'commission', label: 'commission' },
+              { value: 'commission_add', label: 'commission_add' },
+              { value: 'exchange', label: 'exchange' },
+              { value: 'exchange_refund', label: 'exchange_refund' },
+              { value: 'order', label: 'order' },
+              { value: 'net_revenue', label: 'net_revenue' },
+              { value: 'foundation', label: 'foundation' },
+            ]}
+          />
+          <Select
+            value={partnerId || undefined}
+            onChange={v => {
+              const val = v ?? ''
+              setPartnerId(val)
+              setTypeFilter(val ? 'partner' : '')
+              setPage(1)
+            }}
+            style={{ width: 180 }} showSearch optionFilterProp="label" allowClear
+            placeholder="Tất cả đối tác"
+            options={(partners ?? []).map(p => ({ value: String(p.id), label: p.name || p.phone }))}
+          />
+          <Input.Search
+            placeholder="SĐT người dùng"
+            value={phone}
+            onChange={e => { setPhone(e.target.value); setPage(1) }}
+            onSearch={() => {}}
+            allowClear
+            style={{ width: 180 }}
           />
         </Space>
         <Space>
@@ -97,10 +149,14 @@ const unitOf = (type) => VND_TYPES.has(type) ? 'VND' : 'anyPoint'
       <Table
         columns={columns} dataSource={data?.content ?? []} rowKey="id" loading={isLoading} size="small"
         rowSelection={rowSelection}
+        scroll={{ x: 'max-content' }}
         pagination={{
           current: page, pageSize: 20, total: data?.total,
           showSizeChanger: false, onChange: setPage,
           showTotal: (t, range) => `${range[0]}–${range[1]} / ${t}`,
+        }}
+        onChange={(_, __, sorter) => {
+          setPage(1)
         }}
         onRow={row => ({ onClick: () => setDrawerTxn(row), style: { cursor: 'pointer' } })}
       />

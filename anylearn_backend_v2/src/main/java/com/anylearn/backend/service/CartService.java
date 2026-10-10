@@ -266,7 +266,7 @@ public class CartService {
                 pointsTx.setPayMethod(paymentMethod);
                 pointsTx.setOrderId(order.getId());
                 pointsTx.setContent("Dùng " + deductPoints + " anyPoint cho đơn hàng #" + order.getId());
-                pointsTx.setStatus(0); // pending — confirmed when payment completes
+                pointsTx.setStatus(1); // immediate — wallet_c already deducted, exchange is instant
                 pointsTx.setCreatedAt(LocalDateTime.now());
                 pointsTx.setUpdatedAt(LocalDateTime.now());
                 transactionRepository.save(pointsTx);

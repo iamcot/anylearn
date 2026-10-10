@@ -1,5 +1,5 @@
 import { App, Input, Select, Space, Switch, Table, Tag, Tooltip, Typography } from 'antd'
-import { FireOutlined, PlusOutlined } from '@ant-design/icons'
+import { FireOutlined, PlusOutlined, RightOutlined } from '@ant-design/icons'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import client from '../api/client'
@@ -17,11 +17,13 @@ export default function Items() {
   const categoryId = searchParams.get('categoryId') ?? ''
   const partnerId  = searchParams.get('partnerId') ?? ''
   const page       = Number(searchParams.get('page') ?? '1')
+  const sortDir    = searchParams.get('sortDir') ?? 'desc'
 
   function updateParam(key, value) {
     const next = new URLSearchParams(searchParams)
     if (value) next.set(key, value); else next.delete(key)
     next.set('page', '1')
+    if (key !== 'sortDir') next.delete('sortDir')
     setSearchParams(next)
   }
   function setPage(p) {
@@ -31,9 +33,9 @@ export default function Items() {
   }
 
   const { data, isLoading } = useQuery({
-    queryKey: ['admin-items', q, status, userStatus, categoryId, partnerId, page],
+    queryKey: ['admin-items', q, status, userStatus, categoryId, partnerId, page, sortDir],
     queryFn: () => client.get('/admin/items', {
-      params: { q, ...(status !== '' && { status }), ...(userStatus !== '' && { userStatus }), ...(categoryId && { categoryId }), ...(partnerId && { userId: partnerId }), page: page - 1, size: 20 }
+      params: { q, ...(status !== '' && { status }), ...(userStatus !== '' && { userStatus }), ...(categoryId && { categoryId }), ...(partnerId && { userId: partnerId }), page: page - 1, size: 20, sortDir }
     }).then(r => r.data?.data ?? r.data),
   })
 
@@ -61,6 +63,16 @@ export default function Items() {
   })
 
   const columns = [
+    {
+      key: 'sortById',
+      title: () => (
+        <span onClick={() => updateParam('sortDir', sortDir === 'asc' ? 'desc' : 'asc')}
+          style={{ cursor: 'pointer', userSelect: 'none' }}>
+          ID <span style={{ color: '#1677ff', fontSize: 10 }}>{sortDir === 'asc' ? '↑' : '↓'}</span>
+        </span>
+      ),
+      dataIndex: 'id', width: 70,
+    },
     {
       title: <Tooltip title="Nổi bật"><FireOutlined /></Tooltip>,
       dataIndex: 'isHot', width: 55,
@@ -105,6 +117,10 @@ export default function Items() {
           onClick={(_, e) => e?.stopPropagation()}
         />
       ),
+    },
+    {
+      dataIndex: 'id', width: 36, align: 'center',
+      render: () => <RightOutlined style={{ color: '#bbb', fontSize: 11 }} />,
     },
   ]
 
@@ -156,6 +172,8 @@ export default function Items() {
           loading={isLoading}
           size="small"
           scroll={{ x: 'max-content' }}
+          onChange={() => {
+          }}
           pagination={{
             current: page,
             pageSize: 20,

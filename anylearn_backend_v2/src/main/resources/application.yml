@@ -39,6 +39,7 @@ meilisearch:
 
 server:
   port: 8080
+  shutdown: immediate
   servlet:
     context-path: /v2
 

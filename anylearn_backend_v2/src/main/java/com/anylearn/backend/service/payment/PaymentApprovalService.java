@@ -102,6 +102,16 @@ public class PaymentApprovalService {
             log.warn("[approveOrder] failed to notify admin: {}", e.getMessage());
         }
 
+        // Notify buyer
+        try {
+            notificationService.createNotification(order.getUserId(), "order",
+                    "Đơn hàng thành công",
+                    "Đơn hàng #" + orderId + " đã được xác nhận và thanh toán thành công.",
+                    "/orders", null);
+        } catch (Exception e) {
+            log.warn("[approveOrder] failed to notify buyer: {}", e.getMessage());
+        }
+
         // Create payment Transaction record (order)
         saveTransaction(order.getUserId(), "order", order.getAmount(), paymentMethod, orderId,
                 "Thanh toán đơn hàng #" + orderId, 1);
@@ -125,7 +135,7 @@ public class PaymentApprovalService {
                     "Nhận anyPoint",
                     "Bạn nhận được " + tx.getAmount() + " anyPoint" +
                     (tx.getContent() != null ? ": " + tx.getContent() : ""),
-                    null, null);
+                    "/transaction", null);
         } catch (Exception e) {
             log.warn("[approveWalletCTransaction] failed to send notification to {}: {}", tx.getUserId(), e.getMessage());
         }
@@ -133,37 +143,34 @@ public class PaymentApprovalService {
 
     /**
      * Refund anyPoints to buyer when an exchange transaction is cancelled.
-     * Creates an 'exchange_refund' transaction (status=1) so the audit trail stays clean:
-     *   exchange (amount=-50, status=99) + exchange_refund (amount=+50, status=1) → net 0, wallet_c correct.
+     * Keeps the original exchange (status=1) intact for audit trail and adds
+     * an exchange_refund (status=1) to offset it:
+     *   exchange (-50, status=1) + exchange_refund (+50, status=1) → net 0, wallet_c correct.
      */
     private void refundExchangePoints(Long orderId, Long userId) {
+        // Idempotency: skip if refund already created for this order
+        if (!transactionRepository.findByOrderIdAndType(orderId, "exchange_refund").isEmpty()) return;
+
         transactionRepository.findByOrderIdAndType(orderId, "exchange").forEach(tx -> {
-            if (tx.getStatus() == 0) {
-                long refundPoints = Math.abs(tx.getAmount());
+            long refundPoints = Math.abs(tx.getAmount());
 
-                // Cancel the original exchange
-                tx.setStatus(99);
-                tx.setUpdatedAt(LocalDateTime.now());
-                transactionRepository.save(tx);
+            // Create refund transaction — original exchange stays status=1 for audit
+            Transaction refundTx = new Transaction();
+            refundTx.setUserId(userId);
+            refundTx.setType("exchange_refund");
+            refundTx.setAmount(refundPoints);
+            refundTx.setPayMethod("wallet_c");
+            refundTx.setOrderId(orderId);
+            refundTx.setContent("Hoàn " + refundPoints + " anyPoint từ đơn hàng #" + orderId);
+            refundTx.setStatus(1);
+            refundTx.setCreatedAt(LocalDateTime.now());
+            refundTx.setUpdatedAt(LocalDateTime.now());
+            transactionRepository.save(refundTx);
 
-                // Create a documented refund transaction (status=1 immediately)
-                Transaction refundTx = new Transaction();
-                refundTx.setUserId(userId);
-                refundTx.setType("exchange_refund");
-                refundTx.setAmount(refundPoints);
-                refundTx.setPayMethod("wallet_c");
-                refundTx.setOrderId(orderId);
-                refundTx.setContent("Hoàn " + refundPoints + " anyPoint từ đơn hàng #" + orderId);
-                refundTx.setStatus(1); // confirmed immediately — this IS the credit record
-                refundTx.setCreatedAt(LocalDateTime.now());
-                refundTx.setUpdatedAt(LocalDateTime.now());
-                transactionRepository.save(refundTx);
-
-                // Update wallet_c
-                walletService.creditWalletC(userId, refundPoints);
-                log.info("[refundExchange] refunded {} anyPoints to user {} for order {} (tx#{}→refund)",
-                        refundPoints, userId, orderId, tx.getId());
-            }
+            // Update wallet_c
+            walletService.creditWalletC(userId, refundPoints);
+            log.info("[refundExchange] refunded {} anyPoints to user {} for order {} (tx#{}→refund)",
+                    refundPoints, userId, orderId, tx.getId());
         });
     }
 
@@ -270,7 +277,7 @@ public class PaymentApprovalService {
             notificationService.createNotification(order.getUserId(), "system_notif",
                     "Đơn hàng đã bị hủy",
                     "Đơn hàng #" + orderId + " đã bị hủy. Nếu bạn đã thanh toán, vui lòng liên hệ hỗ trợ.",
-                    null, null);
+                    "/orders", null);
         } catch (Exception e) {
             log.warn("[cancelOrder] failed to notify buyer {}: {}", order.getUserId(), e.getMessage());
         }

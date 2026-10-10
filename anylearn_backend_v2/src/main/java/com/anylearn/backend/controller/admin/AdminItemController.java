@@ -82,8 +82,11 @@ public class AdminItemController {
             @RequestParam(required = false) Integer userStatus,
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) Long userId,
-            @RequestParam(required = false) String q) {
+            @RequestParam(required = false) String q,
+            @RequestParam(defaultValue = "desc") String sortDir) {
         if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
+
+        String safeSort = "asc".equalsIgnoreCase(sortDir) ? "ASC" : "DESC";
 
         var sql = "SELECT i.id, i.title, i.price, i.org_price, i.status, i.user_status, i.is_hot, " +
                   "i.date_start, i.subtype, u.name AS ownerName, u.phone AS ownerPhone, " +
@@ -94,7 +97,7 @@ public class AdminItemController {
                   (categoryId != null ? " AND EXISTS (SELECT 1 FROM items_categories ic WHERE ic.item_id = i.id AND ic.category_id=" + categoryId + ")" : "") +
                   (userId != null ? " AND i.user_id=" + userId : "") +
                   (q != null && !q.isBlank() ? " AND i.title LIKE '%" + q.replace("'","''") + "%'" : "") +
-                  " ORDER BY i.id DESC LIMIT " + size + " OFFSET " + (long) page * size;
+                  " ORDER BY i.id " + safeSort + " LIMIT " + size + " OFFSET " + (long) page * size;
 
         @SuppressWarnings("unchecked")
         List<Object[]> rows = em.createNativeQuery(sql).getResultList();

@@ -6,6 +6,7 @@ import com.anylearn.backend.repository.UserRepository;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.LinkedHashMap;
@@ -19,6 +20,7 @@ public class AdminUserController {
 
     private final UserRepository userRepository;
     private final EntityManager em;
+    private final PasswordEncoder passwordEncoder;
 
     private boolean isAdmin(User user) {
         return user != null && "admin".equals(user.getRole());
@@ -31,18 +33,25 @@ public class AdminUserController {
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) String role,
             @RequestParam(required = false) Integer status,
-            @RequestParam(required = false) String q) {
+            @RequestParam(required = false) Integer statusFilter,
+            @RequestParam(required = false) String q,
+            @RequestParam(defaultValue = "desc") String sortDir) {
         if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
 
+        String safeSort = "asc".equalsIgnoreCase(sortDir) ? "ASC" : "DESC";
+
         var conditions =
-                (role != null && !role.isBlank() ? " AND role='" + role.replace("'", "") + "'" : "") +
-                (status != null ? " AND status=" + status : "") +
-                (q != null && !q.isBlank() ? " AND (name LIKE '%" + q.replace("'","''") + "%' OR phone LIKE '%" + q.replace("'","''") + "%' OR email LIKE '%" + q.replace("'","''") + "%')" : "");
+                (role != null && !role.isBlank() ? " AND u.role='" + role.replace("'", "") + "'" : "") +
+                (status != null ? " AND u.status=" + status : "") +
+                (statusFilter != null ? " AND u.status=" + statusFilter : "") +
+                (q != null && !q.isBlank() ? " AND (u.name LIKE '%" + q.replace("'","''") + "%' OR u.phone LIKE '%" + q.replace("'","''") + "%' OR u.email LIKE '%" + q.replace("'","''") + "%')" : "");
 
         @SuppressWarnings("unchecked")
         List<Object[]> rows = em.createNativeQuery(
-                "SELECT id,name,phone,email,role,status,image,wallet_m,wallet_c,commission_rate,created_at FROM users WHERE 1=1" +
-                conditions + " ORDER BY id DESC LIMIT " + size + " OFFSET " + (long) page * size)
+                "SELECT u.id, u.name, u.phone, u.email, u.role, u.status, u.image, u.wallet_m, u.wallet_c, u.commission_rate, u.created_at, " +
+                "u.introduce, u.full_content, u.user_id, ru.name AS refName " +
+                "FROM users u LEFT JOIN users ru ON u.user_id = ru.id " +
+                "WHERE 1=1" + conditions + " ORDER BY u.id " + safeSort + " LIMIT " + size + " OFFSET " + (long) page * size)
                 .getResultList();
 
         var content = rows.stream().map(r -> {
@@ -53,11 +62,15 @@ public class AdminUserController {
             m.put("image", r[6] != null ? r[6] : ""); m.put("walletM", r[7]);
             m.put("walletC", r[8]); m.put("commissionRate", r[9]);
             m.put("createdAt", r[10] != null ? r[10].toString() : "");
+            m.put("introduce", r[11] != null ? r[11] : "");
+            m.put("fullContent", r[12] != null ? r[12] : "");
+            m.put("refUserId", r[13]);
+            m.put("refName", r[14] != null ? r[14] : "");
             return m;
         }).toList();
 
         long total = ((Number) em.createNativeQuery(
-                "SELECT COUNT(*) FROM users WHERE 1=1" + conditions)
+                "SELECT COUNT(*) FROM users u LEFT JOIN users ru ON u.user_id = ru.id WHERE 1=1" + conditions)
                 .getSingleResult()).longValue();
 
         return ApiResponse.ok(Map.of("content", content, "total", total, "page", page, "size", size));
@@ -84,9 +97,35 @@ public class AdminUserController {
             if (body.containsKey("role")) u.setRole((String) body.get("role"));
             if (body.containsKey("status")) u.setStatus(toNumber(body.get("status")).byteValue());
             if (body.containsKey("commissionRate")) u.setCommissionRate(toNumber(body.get("commissionRate")).doubleValue());
+            if (body.get("image") != null) u.setImage(String.valueOf(body.get("image")));
+            if (body.get("introduce") != null) u.setIntroduce(String.valueOf(body.get("introduce")));
+            if (body.get("fullContent") != null) u.setFullContent(String.valueOf(body.get("fullContent")));
             userRepository.save(u);
             return ApiResponse.ok(u);
         }).orElse(ApiResponse.fail("Not found"));
+    }
+
+    @PostMapping("/{id}/reset-password")
+    public ApiResponse<?> resetPassword(@AuthenticationPrincipal User admin,
+            @PathVariable Long id, @RequestBody(required = false) Map<String, Object> body) {
+        if (!isAdmin(admin)) return ApiResponse.fail("Forbidden");
+        return userRepository.findById(id).map(user -> {
+            String newPassword;
+            Object pw = body != null ? body.get("password") : null;
+            if (pw != null && !String.valueOf(pw).isBlank()) {
+                newPassword = String.valueOf(pw);
+            } else {
+                // auto-generate 8 chars: letters + digits
+                String chars = "ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
+                StringBuilder sb = new StringBuilder();
+                java.util.Random rng = new java.util.Random();
+                for (int i = 0; i < 8; i++) sb.append(chars.charAt(rng.nextInt(chars.length())));
+                newPassword = sb.toString();
+            }
+            user.setPassword(passwordEncoder.encode(newPassword));
+            userRepository.save(user);
+            return ApiResponse.ok(Map.of("newPassword", newPassword));
+        }).orElse(ApiResponse.fail("User not found"));
     }
 
     private Number toNumber(Object v) {

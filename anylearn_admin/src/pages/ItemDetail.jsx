@@ -129,6 +129,12 @@ const switchItemProps = {
 export default function ItemDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const [exiting, setExiting] = useState(false)
+
+  function goBack() {
+    setExiting(true)
+    setTimeout(() => navigate(-1), 200)
+  }
   const { message } = App.useApp()
   const qc = useQueryClient()
   const isNew = id === 'new'
@@ -377,7 +383,7 @@ export default function ItemDetail() {
 
         <SectionCard title="Mô tả ngắn">
           <Form.Item name="shortContent" noStyle>
-            <Input.TextArea rows={3} maxLength={400} showCount onChange={() => setDirty(true)} />
+            <Input.TextArea rows={3} maxLength={400} showCount onChange={() => setDirty(true)} style={{marginBottom: 20}}/>
           </Form.Item>
         </SectionCard>
 
@@ -581,11 +587,12 @@ export default function ItemDetail() {
 
   return (
     // component={false}: outer Form manages state without rendering <form> HTML
+    <div className={exiting ? 'page-slide-out' : 'page-slide-in'}>
     <Form form={form} component={false} onValuesChange={() => setDirty(true)}>
       <div style={{ position: 'sticky', top: 0, zIndex: 10, background: '#fff', borderBottom: '1px solid #f0f0f0', padding: '8px 24px' }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, flex: 1, minWidth: 0 }}>
-            <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)} style={{ flexShrink: 0 }} />
+            <Button icon={<ArrowLeftOutlined />} onClick={goBack} style={{ flexShrink: 0 }} />
             <div style={{ minWidth: 0 }}>
               <Typography.Text strong style={{ fontSize: 15, wordBreak: 'break-word' }}>
                 {isNew ? 'Tạo khóa học mới' : item?.title}
@@ -611,5 +618,6 @@ export default function ItemDetail() {
         <Tabs items={tabItems} />
       </div>
     </Form>
+    </div>
   )
 }

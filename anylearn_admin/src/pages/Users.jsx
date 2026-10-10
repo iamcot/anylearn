@@ -1,27 +1,56 @@
-import { Button, Drawer, Form, Input, Select, Space, Table, Tag, Typography } from 'antd'
-import { EditOutlined, SaveOutlined, CloseOutlined } from '@ant-design/icons'
+import { Button, Drawer, Form, Input, Modal, Radio, Select, Space, Switch, Table, Tag, Typography, Upload } from 'antd'
+import { CopyOutlined, EditOutlined, SaveOutlined, CloseOutlined, RightOutlined, UploadOutlined } from '@ant-design/icons'
 import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import client from '../api/client'
 import { fmtVND, fmtDate, fmtDateTime } from '../utils/format'
 import { Field } from '../components/Field'
+import RichEditor from '../components/RichEditor'
+import { message } from 'antd'
 
 const MEMBER_ROLES = ['member', 'teacher', 'school']
 const statusTag = (v) => v == 1 ? <Tag color="green">Hoạt động</Tag> : <Tag color="red">Khoá</Tag>
 
+function AvatarUpload({ value, onChange }) {
+  const handleChange = async (info) => {
+    const file = info.file.originFileObj || info.file
+    if (!file) return
+    const formData = new FormData()
+    formData.append('file', file)
+    try {
+      const res = await client.post('/admin/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } })
+      const url = res.data?.data?.url
+      if (url) onChange(url)
+    } catch {}
+  }
+  return (
+    <Upload showUploadList={false} customRequest={({ file, onSuccess }) => { handleChange({ file }); onSuccess?.() }} accept="image/*">
+      <Space>
+        {value && <img src={value} alt="avatar" style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover' }} />}
+        <Button size="small" icon={<UploadOutlined />}>Chọn ảnh</Button>
+      </Space>
+    </Upload>
+  )
+}
 
 export default function Users() {
   const qc = useQueryClient()
   const [q, setQ] = useState('')
   const [role, setRole] = useState('')
+  const [statusFilter, setStatusFilter] = useState('')
   const [page, setPage] = useState(1)
+  const [sortDir, setSortDir] = useState('desc')
   const [selected, setSelected] = useState(null)
   const [editing, setEditing] = useState(false)
   const [form] = Form.useForm()
+  const [resetModal, setResetModal] = useState(false)
+  const [resetMode, setResetMode] = useState('auto')
+  const [manualPwd, setManualPwd] = useState('')
+  const [newPwdResult, setNewPwdResult] = useState(null)
 
   const { data, isLoading } = useQuery({
-    queryKey: ['admin-users', q, role, page],
-    queryFn: () => client.get('/admin/users', { params: { q, role: role || undefined, page: page - 1, size: 20 } }).then(r => r.data?.data ?? r.data),
+    queryKey: ['admin-users', q, role, statusFilter, page, sortDir],
+    queryFn: () => client.get('/admin/users', { params: { q, role: role || undefined, ...(statusFilter !== '' && { status: statusFilter }), page: page - 1, size: 20, sortDir } }).then(r => r.data?.data ?? r.data),
   })
 
   const mutation = useMutation({
@@ -33,9 +62,14 @@ export default function Users() {
     onSuccess: (res) => {
       qc.invalidateQueries(['admin-users'])
       setEditing(false)
-      // Update selected with saved data
       setSelected(prev => ({ ...prev, ...form.getFieldsValue(), status: Number(form.getFieldValue('status')), commissionRate: Number(form.getFieldValue('commissionRate')) / 100 }))
     },
+  })
+
+  const resetMutation = useMutation({
+    mutationFn: (pwd) => client.post(`/admin/users/${selected.id}/reset-password`, pwd ? { password: pwd } : {}).then(r => r.data?.data),
+    onSuccess: (data) => { setNewPwdResult(data?.newPassword) },
+    onError: () => message.error('Reset thất bại'),
   })
 
   useEffect(() => {
@@ -43,16 +77,29 @@ export default function Users() {
       name: selected.name, phone: selected.phone, email: selected.email,
       role: selected.role, status: String(selected.status),
       commissionRate: ((selected.commissionRate ?? 0) * 100).toFixed(0),
+      introduce: selected.introduce,
+      fullContent: selected.fullContent,
+      image: selected.image,
     })
   }, [selected, editing])
 
   const columns = [
-    { title: 'ID', dataIndex: 'id', width: 60 },
+    {
+      title: () => (
+        <span onClick={() => { setSortDir(d => d === 'asc' ? 'desc' : 'asc'); setPage(1) }}
+          style={{ cursor: 'pointer', userSelect: 'none' }}>
+          ID <span style={{ color: '#1677ff', fontSize: 10 }}>{sortDir === 'asc' ? '↑' : '↓'}</span>
+        </span>
+      ),
+      dataIndex: 'id', width: 70,
+    },
     { title: 'Tên', dataIndex: 'name' },
     { title: 'Điện thoại', dataIndex: 'phone' },
     { title: 'Role', dataIndex: 'role' },
+    { title: 'anyPoint', dataIndex: 'walletC', width: 100, render: v => (v ?? 0).toLocaleString('vi-VN') },
     { title: 'Trạng thái', dataIndex: 'status', render: statusTag },
     { title: 'Ngày tạo', dataIndex: 'createdAt', render: v => fmtDate(v) },
+    { dataIndex: 'id', key: 'arrow', width: 36, align: 'center', render: () => <RightOutlined style={{ color: '#bbb', fontSize: 11 }} /> },
   ]
 
   function openDrawer(row) { setSelected(row); setEditing(false) }
@@ -71,27 +118,31 @@ export default function Users() {
             <Select value={role} onChange={v => { setRole(v); setPage(1) }} style={{ width: 140 }}
               options={[{ value: '', label: 'Tất cả role' }, ...MEMBER_ROLES.map(r => ({ value: r, label: r }))]}
             />
+            <Select value={statusFilter} onChange={v => { setStatusFilter(v); setPage(1) }} style={{ width: 160 }}
+              options={[{ value: '', label: 'Tất cả trạng thái' }, { value: '1', label: 'Hoạt động' }, { value: '0', label: 'Khoá' }]}
+            />
           </Space>
           <Space>
             {data?.total != null && <Typography.Text type="secondary">{data.total.toLocaleString('vi-VN')} thành viên</Typography.Text>}
           </Space>
         </Space>
-      <Table
-        columns={columns} dataSource={data?.content ?? []} rowKey="id" loading={isLoading} size="small"
-        pagination={{
-          current: page, pageSize: 20, total: data?.total,
-          showSizeChanger: false, onChange: setPage,
-          showTotal: (t, range) => `${range[0]}–${range[1]} / ${t}`,
-        }}
-        onRow={row => ({ onClick: () => openDrawer(row), style: { cursor: 'pointer' } })}
-      />
+        <Table
+          columns={columns} dataSource={data?.content ?? []} rowKey="id" loading={isLoading} size="small"
+          scroll={{ x: 'max-content' }}
+          pagination={{
+            current: page, pageSize: 20, total: data?.total,
+            showSizeChanger: false, onChange: setPage,
+            showTotal: (t, range) => `${range[0]}–${range[1]} / ${t}`,
+          }}
+          onRow={row => ({ onClick: () => openDrawer(row), style: { cursor: 'pointer' } })}
+        />
       </div>
 
       <Drawer
         title={selected?.name || selected?.phone}
         open={!!selected}
         onClose={closeDrawer}
-        size="large"
+        width="75%"
         extra={
           editing ? (
             <Space>
@@ -99,11 +150,25 @@ export default function Users() {
               <Button type="primary" icon={<SaveOutlined />} loading={mutation.isPending} onClick={() => form.submit()}>Lưu</Button>
             </Space>
           ) : (
-            <Button icon={<EditOutlined />} onClick={() => setEditing(true)}>Sửa</Button>
+            <Space>
+              <Button onClick={() => { setResetModal(true); setResetMode('auto'); setManualPwd(''); setNewPwdResult(null) }}>
+                Reset mật khẩu
+              </Button>
+              <Button icon={<EditOutlined />} onClick={() => setEditing(true)}>Sửa</Button>
+            </Space>
           )
         }
       >
         <Form form={form} onFinish={mutation.mutate}>
+          <Field label="Avatar"
+            viewValue={selected?.image ? <img src={selected.image} alt="avatar" style={{ width: 60, height: 60, borderRadius: '50%', objectFit: 'cover' }} /> : '—'}
+            editContent={
+              <Form.Item name="image" noStyle>
+                <AvatarUpload value={form.getFieldValue('image')} onChange={url => form.setFieldValue('image', url)} />
+              </Form.Item>
+            }
+            editing={editing}
+          />
           <Field label="Tên" viewValue={selected?.name}
             editContent={<Form.Item name="name" noStyle><Input size="small" /></Form.Item>}
             editing={editing}
@@ -120,8 +185,15 @@ export default function Users() {
             editContent={<Form.Item name="role" noStyle><Select size="small" style={{ width: '100%' }} options={MEMBER_ROLES.map(r => ({ value: r, label: r }))} /></Form.Item>}
             editing={editing}
           />
-          <Field label="Trạng thái" viewValue={statusTag(selected?.status)}
-            editContent={<Form.Item name="status" noStyle><Select size="small" style={{ width: '100%' }} options={[{ value: '1', label: 'Hoạt động' }, { value: '0', label: 'Khoá' }]} /></Form.Item>}
+          <Field label="Trạng thái"
+            viewValue={statusTag(selected?.status)}
+            editContent={
+              <Form.Item name="status" noStyle valuePropName="checked"
+                getValueFromEvent={checked => checked ? '1' : '0'}
+                getValueProps={v => ({ checked: v === '1' || v === 1 })}>
+                <Switch checkedChildren="Hoạt động" unCheckedChildren="Khoá" />
+              </Form.Item>
+            }
             editing={editing}
           />
           <Field label="Hoa hồng" viewValue={`${((selected?.commissionRate ?? 0) * 100).toFixed(0)}%`}
@@ -130,8 +202,60 @@ export default function Users() {
           />
           <Field label="anyPoint" viewValue={`${(selected?.walletC ?? 0).toLocaleString()}`} editing={false} />
           <Field label="Ngày tạo" viewValue={fmtDate(selected?.createdAt)} editing={false} />
+          <Field label="Người giới thiệu" viewValue={selected?.refName || (selected?.refUserId ? '#' + selected.refUserId : '—')} editing={false} />
+          <Field label="Giới thiệu ngắn" viewValue={selected?.introduce}
+            editContent={<Form.Item name="introduce" noStyle><Input.TextArea size="small" rows={2} /></Form.Item>}
+            editing={editing}
+          />
+          <Field label="Giới thiệu đầy đủ"
+            viewValue={<div dangerouslySetInnerHTML={{ __html: selected?.fullContent || '' }} style={{ fontSize: 13 }} />}
+            editContent={
+              <Form.Item name="fullContent" noStyle>
+                <RichEditor value={form.getFieldValue('fullContent') || ''} onChange={v => form.setFieldValue('fullContent', v)} />
+              </Form.Item>
+            }
+            editing={editing}
+          />
         </Form>
       </Drawer>
+
+      <Modal
+        title="Reset mật khẩu"
+        open={resetModal}
+        onCancel={() => setResetModal(false)}
+        footer={newPwdResult ? [
+          <Button key="close" type="primary" onClick={() => setResetModal(false)}>Đóng</Button>
+        ] : [
+          <Button key="cancel" onClick={() => setResetModal(false)}>Huỷ</Button>,
+          <Button key="ok" type="primary" loading={resetMutation.isPending}
+            onClick={() => resetMutation.mutate(resetMode === 'manual' ? manualPwd : undefined)}>
+            Xác nhận
+          </Button>
+        ]}
+      >
+        {newPwdResult ? (
+          <div style={{ textAlign: 'center', padding: '16px 0' }}>
+            <Typography.Text type="secondary">Mật khẩu mới:</Typography.Text>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', marginTop: 8 }}>
+              <div style={{ background: '#f0f5ff', border: '1px solid #adc6ff', borderRadius: 8, padding: '10px 24px', fontSize: 18, fontWeight: 700, letterSpacing: 2 }}>
+                {newPwdResult}
+              </div>
+              <Button icon={<CopyOutlined />} onClick={() => { navigator.clipboard.writeText(newPwdResult); message.success('Đã sao chép') }} />
+            </div>
+          </div>
+        ) : (
+          <Space direction="vertical" style={{ width: '100%' }}>
+            <Radio.Group value={resetMode} onChange={e => setResetMode(e.target.value)}>
+              <Radio value="auto">Tự động (8 ký tự ngẫu nhiên)</Radio>
+              <Radio value="manual">Nhập mật khẩu mới</Radio>
+            </Radio.Group>
+            {resetMode === 'manual' && (
+              <Input value={manualPwd} onChange={e => setManualPwd(e.target.value)}
+                placeholder="Nhập mật khẩu mới" style={{ marginTop: 8 }} />
+            )}
+          </Space>
+        )}
+      </Modal>
     </div>
   )
 }

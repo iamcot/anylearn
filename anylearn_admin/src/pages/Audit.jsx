@@ -1,82 +1,100 @@
 import { App, Badge, Button, Space, Table, Tag, Typography } from 'antd'
-import { AuditOutlined, CheckCircleOutlined, ExclamationCircleOutlined } from '@ant-design/icons'
-import { useMutation } from '@tanstack/react-query'
-import { useState } from 'react'
+import { AuditOutlined, CheckCircleOutlined, ExclamationCircleOutlined, ReloadOutlined } from '@ant-design/icons'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import client from '../api/client'
-import { fmtVND } from '../utils/format'
+import { fmtVND, fmtDateTime } from '../utils/format'
+
+const detailColumns = [
+  { title: 'User ID',   dataIndex: 'userId',  width: 100 },
+  { title: 'wallet_c',  dataIndex: 'walletC', render: v => fmtVND(v) },
+  { title: 'Tổng tx duyệt', dataIndex: 'txSum', render: v => fmtVND(v) },
+  {
+    title: 'Sai lệch (Δ)',
+    dataIndex: 'delta',
+    render: v => <Tag color={v > 0 ? 'orange' : 'red'}>{v > 0 ? '+' : ''}{fmtVND(v)}</Tag>,
+  },
+]
+
+const runColumns = [
+  {
+    title: 'Thời gian chạy', dataIndex: 'ranAt', width: 180,
+    render: v => fmtDateTime(v),
+  },
+  {
+    title: 'Kích hoạt', dataIndex: 'triggeredBy', width: 120,
+    render: v => <Tag>{v === 'scheduled' ? '⏰ Tự động' : '▶ Thủ công'}</Tag>,
+  },
+  {
+    title: 'Trạng thái', dataIndex: 'status', width: 130,
+    render: (v, row) => v === 'ok'
+      ? <Tag icon={<CheckCircleOutlined />} color="success">Không sai lệch</Tag>
+      : <Tag icon={<ExclamationCircleOutlined />} color="warning">{row.discrepancyCount} sai lệch</Tag>,
+  },
+]
 
 export default function Audit() {
   const { message } = App.useApp()
-  const [result, setResult] = useState(null)
+  const qc = useQueryClient()
 
-  const auditMutation = useMutation({
-    mutationFn: () => client.post('/admin/audit/run').then(r => r.data?.data ?? r.data),
-    onSuccess: (data) => { setResult(data); if (data.total === 0) message.success('Không có sai lệch') },
+  const { data: logs, isLoading } = useQuery({
+    queryKey: ['admin-audit-logs'],
+    queryFn: () => client.get('/admin/audit/logs').then(r => r.data?.data ?? []),
+  })
+
+  const runMutation = useMutation({
+    mutationFn: () => client.post('/admin/audit/run').then(r => r.data?.data),
+    onSuccess: (data) => {
+      qc.invalidateQueries(['admin-audit-logs'])
+      if (data?.status === 'ok') message.success('Kiểm toán xong — không có sai lệch')
+      else message.warning(`Phát hiện ${data?.discrepancyCount} sai lệch`)
+    },
     onError: () => message.error('Kiểm toán thất bại'),
   })
 
-  const columns = [
-    { title: 'User ID', dataIndex: 'userId', width: 100 },
-    { title: 'wallet_c hiện tại', dataIndex: 'walletC', render: v => fmtVND(v) },
-    { title: 'Tổng giao dịch đã duyệt', dataIndex: 'txSum', render: v => fmtVND(v) },
-    {
-      title: 'Sai lệch (Δ)',
-      dataIndex: 'delta',
-      render: v => (
-        <Tag color={v > 0 ? 'orange' : 'red'}>
-          {v > 0 ? '+' : ''}{fmtVND(v)}
-        </Tag>
-      ),
-    },
-  ]
-
   return (
     <div style={{ padding: 24 }}>
-      <Typography.Title level={4} style={{ marginBottom: 4 }}>
-        <AuditOutlined style={{ marginRight: 8 }} />
-        Kiểm toán anyPoint
-      </Typography.Title>
-      <Typography.Text type="secondary" style={{ display: 'block', marginBottom: 20 }}>
-        So sánh số dư <code>wallet_c</code> với tổng giao dịch đã duyệt. Hệ thống cũng tự chạy lúc 8h sáng mỗi ngày.
-      </Typography.Text>
+      <div className="page-header">
+        <div className="page-title">Kiểm toán anyPoint</div>
+        <span className="page-subtitle">Lịch sử đối soát wallet_c — tự động chạy lúc 8h sáng mỗi ngày</span>
+      </div>
 
-      <Button
-        type="primary" icon={<AuditOutlined />}
-        loading={auditMutation.isPending}
-        onClick={() => auditMutation.mutate()}
-      >
-        Chạy kiểm toán ngay
-      </Button>
+      <div className="page-content">
+        <Space style={{ marginBottom: 16, width: '100%', justifyContent: 'space-between' }}>
+          <Typography.Text type="secondary">
+            So sánh <code>wallet_c</code> với tổng giao dịch đã duyệt của từng user.
+          </Typography.Text>
+          <Button
+            type="primary" icon={<AuditOutlined />}
+            loading={runMutation.isPending}
+            onClick={() => runMutation.mutate()}
+          >
+            Chạy ngay
+          </Button>
+        </Space>
 
-      {result && (
-        <div style={{ marginTop: 24 }}>
-          {result.total === 0 ? (
-            <Space style={{ padding: '16px 20px', background: '#f6ffed', border: '1px solid #b7eb8f', borderRadius: 8 }}>
-              <CheckCircleOutlined style={{ color: '#52c41a', fontSize: 20 }} />
-              <Typography.Text strong style={{ color: '#389e0d' }}>
-                Tất cả số dư wallet_c khớp với giao dịch — không có sai lệch.
-              </Typography.Text>
-            </Space>
-          ) : (
-            <>
-              <Space style={{ padding: '12px 20px', background: '#fff7e6', border: '1px solid #ffd591', borderRadius: 8, marginBottom: 16 }}>
-                <ExclamationCircleOutlined style={{ color: '#fa8c16', fontSize: 20 }} />
-                <Typography.Text strong style={{ color: '#d46b08' }}>
-                  Phát hiện <Badge count={result.total} color="orange" /> user có số dư không khớp.
-                </Typography.Text>
-              </Space>
+        <Table
+          rowKey="id"
+          dataSource={logs ?? []}
+          columns={runColumns}
+          loading={isLoading}
+          size="small"
+          scroll={{ x: 'max-content' }}
+          pagination={{ pageSize: 20, showSizeChanger: false }}
+          expandable={{
+            rowExpandable: row => row.discrepancyCount > 0,
+            expandedRowRender: row => (
               <Table
                 size="small"
-                dataSource={result.items}
-                columns={columns}
+                dataSource={row.details ?? []}
+                columns={detailColumns}
                 rowKey="userId"
                 pagination={false}
-                style={{ background: '#fff', borderRadius: 8, overflow: 'hidden' }}
+                style={{ margin: '8px 0' }}
               />
-            </>
-          )}
-        </div>
-      )}
+            ),
+          }}
+        />
+      </div>
     </div>
   )
 }

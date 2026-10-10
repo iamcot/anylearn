@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getNotifications, markNotificationRead, markAllNotificationsRead, AppNotification } from '@/lib/api'
 
@@ -14,6 +14,7 @@ const SKIP_TYPES = new Set(['sms', 'zalo'])
 
 function resolveRoute(route?: string, extraContent?: string): string | null {
   if (!route) return null
+  if (route.startsWith('/admin')) return null   // admin-only routes — not navigable on user frontend
   switch (route) {
     case '/pdp':              return extraContent ? `/class/${extraContent}/khoa-hoc` : null
     case '/account':
@@ -22,6 +23,7 @@ function resolveRoute(route?: string, extraContent?: string): string | null {
     case '/account/friends':
     case '/transaction':
     case '/foundation':       return '/account/anypoint'
+    case '/orders':           return '/account/orders'
     case '/article':          return extraContent ? `/article/${extraContent}/bai-viet.html` : '/article'
     default:                  return null
   }
@@ -57,15 +59,6 @@ export default function NotificationDropdown({ token, onClose, onUnreadChange }:
   const [loading, setLoading] = useState(true)
   const [copied, setCopied] = useState<number | null>(null)
   const router = useRouter()
-  const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) onClose()
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [onClose])
 
   useEffect(() => {
     getNotifications(token, 0).then(res => {
@@ -108,23 +101,21 @@ export default function NotificationDropdown({ token, onClose, onUnreadChange }:
     await markRead(notif)
 
     const dest = resolveRoute(notif.route, notif.extraContent)
-    if (dest) {
-      onClose()
-      router.push(dest)
-    }
+    if (dest) router.push(dest)
+    onClose()
   }
 
   const visibleItems = items
   const hasUnread = visibleItems.some(n => !n.read)
 
   return (
-    <div ref={ref}
+    <div
       className="absolute right-0 top-full mt-2 w-96 bg-white border border-[#e6edf4] rounded-[18px] shadow-[0_12px_40px_rgba(15,23,42,0.14)] overflow-hidden z-50">
 
       <div className="flex items-center justify-between px-4 py-3 border-b border-[#e6edf4]">
         <span className="font-black text-[#17212f] text-sm">Thông báo</span>
         {hasUnread && (
-          <button onClick={handleMarkAllRead}
+          <button type="button" onClick={handleMarkAllRead}
             className="text-xs text-blue hover:underline font-black">
             Đánh dấu tất cả đã đọc
           </button>

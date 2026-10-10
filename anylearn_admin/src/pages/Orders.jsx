@@ -1,4 +1,5 @@
 import { App, Button, Drawer, Input, Popconfirm, Select, Space, Table, Tag, Typography } from 'antd'
+import { RightOutlined } from '@ant-design/icons'
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import client from '../api/client'
@@ -25,13 +26,31 @@ export default function Orders() {
   const [q, setQ] = useState('')
   const [status, setStatus] = useState('')
   const [payment, setPayment] = useState('')
+  const [partnerId, setPartnerId] = useState('')
+  const [sortDir, setSortDir] = useState('desc')
   const [page, setPage] = useState(1)
   const [selectedKeys, setSelectedKeys] = useState([])
   const [drawerOrder, setDrawerOrder] = useState(null)
 
+  const { data: partners } = useQuery({
+    queryKey: ['admin-partners'],
+    queryFn: () => client.get('/admin/partners').then(r => r.data?.data ?? []),
+    staleTime: 5 * 60_000,
+  })
+
   const { data, isLoading } = useQuery({
-    queryKey: ['admin-orders', q, status, payment, page],
-    queryFn: () => client.get('/admin/orders', { params: { q, ...(status && { status }), ...(payment && { payment }), page: page - 1, size: 20 } }).then(r => r.data?.data ?? r.data),
+    queryKey: ['admin-orders', q, status, payment, partnerId, sortDir, page],
+    queryFn: () => client.get('/admin/orders', {
+      params: {
+        q,
+        ...(status && { status }),
+        ...(payment && { payment }),
+        ...(partnerId && { partnerId }),
+        sortDir,
+        page: page - 1,
+        size: 20,
+      }
+    }).then(r => r.data?.data ?? r.data),
   })
 
   const { data: orderDetail } = useQuery({
@@ -51,13 +70,40 @@ export default function Orders() {
   })
 
   const columns = [
-    { title: 'ID', dataIndex: 'id', width: 70 },
+    {
+      title: () => (
+        <span onClick={() => { setSortDir(d => d === 'asc' ? 'desc' : 'asc'); setPage(1) }}
+          style={{ cursor: 'pointer', userSelect: 'none' }}>
+          ID <span style={{ color: '#1677ff', fontSize: 10 }}>{sortDir === 'asc' ? '↑' : '↓'}</span>
+        </span>
+      ),
+      dataIndex: 'id', width: 70,
+    },
     { title: 'Người mua', dataIndex: 'buyerName' },
     { title: 'SĐT', dataIndex: 'buyerPhone' },
     { title: 'Số tiền', dataIndex: 'amount', render: v => fmtVND(v) },
     { title: 'Thanh toán', dataIndex: 'payment' },
+    {
+      title: 'Đối tác', dataIndex: 'partnerNames', ellipsis: true,
+      render: (names, row) => {
+        if (!names) return null
+        const nameArr = String(names).split(', ')
+        const idArr = row.partnerIds ? String(row.partnerIds).split(',') : []
+        return (
+          <Space size={4} wrap>
+            {nameArr.map((n, i) => (
+              <Tag key={i} style={{ cursor: 'pointer' }}
+                onClick={e => { e.stopPropagation(); setPartnerId(idArr[i] || ''); setPage(1) }}>
+                {n}
+              </Tag>
+            ))}
+          </Space>
+        )
+      }
+    },
     { title: 'Trạng thái', dataIndex: 'status', render: statusTag },
     { title: 'Ngày đặt', dataIndex: 'createdAt', render: v => fmtDate(v) },
+    { dataIndex: 'id', width: 36, align: 'center', render: () => <RightOutlined style={{ color: '#bbb', fontSize: 11 }} /> },
   ]
 
   const rowSelection = { selectedRowKeys: selectedKeys, onChange: setSelectedKeys }
@@ -78,6 +124,11 @@ export default function Orders() {
           <Select value={payment} onChange={v => { setPayment(v); setPage(1) }} style={{ width: 150 }}
             options={[{ value: '', label: 'Tất cả PTTT' }, { value: 'bank_transfer', label: 'bank_transfer' }, { value: 'vnpay', label: 'vnpay' }, { value: 'momo', label: 'momo' }]}
           />
+          <Select value={partnerId || undefined} onChange={v => { setPartnerId(v ?? ''); setPage(1) }}
+            style={{ width: 180 }} showSearch optionFilterProp="label" allowClear
+            placeholder="Tất cả đối tác"
+            options={(partners ?? []).map(p => ({ value: String(p.id), label: p.name || p.phone }))}
+          />
         </Space>
         <Space>
           {data?.total != null && <Typography.Text type="secondary">{data.total.toLocaleString('vi-VN')} đơn hàng</Typography.Text>}
@@ -96,6 +147,7 @@ export default function Orders() {
       <Table
         columns={columns} dataSource={data?.content ?? []} rowKey="id" loading={isLoading} size="small"
         rowSelection={rowSelection}
+        scroll={{ x: 'max-content' }}
         pagination={{
           current: page, pageSize: 20, total: data?.total,
           showSizeChanger: false, onChange: setPage,
@@ -115,14 +167,20 @@ export default function Orders() {
           <div style={{ marginTop: 16 }}>
             <div style={{ fontWeight: 600, marginBottom: 8 }}>Sản phẩm</div>
             {orderDetail?.items?.map(item => (
-              <div key={item.id} style={{ padding: '6px 0', borderBottom: '1px solid #f0f0f0', fontSize: 13 }}>
-                <div>{item.title}</div>
-                {item.studentName && (
-                  <div style={{ color: '#1677ff', fontSize: 12 }}>
-                    Học sinh: {item.studentName}{item.isChild ? ' (tài khoản con)' : ''}
-                  </div>
-                )}
-                <div style={{ color: '#666' }}>{Number(item.paidPrice ?? 0).toLocaleString()}đ · {statusTag(item.status)}</div>
+              <div key={item.id} style={{ padding: '8px 0', borderBottom: '1px solid #f0f0f0', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, fontSize: 13 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 500 }}>{item.title}</div>
+                  {item.studentName && (
+                    <div style={{ color: '#1677ff', fontSize: 12 }}>
+                      Học sinh: {item.studentName}{item.isChild ? ' (tài khoản con)' : ''}
+                    </div>
+                  )}
+                  {item.ownerName && <div style={{ color: '#888', fontSize: 12 }}>Đối tác: {item.ownerName}</div>}
+                </div>
+                <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                  <div style={{ fontWeight: 600 }}>{Number(item.paidPrice ?? 0).toLocaleString()}đ</div>
+                  <div style={{ marginTop: 2 }}>{statusTag(item.status)}</div>
+                </div>
               </div>
             ))}
           </div>

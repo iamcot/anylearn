@@ -33,17 +33,33 @@ public class AdminOrderController {
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String payment,
-            @RequestParam(required = false) String q) {
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) Long partnerId,
+            @RequestParam(defaultValue = "desc") String sortDir) {
         if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
+
+        String safeSort = "asc".equalsIgnoreCase(sortDir) ? "ASC" : "DESC";
 
         var conditions =
                   (status != null && !status.isBlank() ? " AND o.status='" + status.replace("'","''") + "'" : "") +
                   (payment != null && !payment.isBlank() ? " AND o.payment='" + payment.replace("'","''") + "'" : "") +
-                  (q != null && !q.isBlank() ? " AND (u.name LIKE '%" + q.replace("'","''") + "%' OR u.phone LIKE '%" + q.replace("'","''") + "%')" : "");
+                  (q != null && !q.isBlank() ? " AND (u.name LIKE '%" + q.replace("'","''") + "%' OR u.phone LIKE '%" + q.replace("'","''") + "%')" : "") +
+                  (partnerId != null ? " AND pu.id=" + partnerId : "");
 
-        var sql = "SELECT o.id, o.amount, o.status, o.payment, o.created_at, u.name, u.phone " +
-                  "FROM orders o LEFT JOIN users u ON o.user_id = u.id WHERE 1=1" +
-                  conditions + " ORDER BY o.id DESC LIMIT " + size + " OFFSET " + (long) page * size;
+        var baseSql = "FROM orders o " +
+                  "LEFT JOIN users u ON o.user_id = u.id " +
+                  "LEFT JOIN order_details od ON od.order_id = o.id " +
+                  "LEFT JOIN items i ON od.item_id = i.id " +
+                  "LEFT JOIN users pu ON i.user_id = pu.id " +
+                  "WHERE 1=1" + conditions;
+
+        var sql = "SELECT o.id, o.amount, o.status, o.payment, o.created_at, u.name AS buyerName, u.phone AS buyerPhone, " +
+                  "GROUP_CONCAT(DISTINCT pu.name SEPARATOR ', ') AS partnerNames, " +
+                  "GROUP_CONCAT(DISTINCT pu.id SEPARATOR ',') AS partnerIds " +
+                  baseSql +
+                  " GROUP BY o.id, o.status, o.payment, o.amount, o.created_at, u.name, u.phone" +
+                  " ORDER BY o.id " + safeSort +
+                  " LIMIT " + size + " OFFSET " + (long) page * size;
 
         @SuppressWarnings("unchecked")
         List<Object[]> rows = em.createNativeQuery(sql).getResultList();
@@ -53,11 +69,15 @@ public class AdminOrderController {
             m.put("id", r[0]); m.put("amount", r[1]); m.put("status", r[2] != null ? r[2] : "");
             m.put("payment", r[3] != null ? r[3] : ""); m.put("createdAt", r[4] != null ? r[4].toString() : "");
             m.put("buyerName", r[5] != null ? r[5] : ""); m.put("buyerPhone", r[6] != null ? r[6] : "");
+            m.put("partnerNames", r[7] != null ? r[7] : "");
+            m.put("partnerIds", r[8] != null ? r[8] : "");
             return m;
         }).toList();
 
         long total = ((Number) em.createNativeQuery(
-                "SELECT COUNT(*) FROM orders o LEFT JOIN users u ON o.user_id = u.id WHERE 1=1" + conditions)
+                "SELECT COUNT(*) FROM (" +
+                "SELECT o.id " + baseSql + " GROUP BY o.id" +
+                ") t")
                 .getSingleResult()).longValue();
 
         return ApiResponse.ok(Map.of("content", content, "total", total, "page", page, "size", size));
@@ -70,9 +90,10 @@ public class AdminOrderController {
         @SuppressWarnings("unchecked")
         List<Object[]> details = em.createNativeQuery(
                 "SELECT od.id, od.item_id, i.title, od.unit_price, od.paid_price, od.status, " +
-                "u.name AS studentName, u.is_child " +
+                "u.name AS studentName, u.is_child, partner.name AS ownerName " +
                 "FROM order_details od JOIN items i ON od.item_id = i.id " +
                 "LEFT JOIN users u ON od.user_id = u.id " +
+                "LEFT JOIN users partner ON i.user_id = partner.id " +
                 "WHERE od.order_id = ?1")
                 .setParameter(1, id).getResultList();
 
@@ -86,6 +107,7 @@ public class AdminOrderController {
                 d.put("studentName", r[6] != null ? r[6] : "");
                 boolean isChild = r[7] != null && ((Number) r[7]).intValue() == 1;
                 d.put("isChild", isChild);
+                d.put("ownerName", r[8] != null ? r[8] : "");
                 return d;
             }).toList());
             return ApiResponse.ok(m);

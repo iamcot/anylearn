@@ -8,11 +8,13 @@ import com.anylearn.backend.service.AuthService;
 import com.anylearn.backend.service.AuditService;
 import com.anylearn.backend.service.MeilisearchService;
 import com.anylearn.backend.service.NotificationService;
+import com.anylearn.backend.service.S3Service;
 import com.anylearn.backend.service.ZnsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import com.anylearn.backend.repository.CategoryRepository;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.persistence.EntityManager;
 import java.util.LinkedHashMap;
@@ -33,6 +35,7 @@ public class AdminController {
     private final CategoryRepository categoryRepository;
     private final AuditService auditService;
     private final EntityManager em;
+    private final S3Service s3Service;
 
     /** All categories regardless of status — for admin item editing */
     @GetMapping("/categories")
@@ -151,18 +154,21 @@ public class AdminController {
         }).orElse(ApiResponse.fail("Config key not found: " + key));
     }
 
-    /** Run wallet_c reconciliation audit. Returns list of discrepancies. */
+    /** Run wallet_c reconciliation audit. Returns list of discrepancies and persists a log entry. */
     @PostMapping("/audit/run")
     public ApiResponse<?> auditRun(@AuthenticationPrincipal User user) {
         if (user == null || !"admin".equals(user.getRole())) return ApiResponse.fail("Forbidden");
-        var discrepancies = auditService.runWalletAudit();
-        return ApiResponse.ok(Map.of(
-                "total", discrepancies.size(),
-                "items", discrepancies.stream().map(d -> Map.of(
-                        "userId", d.userId(), "walletC", d.walletC(),
-                        "txSum", d.txSum(), "delta", d.delta()
-                )).toList()
-        ));
+        var run = auditService.auditAndNotify("manual");
+        var details = auditService.getRecentRuns(1);
+        return ApiResponse.ok(details.isEmpty() ? Map.of("status", run.getStatus(), "discrepancyCount", run.getDiscrepancyCount()) : details.get(0));
+    }
+
+    /** Fetch recent audit run history (newest first, up to 20 runs). */
+    @GetMapping("/audit/logs")
+    public ApiResponse<?> auditLogs(@AuthenticationPrincipal User user,
+                                    @RequestParam(defaultValue = "20") int limit) {
+        if (user == null || !"admin".equals(user.getRole())) return ApiResponse.fail("Forbidden");
+        return ApiResponse.ok(auditService.getRecentRuns(Math.min(limit, 50)));
     }
 
     /**
@@ -274,5 +280,22 @@ public class AdminController {
         if (to   != null && !to.isBlank())   sb.append(" AND t.created_at <= '").append(to).append(" 23:59:59'");
         if (status != null)                  sb.append(" AND t.status = ").append(status);
         return sb.toString();
+    }
+
+    private boolean isAdmin(User user) {
+        return user != null && "admin".equals(user.getRole());
+    }
+
+    @PostMapping("/upload")
+    public ApiResponse<?> upload(
+            @AuthenticationPrincipal User user,
+            @RequestParam("file") MultipartFile file) {
+        if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
+        try {
+            String url = s3Service.uploadImage(file, "admin");
+            return ApiResponse.ok(Map.of("url", url));
+        } catch (Exception e) {
+            return ApiResponse.fail("Upload thất bại: " + e.getMessage());
+        }
     }
 }

@@ -31,8 +31,11 @@ public class AdminArticleController {
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) Integer status,
             @RequestParam(required = false) String type,
-            @RequestParam(required = false) String q) {
+            @RequestParam(required = false) String q,
+            @RequestParam(defaultValue = "desc") String sortDir) {
         if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
+
+        String safeSort = "asc".equalsIgnoreCase(sortDir) ? "ASC" : "DESC";
 
         var conditions =
                   (status != null ? " AND a.status=" + status : "") +
@@ -40,9 +43,9 @@ public class AdminArticleController {
                   (q != null && !q.isBlank() ? " AND a.title LIKE '%" + q.replace("'","''") + "%'" : "");
 
         var sql = "SELECT a.id, a.title, a.type, a.status, a.is_hot, a.view, a.created_at, " +
-                  "u.name AS authorName " +
+                  "u.name AS authorName, a.image " +
                   "FROM articles a LEFT JOIN users u ON a.user_id = u.id WHERE 1=1" +
-                  conditions + " ORDER BY a.id DESC LIMIT " + size + " OFFSET " + (long) page * size;
+                  conditions + " ORDER BY a.id " + safeSort + " LIMIT " + size + " OFFSET " + (long) page * size;
 
         @SuppressWarnings("unchecked")
         List<Object[]> rows = em.createNativeQuery(sql).getResultList();
@@ -54,6 +57,7 @@ public class AdminArticleController {
             m.put("isHot", r[4]); m.put("view", r[5]);
             m.put("createdAt", r[6] != null ? r[6].toString() : "");
             m.put("authorName", r[7] != null ? r[7] : "");
+            m.put("image", r[8] != null ? r[8] : "");
             return m;
         }).toList();
 
@@ -67,9 +71,18 @@ public class AdminArticleController {
     @GetMapping("/{id}")
     public ApiResponse<?> detail(@AuthenticationPrincipal User user, @PathVariable Long id) {
         if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
-        return articleRepository.findById(id)
-                .map(ApiResponse::ok)
-                .orElse(ApiResponse.fail("Not found"));
+        return articleRepository.findById(id).map(a -> {
+            var m = new LinkedHashMap<String, Object>();
+            m.put("id", a.getId()); m.put("title", a.getTitle());
+            m.put("type", a.getType()); m.put("status", a.getStatus());
+            m.put("isHot", a.getIsHot()); m.put("view", a.getView());
+            m.put("shortContent", a.getShortContent());
+            m.put("content", a.getContent());
+            m.put("image", a.getImage()); m.put("video", a.getVideo());
+            m.put("tags", a.getTags());
+            m.put("createdAt", a.getCreatedAt() != null ? a.getCreatedAt().toString() : null);
+            return ApiResponse.ok(m);
+        }).orElse(ApiResponse.fail("Not found"));
     }
 
     @PutMapping("/{id}")
@@ -85,6 +98,9 @@ public class AdminArticleController {
             if (body.containsKey("status")) a.setStatus(((Number) body.get("status")).byteValue());
             if (body.containsKey("isHot")) a.setIsHot(((Number) body.get("isHot")).byteValue());
             if (body.containsKey("type")) a.setType((String) body.get("type"));
+            if (body.get("image") != null) a.setImage(String.valueOf(body.get("image")));
+            if (body.get("video") != null) a.setVideo(String.valueOf(body.get("video")));
+            if (body.get("tags") != null) a.setTags(String.valueOf(body.get("tags")));
             articleRepository.save(a);
             return ApiResponse.ok(a);
         }).orElse(ApiResponse.fail("Not found"));

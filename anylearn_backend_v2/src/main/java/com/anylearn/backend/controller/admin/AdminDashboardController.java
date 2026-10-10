@@ -41,8 +41,8 @@ public class AdminDashboardController {
         data.put("newPartners",   count("SELECT COUNT(*) FROM users WHERE role IN ('teacher','school') AND created_at BETWEEN ?1 AND ?2", start, end));
         data.put("totalItems",    count("SELECT COUNT(*) FROM items"));
         data.put("newItems",      count("SELECT COUNT(*) FROM items WHERE created_at BETWEEN ?1 AND ?2", start, end));
-        data.put("totalOrders",   count("SELECT COUNT(*) FROM orders"));
-        data.put("newOrders",     count("SELECT COUNT(*) FROM orders WHERE created_at BETWEEN ?1 AND ?2", start, end));
+        data.put("totalOrders",   count("SELECT COUNT(*) FROM orders WHERE status='delivered'"));
+        data.put("newOrders",     count("SELECT COUNT(*) FROM orders WHERE status='delivered' AND created_at BETWEEN ?1 AND ?2", start, end));
         data.put("totalRevenue",  sum("SELECT COALESCE(SUM(amount),0) FROM orders WHERE status='delivered'"));
         data.put("periodRevenue", sum("SELECT COALESCE(SUM(amount),0) FROM orders WHERE status='delivered' AND created_at BETWEEN ?1 AND ?2", start, end));
         return ApiResponse.ok(data);
@@ -100,13 +100,13 @@ public class AdminDashboardController {
 
         @SuppressWarnings("unchecked")
         List<Object[]> rows = em.createNativeQuery(
-                "SELECT u.id, u.name, u.phone, COUNT(od.id) AS orderCount, COALESCE(SUM(od.paid_price),0) AS revenue " +
+                "SELECT u.id, u.name, u.phone, COUNT(od.id) AS orderCount, COALESCE(SUM(od.paid_price * od.quanity),0) AS revenue " +
                 "FROM order_details od " +
                 "JOIN orders o ON od.order_id = o.id AND o.status = 'delivered' " +
                 "JOIN items i ON od.item_id = i.id " +
                 "JOIN users u ON i.user_id = u.id " +
-                "WHERE od.created_at BETWEEN ?1 AND ?2 " +
-                "GROUP BY u.id ORDER BY orderCount DESC LIMIT ?3")
+                "WHERE od.status = 'delivered' AND od.created_at BETWEEN ?1 AND ?2 " +
+                "GROUP BY u.id ORDER BY revenue DESC LIMIT ?3")
                 .setParameter(1, start).setParameter(2, end).setParameter(3, limit)
                 .getResultList();
         return ApiResponse.ok(rows.stream().map(r -> Map.of(
@@ -126,18 +126,19 @@ public class AdminDashboardController {
 
         @SuppressWarnings("unchecked")
         List<Object[]> rows = em.createNativeQuery(
-                "SELECT i.id, i.title, COUNT(od.id) AS orderCount, u.name AS ownerName " +
+                "SELECT i.id, i.title, COUNT(od.id) AS orderCount, u.name AS ownerName, COALESCE(SUM(od.paid_price * od.quanity),0) AS revenue " +
                 "FROM order_details od " +
                 "JOIN orders o ON od.order_id = o.id AND o.status = 'delivered' " +
                 "JOIN items i ON od.item_id = i.id " +
                 "JOIN users u ON i.user_id = u.id " +
-                "WHERE od.created_at BETWEEN ?1 AND ?2 " +
+                "WHERE od.status = 'delivered' AND od.created_at BETWEEN ?1 AND ?2 " +
                 "GROUP BY i.id ORDER BY orderCount DESC LIMIT ?3")
                 .setParameter(1, start).setParameter(2, end).setParameter(3, limit)
                 .getResultList();
         return ApiResponse.ok(rows.stream().map(r -> Map.of(
                 "itemId", r[0], "title", r[1] != null ? r[1] : "",
-                "orderCount", r[2], "ownerName", r[3] != null ? r[3] : "")).toList());
+                "orderCount", r[2], "ownerName", r[3] != null ? r[3] : "",
+                "revenue", r[4])).toList());
     }
 
     @GetMapping("/chart/items")
@@ -171,7 +172,7 @@ public class AdminDashboardController {
         @SuppressWarnings("unchecked")
         List<Object[]> rows = em.createNativeQuery(
                 "SELECT " + exprs[1] + " AS d, COUNT(*) AS c FROM orders " +
-                "WHERE created_at BETWEEN ?1 AND ?2 GROUP BY " + exprs[0] + " ORDER BY " + exprs[0])
+                "WHERE status='delivered' AND created_at BETWEEN ?1 AND ?2 GROUP BY " + exprs[0] + " ORDER BY " + exprs[0])
                 .setParameter(1, start).setParameter(2, end).getResultList();
         return ApiResponse.ok(rows.stream().map(r -> Map.of("date", r[0].toString(), "count", r[1])).toList());
     }

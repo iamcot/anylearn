@@ -9,6 +9,7 @@ const TYPE_LABELS: Record<string, string> = {
   commission_add: 'Cộng điểm bổ sung',
   activitybonus:  'Thưởng hoạt động',
   exchange:       'Đổi điểm',
+  exchange_refund: 'Hoàn điểm',
 }
 
 const STATUS_CONFIG: Record<number, { label: string; cls: string }> = {
@@ -46,7 +47,7 @@ export default function AnypointPage() {
             <div className="text-xs text-muted mb-1">Số dư hiện tại</div>
             <div className="text-3xl font-black text-ink">
               🟡 {(user?.walletC ?? 0).toLocaleString()}
-              <span className="text-base font-bold text-muted ml-1">pts</span>
+              <span className="text-base font-bold text-muted ml-1">anyPoint</span>
             </div>
           </div>
           {totalPending > 0 && (
