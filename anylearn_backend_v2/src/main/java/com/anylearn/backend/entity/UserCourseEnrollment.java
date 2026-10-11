@@ -38,6 +38,12 @@ public class UserCourseEnrollment {
     @Column(nullable = false)
     private String status = "pending";
 
+    @Column(name = "remind_sent_at")
+    private LocalDateTime remindSentAt;
+
+    @Column(name = "remind_count", nullable = false)
+    private Integer remindCount = 0;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 

@@ -12,14 +12,15 @@ import logo from '/LogoanyLEARN.svg'
 import '../styles/themes.css'
 
 const NAV_ITEMS = [
-  { key: '/dashboard',   icon: <DashboardOutlined />, label: 'Tổng quan'  },
-  { key: '/items',       icon: <BookOutlined />,       label: 'Khóa học'  },
-  { key: '/users',       icon: <TeamOutlined />,      label: 'Thành viên' },
-  { key: '/orders',      icon: <OrderedListOutlined />, label: 'Đơn hàng' },
-  { key: '/activities',  icon: <CalendarOutlined />,    label: 'Hoạt động' },
-  { key: '/transactions',icon: <SwapOutlined />,      label: 'anyPoints'  },
-  { key: '/finance',     icon: <FundOutlined />,      label: 'Tài chính'  },
-  { key: '/articles',    icon: <FileTextOutlined />,  label: 'Bài viết'   },
+  { key: '/dashboard',        icon: <DashboardOutlined />,   label: 'Tổng quan'  },
+  { key: '/items',            icon: <BookOutlined />,        label: 'Khóa học'   },
+  { key: '/users',            icon: <TeamOutlined />,        label: 'Thành viên' },
+  { key: '/orders',           icon: <OrderedListOutlined />, label: 'Đơn hàng'  },
+  { key: '/activities',       icon: <CalendarOutlined />,    label: 'Hoạt động'  },
+  { key: '/schedule-monitor', icon: <CalendarOutlined />,    label: 'Lịch học'   },
+  { key: '/transactions',     icon: <SwapOutlined />,        label: 'anyPoints'  },
+  { key: '/finance',          icon: <FundOutlined />,        label: 'Tài chính'  },
+  { key: '/articles',         icon: <FileTextOutlined />,    label: 'Bài viết'   },
 ]
 
 const SETTINGS_MENU = [
