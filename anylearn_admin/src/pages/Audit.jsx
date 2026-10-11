@@ -5,7 +5,16 @@ import client from '../api/client'
 import { fmtVND, fmtDateTime } from '../utils/format'
 
 const detailColumns = [
-  { title: 'User ID',   dataIndex: 'userId',  width: 100 },
+  { title: 'User ID', dataIndex: 'userId', width: 80 },
+  {
+    title: 'Người dùng', key: 'user', width: 160,
+    render: (_, r) => (
+      <div>
+        <div style={{ fontSize: 13, fontWeight: 600 }}>{r.userName || '—'}</div>
+        <div style={{ fontSize: 11, color: '#888' }}>{r.userPhone}</div>
+      </div>
+    ),
+  },
   { title: 'wallet_c',  dataIndex: 'walletC', render: v => fmtVND(v) },
   { title: 'Tổng tx duyệt', dataIndex: 'txSum', render: v => fmtVND(v) },
   {

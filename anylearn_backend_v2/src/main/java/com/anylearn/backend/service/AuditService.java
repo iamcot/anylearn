@@ -29,7 +29,7 @@ public class AuditService {
     private final AuditRunRepository auditRunRepository;
     private final AuditRunDetailRepository auditRunDetailRepository;
 
-    public record AuditDiscrepancy(long userId, long walletC, long txSum, long delta) {}
+    public record AuditDiscrepancy(long userId, String userName, String userPhone, long walletC, long txSum, long delta) {}
 
     // Types that actually affect wallet_c:
     //   exchange (-) + exchange_refund (+) net to 0 when order cancelled — both stay status=1
@@ -38,20 +38,22 @@ public class AuditService {
     @SuppressWarnings("unchecked")
     public List<AuditDiscrepancy> runWalletAudit() {
         String sql = """
-                SELECT u.id, u.wallet_c,
+                SELECT u.id, u.name, u.phone, u.wallet_c,
                        COALESCE(SUM(CASE WHEN t.type IN (%s) THEN t.amount ELSE 0 END), 0) AS tx_sum
                 FROM users u
                 LEFT JOIN transactions t ON t.user_id = u.id AND t.status = 1
-                GROUP BY u.id, u.wallet_c
+                GROUP BY u.id, u.name, u.phone, u.wallet_c
                 HAVING u.wallet_c != COALESCE(SUM(CASE WHEN t.type IN (%s) THEN t.amount ELSE 0 END), 0)
                 """.formatted(WALLET_TYPES, WALLET_TYPES);
         List<Object[]> rows = em.createNativeQuery(sql).getResultList();
         List<AuditDiscrepancy> result = new ArrayList<>();
         for (Object[] r : rows) {
-            long userId  = ((Number) r[0]).longValue();
-            long walletC = ((Number) r[1]).longValue();
-            long txSum   = ((Number) r[2]).longValue();
-            result.add(new AuditDiscrepancy(userId, walletC, txSum, walletC - txSum));
+            long userId    = ((Number) r[0]).longValue();
+            String name    = r[1] != null ? r[1].toString() : "";
+            String phone   = r[2] != null ? r[2].toString() : "";
+            long walletC   = ((Number) r[3]).longValue();
+            long txSum     = ((Number) r[4]).longValue();
+            result.add(new AuditDiscrepancy(userId, name, phone, walletC, txSum, walletC - txSum));
         }
         return result;
     }
@@ -115,12 +117,18 @@ public class AuditService {
                 .map(run -> {
                     List<Map<String, Object>> details = auditRunDetailRepository.findByRunId(run.getId())
                             .stream()
-                            .map(d -> Map.<String, Object>of(
-                                    "userId", d.getUserId(),
-                                    "walletC", d.getWalletC(),
-                                    "txSum", d.getTxSum(),
-                                    "delta", d.getDelta()
-                            ))
+                            .map(d -> {
+                                var m = new java.util.LinkedHashMap<String, Object>();
+                                m.put("userId", d.getUserId());
+                                m.put("walletC", d.getWalletC());
+                                m.put("txSum", d.getTxSum());
+                                m.put("delta", d.getDelta());
+                                userRepository.findById(d.getUserId()).ifPresent(u -> {
+                                    m.put("userName", u.getName() != null ? u.getName() : "");
+                                    m.put("userPhone", u.getPhone() != null ? u.getPhone() : "");
+                                });
+                                return (Map<String, Object>) m;
+                            })
                             .toList();
                     return Map.<String, Object>of(
                             "id", run.getId(),
