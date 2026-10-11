@@ -17,6 +17,10 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
 
     long countByUserIdAndReadIsNullAndTypeNotIn(Long userId, List<String> excludedTypes);
 
+    List<Notification> findBySendBeforeAndIsSend(LocalDateTime before, Byte isSend);
+
+    boolean existsByUserIdAndTypeAndExtraContent(Long userId, String type, String extraContent);
+
     @Modifying
     @Query("UPDATE Notification n SET n.read = :now WHERE n.userId = :userId AND n.read IS NULL AND n.type NOT IN :excludedTypes")
     int markAllReadByUserId(@Param("userId") Long userId, @Param("now") LocalDateTime now, @Param("excludedTypes") List<String> excludedTypes);

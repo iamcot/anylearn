@@ -2,14 +2,18 @@ package com.anylearn.backend.controller.item;
 
 import com.anylearn.backend.dto.response.ApiResponse;
 import com.anylearn.backend.entity.Item;
+import com.anylearn.backend.entity.ItemActivity;
 import com.anylearn.backend.entity.ItemUserAction;
 import com.anylearn.backend.entity.User;
+import com.anylearn.backend.repository.ItemActivityRepository;
 import com.anylearn.backend.repository.ItemRepository;
 import com.anylearn.backend.repository.ItemUserActionRepository;
 import com.anylearn.backend.repository.OrderDetailRepository;
+import com.anylearn.backend.repository.UserRepository;
 import com.anylearn.backend.service.ItemService;
 import com.anylearn.backend.service.ItemTrackingService;
 import com.anylearn.backend.service.MeilisearchService;
+import com.anylearn.backend.service.NotificationService;
 import com.anylearn.backend.service.S3Service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -17,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -31,6 +36,9 @@ public class ItemController {
     private final ItemUserActionRepository itemUserActionRepository;
     private final OrderDetailRepository orderDetailRepository;
     private final MeilisearchService meilisearchService;
+    private final ItemActivityRepository itemActivityRepository;
+    private final NotificationService notificationService;
+    private final UserRepository userRepository;
 
     @GetMapping("/pdp/{id}")
     public ApiResponse<?> pdp(@PathVariable Long id,
@@ -207,5 +215,86 @@ public class ItemController {
     @PostMapping("/item/{id}/share")
     public ApiResponse<?> share(@PathVariable Long id) {
         return ApiResponse.fail("Not implemented");
+    }
+
+    @GetMapping("/item/{itemId}/my-activities")
+    public ApiResponse<?> myActivities(@PathVariable Long itemId,
+                                        @AuthenticationPrincipal User user) {
+        if (user == null) return ApiResponse.ok(List.of());
+        return ApiResponse.ok(itemActivityRepository.findByItemIdAndUserId(itemId, user.getId()));
+    }
+
+    @PostMapping("/item/{itemId}/register-activity")
+    public ApiResponse<?> registerActivity(@PathVariable Long itemId,
+                                            @RequestBody Map<String, Object> body,
+                                            @AuthenticationPrincipal User user) {
+        if (user == null) return ApiResponse.fail("Unauthorized");
+        Item item = itemRepository.findById(itemId).orElse(null);
+        if (item == null) return ApiResponse.fail("Không tìm thấy khóa học");
+
+        Object actsObj = body.get("activities");
+        if (!(actsObj instanceof List<?> actList) || actList.isEmpty())
+            return ApiResponse.fail("Không có hoạt động nào");
+
+        String itemTitle = item.getTitle();
+        String buyerName = user.getName() != null ? user.getName() : user.getPhone();
+
+        for (Object actObj : actList) {
+            if (!(actObj instanceof Map<?,?> act)) continue;
+            String actType = act.get("type") instanceof String t ? t : null;
+            if (actType == null) continue;
+            ItemActivity ia = new ItemActivity();
+            ia.setItemId(itemId);
+            ia.setUserId(user.getId());
+            ia.setType(actType);
+            ia.setDate(act.get("date") instanceof String d && !d.isBlank() ? d : null);
+            ia.setNote(act.get("note") instanceof String n && !n.isBlank() ? n : null);
+            ia.setStatus((byte) 0);
+            ia.setCreatedAt(LocalDateTime.now());
+            ia.setUpdatedAt(LocalDateTime.now());
+            itemActivityRepository.save(ia);
+
+            String typeLabel = switch (actType) {
+                case "trial" -> "Học thử"; case "test" -> "Test đầu vào"; default -> "Tham quan";
+            };
+            String date = ia.getDate() != null ? " · " + ia.getDate() : "";
+            final String content = buyerName + " đăng ký " + typeLabel + " · " + itemTitle + date;
+            userRepository.findByRole("admin").forEach(admin -> {
+                try {
+                    notificationService.createNotification(admin.getId(), "activity_registration",
+                            "Đăng ký hoạt động mới", content, "/admin/activities", null);
+                } catch (Exception ignored) {}
+            });
+        }
+        return ApiResponse.ok("Đăng ký thành công");
+    }
+
+    @PutMapping("/item/{itemId}/my-activities/{activityId}/cancel")
+    public ApiResponse<?> cancelActivity(@PathVariable Long itemId,
+                                          @PathVariable Long activityId,
+                                          @AuthenticationPrincipal User user) {
+        if (user == null) return ApiResponse.fail("Unauthorized");
+        return itemActivityRepository.findById(activityId).map(ia -> {
+            if (!ia.getUserId().equals(user.getId()) || !ia.getItemId().equals(itemId))
+                return ApiResponse.fail("Không có quyền");
+            ia.setStatus((byte) -1);
+            ia.setUpdatedAt(LocalDateTime.now());
+            itemActivityRepository.save(ia);
+            // Notify admins
+            Item item = itemRepository.findById(itemId).orElse(null);
+            String itemTitle = item != null ? item.getTitle() : "Khóa học";
+            String typeLabel = switch (ia.getType()) {
+                case "trial" -> "Học thử"; case "test" -> "Test đầu vào"; default -> "Tham quan";
+            };
+            String buyerName = user.getName() != null ? user.getName() : user.getPhone();
+            final String content = buyerName + " hủy đăng ký " + typeLabel + " · " + itemTitle;
+            userRepository.findByRole("admin").forEach(admin -> {
+                try {
+                    notificationService.createNotification(admin.getId(), "activity_registration",
+                            "Hủy đăng ký hoạt động", content, "/admin/activities", null);
+                } catch (Exception ignored) {}
+            });
+            return ApiResponse.ok("Đã hủy");
+        }).orElse(ApiResponse.fail("Không tìm thấy"));
     }
 }

@@ -5,6 +5,7 @@ import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-d
 import AppShell from './components/AppShell'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import Articles from './pages/Articles'
+import Activities from './pages/Activities'
 import Audit from './pages/Audit'
 import Dashboard from './pages/Dashboard'
 import Finance from './pages/Finance'
@@ -75,6 +76,7 @@ export default function App() {
                   <Route path="items" element={<Items />} />
                   <Route path="items/:id" element={<ItemDetail />} />
                   <Route path="orders" element={<Orders />} />
+                  <Route path="activities" element={<Activities />} />
                   <Route path="transactions" element={<Transactions />} />
                   <Route path="articles" element={<Articles />} />
                   <Route path="audit" element={<Audit />} />

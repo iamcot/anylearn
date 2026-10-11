@@ -45,6 +45,33 @@ public class NotificationService {
         return n;
     }
 
+    public Notification createScheduledNotification(Long userId, String type, String title,
+            String content, String route, String extraContent, LocalDateTime sendAt) {
+        if (notificationRepository.existsByUserIdAndTypeAndExtraContent(userId, type, extraContent)) return null;
+        Notification n = new Notification();
+        n.setUserId(userId);
+        n.setType(type);
+        n.setTitle(title);
+        n.setContent(content);
+        n.setRoute(route);
+        n.setExtraContent(extraContent);
+        n.setIsSend((byte) 0);
+        n.setSend(sendAt);
+        n.setCreatedAt(LocalDateTime.now());
+        n.setUpdatedAt(LocalDateTime.now());
+        return notificationRepository.save(n);
+    }
+
+    public void dispatchDueNotifications() {
+        var due = notificationRepository.findBySendBeforeAndIsSend(LocalDateTime.now(), (byte) 0);
+        for (Notification n : due) {
+            sseService.notifyUser(n.getUserId());
+            n.setIsSend((byte) 1);
+            n.setUpdatedAt(LocalDateTime.now());
+            notificationRepository.save(n);
+        }
+    }
+
     public void sendEmailNotification(Long userId, String subject, String htmlBody) {
         userRepository.findById(userId).ifPresent(user -> {
             if (user.getEmail() != null && !user.getEmail().isBlank()) {

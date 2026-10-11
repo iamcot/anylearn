@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import NotificationDropdown from './NotificationDropdown'
+import UpcomingEventsBar from './UpcomingEventsBar'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080/v2/api'
 
@@ -18,6 +19,7 @@ const ACCOUNT_MENU = [
   { href: '/account/profile', label: 'Thông tin cá nhân' },
   { href: '/account/children', label: 'Tài khoản của con' },
   { href: '/account/orders', label: 'Đơn hàng của tôi' },
+  { href: '/account/favorites', label: 'Yêu thích' },
   { href: '/account/schedule', label: 'Lịch học' },
   { href: '/account/course-codes', label: 'Mã code khóa học' },
   { href: '/account/change-password', label: 'Đổi mật khẩu' },
@@ -122,6 +124,7 @@ export default function Header() {
   }, [])
 
   return (
+    <>
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-line/90 min-h-[76px]">
       <div className="container flex items-center justify-between gap-6 h-[76px]">
 
@@ -330,5 +333,7 @@ export default function Header() {
         }
       `}</style>
     </header>
+    <UpcomingEventsBar />
+    </>
   )
 }

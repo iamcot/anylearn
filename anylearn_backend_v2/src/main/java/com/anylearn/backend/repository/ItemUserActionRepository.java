@@ -72,7 +72,7 @@ public interface ItemUserActionRepository extends JpaRepository<ItemUserAction, 
 
     @Query(value = """
         SELECT * FROM item_user_actions
-        WHERE user_id = :userId AND type = 'reg'
+        WHERE user_id = :userId AND type IN ('reg', 'pending_reg')
         AND JSON_UNQUOTE(JSON_EXTRACT(extra_value, '$.orderId')) = :orderId
         """, nativeQuery = true)
     List<ItemUserAction> findRegsByOrderId(@Param("userId") Long userId, @Param("orderId") String orderId);

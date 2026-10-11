@@ -1,6 +1,6 @@
 import {
-  App, Button, DatePicker, Form, Input, InputNumber,
-  Popover, Rate, Select, Space, Switch, Table, Tabs, Tag, Tooltip,
+  App, Button, Checkbox, DatePicker, Form, Input, InputNumber, Modal,
+  Popover, Rate, Select, Space, Switch, Table, Tabs, Tag, TimePicker, Tooltip,
   Typography, Upload,
 } from 'antd'
 import {
@@ -20,9 +20,9 @@ import { fmtVND, fmtDate, fmtDateTime } from '../utils/format'
 // ── Constants ────────────────────────────────────────────────────────────────
 
 const SUBTYPES = [
-  { value: 'online', label: 'Online' }, { value: 'digital', label: 'Digital' },
-  { value: 'offline', label: 'Offline' }, { value: 'extra', label: 'Extra' },
-  { value: 'video', label: 'Video' }, { value: 'preschool', label: 'Preschool' },
+  { value: 'online', label: 'Học Online' }, { value: 'digital', label: 'Mã Code' },
+  { value: 'offline', label: 'Học Tại Trường' }, { value: 'extra', label: 'Ngoại khóa' },
+  { value: 'video', label: 'Video' }, { value: 'preschool', label: 'Mầm non' },
 ]
 const CYCLE_TYPES = [
   { value: 'session', label: 'Buổi' }, { value: 'day', label: 'Ngày' },
@@ -194,6 +194,15 @@ export default function ItemDetail() {
     enabled: !isNew,
   })
 
+  const { data: itemSchedules, refetch: refetchSchedules } = useQuery({
+    queryKey: ['admin-item-schedules', id],
+    queryFn: () => client.get(`/admin/items/${id}/schedules`).then(r => r.data?.data ?? []),
+    enabled: !isNew,
+  })
+
+  const [scheduleModal, setScheduleModal] = useState(null) // null | 'new' | {id,...}
+  const [scheduleForm] = Form.useForm()
+
   const { data: students } = useQuery({
     queryKey: ['admin-item-students', id, studentsPagination.page],
     queryFn: () => client.get(`/admin/items/${id}/students`, { params: { page: studentsPagination.page - 1, size: 20 } })
@@ -215,13 +224,13 @@ export default function ItemDetail() {
         ...values,
         userId: values.userId?.value ?? values.userId,
         tags: tagArr.join(','),
-        dateStart: values.dateStart ? values.dateStart.format('YYYY-MM-DD') : null,
-        dateEnd: values.dateEnd ? values.dateEnd.format('YYYY-MM-DD') : null,
+        dateStart: null,
+        dateEnd: null,
         nolimitTime: values.nolimitTime ? '1' : '0',
         content: richContent,
         companyCommission: ccJson,
-        status: boolNum(values.status),
-        userStatus: boolNum(values.userStatus),
+        status: item?.status ?? 0,
+        userStatus: item?.userStatus ?? 0,
         isHot: boolNum(values.isHot),
         isPaymentfee: boolNum(values.isPaymentfee),
         allowReRegister: boolNum(values.allowReRegister),
@@ -287,8 +296,8 @@ export default function ItemDetail() {
 
     { key: 'overview', label: 'Tổng quan', children: (
       <div style={{ maxWidth: 700, paddingBottom: 32 }}>
-        <SectionCard title="Đối tác">
-          <FieldRow label="Đối tác / Trường">
+        <SectionCard title="Tiêu đề">
+          <FieldRow label="Đối tác">
             <Form.Item name="userId" noStyle rules={[{ required: true, message: 'Chọn đối tác' }]}>
               <Select
                 labelInValue showSearch placeholder="Tìm tên hoặc SĐT..."
@@ -309,33 +318,14 @@ export default function ItemDetail() {
               />
             </Form.Item>
           </FieldRow>
-        </SectionCard>
-
-        <SectionCard title="Tiêu đề">
-          <Form.Item name="title" noStyle rules={[{ required: true, min: 5 }]}>
-            <Input.TextArea autoSize={{ minRows: 1, maxRows: 3 }} onChange={() => setDirty(true)} />
-          </Form.Item>
-        </SectionCard>
-
-        <SectionCard title="Trạng thái & Hiển thị">
-          <FieldRow label="Trạng thái platform">
-            <Form.Item name="status" noStyle {...switchItemProps}>
-              <Switch checkedChildren="Hiển thị" unCheckedChildren="Ẩn" onChange={() => setDirty(true)} />
+          <FieldRow label="Tiêu đề">
+            <Form.Item name="title" noStyle rules={[{ required: true, min: 5 }]}>
+              <Input.TextArea autoSize={{ minRows: 1, maxRows: 3 }} onChange={() => setDirty(true)} />
             </Form.Item>
           </FieldRow>
-          <FieldRow label="Trạng thái đối tác">
-            <Form.Item name="userStatus" noStyle {...switchItemProps}>
-              <Switch checkedChildren="Đã duyệt" unCheckedChildren="Chờ duyệt" onChange={() => setDirty(true)} />
-            </Form.Item>
-          </FieldRow>
-          <FieldRow label="Nổi bật (Hot)">
-            <Form.Item name="isHot" noStyle {...switchItemProps}>
-              <Switch checkedChildren="Hot" unCheckedChildren="Thường" onChange={() => setDirty(true)} />
-            </Form.Item>
-          </FieldRow>
-          <FieldRow label="Điểm ưu tiên" tooltip="Dùng khi sắp xếp danh sách hiển thị. Số càng lớn càng ưu tiên hiện trên.">
-            <Form.Item name="boostScore" noStyle>
-              <InputNumber min={0} onChange={() => setDirty(true)} />
+           <FieldRow label="Hình thức">
+            <Form.Item name="subtype" noStyle>
+              <Select style={{ width: 160 }} allowClear placeholder="Chọn" onChange={() => setDirty(true)} options={SUBTYPES} />
             </Form.Item>
           </FieldRow>
         </SectionCard>
@@ -353,19 +343,7 @@ export default function ItemDetail() {
           </FieldRow>
         </SectionCard>
 
-        <SectionCard title="Phân loại">
-          <FieldRow label="Lĩnh vực">
-            <Form.Item name="categoryIds" noStyle>
-              <Select mode="multiple" placeholder="Chọn lĩnh vực" style={{ width: '100%' }} optionFilterProp="label" onChange={() => setDirty(true)}
-                options={(categories ?? []).map(c => ({ value: c.id, label: c.title }))} />
-            </Form.Item>
-          </FieldRow>
-          <FieldRow label="Tags">
-            <Form.Item name="tags" noStyle>
-              <Select mode="tags" placeholder="Gõ rồi nhấn , hoặc Enter" style={{ width: '100%' }} tokenSeparators={[',']} onChange={() => setDirty(true)} />
-            </Form.Item>
-          </FieldRow>
-        </SectionCard>
+        
 
         <SectionCard>
           <FieldRow label="Đã bán"><Typography.Text>{fmtVND(item?.soldCount ?? 0)} học sinh</Typography.Text></FieldRow>
@@ -394,6 +372,25 @@ export default function ItemDetail() {
             </Upload>
           )}
           {isNew && <Typography.Text type="secondary" style={{ fontSize: 12 }}>Tạo khóa học trước, sau đó tải ảnh lên.</Typography.Text>}
+        </SectionCard>
+
+        <SectionCard title="Phân loại">
+          <FieldRow label="Điểm ưu tiên" tooltip="Dùng khi sắp xếp danh sách hiển thị. Số càng lớn càng ưu tiên hiện trên.">
+            <Form.Item name="boostScore" noStyle>
+              <InputNumber min={0} onChange={() => setDirty(true)} />
+            </Form.Item>
+          </FieldRow>
+          <FieldRow label="Lĩnh vực">
+            <Form.Item name="categoryIds" noStyle>
+              <Select mode="multiple" placeholder="Chọn lĩnh vực" style={{ width: '100%' }} optionFilterProp="label" onChange={() => setDirty(true)}
+                options={(categories ?? []).map(c => ({ value: c.id, label: c.title }))} />
+            </Form.Item>
+          </FieldRow>
+          <FieldRow label="Tags">
+            <Form.Item name="tags" noStyle>
+              <Select mode="tags" placeholder="Gõ rồi nhấn , hoặc Enter" style={{ width: '100%' }} tokenSeparators={[',']} onChange={() => setDirty(true)} />
+            </Form.Item>
+          </FieldRow>
         </SectionCard>
 
         <SectionCard title="Mô tả ngắn">
@@ -426,47 +423,52 @@ export default function ItemDetail() {
 
     { key: 'schedule', label: 'Lịch học', children: (
       <div style={{ maxWidth: 640, paddingBottom: 32 }}>
-        <SectionCard title="Hình thức & Địa điểm">
-          <FieldRow label="Hình thức (subtype)">
-            <Form.Item name="subtype" noStyle>
-              <Select style={{ width: 160 }} allowClear placeholder="Chọn" onChange={() => setDirty(true)} options={SUBTYPES} />
-            </Form.Item>
-          </FieldRow>
-          <FieldRow label="Địa điểm">
-            <Form.Item name="locationType" noStyle>
-              <Select style={{ width: 160 }} allowClear onChange={() => setDirty(true)} options={LOCATION_TYPES} />
-            </Form.Item>
-          </FieldRow>
-          <FieldRow label="Địa chỉ / Link"><Form.Item name="location" noStyle><Input onChange={() => setDirty(true)} /></Form.Item></FieldRow>
-        </SectionCard>
-
         <SectionCard title="Thời gian">
           <FieldRow label="Chiêu sinh liên tục">
             <Form.Item name="nolimitTime" noStyle valuePropName="checked">
               <Switch checkedChildren="Liên tục" unCheckedChildren="Có hạn" onChange={() => setDirty(true)} />
             </Form.Item>
           </FieldRow>
-          <Form.Item noStyle shouldUpdate={(p, c) => p.nolimitTime !== c.nolimitTime}>
-            {({ getFieldValue }) => !getFieldValue('nolimitTime') && <>
-              <FieldRow label="Ngày bắt đầu"><Form.Item name="dateStart" noStyle><DatePicker format="DD/MM/YYYY" onChange={() => setDirty(true)} /></Form.Item></FieldRow>
-              <FieldRow label="Ngày kết thúc"><Form.Item name="dateEnd" noStyle><DatePicker format="DD/MM/YYYY" onChange={() => setDirty(true)} /></Form.Item></FieldRow>
-            </>}
-          </Form.Item>
-          <FieldRow label="Giờ học">
-            <Space>
-              <Form.Item name="timeStart" noStyle><Input placeholder="08:30" style={{ width: 90 }} onChange={() => setDirty(true)} /></Form.Item>
-              <span>–</span>
-              <Form.Item name="timeEnd" noStyle><Input placeholder="10:00" style={{ width: 90 }} onChange={() => setDirty(true)} /></Form.Item>
-            </Space>
-          </FieldRow>
-          <FieldRow label="Chu kỳ">
+          <FieldRow label="Chu kỳ thanh toán">
             <Space>
               <Form.Item name="cycleAmount" noStyle><InputNumber min={1} style={{ width: 80 }} onChange={() => setDirty(true)} /></Form.Item>
               <Form.Item name="cycleType" noStyle><Select style={{ width: 100 }} allowClear onChange={() => setDirty(true)} options={CYCLE_TYPES} /></Form.Item>
             </Space>
           </FieldRow>
-        </SectionCard>
 
+          {/* Ca học — inline in Thời gian */}
+          {!isNew && (
+            <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid #f0f0f0' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                <Typography.Text strong style={{ fontSize: 13 }}>Ca học</Typography.Text>
+                <Button size="small" type="primary" onClick={() => { scheduleForm.resetFields(); setScheduleModal('new') }}>
+                  + Thêm ca học
+                </Button>
+              </div>
+              {(itemSchedules ?? []).length === 0
+                ? <Typography.Text type="secondary" style={{ fontSize: 12 }}>Chưa có ca học nào.</Typography.Text>
+                : (itemSchedules ?? []).map(s => (
+                    <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 0', borderBottom: '1px solid #f5f5f5' }}>
+                      <Tag color={s.scheduleType === 'event' ? 'purple' : s.scheduleType === 'open' ? 'cyan' : 'blue'} style={{ flexShrink: 0, fontSize: 11 }}>
+                        {s.scheduleType === 'event' ? 'Một buổi' : s.scheduleType === 'open' ? 'Linh hoạt' : 'Cố định'}
+                      </Tag>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 13, fontWeight: 600 }}>{s.title || '—'}</div>
+                        <div style={{ fontSize: 11, color: '#888' }}>
+                          {s.scheduleType === 'event' ? s.eventDate
+                            : s.weekdays ? s.weekdays.split(',').map(d => ({mon:'T2',tue:'T3',wed:'T4',thu:'T5',fri:'T6',sat:'T7',sun:'CN'}[d]||d).toString()).join(' ') : '—'}
+                          {s.timeStart ? ` · ${s.timeStart}${s.timeEnd ? '–'+s.timeEnd : ''}` : ''}
+                          {s.dateStart ? ` · từ ${s.dateStart}${s.dateEnd ? ' đến '+s.dateEnd : ''}` : ''}
+                        </div>
+                      </div>
+                      <Button size="small" onClick={() => { scheduleForm.setFieldsValue({ ...s, weekdays: s.weekdays ? s.weekdays.split(',') : [], eventDate: s.eventDate ? dayjs(s.eventDate) : null, dateStart: s.dateStart ? dayjs(s.dateStart) : null, dateEnd: s.dateEnd ? dayjs(s.dateEnd) : null, timeStart: s.timeStart ? dayjs(s.timeStart, 'HH:mm') : null, timeEnd: s.timeEnd ? dayjs(s.timeEnd, 'HH:mm') : null }); setScheduleModal(s) }}>Sửa</Button>
+                      <Button size="small" danger onClick={async () => { await client.delete(`/admin/items/${id}/schedules/${s.id}`); refetchSchedules() }}>Xóa</Button>
+                    </div>
+                  ))
+              }
+            </div>
+          )}
+        </SectionCard>
         <SectionCard title="Yêu cầu & Điều kiện">
           <FieldRow label="Độ tuổi">
             <Space>
@@ -633,6 +635,63 @@ export default function ItemDetail() {
         <Tabs items={tabItems} />
       </div>
     </Form>
+
+    {/* Schedule Modal — outside Form/Tabs to avoid nesting issues */}
+    <Modal
+      title={scheduleModal === 'new' ? 'Thêm lịch học' : 'Sửa lịch học'}
+      open={!!scheduleModal}
+      onCancel={() => setScheduleModal(null)}
+      footer={null}
+      destroyOnClose
+    >
+      <Form form={scheduleForm} layout="vertical" onFinish={async (vals) => {
+        const body = {
+          ...vals,
+          weekdays: Array.isArray(vals.weekdays) ? vals.weekdays.join(',') : vals.weekdays,
+          eventDate: vals.eventDate?.format('YYYY-MM-DD') ?? null,
+          dateStart: vals.dateStart?.format('YYYY-MM-DD') ?? null,
+          dateEnd: vals.dateEnd?.format('YYYY-MM-DD') ?? null,
+          timeStart: vals.timeStart?.format('HH:mm') ?? null,
+          timeEnd: vals.timeEnd?.format('HH:mm') ?? null,
+        }
+        if (scheduleModal === 'new') await client.post(`/admin/items/${id}/schedules`, body)
+        else await client.put(`/admin/items/${id}/schedules/${scheduleModal.id}`, body)
+        refetchSchedules()
+        setScheduleModal(null)
+      }}>
+        <Form.Item name="scheduleType" label="Loại lịch" initialValue="recurring">
+          <Select options={[{value:'recurring',label:'Lớp cố định (có ngày khai giảng)'},{value:'event',label:'Một buổi (1 ngày cụ thể)'},{value:'open',label:'Khai giảng linh hoạt (học sinh chọn ngày)'}]} />
+        </Form.Item>
+        <Form.Item noStyle shouldUpdate={(p, c) => p.scheduleType !== c.scheduleType}>
+          {({ getFieldValue }) => {
+            const t = getFieldValue('scheduleType')
+            return <>
+              {t === 'event' && <Form.Item name="eventDate" label="Ngày tổ chức"><DatePicker format="DD/MM/YYYY" style={{ width: '100%' }} /></Form.Item>}
+              {(t === 'recurring' || t === 'open') && (
+                <Form.Item name="weekdays" label="Ngày trong tuần">
+                  <Checkbox.Group options={[{label:'T2',value:'mon'},{label:'T3',value:'tue'},{label:'T4',value:'wed'},{label:'T5',value:'thu'},{label:'T6',value:'fri'},{label:'T7',value:'sat'},{label:'CN',value:'sun'}]} />
+                </Form.Item>
+              )}
+              {t === 'recurring' && <>
+                <Form.Item name="dateStart" label="Ngày bắt đầu"><DatePicker format="DD/MM/YYYY" style={{ width: '100%' }} /></Form.Item>
+                <Form.Item name="dateEnd" label="Ngày kết thúc (tuỳ chọn)"><DatePicker format="DD/MM/YYYY" style={{ width: '100%' }} /></Form.Item>
+              </>}
+            </>
+          }}
+        </Form.Item>
+        <Space>
+          <Form.Item name="timeStart" label="Giờ bắt đầu">
+            <TimePicker format="HH:mm" minuteStep={5} style={{ width: 110 }} placeholder="08:30" />
+          </Form.Item>
+          <Form.Item name="timeEnd" label="Giờ kết thúc">
+            <TimePicker format="HH:mm" minuteStep={5} style={{ width: 110 }} placeholder="10:00" />
+          </Form.Item>
+        </Space>
+        <Form.Item name="title" label="Tên lịch (tuỳ chọn)"><Input placeholder="VD: Ca chiều T3-T5" /></Form.Item>
+        <Form.Item name="locationNote" label="Địa điểm / Ghi chú"><Input placeholder="VD: Phòng A203, tầng 2" /></Form.Item>
+        <Form.Item><Button type="primary" htmlType="submit" block>Lưu</Button></Form.Item>
+      </Form>
+    </Modal>
     </div>
   )
 }

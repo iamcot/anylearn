@@ -18,6 +18,7 @@ public class ItemService {
     private final UserRepository userRepository;
     private final ItemUserActionRepository itemUserActionRepository;
     private final ItemSchedulePlanRepository itemSchedulePlanRepository;
+    private final ItemScheduleRepository itemScheduleRepository;
     private final ClassTeacherRepository classTeacherRepository;
     private final ItemCategoryRepository itemCategoryRepository;
     private final MeilisearchService meilisearchService;
@@ -93,6 +94,8 @@ public class ItemService {
         result.put("reviews", reviews);
         result.put("plans", new ArrayList<>(plansGrouped.values()));
         result.put("num_schedule", rawPlans.size());
+        result.put("schedules", itemScheduleRepository.findByItemIdAndStatus(itemId, (byte) 1));
+        result.put("enrolled_count", orderDetailRepository.countDeliveredByItemId(itemId));
         result.put("is_fav", isFav);
         result.put("has_purchased", hasPurchased);
         // Author items

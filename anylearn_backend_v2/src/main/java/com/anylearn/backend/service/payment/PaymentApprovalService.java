@@ -27,6 +27,9 @@ public class PaymentApprovalService {
     private final NotificationService notificationService;
     private final WalletService walletService;
     private final ObjectMapper objectMapper;
+    private final UserCourseEnrollmentRepository enrollmentRepository;
+    private final ItemScheduleRepository itemScheduleRepository;
+    private final ItemRepository itemRepository;
 
     @Transactional
     public void approveOrder(Long orderId, String paymentMethod) {
@@ -52,7 +55,7 @@ public class PaymentApprovalService {
             orderDetailRepository.save(detail);
         }
 
-        // Convert pending_reg → reg
+        // Convert pending_reg → reg + create user_course_enrollments
         itemUserActionRepository
                 .findByUserIdAndTypeAndValue(order.getUserId(), "pending_reg", String.valueOf(orderId))
                 .forEach(pending -> {
@@ -67,6 +70,9 @@ public class PaymentApprovalService {
                         pending.setExtraValue(objectMapper.writeValueAsString(extra));
                         pending.setUpdatedAt(LocalDateTime.now());
                         itemUserActionRepository.save(pending);
+
+                        // Create enrollment record
+                        createEnrollment(pending.getItemId(), order.getUserId(), orderId, extra);
                     } catch (Exception e) {
                         log.error("Error converting pending_reg {} to reg", pending.getId(), e);
                     }
@@ -117,6 +123,64 @@ public class PaymentApprovalService {
                 "Thanh toán đơn hàng #" + orderId, 1);
 
         log.info("[approveOrder] order {} fully approved via {}", orderId, paymentMethod);
+    }
+
+    private void createEnrollment(Long itemId, Long buyerUserId, Long orderId, Map<String, Object> extra) {
+        Object sidObj = extra.get("studentId");
+        Long enrolledUserId = sidObj != null ? Long.parseLong(String.valueOf(sidObj)) : buyerUserId;
+
+        Object schIdObj = extra.get("scheduleId");
+        Long scheduleId = schIdObj != null && !String.valueOf(schIdObj).equals("null")
+                ? Long.parseLong(String.valueOf(schIdObj)) : null;
+
+        UserCourseEnrollment e = new UserCourseEnrollment();
+        e.setUserId(enrolledUserId);
+        e.setItemId(itemId);
+        e.setOrderId(orderId);
+        e.setScheduleId(scheduleId);
+        e.setCreatedAt(java.time.LocalDateTime.now());
+        e.setUpdatedAt(java.time.LocalDateTime.now());
+
+        if (scheduleId != null) {
+            itemScheduleRepository.findById(scheduleId).ifPresent(sch -> {
+                if ("open".equals(sch.getScheduleType())) {
+                    e.setStatus("pending"); // user picks start date later
+                } else if ("event".equals(sch.getScheduleType())) {
+                    e.setStatus("active");
+                    e.setStartDate(sch.getEventDate());
+                    e.setEndDate(sch.getEventDate());
+                } else { // recurring
+                    e.setStatus("active");
+                    e.setStartDate(sch.getDateStart());
+                    e.setEndDate(sch.getDateEnd());
+                }
+            });
+        } else {
+            // No schedule — check if there's a startDate + cycleType for billing-only items
+            String startDateStr = extra.get("startDate") instanceof String sd ? sd : null;
+            if (startDateStr != null && !startDateStr.isBlank()) {
+                try {
+                    java.time.LocalDate start = java.time.LocalDate.parse(startDateStr);
+                    e.setStartDate(start);
+                    // Compute endDate from item's cycleType + cycleAmount
+                    Item item = itemRepository.findById(itemId).orElse(null);
+                    if (item != null && item.getCycleType() != null && item.getCycleAmount() != null) {
+                        java.time.LocalDate end = switch (item.getCycleType()) {
+                            case "year"  -> start.plusYears(item.getCycleAmount()).minusDays(1);
+                            case "week"  -> start.plusWeeks(item.getCycleAmount()).minusDays(1);
+                            case "day"   -> start.plusDays(item.getCycleAmount()).minusDays(1);
+                            default      -> start.plusMonths(item.getCycleAmount()).minusDays(1); // month
+                        };
+                        e.setEndDate(end);
+                    }
+                } catch (Exception ignored) {}
+            }
+            e.setStatus("active");
+        }
+
+        enrollmentRepository.save(e);
+        log.info("[approveOrder] created enrollment userId={} itemId={} scheduleId={} status={}",
+                enrolledUserId, itemId, scheduleId, e.getStatus());
     }
 
     /** Mark transaction done. Only credits wallet_c for partner/commission types. Foundation is accounting-only. */

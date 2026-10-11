@@ -130,6 +130,10 @@ export interface PdpItem {
   cycleAmount?: number
   isHot?: number
   userId?: number
+  allowReRegister?: number
+  activiyTrial?: number
+  activiyTest?: number
+  activiyVisit?: number
 }
 
 export interface PdpAuthor {
@@ -173,6 +177,8 @@ export interface PdpData {
   num_schedule: number
   is_fav: boolean
   has_purchased: boolean
+  schedules?: ItemSchedule[]
+  enrolled_count?: number
 }
 
 export async function getPdpData(id: number): Promise<PdpData | null> {
@@ -407,11 +413,19 @@ export async function registerApi(name: string, phone: string, email: string, pa
   }
 }
 
+export interface ItemSchedule {
+  id: number; title?: string; scheduleType: string
+  weekdays?: string; timeStart?: string; timeEnd?: string
+  dateStart?: string; dateEnd?: string; eventDate?: string
+  durationValue?: number; durationUnit?: string; locationNote?: string
+}
+
 // ── Cart ──────────────────────────────────────────────
 export interface CartInfoData {
-  item: Item & { orgPrice?: number; nolimitTime?: string; authorName?: string }
-  children: { id: number; name: string; image?: string }[]
+  item: Item & { orgPrice?: number; nolimitTime?: string; authorName?: string; cycleType?: string; cycleAmount?: number }
+  children: { id: number; name: string; image?: string; dob?: string }[]
   plans: { id: number; title?: string; weekdays?: string; date_start?: string; time_start?: string; location_title?: string; address?: string }[]
+  schedules: ItemSchedule[]
   categories: { id: number; title: string; url: string }[]
   activiyTrial: boolean
   activiyTest: boolean
@@ -428,12 +442,15 @@ export interface CartItem {
   dateStart?: string
   authorName?: string
   studentName?: string
+  scheduleTitle?: string
+  scheduleTime?: string
+  activities?: { type: string; date?: string; note?: string }[]
   extra?: Record<string, unknown>
 }
 
 export interface OrderData {
   orderId: string
-  items: { itemId: number; title: string; price: number; image?: string; dateStart?: string; seoUrl?: string }[]
+  items: { itemId: number; title: string; price: number; image?: string; seoUrl?: string; studentName?: string; scheduleTitle?: string; scheduleTime?: string; activities?: { type: string; date?: string; note?: string }[] }[]
   paymentMethod: string
 }
 
@@ -443,8 +460,9 @@ export async function getCartInfo(itemId: number, token: string): Promise<CartIn
 }
 
 export async function addToCart(payload: {
-  itemId: number; studentId?: number; planId?: number
-  trialType?: string; trialDate?: string; trialNote?: string
+  itemId: number; studentId?: number; planId?: number; scheduleId?: number
+  activities?: { type: string; date?: string; note?: string }[]
+  startDate?: string
 }, token: string): Promise<{ data: { cartItemId: number; cartCount: number } | null; error?: string }> {
   return authFetch(`/cart/add`, token, { method: 'POST', body: JSON.stringify(payload) })
 }
@@ -456,6 +474,21 @@ export async function getCart(token: string): Promise<CartItem[]> {
 
 export async function removeCartItem(actionId: number, token: string): Promise<void> {
   await authFetch(`/cart/${actionId}`, token, { method: 'DELETE' })
+}
+
+export interface UpcomingEvent {
+  date: string
+  kind: 'enrollment' | 'activity'
+  label: string
+  itemTitle: string
+  seoUrl?: string
+  itemId?: number
+  time?: string
+}
+
+export async function getUpcomingEvents(token: string): Promise<UpcomingEvent[]> {
+  const { data } = await authFetch<UpcomingEvent[]>(`/user/upcoming`, token)
+  return data ?? []
 }
 
 export async function checkout(payload: {

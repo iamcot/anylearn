@@ -242,7 +242,7 @@ body {
 /* ── PDP ── */
 .pdp-hero {
   display: grid;
-  grid-template-columns: 1fr 420px;
+  grid-template-columns: 1fr 480px;
   gap: 40px;
   align-items: start;
 }

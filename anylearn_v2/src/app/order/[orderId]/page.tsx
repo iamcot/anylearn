@@ -80,7 +80,7 @@ export default function OrderPage() {
 
   return (
     <div className="section">
-      <div className="container max-w-[680px] text-center">
+      <div className="container text-center">
         {loading ? (
           <p className="text-muted">Đang tải...</p>
         ) : !order ? (
@@ -158,8 +158,24 @@ export default function OrderPage() {
                   <div className="flex-1">
                     <Link href={getCourseUrl({ id: item.itemId, seoUrl: item.seoUrl })} className="font-black text-green-dark text-[15px] no-underline leading-tight block">
                       {item.title}
+                      {item.studentName && <span className="text-muted font-normal text-sm"> ({item.studentName})</span>}
                     </Link>
-                    {item.dateStart && <div className="text-xs text-muted mt-[3px]">Bắt đầu: {new Date(item.dateStart).toLocaleDateString('vi-VN')}</div>}
+                    {(item.scheduleTitle || item.scheduleTime) && (
+                      <div className="text-xs text-[#00539b] mt-[3px]">
+                        {[item.scheduleTitle, item.scheduleTime].filter(Boolean).join(' · ')}
+                      </div>
+                    )}
+                    {item.activities && item.activities.length > 0 && (
+                      <div className="text-xs text-[#008244] mt-[3px] flex gap-2 flex-wrap">
+                        {item.activities.map((a, i) => (
+                          <span key={i} className="flex items-center gap-1">
+                            <span style={{color:'#00a651',fontWeight:900}}>✓</span>
+                            {{ trial:'Học thử', test:'Test đầu vào', visit:'Tham quan' }[a.type] ?? a.type}
+                            {a.date ? ` · ${a.date}` : ''}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   <div className="font-black text-red text-[15px]">{formatPrice(item.price)}</div>
                 </div>

@@ -28,10 +28,14 @@ public class CartController {
         Long itemId = Long.parseLong(String.valueOf(body.get("itemId")));
         Long studentId = body.get("studentId") != null ? Long.parseLong(String.valueOf(body.get("studentId"))) : null;
         Long planId = body.get("planId") != null ? Long.parseLong(String.valueOf(body.get("planId"))) : null;
+        Long scheduleId = body.get("scheduleId") != null ? Long.parseLong(String.valueOf(body.get("scheduleId"))) : null;
+        Object activities = body.get("activities");
+        String startDate = body.get("startDate") instanceof String s ? s : null;
+        // legacy single-activity fields (backward compat)
         String trialType = (String) body.get("trialType");
         String trialDate = (String) body.get("trialDate");
         String trialNote = (String) body.get("trialNote");
-        return ApiResponse.ok(cartService.addToCart(itemId, studentId, planId, trialType, trialDate, trialNote, user));
+        return ApiResponse.ok(cartService.addToCart(itemId, studentId, planId, scheduleId, activities, startDate, trialType, trialDate, trialNote, user));
     }
 
     @GetMapping("/cart")

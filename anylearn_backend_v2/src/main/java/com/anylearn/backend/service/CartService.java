@@ -1,6 +1,8 @@
 package com.anylearn.backend.service;
 
 import com.anylearn.backend.entity.Item;
+import com.anylearn.backend.entity.ItemActivity;
+import com.anylearn.backend.entity.ItemSchedule;
 import com.anylearn.backend.entity.ItemUserAction;
 import com.anylearn.backend.entity.Order;
 import com.anylearn.backend.entity.OrderDetail;
@@ -29,6 +31,8 @@ public class CartService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
     private final ItemSchedulePlanRepository itemSchedulePlanRepository;
+    private final ItemScheduleRepository itemScheduleRepository;
+    private final ItemActivityRepository itemActivityRepository;
     private final ItemCategoryRepository itemCategoryRepository;
     private final OrderRepository orderRepository;
     private final OrderDetailRepository orderDetailRepository;
@@ -59,16 +63,26 @@ public class CartService {
             m.put("id", c.getId());
             m.put("name", c.getName() != null ? c.getName() : "");
             m.put("image", c.getImage());
+            m.put("dob", c.getDob());
             return m;
         }).toList();
 
         List<Map<String, Object>> plans = itemSchedulePlanRepository.findPlansWithLocation(itemId);
+        List<ItemSchedule> itemSchedules = itemScheduleRepository.findByItemIdAndStatus(itemId, (byte) 1);
         List<Map<String, Object>> categories = itemCategoryRepository.findCategoriesByItemId(itemId);
 
         Map<String, Object> result = new LinkedHashMap<>();
-        result.put("item", enrichedItem);
+        // Merge cycleType/cycleAmount into the enriched item map
+        Map<String, Object> itemMap = new LinkedHashMap<>();
+        if (enrichedItem instanceof Map<?, ?> em) {
+            em.forEach((k, v) -> itemMap.put(String.valueOf(k), v));
+        }
+        itemMap.put("cycleType", item.getCycleType());
+        itemMap.put("cycleAmount", item.getCycleAmount());
+        result.put("item", itemMap);
         result.put("children", childrenInfo);
         result.put("plans", plans);
+        result.put("schedules", itemSchedules);
         result.put("categories", categories);
         result.put("activiyTrial", item.getActiviyTrial() != null && item.getActiviyTrial() == 1);
         result.put("activiyTest",  item.getActiviyTest()  != null && item.getActiviyTest()  == 1);
@@ -79,9 +93,63 @@ public class CartService {
         return result;
     }
 
-    public Map<String, Object> addToCart(Long itemId, Long studentId, Long planId,
+    public Map<String, Object> addToCart(Long itemId, Long studentId, Long planId, Long scheduleId,
+                                          Object activities, String startDate,
                                           String trialType, String trialDate, String trialNote,
                                           User currentUser) {
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy khóa học."));
+
+        // Enrollment deadline check: if not continuous enrollment, block when all schedules have started
+        boolean isNolimit = "1".equals(item.getNolimitTime());
+        if (!isNolimit) {
+            List<ItemSchedule> schedules = itemScheduleRepository.findByItemIdAndStatus(itemId, (byte) 1);
+            if (!schedules.isEmpty()) {
+                java.time.LocalDate today = java.time.LocalDate.now();
+                boolean anyUpcoming = schedules.stream().anyMatch(s -> {
+                    if ("event".equals(s.getScheduleType()))
+                        return s.getEventDate() != null && !s.getEventDate().isBefore(today);
+                    if ("open".equals(s.getScheduleType()))
+                        return true; // open = flexible start, always allow
+                    return s.getDateStart() == null || !s.getDateStart().isBefore(today);
+                });
+                if (!anyUpcoming)
+                    throw new IllegalArgumentException("Khóa học này đã hết hạn đăng ký.");
+            } else if (item.getDateStart() != null && item.getDateStart().isBefore(java.time.LocalDate.now())) {
+                // fallback to item.dateStart if no schedules defined
+                throw new IllegalArgumentException("Khóa học này đã hết hạn đăng ký.");
+            }
+        }
+
+        // ── Enrollment rules ──────────────────────────────────────────────────
+        Long studentUserId = (studentId != null) ? studentId : currentUser.getId();
+
+        // Rule 1: Re-registration
+        if (item.getAllowReRegister() != null && item.getAllowReRegister() == 0) {
+            if (orderDetailRepository.existsDeliveredByUserIdAndItemId(studentUserId, itemId) > 0)
+                throw new IllegalArgumentException("Bạn đã đăng ký khóa học này rồi.");
+        }
+
+        // Rule 2: Age range
+        if (item.getAgesMin() != null || item.getAgesMax() != null) {
+            var student = userRepository.findById(studentUserId).orElse(null);
+            if (student != null && student.getDob() != null) {
+                int age = java.time.Period.between(student.getDob(), java.time.LocalDate.now()).getYears();
+                if (item.getAgesMin() != null && age < item.getAgesMin())
+                    throw new IllegalArgumentException("Học sinh chưa đủ tuổi (tối thiểu " + item.getAgesMin() + " tuổi).");
+                if (item.getAgesMax() != null && age > item.getAgesMax())
+                    throw new IllegalArgumentException("Học sinh vượt quá độ tuổi (tối đa " + item.getAgesMax() + " tuổi).");
+            }
+        }
+
+        // Rule 3: Seat capacity
+        if (item.getSeats() != null && item.getSeats() > 0) {
+            int enrolled = orderDetailRepository.countDeliveredByItemId(itemId);
+            if (enrolled >= item.getSeats())
+                throw new IllegalArgumentException("Khóa học đã đủ số chỗ (" + item.getSeats() + " chỗ).");
+        }
+        // ─────────────────────────────────────────────────────────────────────
+
         List<ItemUserAction> existing = findCartItems(currentUser.getId());
         boolean duplicate = existing.stream().anyMatch(a -> {
             if (!a.getItemId().equals(itemId)) return false;
@@ -97,9 +165,17 @@ public class CartService {
         Map<String, Object> extra = new LinkedHashMap<>();
         extra.put("studentId", studentId);
         extra.put("planId", planId);
-        extra.put("trialType", trialType);
-        extra.put("trialDate", trialDate);
-        extra.put("trialNote", trialNote);
+        extra.put("scheduleId", scheduleId);
+        if (startDate != null && !startDate.isBlank()) extra.put("startDate", startDate);
+        // activities array (new); fallback to legacy single-activity fields
+        if (activities != null) {
+            extra.put("activities", activities);
+        } else if (trialType != null) {
+            extra.put("activities", List.of(Map.of(
+                    "type", trialType,
+                    "date", trialDate != null ? trialDate : "",
+                    "note", trialNote != null ? trialNote : "")));
+        }
 
         ItemUserAction action = new ItemUserAction();
         action.setItemId(itemId);
@@ -139,6 +215,15 @@ public class CartService {
                         userRepository.findById(Long.parseLong(String.valueOf(sid)))
                                 .ifPresent(s -> row.put("studentName", s.getName()));
                     }
+                    Object schId = extra.get("scheduleId");
+                    if (schId != null) {
+                        itemScheduleRepository.findById(Long.parseLong(String.valueOf(schId))).ifPresent(sch -> {
+                            row.put("scheduleTitle", sch.getTitle());
+                            row.put("scheduleTime", buildScheduleTime(sch));
+                        });
+                    }
+                    // expose activities array for checkout display
+                    if (extra.get("activities") instanceof List<?> acts) row.put("activities", acts);
                     row.put("extra", extra);
                 }
             } catch (Exception ignored) {}
@@ -235,6 +320,27 @@ public class CartService {
             pendingReg.setUpdatedAt(LocalDateTime.now());
             itemUserActionRepository.save(pendingReg);
 
+            // Save activities to item_activities table
+            Long actStudentId = studentIdForDetail != null ? studentIdForDetail : currentUser.getId();
+            Object acts = extraData.get("activities");
+            if (acts instanceof List<?> actList) {
+                for (Object actObj : actList) {
+                    if (!(actObj instanceof Map<?,?> act)) continue;
+                    String actType = act.get("type") instanceof String t ? t : null;
+                    if (actType == null) continue;
+                    ItemActivity ia = new ItemActivity();
+                    ia.setItemId(item.getId());
+                    ia.setUserId(actStudentId);
+                    ia.setType(actType);
+                    ia.setDate(act.get("date") instanceof String d && !d.isBlank() ? d : null);
+                    ia.setNote(act.get("note") instanceof String n && !n.isBlank() ? n : null);
+                    ia.setStatus((byte) 0);
+                    ia.setCreatedAt(LocalDateTime.now());
+                    ia.setUpdatedAt(LocalDateTime.now());
+                    itemActivityRepository.save(ia);
+                }
+            }
+
             // Create pending commission transactions (approved later when payment confirmed)
             createPendingCommissions(order, detail, item, currentUser);
 
@@ -251,6 +357,7 @@ public class CartService {
 
         // Notify admins so they can review and approve
         notifyAdminsNewOrder(order, currentUser, orderedItems);
+        notifyAdminsActivityRegistrations(currentUser, cartItems);
 
         // Deduct anyPoints from wallet_c and create pending transaction
         if (pointsUsed != null && pointsUsed > 0) {
@@ -297,6 +404,38 @@ public class CartService {
         });
     }
 
+    @SuppressWarnings("unchecked")
+    private void notifyAdminsActivityRegistrations(User buyer, List<ItemUserAction> cartItems) {
+        for (ItemUserAction cartItem : cartItems) {
+            try {
+                if (cartItem.getExtraValue() == null) continue;
+                Map<?, ?> extra = objectMapper.readValue(cartItem.getExtraValue(), Map.class);
+                Object activitiesObj = extra.get("activities");
+                if (!(activitiesObj instanceof List<?> acts) || acts.isEmpty()) continue;
+                String itemTitle = itemRepository.findById(cartItem.getItemId())
+                        .map(Item::getTitle).orElse("Khóa học");
+                String buyerName = buyer.getName() != null ? buyer.getName() : buyer.getPhone();
+                for (Object actObj : acts) {
+                    if (!(actObj instanceof Map<?,?> act)) continue;
+                    String type = act.get("type") instanceof String t ? t : null;
+                    if (type == null) continue;
+                    String date = act.get("date") instanceof String d && !d.isBlank() ? d : null;
+                    String typeLabel = switch (type) {
+                        case "trial" -> "Học thử"; case "test" -> "Test đầu vào"; default -> "Tham quan";
+                    };
+                    String content = buyerName + " đăng ký " + typeLabel + " · " + itemTitle
+                            + (date != null ? " · " + date : "");
+                    userRepository.findByRole("admin").forEach(admin -> {
+                        try {
+                            notificationService.createNotification(admin.getId(), "activity_registration",
+                                    "Đăng ký hoạt động mới", content, "/admin/activities", null);
+                        } catch (Exception ignored) {}
+                    });
+                }
+            } catch (Exception ignored) {}
+        }
+    }
+
     public Map<String, Object> getOrder(String orderId, User currentUser) {
         long orderIdLong;
         try { orderIdLong = Long.parseLong(orderId); }
@@ -308,6 +447,13 @@ public class CartService {
         if (order == null) return Map.of("orderId", orderId, "items", List.of(), "paymentMethod", "");
 
         List<OrderDetail> details = orderDetailRepository.findByOrderId(orderIdLong);
+        // Look up pending_reg records for schedule/student info
+        List<ItemUserAction> regs = itemUserActionRepository.findRegsByOrderId(currentUser.getId(), String.valueOf(orderIdLong));
+        java.util.function.Function<Long, Map<?,?>> getRegExtra = (itemId) -> regs.stream()
+                .filter(r -> r.getItemId().equals(itemId)).findFirst()
+                .map(r -> { try { return objectMapper.readValue(r.getExtraValue(), Map.class); } catch (Exception e) { return null; } })
+                .orElse(null);
+
         List<Map<String, Object>> items = new ArrayList<>();
         for (OrderDetail detail : details) {
             itemRepository.findById(detail.getItemId()).ifPresent(item -> {
@@ -316,8 +462,23 @@ public class CartService {
                 row.put("title", item.getTitle());
                 row.put("price", detail.getPaidPrice());
                 row.put("image", item.getImage());
-                row.put("dateStart", item.getDateStart());
                 row.put("seoUrl", item.getSeoUrl());
+                // Enrich from pending_reg extra (schedule + student)
+                Map<?,?> extra = getRegExtra.apply(item.getId());
+                if (extra != null) {
+                    Object sid = extra.get("studentId");
+                    if (sid != null) userRepository.findById(Long.parseLong(String.valueOf(sid)))
+                            .ifPresent(s -> row.put("studentName", s.getName()));
+                    Object schId = extra.get("scheduleId");
+                    if (schId != null) itemScheduleRepository.findById(Long.parseLong(String.valueOf(schId)))
+                            .ifPresent(sch -> { row.put("scheduleTitle", sch.getTitle()); row.put("scheduleTime", buildScheduleTime(sch)); });
+                }
+                // Load activities from item_activities table
+                List<Map<String, Object>> acts = itemActivityRepository
+                        .findByItemIdAndUserId(item.getId(), detail.getUserId()).stream()
+                        .<Map<String, Object>>map(ia -> { var m = new LinkedHashMap<String, Object>(); m.put("type", ia.getType()); m.put("date", ia.getDate()); m.put("note", ia.getNote()); return m; })
+                        .toList();
+                if (!acts.isEmpty()) row.put("activities", acts);
                 items.add(row);
             });
         }
@@ -445,5 +606,25 @@ public class CartService {
     private String fmtRate(double rate) {
         int pct = (int) Math.round(rate * 100);
         return pct + "%";
+    }
+
+    private static final java.util.Map<String, String> WD_VN = java.util.Map.of(
+            "mon","Thứ Hai","tue","Thứ Ba","wed","Thứ Tư",
+            "thu","Thứ Năm","fri","Thứ Sáu","sat","Thứ Bảy","sun","Chủ Nhật");
+
+    private String buildScheduleTime(com.anylearn.backend.entity.ItemSchedule s) {
+        if ("event".equals(s.getScheduleType()) && s.getEventDate() != null) {
+            return s.getEventDate() + (s.getTimeStart() != null ? " · " + s.getTimeStart() : "");
+        }
+        var sb = new StringBuilder();
+        if (s.getWeekdays() != null) {
+            String days = java.util.Arrays.stream(s.getWeekdays().split(","))
+                    .map(d -> WD_VN.getOrDefault(d.trim(), d.trim()))
+                    .collect(java.util.stream.Collectors.joining(", "));
+            sb.append(days);
+        }
+        if (s.getTimeStart() != null) sb.append(sb.length() > 0 ? " · " : "").append(s.getTimeStart());
+        if (s.getDateStart() != null) sb.append(sb.length() > 0 ? " · từ " : "từ ").append(s.getDateStart());
+        return sb.toString();
     }
 }

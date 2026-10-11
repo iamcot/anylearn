@@ -27,7 +27,7 @@ export default function FavoritesPage() {
 
   useEffect(() => {
     if (!user) return
-    fetch(`${BASE}/v3/auth/favorites`, {
+    fetch(`${BASE}/user/favorites`, {
       headers: { Authorization: `Bearer ${user.jwtToken}` },
     })
       .then(r => r.json())

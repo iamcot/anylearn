@@ -121,7 +121,7 @@ export default function CheckoutPage() {
 
   return (
     <div className="section section--soft">
-      <div className="container max-w-[800px]">
+      <div className="container">
 
         {/* Toast */}
         {toast && (
@@ -168,7 +168,22 @@ export default function CheckoutPage() {
                             {item.title}
                             {item.studentName && <span className="text-muted font-normal"> ({item.studentName})</span>}
                           </div>
-                          {item.dateStart && <div className="text-muted text-xs mt-1">Bắt đầu từ ngày {new Date(item.dateStart).toLocaleDateString('vi-VN')}</div>}
+                          {(item.scheduleTitle || item.scheduleTime) && (
+                            <div className="text-xs text-[#00539b] mt-0.5">
+                              {[item.scheduleTitle, item.scheduleTime].filter(Boolean).join(' · ')}
+                            </div>
+                          )}
+                          {item.activities && item.activities.length > 0 && (
+                            <div className="text-xs text-[#008244] mt-0.5 flex gap-2 flex-wrap">
+                              {item.activities.map((a, i) => (
+                                <span key={i} className="flex items-center gap-1">
+                                  <span style={{color:'#00a651',fontWeight:900}}>✓</span>
+                                  {{ trial:'Học thử', test:'Test đầu vào', visit:'Tham quan' }[a.type] ?? a.type}
+                                  {a.date ? ` · ${a.date}` : ''}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </td>

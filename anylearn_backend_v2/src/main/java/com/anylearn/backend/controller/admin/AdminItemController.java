@@ -2,6 +2,7 @@ package com.anylearn.backend.controller.admin;
 
 import com.anylearn.backend.dto.response.ApiResponse;
 import com.anylearn.backend.entity.Item;
+import com.anylearn.backend.entity.ItemSchedule;
 import com.anylearn.backend.entity.ItemUserAction;
 import com.anylearn.backend.entity.User;
 import com.anylearn.backend.repository.*;
@@ -26,6 +27,7 @@ public class AdminItemController {
     private final ItemRepository itemRepository;
     private final ItemCategoryRepository itemCategoryRepository;
     private final ItemUserActionRepository itemUserActionRepository;
+    private final ItemScheduleRepository itemScheduleRepository;
     private final OrderDetailRepository orderDetailRepository;
     private final UserRepository userRepository;
     private final MeilisearchService meilisearchService;
@@ -384,7 +386,76 @@ public class AdminItemController {
         return ApiResponse.ok("Deleted");
     }
 
+    // ── Item Schedules CRUD ───────────────────────────────────────────────────
+
+    @GetMapping("/{id:\\d+}/schedules")
+    public ApiResponse<?> listSchedules(@AuthenticationPrincipal User user, @PathVariable Long id) {
+        if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
+        return ApiResponse.ok(itemScheduleRepository.findByItemIdAndStatus(id, (byte) 1));
+    }
+
+    @PostMapping("/{id:\\d+}/schedules")
+    public ApiResponse<?> createSchedule(@AuthenticationPrincipal User user,
+                                         @PathVariable Long id,
+                                         @RequestBody Map<String, Object> body) {
+        if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
+        ItemSchedule s = buildSchedule(body);
+        s.setItemId(id);
+        s.setCreatedAt(LocalDateTime.now());
+        s.setUpdatedAt(LocalDateTime.now());
+        return ApiResponse.ok(itemScheduleRepository.save(s));
+    }
+
+    @PutMapping("/{id:\\d+}/schedules/{sid:\\d+}")
+    public ApiResponse<?> updateSchedule(@AuthenticationPrincipal User user,
+                                         @PathVariable Long id,
+                                         @PathVariable Long sid,
+                                         @RequestBody Map<String, Object> body) {
+        if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
+        return itemScheduleRepository.findById(sid).map(s -> {
+            if (!s.getItemId().equals(id)) return ApiResponse.fail("Not found");
+            ItemSchedule updated = buildSchedule(body);
+            updated.setId(sid);
+            updated.setItemId(id);
+            updated.setCreatedAt(s.getCreatedAt());
+            updated.setUpdatedAt(LocalDateTime.now());
+            return ApiResponse.ok(itemScheduleRepository.save(updated));
+        }).orElse(ApiResponse.fail("Not found"));
+    }
+
+    @DeleteMapping("/{id:\\d+}/schedules/{sid:\\d+}")
+    public ApiResponse<?> deleteSchedule(@AuthenticationPrincipal User user,
+                                         @PathVariable Long id,
+                                         @PathVariable Long sid) {
+        if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
+        itemScheduleRepository.findById(sid).ifPresent(s -> {
+            if (s.getItemId().equals(id)) { s.setStatus((byte) 0); itemScheduleRepository.save(s); }
+        });
+        return ApiResponse.ok("Deleted");
+    }
+
+    private ItemSchedule buildSchedule(Map<String, Object> body) {
+        ItemSchedule s = new ItemSchedule();
+        s.setTitle(str(body, "title"));
+        s.setScheduleType(str(body, "scheduleType") != null ? str(body, "scheduleType") : "recurring");
+        s.setWeekdays(str(body, "weekdays"));
+        s.setTimeStart(str(body, "timeStart"));
+        s.setTimeEnd(str(body, "timeEnd"));
+        s.setLocationNote(str(body, "locationNote"));
+        s.setStatus((byte) 1);
+        if (body.get("eventDate") != null) s.setEventDate(LocalDate.parse(body.get("eventDate").toString()));
+        if (body.get("dateStart") != null) s.setDateStart(LocalDate.parse(body.get("dateStart").toString()));
+        if (body.get("dateEnd") != null) s.setDateEnd(LocalDate.parse(body.get("dateEnd").toString()));
+        if (body.get("durationValue") != null) s.setDurationValue(Integer.parseInt(body.get("durationValue").toString()));
+        s.setDurationUnit(str(body, "durationUnit"));
+        return s;
+    }
+
     // ── Helper ────────────────────────────────────────────────────────────────
+
+    private String str(Map<String, Object> m, String key) {
+        Object v = m.get(key); return v != null && !v.toString().isBlank() ? v.toString() : null;
+    }
 
     private Number toNum(Object v) {
         if (v == null) return 0;

@@ -1,4 +1,4 @@
-import { getPdpData, getCourseUrl, PdpData, Item } from '@/lib/api'
+import { getPdpData, getCourseUrl, PdpData, Item, ItemSchedule } from '@/lib/api'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
@@ -7,6 +7,7 @@ import BackButton from '@/components/BackButton'
 import RegisterButton from './RegisterButton'
 import FavButton from '@/components/FavButton'
 import ReviewsSection from '@/components/ReviewsSection'
+import ActivityButton from '@/components/ActivityButton'
 
 const SUBTYPE_LABELS: Record<string, string> = {
   extra: 'Ngoại khóa', offline: 'Học trực tiếp', online: 'Học online',
@@ -24,6 +25,21 @@ function formatAge(min?: number, max?: number) {
   if (!max || max >= 99) return `Từ ${min} tuổi`
   if (!min) return `Đến ${max} tuổi`
   return `${min} – ${max} tuổi`
+}
+
+const WD_LABEL: Record<string, string> = { mon:'Thứ Hai', tue:'Thứ Ba', wed:'Thứ Tư', thu:'Thứ Năm', fri:'Thứ Sáu', sat:'Thứ Bảy', sun:'Chủ Nhật' }
+const CYCLE_LABEL: Record<string, string> = { session:'buổi', day:'ngày', week:'tuần', month:'tháng', year:'năm' }
+const SCHEDULE_TYPE_LABEL: Record<string, string> = { recurring:'Lớp cố định', event:'Một buổi', open:'Khai giảng linh hoạt' }
+
+function formatSchedule(s: ItemSchedule) {
+  if (s.scheduleType === 'event' && s.eventDate) {
+    const d = new Date(s.eventDate).toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })
+    return `${d}${s.timeStart ? ` · ${s.timeStart}${s.timeEnd ? '–'+s.timeEnd : ''}` : ''}`
+  }
+  const days = s.weekdays ? s.weekdays.split(',').map(d => WD_LABEL[d] ?? d).join(' ') : ''
+  const time = s.timeStart ? `${s.timeStart}${s.timeEnd ? '–'+s.timeEnd : ''}` : ''
+  const from = s.dateStart ? `từ ${new Date(s.dateStart).toLocaleDateString('vi-VN')}` : ''
+  return [days, time, from].filter(Boolean).join(' · ')
 }
 
 function parseContent(raw?: string) {
@@ -51,9 +67,11 @@ export default async function PdpPage({ params }: Props) {
   if (!data) notFound()
 
   const { item, author, categories, reviews, rating, num_favorite, authorItems, hotItems, is_fav } = data
+  const schedules: ItemSchedule[] = data.schedules ?? []
+  const enrolledCount = data.enrolled_count ?? 0
   const content = parseContent(item.content)
   const ageLabel = formatAge(item.agesMin, item.agesMax)
-  const hasDiscount = item.orgPrice && item.orgPrice > item.price
+  const hasDiscount = !!(item.orgPrice && item.orgPrice > item.price)
   const discountPct = hasDiscount ? Math.round((1 - item.price / item.orgPrice!) * 100) : null
 
   return (
@@ -86,7 +104,7 @@ export default async function PdpPage({ params }: Props) {
                 ))}
               </div>
 
-              <h1 className="m-0 mb-3 text-[clamp(22px,3vw,34px)] font-black text-ink leading-[1.15]">
+              <h1 className="m-0 mb-3 text-[clamp(18px,2.5vw,26px)] font-black text-ink leading-[1.2]">
                 {item.title}
               </h1>
 
@@ -116,43 +134,70 @@ export default async function PdpPage({ params }: Props) {
               )}
 
               <div className="pdp-meta-grid">
-                {item.locationType && (
-                  <div className="pdp-meta-item">
-                    <span className="pdp-meta-label">Hình thức</span>
-                    <span className="pdp-meta-value">{SUBTYPE_LABELS[item.locationType] ?? item.locationType}</span>
-                  </div>
-                )}
                 {ageLabel && (
                   <div className="pdp-meta-item">
                     <span className="pdp-meta-label">Độ tuổi</span>
                     <span className="pdp-meta-value">{ageLabel}</span>
                   </div>
                 )}
-                {item.dateStart && (
+                {item.seats != null && item.seats > 0 && (
                   <div className="pdp-meta-item">
-                    <span className="pdp-meta-label">Khai giảng</span>
-                    <span className="pdp-meta-value">{new Date(item.dateStart).toLocaleDateString('vi-VN')}</span>
+                    <span className="pdp-meta-label">Số chỗ còn lại</span>
+                    <span className="pdp-meta-value">
+                      {Math.max(0, item.seats - enrolledCount)}/{item.seats} học viên
+                    </span>
                   </div>
                 )}
-                {item.timeStart && (
+                {(item.cycleAmount || item.cycleType) && (
                   <div className="pdp-meta-item">
-                    <span className="pdp-meta-label">Giờ học</span>
-                    <span className="pdp-meta-value">{item.timeStart}{item.timeEnd ? ` – ${item.timeEnd}` : ''}</span>
-                  </div>
-                )}
-                {item.seats && (
-                  <div className="pdp-meta-item">
-                    <span className="pdp-meta-label">Số chỗ</span>
-                    <span className="pdp-meta-value">{item.seats} học viên</span>
-                  </div>
-                )}
-                {item.location && (
-                  <div className="pdp-meta-item col-span-full">
-                    <span className="pdp-meta-label">Địa điểm</span>
-                    <span className="pdp-meta-value">{item.location}</span>
+                    <span className="pdp-meta-label">Chu kỳ học</span>
+                    <span className="pdp-meta-value">
+                      {item.cycleAmount ? `${item.cycleAmount} ` : ''}{item.cycleType ? (CYCLE_LABEL[item.cycleType] ?? item.cycleType) : ''}
+                    </span>
                   </div>
                 )}
               </div>
+
+              {/* Schedules */}
+              {schedules.length > 0 && (
+                <div className="mt-4 mb-1">
+                  <div className="text-xs font-bold text-muted uppercase tracking-wide mb-2">Lịch học</div>
+                  <div className="flex flex-col gap-2">
+                    {schedules.map(s => (
+                      <div key={s.id} className="flex items-start gap-2 text-sm">
+                        
+                        <div>
+                          {s.title && <div className="font-bold text-ink">{s.title} <span style={{
+                          fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 20, flexShrink: 0, marginTop: 2,
+                          background: s.scheduleType === 'event' ? '#f3e8ff' : s.scheduleType === 'open' ? '#dcfce7' : '#e7f3ff',
+                          color: s.scheduleType === 'event' ? '#7c3aed' : s.scheduleType === 'open' ? '#15803d' : '#00539b',
+                        }}>
+                          {SCHEDULE_TYPE_LABEL[s.scheduleType ?? ''] ?? s.scheduleType}
+                        </span></div>}
+                          
+                          <div className="text-muted text-xs">{formatSchedule(s)}</div>
+                          {s.locationNote && <div className="text-muted text-xs">{s.locationNote}</div>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Feature checkmarks */}
+              {(item.allowReRegister === 1 || item.activiyTrial === 1 || item.activiyTest === 1 || item.activiyVisit === 1) && (
+                <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3">
+                  {item.activiyTrial === 1 && (
+                    <span className="text-xs text-[#008244] flex items-center gap-1"><span style={{color:'#00a651',fontWeight:900}}>✓</span> Có học thử</span>
+                  )}
+                  {item.activiyTest === 1 && (
+                    <span className="text-xs text-[#008244] flex items-center gap-1"><span style={{color:'#00a651',fontWeight:900}}>✓</span> Có test đầu vào</span>
+                  )}
+                  {item.activiyVisit === 1 && (
+                    <span className="text-xs text-[#008244] flex items-center gap-1"><span style={{color:'#00a651',fontWeight:900}}>✓</span> Có tham quan</span>
+                  )}
+                </div>
+              )}
 
               <div className="my-6 flex items-baseline gap-3 flex-wrap">
                 <span className="text-[32px] font-black text-red">{formatPrice(item.price)}</span>
@@ -165,6 +210,8 @@ export default async function PdpPage({ params }: Props) {
               </div>
 
               <RegisterButton itemId={item.id} />
+              <ActivityButton itemId={item.id}
+                activiyTrial={item.activiyTrial} activiyTest={item.activiyTest} activiyVisit={item.activiyVisit} />
             </div>
           </div>
         </div>

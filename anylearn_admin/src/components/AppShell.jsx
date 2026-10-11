@@ -1,6 +1,6 @@
 import { Avatar, Badge, Dropdown, Flex, Layout, List, Menu, Popover, Spin, Typography } from 'antd'
 import {
-  AuditOutlined, BellOutlined, BookOutlined, DashboardOutlined, FileTextOutlined,
+  AuditOutlined, BellOutlined, BookOutlined, CalendarOutlined, DashboardOutlined, FileTextOutlined,
   FundOutlined, LogoutOutlined, OrderedListOutlined, SettingOutlined, SwapOutlined,
   TeamOutlined, UserOutlined,
 } from '@ant-design/icons'
@@ -16,6 +16,7 @@ const NAV_ITEMS = [
   { key: '/items',       icon: <BookOutlined />,       label: 'Khóa học'  },
   { key: '/users',       icon: <TeamOutlined />,      label: 'Thành viên' },
   { key: '/orders',      icon: <OrderedListOutlined />, label: 'Đơn hàng' },
+  { key: '/activities',  icon: <CalendarOutlined />,    label: 'Hoạt động' },
   { key: '/transactions',icon: <SwapOutlined />,      label: 'anyPoints'  },
   { key: '/finance',     icon: <FundOutlined />,      label: 'Tài chính'  },
   { key: '/articles',    icon: <FileTextOutlined />,  label: 'Bài viết'   },
