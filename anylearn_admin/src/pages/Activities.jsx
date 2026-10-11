@@ -123,6 +123,7 @@ export default function Activities() {
           rowKey="id"
           loading={isLoading}
           size="small"
+          scroll={{ x: 'max-content' }}
           pagination={{
             current: page, pageSize: 30, showSizeChanger: false,
             onChange: p => setPage(p),

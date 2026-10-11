@@ -1,7 +1,7 @@
 import { Avatar, Badge, Dropdown, Flex, Layout, List, Menu, Popover, Spin, Typography } from 'antd'
 import {
   AuditOutlined, BellOutlined, BookOutlined, CalendarOutlined, DashboardOutlined, FileTextOutlined,
-  FundOutlined, LogoutOutlined, OrderedListOutlined, SettingOutlined, SwapOutlined,
+  FundOutlined, LogoutOutlined, MailOutlined, ApiOutlined, OrderedListOutlined, SettingOutlined, SolutionOutlined, SwapOutlined,
   TeamOutlined, UserOutlined,
 } from '@ant-design/icons'
 import { useEffect, useRef, useState } from 'react'
@@ -16,7 +16,7 @@ const NAV_ITEMS = [
   { key: '/items',            icon: <BookOutlined />,        label: 'Khóa học'   },
   { key: '/users',            icon: <TeamOutlined />,        label: 'Thành viên' },
   { key: '/orders',           icon: <OrderedListOutlined />, label: 'Đơn hàng'  },
-  { key: '/activities',       icon: <CalendarOutlined />,    label: 'Hoạt động'  },
+  { key: '/activities',       icon: <SolutionOutlined />,    label: 'Hoạt động'  },
   { key: '/schedule-monitor', icon: <CalendarOutlined />,    label: 'Lịch học'   },
   { key: '/transactions',     icon: <SwapOutlined />,        label: 'anyPoints'  },
   { key: '/finance',          icon: <FundOutlined />,        label: 'Tài chính'  },
@@ -25,7 +25,14 @@ const NAV_ITEMS = [
 
 const SETTINGS_MENU = [
   {
+    key: 'email-settings',
+    icon: <MailOutlined />,
+    label: 'Cài đặt email',
+    onClick: () => {},  // onClick set dynamically in component (needs navigate)
+  },
+  {
     key: 'zalo',
+    icon: <ApiOutlined />,
     label: 'Kết nối Zalo OA',
     onClick: async () => {
       try {
@@ -112,7 +119,10 @@ export default function AppShell() {
     setNotifItems(prev => prev.map(n => ({ ...n, read: n.read ?? new Date().toISOString() })))
   }
 
-  const settingsMenu = [    ...SETTINGS_MENU,
+  const settingsMenu = [
+    ...SETTINGS_MENU.map(item =>
+      item.key === 'email-settings' ? { ...item, onClick: () => navigate('/settings') } : item
+    ),
     { type: 'divider' },
     { key: 'audit', icon: <AuditOutlined />, label: 'Kiểm toán anyPoint', onClick: () => navigate('/audit') },
   ]

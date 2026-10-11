@@ -20,6 +20,7 @@ import jakarta.persistence.EntityManager;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import com.anylearn.backend.service.EmailTemplates;
 
 @RestController
 @RequestMapping("/admin")
@@ -147,11 +148,47 @@ public class AdminController {
             @PathVariable String key,
             @RequestBody Map<String, String> body) {
         if (user == null || !"admin".equals(user.getRole())) return ApiResponse.fail("Forbidden");
-        return configurationRepository.findById(key).map(c -> {
-            c.setValue(body.get("value"));
-            configurationRepository.save(c);
-            return ApiResponse.ok(c);
-        }).orElse(ApiResponse.fail("Config key not found: " + key));
+        var config = configurationRepository.findById(key).orElseGet(() -> {
+            var c = new com.anylearn.backend.entity.Configuration();
+            c.setKey(key); c.setType("custom");
+            c.setCreatedAt(java.time.LocalDateTime.now());
+            return c;
+        });
+        config.setValue(body.get("value"));
+        config.setUpdatedAt(java.time.LocalDateTime.now());
+        configurationRepository.save(config);
+        return ApiResponse.ok(config);
+    }
+
+    @DeleteMapping("/config/{key}")
+    public ApiResponse<?> deleteConfig(
+            @AuthenticationPrincipal User user,
+            @PathVariable String key) {
+        if (user == null || !"admin".equals(user.getRole())) return ApiResponse.fail("Forbidden");
+        if (!configurationRepository.existsById(key)) return ApiResponse.fail("Config key not found");
+        configurationRepository.deleteById(key);
+        return ApiResponse.ok("Đã xóa, sẽ dùng template mặc định");
+    }
+
+    @GetMapping("/email-templates")
+    public ApiResponse<?> listEmailTemplates(@AuthenticationPrincipal User user) {
+        if (user == null || !"admin".equals(user.getRole())) return ApiResponse.fail("Forbidden");
+        var list = EmailTemplates.TEMPLATES.entrySet().stream().map(e -> {
+            var m = new java.util.LinkedHashMap<String, Object>();
+            m.put("key", e.getKey());
+            m.put("displayName", e.getValue().displayName());
+            m.put("vars", e.getValue().vars());
+            return m;
+        }).toList();
+        return ApiResponse.ok(list);
+    }
+
+    @GetMapping("/email-templates/{key}")
+    public ApiResponse<?> getEmailTemplate(@AuthenticationPrincipal User user, @PathVariable String key) {
+        if (user == null || !"admin".equals(user.getRole())) return ApiResponse.fail("Forbidden");
+        String html = EmailTemplates.loadDefault(key);
+        if (html == null) return ApiResponse.fail("Template not found: " + key);
+        return ApiResponse.ok(html);
     }
 
     /** Run wallet_c reconciliation audit. Returns list of discrepancies and persists a log entry. */

@@ -15,6 +15,9 @@ public class EmailService {
     @Value("${spring.mail.enabled:false}")
     private boolean mailEnabled;
 
+    @Value("${spring.mail.log-only:false}")
+    private boolean logOnly;
+
     @Value("${spring.mail.from:noreply@anylearn.vn}")
     private String fromEmail;
 
@@ -26,8 +29,16 @@ public class EmailService {
 
     @Async("emailExecutor")
     public void sendEmail(String to, String subject, String htmlBody) {
-        if (!mailEnabled || mailSender == null) {
-            log.info("[EMAIL] disabled — to={} subject={}", to, subject);
+        if (!mailEnabled) {
+            log.debug("[EMAIL] disabled — to={} subject={}", to, subject);
+            return;
+        }
+        if (logOnly) {
+            log.info("[EMAIL LOG-ONLY] to={} subject={}\n{}", to, subject, htmlBody);
+            return;
+        }
+        if (mailSender == null) {
+            log.warn("[EMAIL] no mailSender configured — to={} subject={}", to, subject);
             return;
         }
         try {

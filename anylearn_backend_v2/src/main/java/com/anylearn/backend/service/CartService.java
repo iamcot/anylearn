@@ -132,14 +132,15 @@ public class CartService {
 
         // Rule 2: Age range
         if (item.getAgesMin() != null || item.getAgesMax() != null) {
-            var student = userRepository.findById(studentUserId).orElse(null);
-            if (student != null && student.getDob() != null) {
-                int age = java.time.Period.between(student.getDob(), java.time.LocalDate.now()).getYears();
-                if (item.getAgesMin() != null && age < item.getAgesMin())
-                    throw new IllegalArgumentException("Học sinh chưa đủ tuổi (tối thiểu " + item.getAgesMin() + " tuổi).");
-                if (item.getAgesMax() != null && age > item.getAgesMax())
-                    throw new IllegalArgumentException("Học sinh vượt quá độ tuổi (tối đa " + item.getAgesMax() + " tuổi).");
-            }
+            var student = userRepository.findById(studentUserId)
+                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy thông tin học sinh."));
+            if (student.getDob() == null)
+                throw new IllegalArgumentException("Vui lòng cập nhật ngày sinh cho học sinh để kiểm tra độ tuổi.");
+            int age = java.time.Period.between(student.getDob(), java.time.LocalDate.now()).getYears();
+            if (item.getAgesMin() != null && age < item.getAgesMin())
+                throw new IllegalArgumentException("Học sinh chưa đủ tuổi (tối thiểu " + item.getAgesMin() + " tuổi).");
+            if (item.getAgesMax() != null && age > item.getAgesMax())
+                throw new IllegalArgumentException("Học sinh vượt quá độ tuổi (tối đa " + item.getAgesMax() + " tuổi).");
         }
 
         // Rule 3: Seat capacity

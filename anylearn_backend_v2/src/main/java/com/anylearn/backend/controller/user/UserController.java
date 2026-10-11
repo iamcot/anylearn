@@ -3,6 +3,8 @@ package com.anylearn.backend.controller.user;
 import com.anylearn.backend.dto.response.ApiResponse;
 import com.anylearn.backend.entity.User;
 import com.anylearn.backend.repository.ItemActivityRepository;
+import com.anylearn.backend.repository.ItemRepository;
+import com.anylearn.backend.repository.ItemScheduleRepository;
 import com.anylearn.backend.repository.ItemUserActionRepository;
 import com.anylearn.backend.repository.UserCourseEnrollmentRepository;
 import com.anylearn.backend.service.NotificationService;
@@ -31,6 +33,8 @@ public class UserController {
     private final ItemUserActionRepository itemUserActionRepository;
     private final UserCourseEnrollmentRepository enrollmentRepository;
     private final ItemActivityRepository itemActivityRepository;
+    private final ItemRepository itemRepository;
+    private final ItemScheduleRepository itemScheduleRepository;
 
     @GetMapping("/users/{role}")
     public ApiResponse<?> usersList(@PathVariable String role,
@@ -251,9 +255,44 @@ public class UserController {
             String dateStr = body.get("startDate") instanceof String s ? s : null;
             if (dateStr == null) return ApiResponse.fail("Thiếu ngày bắt đầu");
             try {
-                e.setStartDate(java.time.LocalDate.parse(dateStr));
+                java.time.LocalDate start = java.time.LocalDate.parse(dateStr);
+                e.setStartDate(start);
                 e.setStatus("active");
                 e.setUpdatedAt(java.time.LocalDateTime.now());
+
+                // Compute end_date from item cycleType/cycleAmount + schedule weekdays
+                if (e.getEndDate() == null) {
+                    var item = itemRepository.findById(e.getItemId()).orElse(null);
+                    if (item != null && item.getCycleType() != null && item.getCycleAmount() != null) {
+                        java.time.LocalDate endDate = null;
+                        if ("session".equals(item.getCycleType()) && e.getScheduleId() != null) {
+                            // Count forward sessions on schedule's weekdays
+                            var sch = itemScheduleRepository.findById(e.getScheduleId()).orElse(null);
+                            if (sch != null && sch.getWeekdays() != null) {
+                                java.util.Map<String,Integer> WDM = java.util.Map.of(
+                                    "mon",1,"tue",2,"wed",3,"thu",4,"fri",5,"sat",6,"sun",0);
+                                java.util.Set<Integer> days = new java.util.HashSet<>();
+                                for (String w : sch.getWeekdays().split(",")) {
+                                    Integer v = WDM.get(w.trim()); if (v != null) days.add(v);
+                                }
+                                int count = 0; int target = item.getCycleAmount();
+                                for (java.time.LocalDate d = start; count < target; d = d.plusDays(1)) {
+                                    int dow = d.getDayOfWeek().getValue() % 7;
+                                    if (days.contains(dow)) { endDate = d; count++; }
+                                    if (d.isAfter(start.plusYears(5))) break; // safety cap
+                                }
+                            }
+                        } else {
+                            endDate = switch (item.getCycleType()) {
+                                case "year"  -> start.plusYears(item.getCycleAmount()).minusDays(1);
+                                case "week"  -> start.plusWeeks(item.getCycleAmount()).minusDays(1);
+                                case "day"   -> start.plusDays(item.getCycleAmount()).minusDays(1);
+                                default      -> start.plusMonths(item.getCycleAmount()).minusDays(1);
+                            };
+                        }
+                        if (endDate != null) e.setEndDate(endDate);
+                    }
+                }
                 enrollmentRepository.save(e);
                 return ApiResponse.ok("Đã cập nhật");
             } catch (Exception ex) {

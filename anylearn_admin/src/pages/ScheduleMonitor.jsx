@@ -234,6 +234,7 @@ export default function ScheduleMonitor() {
                   rowKey={(r, i) => `${r.enrollmentId}-${r.date}-${i}`}
                   size="small"
                   pagination={false}
+                  scroll={{ x: 'max-content' }}
                   style={{ marginLeft: 8 }}
                 />
               </div>

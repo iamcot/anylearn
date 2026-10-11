@@ -19,14 +19,19 @@ spring:
       write-dates-as-timestamps: false
   mail:
     enabled: ${MAIL_ENABLED:false}
-    host: ${MAIL_HOST:mail9051.maychuemail.com}
-    port: ${MAIL_PORT:465}
-    username: ${MAIL_USERNAME:info@anylearn.vn}
+    log-only: ${MAIL_LOG_ONLY:false}
+    host: ${MAIL_HOST:smtp-relay.brevo.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:bdac97001@smtp-brevo.com}
     password: ${MAIL_PASSWORD:}
     from: ${MAIL_FROM:info@anylearn.vn}
     properties:
       mail.smtp.auth: true
       mail.smtp.starttls.enable: true
+
+admin:
+  email:
+    recipients: ${ADMIN_EMAIL_RECIPIENTS:}
 
 app:
   jwt:

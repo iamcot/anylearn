@@ -21,6 +21,7 @@ interface Enrollment {
   scheduleType: string; weekdays?: string; timeStart?: string; timeEnd?: string
   dateStart?: string; dateEnd?: string; eventDate?: string; startDate?: string; endDate?: string
   scheduleTitle?: string; locationNote?: string; status: string
+  cycleType?: string; cycleAmount?: number
 }
 interface Activity {
   id: number; itemId: number; itemTitle: string; seoUrl?: string
@@ -39,6 +40,7 @@ const norm = (e: any): Enrollment => ({
   dateStart: e.date_start, dateEnd: e.date_end,
   eventDate: e.event_date, startDate: e.start_date, endDate: e.end_date,
   scheduleTitle: e.schedule_title, locationNote: e.location_note, status: e.status,
+  cycleType: e.cycle_type, cycleAmount: e.cycle_amount != null ? Number(e.cycle_amount) : undefined,
 })
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const normAct = (a: any): Activity => ({
@@ -53,24 +55,58 @@ function getMondayOfWeek(d: Date) {
   const day = d.getDay(); const diff = day === 0 ? -6 : 1 - day
   const m = new Date(d); m.setDate(d.getDate() + diff); return m
 }
+function computeEffectiveEnd(e: Enrollment): string | null {
+  if (e.endDate) return e.endDate.substring(0, 10)
+  const s = e.startDate ?? e.dateStart
+  if (!s) return null
+  const start = s.substring(0, 10)
+  if (e.cycleType && e.cycleAmount) {
+    if (e.cycleType === 'session' && e.weekdays) {
+      // Count forward cycleAmount sessions on weekdays
+      const days = new Set(e.weekdays.split(',').map(w => WD_MAP[w.trim()]).filter(v => v !== undefined))
+      let count = 0
+      const d = new Date(start + 'T00:00:00')
+      while (count < e.cycleAmount) {
+        if (days.has(d.getDay())) count++
+        if (count < e.cycleAmount) d.setDate(d.getDate() + 1)
+      }
+      return toISO(d)
+    }
+    const d = new Date(start + 'T00:00:00')
+    if (e.cycleType === 'year')  d.setFullYear(d.getFullYear() + e.cycleAmount)
+    else if (e.cycleType === 'month') d.setMonth(d.getMonth() + e.cycleAmount)
+    else if (e.cycleType === 'week')  d.setDate(d.getDate() + e.cycleAmount * 7)
+    else if (e.cycleType === 'day')   d.setDate(d.getDate() + e.cycleAmount)
+    else return null
+    d.setDate(d.getDate() - 1)
+    return toISO(d)
+  }
+  // Fallback: 1 year cap
+  const cap = new Date(start + 'T00:00:00')
+  cap.setFullYear(cap.getFullYear() + 1)
+  return toISO(cap)
+}
+
 function classesForDate(enrollments: Enrollment[], iso: string): Enrollment[] {
   const dow = new Date(iso + 'T00:00:00').getDay()
   return enrollments.filter(e => {
     if (e.status !== 'active') return false
     if (e.scheduleType === 'event') return e.eventDate?.substring(0, 10) === iso
-    // billing-only: no schedule type, but has start/end date — show every day in range
+    // billing-only: no schedule type — every day in effective range
     if (!e.scheduleType || e.scheduleType === '') {
-      const s = e.startDate; const en = e.endDate
+      const s = e.startDate
       if (!s) return false
       if (iso < s.substring(0, 10)) return false
-      if (en && iso > en.substring(0, 10)) return false
+      const effEnd = computeEffectiveEnd(e)
+      if (effEnd && iso > effEnd) return false
       return true
     }
     const days = (e.weekdays ?? '').split(',').map(d => WD_MAP[d.trim()]).filter(v => v !== undefined) as number[]
     if (!days.includes(dow)) return false
-    const s = e.startDate ?? e.dateStart; const en = e.dateEnd
+    const s = e.startDate ?? e.dateStart
     if (s && iso < s.substring(0, 10)) return false
-    if (en && iso > en.substring(0, 10)) return false
+    const effEnd = computeEffectiveEnd(e)
+    if (effEnd && iso > effEnd) return false
     return true
   })
 }

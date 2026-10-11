@@ -57,7 +57,7 @@ public class AdminActivityController {
                 JOIN users u ON u.id = ia.user_id
                 JOIN users pu ON pu.id = i.user_id
                 """ + where + """
-                ORDER BY ia.created_at DESC
+                 ORDER BY ia.created_at DESC
                 LIMIT ?1 OFFSET ?2
                 """)
                 .setParameter(1, size)

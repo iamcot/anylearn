@@ -5,6 +5,7 @@ import com.anylearn.backend.repository.NotificationRepository;
 import com.anylearn.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +26,9 @@ public class NotificationService {
     private final EmailService emailService;
     private final UserRepository userRepository;
 
+    @Autowired(required = false)
+    private EmailTemplateService emailTemplateService;
+
     public Notification createNotification(Long userId, String type, String title, String content, String route) {
         return createNotification(userId, type, title, content, route, null);
     }
@@ -42,7 +46,23 @@ public class NotificationService {
         n.setUpdatedAt(LocalDateTime.now());
         notificationRepository.save(n);
         sseService.notifyUser(userId);
+        tryEmailForNotification(userId, type, title, content);
         return n;
+    }
+
+    private void tryEmailForNotification(Long userId, String type, String title, String content) {
+        if (emailTemplateService == null) return;
+        try {
+            if ("order".equals(type)) {
+                emailTemplateService.sendToUser(userId, "email-order_success", title,
+                    Map.of("userName", "", "orderId", "", "items", content != null ? content : "", "amount", ""));
+            } else if ("schedule_reminder".equals(type)) {
+                emailTemplateService.sendToUser(userId, "email-schedule_reminder", title,
+                    Map.of("userName", "", "itemTitle", content != null ? content : "", "date", "", "scheduleInfo", ""));
+            }
+        } catch (Exception e) {
+            log.warn("[NotificationService] email trigger failed type={}: {}", type, e.getMessage());
+        }
     }
 
     public Notification createScheduledNotification(Long userId, String type, String title,

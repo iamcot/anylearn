@@ -11,6 +11,7 @@ import Dashboard from './pages/Dashboard'
 import Finance from './pages/Finance'
 import Items from './pages/Items'
 import ScheduleMonitor from './pages/ScheduleMonitor'
+import Settings from './pages/EmailSettings'
 import ItemDetail from './pages/ItemDetail'
 import Login from './pages/Login'
 import Orders from './pages/Orders'
@@ -79,6 +80,7 @@ export default function App() {
                   <Route path="orders" element={<Orders />} />
                   <Route path="activities" element={<Activities />} />
                   <Route path="schedule-monitor" element={<ScheduleMonitor />} />
+                  <Route path="settings" element={<Settings />} />
                   <Route path="transactions" element={<Transactions />} />
                   <Route path="articles" element={<Articles />} />
                   <Route path="audit" element={<Audit />} />

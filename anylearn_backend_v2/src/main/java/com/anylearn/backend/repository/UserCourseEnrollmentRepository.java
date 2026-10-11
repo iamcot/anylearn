@@ -15,7 +15,8 @@ public interface UserCourseEnrollmentRepository extends JpaRepository<UserCourse
                isc.date_start, isc.date_end, isc.event_date,
                isc.title AS schedule_title,
                isc.duration_value, isc.duration_unit,
-               i.title AS item_title, i.image AS item_image, i.seo_url
+               i.title AS item_title, i.image AS item_image, i.seo_url,
+               i.cycle_type, i.cycle_amount
         FROM user_course_enrollments uce
         LEFT JOIN item_schedules isc ON isc.id = uce.schedule_id
         JOIN items i ON i.id = uce.item_id
