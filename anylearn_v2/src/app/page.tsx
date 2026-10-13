@@ -3,6 +3,7 @@ import CourseCard from '@/components/CourseCard'
 import PromoSlider from '@/components/PromoSlider'
 import { getHomeV2, Category, getArticleUrl, Article } from '@/lib/api'
 import Link from 'next/link'
+import TodayRedirect from '@/components/TodayRedirect'
 
 const CATEGORY_EMOJIS: Record<string, string> = {
   'tieng-anh': '🇬🇧', 'ielts': '📝', 'ky-nang-song': '🎤',
@@ -30,6 +31,7 @@ export default async function HomePage() {
 
   return (
     <>
+      <TodayRedirect />
       {/* ── Hero ── */}
       <section className="hero-section flex items-center bg-[linear-gradient(135deg,#00539b,#00a651)] text-white">
         <div className="container">

@@ -11,7 +11,7 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T | nul
   }
 }
 
-async function authFetch<T>(path: string, token: string, options?: RequestInit): Promise<{ data: T | null; error?: string }> {
+export async function authFetch<T>(path: string, token: string, options?: RequestInit): Promise<{ data: T | null; error?: string }> {
   try {
     const res = await fetch(`${BASE}${path}`, {
       ...options,

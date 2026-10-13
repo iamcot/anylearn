@@ -20,7 +20,7 @@
                                └──────────────────────────┘
 ┌──────────────────────────┐           │
 │  anylearn_admin          │───────────┘
-│  Vite + SAPUI5 React     │
+│  Vite + React + antd 6   │
 │  Port: 5173              │
 │  Back office (admin)     │
 └──────────────────────────┘
@@ -97,6 +97,7 @@ Thư mục `http/` chứa VS Code REST Client files cho mọi endpoint:
 - `transaction.http` — history, deposit, withdraw, order
 - `me.http` — dashboard, classes, students, cart (partner/student view)
 - `admin.http` — admin login, dashboard, CRUD users/items/orders/transactions/articles, config, ZNS
+- `today.http` — `/today` learners, today data, join, attendance, leave/reschedule requests
 
 ## Porting Status (Portal → v2 + backend)
 
@@ -113,6 +114,7 @@ Thư mục `http/` chứa VS Code REST Client files cho mọi endpoint:
 | Q&A (ask) | ✅ | ✅ | ❌ |
 | Transaction/wallet | ✅ | ✅ | ❌ |
 | Admin panel | ✅ | ✅ | ✅ (anylearn_admin) |
+| Today page (`/today`, learner dashboard) | new | ✅ | ✅ |
 | Knowledge base | ✅ | entity only | ❌ |
 | Social feed | ✅ | minimal | ❌ |
 
@@ -125,3 +127,15 @@ Course structure: `class_plans`, `schedules`, `item_schedule_plans`, `item_video
 User relations: `user_locations`, `user_banks`, `user_documents`, `user_spec_links`
 
 Full schema in memory: `db_schema_anylearn.md`
+
+## /today page (learner dashboard)
+
+- FE: `anylearn_v2/src/app/today` (the site `Header` with today nav items on desktop, a compact header with search/cart/bell on mobile, bottom tabs on mobile; same logo, font and colors as the rest of the site). `/join/[sessionId]` checks the learner, records attendance, then opens Zoom.
+- Backend: `anylearn_backend_v2/.../service/today` and `controller/today/TodayController` (`/v2/api/today/*`). Learner = the account itself ("Bạn") or its children (`users.is_child = 1`). `user_course_enrollments.user_id` is the learner.
+- Session id = `{itemScheduleId}_{yyyyMMdd}`. Zoom link, room, gather time and bring-items live on `item_schedules` (edit them in admin, Item > Schedule).
+- Fee items = `items.is_paymentfee = 1` without a schedule. Extra activities = `items.subtype = 'extra'`.
+- Leave / reschedule requests: table `schedule_requests`, handled in admin page "Yêu cầu nghỉ / đổi lịch" (`/admin/schedule-requests`).
+- Demo data: `mysql -uroot anylearn < scripts/seed_today_demo.sql` (tokens `demo_parent_token`, `demo_student_token`). Re-run any time; it removes its own rows first.
+- Optional blocks (off by default): `NEXT_PUBLIC_TODAY_ROADMAP=1`, `NEXT_PUBLIC_TODAY_COMMUNITY=1`, `NEXT_PUBLIC_TODAY_SEARCH=1` in `anylearn_v2/.env.local`.
+- Home redirect: a logged-in person with an active enrollment who opens `/` goes to `/today` (`components/TodayRedirect.tsx`). Links from `/today` to the home page use `/?browse=1` (`BROWSE_HOME_URL`); that sets a `sessionStorage` flag so `/` stays put for the rest of the tab. The way back is the "Hôm nay" nav item, the bar under the header and the bottom tabs. New tab or logging out resets it.
+- Tests: `./mvnw test` (backend), `npm test` in `anylearn_v2` (format helpers).

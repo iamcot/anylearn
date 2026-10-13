@@ -165,6 +165,19 @@ All controllers under `com.anylearn.backend.controller.*`, base path `/v2/api`:
 | GET | `/v3/auth/study/{id}` | Required | Study detail |
 | GET | `/v3/auth/cart` | Required | Cart item count |
 
+### TodayController — `/v2/api/today`
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| GET | `/today/learners` | Required | Learners of the account (self first, then children), default learner, fees due this week |
+| GET | `/today?learnerId=` | Required | Next session, later today, extra, fees, week strip, packages. Omit `learnerId` for the default learner |
+| POST | `/today/join` | Required | Body `{learnerId, sessionKey}`. Online only, opens 15 min before start; records attendance and returns the Zoom link |
+| POST | `/today/attendance` | Required | Body `{learnerId, sessionKey}`. Parent marks the learner as attended (after the session started) |
+| POST | `/today/requests` | Required | Body `{learnerId, sessionKey, type, note}`. type = leave, reschedule or makeup. Saved as pending and admins are notified |
+
+`sessionKey` is `{itemScheduleId}_{yyyyMMdd}`, for example `5_20261013`. `addToCart` rejects a fee period that overlaps a paid one or is waiting for confirmation (`is_paymentfee = 1` items).
+
+Logic lives in `service/today` (small rule classes with unit tests). Demo data: `scripts/seed_today_demo.sql`; requests: `http/today.http`.
+
 ### AskController — `/v2/api/ask`
 | Method | Path | Auth | Description |
 |---|---|---|---|

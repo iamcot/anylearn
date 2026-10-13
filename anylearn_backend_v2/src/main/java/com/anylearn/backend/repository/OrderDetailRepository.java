@@ -17,6 +17,13 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
 
     boolean existsByUserId(Long userId);
 
+    @Query(value = """
+        SELECT DISTINCT od.item_id FROM order_details od
+        JOIN orders o ON o.id = od.order_id
+        WHERE od.user_id = :userId AND o.status = 'pay_pending'
+        """, nativeQuery = true)
+    List<Long> findItemIdsWithPendingPayment(@Param("userId") Long userId);
+
     @Query("""
         SELECT new map(i.id as id, i.title as title, i.image as image, i.shortContent as shortContent)
         FROM OrderDetail od JOIN Item i ON i.id = od.itemId

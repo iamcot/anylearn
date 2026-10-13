@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
-import { getUpcomingEvents, UpcomingEvent, getCourseUrl } from '@/lib/api'
+import { getUpcomingEvents, UpcomingEvent } from '@/lib/api'
 
 const TODAY = () => {
   const d = new Date()
@@ -22,7 +22,8 @@ function fmtDate(iso: string) {
   return d.toLocaleDateString('vi-VN', { weekday: 'short', day: '2-digit', month: '2-digit' })
 }
 
-const EXCLUDED = ['/checkout', '/order/']
+const EXCLUDED = ['/checkout', '/order/', '/today']
+const TODAY_HREF = '/today'
 
 export default function UpcomingEventsBar() {
   const { user, token } = useAuth()
@@ -32,46 +33,29 @@ export default function UpcomingEventsBar() {
   useEffect(() => {
     if (!user || !token) return
     getUpcomingEvents(token).then(list => setEvents(list))
-  }, [user, token]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [user, token])
 
   if (!user || events.length === 0) return null
   if (EXCLUDED.some(p => pathname.startsWith(p))) return null
 
   const ev = events[0]
-  const href = ev.itemId
-    ? getCourseUrl({ id: ev.itemId, seoUrl: ev.seoUrl, title: ev.itemTitle })
-    : '/account/schedule'
 
   return (
-    <div style={{ background: '#fff7ed', borderBottom: '1.5px solid #fb923c', padding: '7px 0' }}>
-      <div className="container" style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-
-        {/* prefix label */}
-        <span style={{ fontSize: 12, fontWeight: 700, color: '#ea580c', flexShrink: 0, whiteSpace: 'nowrap' }}>
-          📅 
-        </span>
-
-        {/* event — flex: 1, two-line on mobile via flex-col, single-line on desktop */}
-        <Link href={href} style={{ flex: 1, minWidth: 0, textDecoration: 'none', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '3px 6px' }}>
-          {/* date+time chip — never wraps */}
-          <span style={{
-            background: '#fed7aa', borderRadius: 10, padding: '2px 8px',
-            fontSize: 12, fontWeight: 600, color: '#9a3412', whiteSpace: 'nowrap', flexShrink: 0,
-          }}>
-            {fmtDate(ev.date)}{ev.time ? ` ${ev.time}` : ''}
+    <div className="border-b-2 border-blue bg-blue-soft">
+      <div className="container flex items-center gap-3 py-3">
+        <Link href={TODAY_HREF} className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1 no-underline">
+          <span className="shrink-0 whitespace-nowrap rounded-full border border-blue/40 bg-white px-3 py-1 text-sm font-black text-blue">
+            📅 {fmtDate(ev.date)}{ev.time ? ` ${ev.time}` : ''}
           </span>
-          {/* label + title — wraps to new line if no room */}
-          <span style={{ fontSize: 12, color: '#92400e', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0, flex: '1 1 120px' }}>
-            {ev.label} · <strong style={{ fontWeight: 600 }}>{ev.itemTitle}</strong>
+          <span className="min-w-0 flex-[1_1_9rem] truncate text-[15px] text-ink">
+            {ev.label} · <strong className="font-black">{ev.itemTitle}</strong>
           </span>
         </Link>
-
-        {/* view all */}
-        <Link href="/account/schedule" style={{
-          fontSize: 12, color: '#ea580c', fontWeight: 600, flexShrink: 0,
-          textDecoration: 'none', whiteSpace: 'nowrap',
-        }}>
-          Xem lịch →
+        <Link
+          href={TODAY_HREF}
+          className="inline-flex min-h-11 shrink-0 items-center whitespace-nowrap rounded-full bg-blue px-5 text-[15px] font-black text-white no-underline hover:-translate-y-px transition"
+        >
+          Hôm nay của bạn
         </Link>
       </div>
     </div>

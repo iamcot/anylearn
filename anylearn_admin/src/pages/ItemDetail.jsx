@@ -200,6 +200,12 @@ export default function ItemDetail() {
     enabled: !isNew,
   })
 
+  const { data: partnerLocations } = useQuery({
+    queryKey: ['admin-item-locations', id],
+    queryFn: () => client.get(`/admin/items/${id}/locations`).then(r => r.data?.data ?? []),
+    enabled: !isNew,
+  })
+
   const [scheduleModal, setScheduleModal] = useState(null) // null | 'new' | {id,...}
   const [scheduleForm] = Form.useForm()
 
@@ -688,7 +694,20 @@ export default function ItemDetail() {
           </Form.Item>
         </Space>
         <Form.Item name="title" label="Tên lịch (tuỳ chọn)"><Input placeholder="VD: Ca chiều T3-T5" /></Form.Item>
-        <Form.Item name="locationNote" label="Địa điểm / Ghi chú"><Input placeholder="VD: Phòng A203, tầng 2" /></Form.Item>
+        <Form.Item name="userLocationId" label="Cơ sở (lớp tại trung tâm)">
+          <Select allowClear placeholder="Chọn cơ sở của đối tác"
+            options={(partnerLocations ?? []).map(l => ({ value: l.id, label: `${l.title} — ${l.address}` }))} />
+        </Form.Item>
+        <Form.Item name="locationNote" label="Phòng học / Ghi chú"><Input placeholder="VD: Phòng A203, tầng 2" /></Form.Item>
+        <Form.Item name="meetingUrl" label="Link học online (Zoom...)"><Input placeholder="https://zoom.us/j/..." /></Form.Item>
+        <Space>
+          <Form.Item name="meetingId" label="Meeting ID"><Input style={{ width: 170 }} /></Form.Item>
+          <Form.Item name="meetingPasscode" label="Mật khẩu"><Input style={{ width: 170 }} /></Form.Item>
+        </Space>
+        <Space>
+          <Form.Item name="gatherTime" label="Giờ tập trung (ngoại khóa)"><Input placeholder="07:30" style={{ width: 170 }} /></Form.Item>
+        </Space>
+        <Form.Item name="bringItems" label="Cần mang theo (ngoại khóa)"><Input placeholder="VD: Nước uống, nón, giày thể thao" /></Form.Item>
         <Form.Item><Button type="primary" htmlType="submit" block>Lưu</Button></Form.Item>
       </Form>
     </Modal>

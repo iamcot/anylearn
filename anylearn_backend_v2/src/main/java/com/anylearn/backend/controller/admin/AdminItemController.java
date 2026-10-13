@@ -28,6 +28,7 @@ public class AdminItemController {
     private final ItemCategoryRepository itemCategoryRepository;
     private final ItemUserActionRepository itemUserActionRepository;
     private final ItemScheduleRepository itemScheduleRepository;
+    private final UserLocationRepository userLocationRepository;
     private final OrderDetailRepository orderDetailRepository;
     private final UserRepository userRepository;
     private final MeilisearchService meilisearchService;
@@ -406,6 +407,16 @@ public class AdminItemController {
         return ApiResponse.ok(itemScheduleRepository.save(s));
     }
 
+    @GetMapping("/{id:\\d+}/locations")
+    public ApiResponse<?> partnerLocations(@AuthenticationPrincipal User user, @PathVariable Long id) {
+        if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
+        return itemRepository.findById(id)
+                .map(item -> ApiResponse.ok(userLocationRepository.findByUserIdAndStatus(item.getUserId(), (byte) 1).stream()
+                        .map(l -> Map.of("id", l.getId(), "title", l.getTitle(), "address", l.getAddress()))
+                        .toList()))
+                .orElse(ApiResponse.fail("Not found"));
+    }
+
     @PutMapping("/{id:\\d+}/schedules/{sid:\\d+}")
     public ApiResponse<?> updateSchedule(@AuthenticationPrincipal User user,
                                          @PathVariable Long id,
@@ -442,6 +453,13 @@ public class AdminItemController {
         s.setTimeStart(str(body, "timeStart"));
         s.setTimeEnd(str(body, "timeEnd"));
         s.setLocationNote(str(body, "locationNote"));
+        s.setMeetingUrl(str(body, "meetingUrl"));
+        s.setMeetingId(str(body, "meetingId"));
+        s.setMeetingPasscode(str(body, "meetingPasscode"));
+        s.setGatherTime(str(body, "gatherTime"));
+        s.setBringItems(str(body, "bringItems"));
+        if (body.get("userLocationId") != null && !body.get("userLocationId").toString().isBlank())
+            s.setUserLocationId(Long.parseLong(body.get("userLocationId").toString()));
         s.setStatus((byte) 1);
         if (body.get("eventDate") != null) s.setEventDate(LocalDate.parse(body.get("eventDate").toString()));
         if (body.get("dateStart") != null) s.setDateStart(LocalDate.parse(body.get("dateStart").toString()));

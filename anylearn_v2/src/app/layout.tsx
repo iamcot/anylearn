@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Script from 'next/script'
 import './globals.css'
+import SiteChrome from '@/components/SiteChrome'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import FloatContact from '@/components/FloatContact'
@@ -20,10 +21,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="vi">
       <body style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
         <AuthProvider>
-          <Header />
-          <main style={{ flex: 1 }}>{children}</main>
-          <Footer />
-          <FloatContact />
+          <SiteChrome
+            header={<Header />}
+            footer={<><Footer /><FloatContact /></>}
+          >
+            {children}
+          </SiteChrome>
           <AuthModal />
         </AuthProvider>
         <Script src="https://sp.zalo.me/plugins/sdk.js" strategy="lazyOnload" />

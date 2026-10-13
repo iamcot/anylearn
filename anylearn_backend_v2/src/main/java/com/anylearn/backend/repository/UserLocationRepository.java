@@ -11,6 +11,8 @@ import java.util.List;
 @Repository
 public interface UserLocationRepository extends JpaRepository<UserLocation, Long> {
 
+    List<UserLocation> findByUserIdAndStatus(Long userId, Byte status);
+
     @Query("SELECT DISTINCT ul.provinceCode FROM UserLocation ul WHERE ul.userId = :userId AND ul.status = 1")
     List<String> findProvinceCodesByUserId(@Param("userId") Long userId);
 }

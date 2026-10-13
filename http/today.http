@@ -1,0 +1,45 @@
+@baseUrl = {{$dotenv BE_BASE_URL}}/api
+@parentToken = demo_parent_token
+@studentToken = demo_student_token
+
+### Learners of the parent account (Bạn, Bin, Su) + default + fees due this week
+GET {{baseUrl}}/today/learners?api_token={{parentToken}}
+
+### Today for the default learner
+GET {{baseUrl}}/today?api_token={{parentToken}}
+
+### Today for one learner (replace the id with one from /today/learners)
+GET {{baseUrl}}/today?learnerId=1&api_token={{parentToken}}
+
+### Student with no kids: only "Bạn"
+GET {{baseUrl}}/today/learners?api_token={{studentToken}}
+
+### Student today
+GET {{baseUrl}}/today?api_token={{studentToken}}
+
+### Another account's learner is rejected (expect resultCode 0)
+GET {{baseUrl}}/today?learnerId=5&api_token={{parentToken}}
+
+### Mark attendance ("Bé đã đi học") - only after the session started
+POST {{baseUrl}}/today/attendance?api_token={{parentToken}}
+Content-Type: application/json
+
+{ "learnerId": 1, "sessionKey": "1_20261013" }
+
+### Join online class - opens 15 minutes before start, returns the Zoom link
+POST {{baseUrl}}/today/join?api_token={{studentToken}}
+Content-Type: application/json
+
+{ "learnerId": 1, "sessionKey": "1_20261013" }
+
+### Ask for leave / reschedule / makeup (type: leave | reschedule | makeup)
+POST {{baseUrl}}/today/requests?api_token={{parentToken}}
+Content-Type: application/json
+
+{ "learnerId": 1, "sessionKey": "1_20261016", "type": "leave", "note": "Bé ốm" }
+
+### Fee period guard: overlapping period is rejected, next period is accepted
+POST {{baseUrl}}/cart/add?api_token={{parentToken}}
+Content-Type: application/json
+
+{ "itemId": 1, "studentId": 1, "startDate": "2026-12-01" }

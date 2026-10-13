@@ -114,3 +114,12 @@ getCourseUrl(item)  // Generates /class/:id/:slug with Vietnamese diacritic stri
 - Protected pages check `AuthContext` and trigger `AuthModal` if not logged in (don't redirect)
 - No global state library — AuthContext + local useState is sufficient
 - ISR revalidation: 60 seconds for public data
+
+## /today
+
+- Routes: `/today`, `/today/diary` and `/today/community` (coming soon), `/join/[sessionId]`. `SiteChrome` hides the global header/footer on these routes.
+- Code: `src/components/today/*`, `src/lib/today/*` (types, api, format helpers with vitest tests), flags in `src/lib/features.ts`.
+- Styling follows the rest of the site (site logo, body font, `blue`/`green`/`ink`/`muted`/`line` tokens, pill buttons). The mockup is a layout reference only.
+- `/today` uses the global `Header` (`components/Header.tsx` detects `/today`): nav items come from `src/lib/today/nav.ts`, the logo links to `/?browse=1`, and on mobile the hamburger is replaced by a search icon. Bottom tabs are `components/AppTabs.tsx`, rendered by `SiteChrome` for every logged-in person on small screens (<=768px, <1024px on `/today`); on those screens a logged-in person also gets the compact header (logo, search, cart, bell, no hamburger). The account tab shows the user avatar. `/account` uses a sticky scrollable chip bar on mobile instead of the side menu.
+- `components/SiteChrome.tsx` is a client component: it must receive `Header`/`Footer` as props from the server layout. Do not import `Footer` inside it (Footer is an async server component and would loop on the client).
+- Run tests with `npm test`.

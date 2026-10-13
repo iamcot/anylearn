@@ -4,12 +4,15 @@ import com.anylearn.backend.entity.*;
 import com.anylearn.backend.repository.*;
 import com.anylearn.backend.service.NotificationService;
 import com.anylearn.backend.service.WalletService;
+import com.anylearn.backend.service.today.ScheduleSlot;
+import com.anylearn.backend.service.today.SessionSchedule;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +33,7 @@ public class PaymentApprovalService {
     private final UserCourseEnrollmentRepository enrollmentRepository;
     private final ItemScheduleRepository itemScheduleRepository;
     private final ItemRepository itemRepository;
+    private final SessionSchedule sessionSchedule;
 
     @Transactional
     public void approveOrder(Long orderId, String paymentMethod) {
@@ -153,6 +157,7 @@ public class PaymentApprovalService {
                     e.setStatus("active");
                     e.setStartDate(sch.getDateStart());
                     e.setEndDate(sch.getDateEnd());
+                    fillEndDateBySessionCount(e, sch);
                 }
             });
         } else {
@@ -181,6 +186,18 @@ public class PaymentApprovalService {
         enrollmentRepository.save(e);
         log.info("[approveOrder] created enrollment userId={} itemId={} scheduleId={} status={}",
                 enrolledUserId, itemId, scheduleId, e.getStatus());
+    }
+
+    private void fillEndDateBySessionCount(UserCourseEnrollment enrollment, ItemSchedule schedule) {
+        if (enrollment.getEndDate() != null) return;
+        Item item = itemRepository.findById(enrollment.getItemId()).orElse(null);
+        if (item == null || !"session".equals(item.getCycleType()) || item.getCycleAmount() == null) return;
+        LocalDate start = enrollment.getStartDate() != null ? enrollment.getStartDate() : LocalDate.now();
+        sessionSchedule.dateOfSessionNumber(ScheduleSlot.from(schedule), start, item.getCycleAmount())
+                .ifPresent(end -> {
+                    enrollment.setStartDate(start);
+                    enrollment.setEndDate(end);
+                });
     }
 
     /** Mark transaction done. Only credits wallet_c for partner/commission types. Foundation is accounting-only. */

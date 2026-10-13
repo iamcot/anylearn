@@ -1,10 +1,13 @@
 'use client'
 
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import NotificationDropdown from './NotificationDropdown'
 import UpcomingEventsBar from './UpcomingEventsBar'
+import { BROWSE_HOME_URL, markBrowsing } from '@/lib/today/links'
+import { TODAY_NAV, isNavActive } from '@/lib/today/nav'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080/v2/api'
 
@@ -15,7 +18,10 @@ const NAV_LINKS = [
   { href: '/search', label: 'Tìm kiếm' },
 ]
 
+const TODAY_NAV_LINKS = TODAY_NAV.filter(item => item.inHeader)
+
 const ACCOUNT_MENU = [
+  { href: '/today', label: 'Hôm nay' },
   { href: '/account/profile', label: 'Thông tin cá nhân' },
   { href: '/account/children', label: 'Tài khoản của con' },
   { href: '/account/orders', label: 'Đơn hàng của tôi' },
@@ -26,11 +32,17 @@ const ACCOUNT_MENU = [
 ]
 
 export default function Header() {
+  const pathname = usePathname()
+  const isToday = pathname.startsWith('/today')
+  const navLinks = isToday ? TODAY_NAV_LINKS : NAV_LINKS
+  const homeHref = isToday ? BROWSE_HOME_URL : '/'
+  const mobileMaxWidth = isToday ? 1023 : 768
   const [menuOpen, setMenuOpen] = useState(false)
   const [accountOpen, setAccountOpen] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
   const { user, cartCount, logout, openAuthModal, refreshUser } = useAuth()
+  const compactMobile = isToday || !!user
   const accountRef = useRef<HTMLDivElement>(null)
   const notifRef = useRef<HTMLDivElement>(null)
   const closeNotif = useCallback(() => setNotifOpen(false), [])
@@ -129,16 +141,17 @@ export default function Header() {
       <div className="container flex items-center justify-between gap-6 h-[76px]">
 
         {/* Logo */}
-        <Link href="/" className="flex items-center no-underline">
+        <Link href={homeHref} onClick={isToday ? markBrowsing : undefined} className="flex items-center no-underline">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/cdn/anylearn/img/LogoanyLEARN.svg" alt="anyLEARN" className="h-[60px]" />
         </Link>
 
         {/* Nav links */}
         <nav className="hidden-mobile flex gap-6 items-center">
-          {NAV_LINKS.map(({ href, label }) => (
+          {navLinks.map(({ href, label }) => (
             <Link key={label} href={href}
-              className="font-extrabold text-[#4d5968] text-[15px] no-underline py-2 border-b-2 border-transparent transition-all duration-200 hover:text-blue hover:border-green">
+              aria-current={isToday && isNavActive(pathname, href) ? 'page' : undefined}
+              className={`font-extrabold text-[15px] no-underline py-2 border-b-2 transition-all duration-200 hover:text-blue hover:border-green ${isToday && isNavActive(pathname, href) ? 'text-blue border-green' : 'text-[#4d5968] border-transparent'}`}>
               {label}
             </Link>
           ))}
@@ -254,6 +267,10 @@ export default function Header() {
 
         {/* Mobile toggle + icons */}
         <div className="show-mobile hidden items-center gap-2">
+          {compactMobile && (
+            <Link href="/search" onClick={isToday ? markBrowsing : undefined} aria-label="Tìm khóa học"
+              className="w-[38px] h-[38px] rounded-full border border-line bg-white grid place-items-center text-lg no-underline">🔍</Link>
+          )}
           {/* Cart on mobile */}
           <Link href="/checkout" className="relative no-underline">
             <button className="w-[38px] h-[38px] rounded-full border border-line bg-white grid place-items-center cursor-pointer text-lg">🛒</button>
@@ -289,9 +306,11 @@ export default function Header() {
             </div>
           )}
           {/* Hamburger */}
-          <button onClick={() => setMenuOpen(!menuOpen)}
-            className="w-[38px] h-[38px] rounded-[10px] border border-line bg-white flex items-center justify-center cursor-pointer text-xl"
-            aria-label="Mở menu">☰</button>
+          {!compactMobile && (
+            <button onClick={() => setMenuOpen(!menuOpen)}
+              className="w-[38px] h-[38px] rounded-[10px] border border-line bg-white flex items-center justify-center cursor-pointer text-xl"
+              aria-label="Mở menu">☰</button>
+          )}
         </div>
       </div>
 
@@ -327,7 +346,7 @@ export default function Header() {
       )}
 
       <style>{`
-        @media (max-width: 768px) {
+        @media (max-width: ${mobileMaxWidth}px) {
           .hidden-mobile { display: none !important; }
           .show-mobile   { display: flex !important; }
         }

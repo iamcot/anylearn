@@ -48,6 +48,24 @@ public class ItemSchedule {
     @Column(name = "location_note")
     private String locationNote;
 
+    @Column(name = "meeting_url")
+    private String meetingUrl;
+
+    @Column(name = "meeting_id")
+    private String meetingId;
+
+    @Column(name = "meeting_passcode")
+    private String meetingPasscode;
+
+    @Column(name = "user_location_id")
+    private Long userLocationId;
+
+    @Column(name = "gather_time")
+    private String gatherTime;
+
+    @Column(name = "bring_items")
+    private String bringItems;
+
     @Column(nullable = false)
     private Byte status = 1;
 

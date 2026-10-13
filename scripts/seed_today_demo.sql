@@ -1,0 +1,113 @@
+-- Demo data for /today. Local DB only. Safe to run again: it deletes its own rows first.
+-- Demo rows are tagged by phone prefix 0999000 (users), title prefix [DEMO] (items, locations).
+-- Test accounts: ?api_token=demo_parent_token (parent, 2 kids) and ?api_token=demo_student_token (no kids).
+
+SET @today = CURDATE();
+SET @wd0 = LOWER(LEFT(DAYNAME(@today), 3));
+SET @wd1 = LOWER(LEFT(DAYNAME(@today + INTERVAL 1 DAY), 3));
+SET @wd3 = LOWER(LEFT(DAYNAME(@today + INTERVAL 3 DAY), 3));
+
+DELETE FROM session_attendances WHERE learner_id IN (SELECT id FROM users WHERE phone LIKE '0999000%');
+DELETE FROM schedule_requests WHERE learner_id IN (SELECT id FROM users WHERE phone LIKE '0999000%');
+DELETE FROM item_user_actions WHERE user_id IN (SELECT id FROM users WHERE phone LIKE '0999000%');
+DELETE FROM notifications WHERE route = '/admin/schedule-requests' AND content LIKE 'Demo %';
+DELETE FROM order_details WHERE user_id IN (SELECT id FROM users WHERE phone LIKE '0999000%');
+DELETE FROM orders WHERE user_id IN (SELECT id FROM users WHERE phone LIKE '0999000%');
+DELETE FROM user_course_enrollments WHERE user_id IN (SELECT id FROM users WHERE phone LIKE '0999000%')
+   OR item_id IN (SELECT id FROM items WHERE title LIKE '[DEMO]%');
+DELETE FROM item_schedules WHERE item_id IN (SELECT id FROM items WHERE title LIKE '[DEMO]%');
+DELETE FROM items WHERE title LIKE '[DEMO]%';
+DELETE FROM user_locations WHERE title LIKE '[DEMO]%';
+DELETE FROM users WHERE phone LIKE '0999000%';
+
+-- People
+INSERT INTO users (name, phone, password, refcode, role, status, is_test, update_doc, api_token)
+VALUES ('Demo Mẹ Bin', '09990000001', '$2a$10$ritZijv9BLe8rsJPS8J4LeDebrugFBftPPZ7bhwDd/NluBz3fgfFS', 'DEMOPARENT', 'member', 1, 1, 1, 'demo_parent_token');
+SET @parent = LAST_INSERT_ID();
+INSERT INTO users (name, phone, password, refcode, role, status, is_test, update_doc, is_child, user_id)
+VALUES ('Bin', '09990000011', '$2a$10$ritZijv9BLe8rsJPS8J4LeDebrugFBftPPZ7bhwDd/NluBz3fgfFS', 'DEMOBIN', 'member', 1, 1, 1, 1, @parent);
+SET @bin = LAST_INSERT_ID();
+INSERT INTO users (name, phone, password, refcode, role, status, is_test, update_doc, is_child, user_id)
+VALUES ('Su', '09990000012', '$2a$10$ritZijv9BLe8rsJPS8J4LeDebrugFBftPPZ7bhwDd/NluBz3fgfFS', 'DEMOSU', 'member', 1, 1, 1, 1, @parent);
+SET @su = LAST_INSERT_ID();
+INSERT INTO users (name, phone, password, refcode, role, status, is_test, update_doc, api_token)
+VALUES ('Demo Sinh viên', '09990000002', '$2a$10$ritZijv9BLe8rsJPS8J4LeDebrugFBftPPZ7bhwDd/NluBz3fgfFS', 'DEMOSTUDENT', 'member', 1, 1, 1, 'demo_student_token');
+SET @student = LAST_INSERT_ID();
+INSERT INTO users (name, phone, password, refcode, role, status, is_test, update_doc)
+VALUES ('Cô Lan', '09990000101', '$2a$10$ritZijv9BLe8rsJPS8J4LeDebrugFBftPPZ7bhwDd/NluBz3fgfFS', 'DEMOLAN', 'teacher', 1, 1, 1);
+SET @lan = LAST_INSERT_ID();
+INSERT INTO users (name, phone, password, refcode, role, status, is_test, update_doc)
+VALUES ('Thầy Minh', '09990000102', '$2a$10$ritZijv9BLe8rsJPS8J4LeDebrugFBftPPZ7bhwDd/NluBz3fgfFS', 'DEMOMINH', 'teacher', 1, 1, 1);
+SET @minh = LAST_INSERT_ID();
+
+-- Place
+INSERT INTO user_locations (user_id, title, address, latitude, longitude, ward_code, district_code, province_code, ward_path, status, is_head)
+VALUES (@lan, '[DEMO] Cơ sở Quận 3', '294 Điện Biên Phủ, Phường 7, Quận 3, TP.HCM', '10.7769', '106.6867', '1', '1', '79', 'demo', 1, 0);
+SET @place = LAST_INSERT_ID();
+
+-- Items: 4 classes, 1 extra, 1 fee item
+INSERT INTO items (title, type, subtype, user_id, status, user_status, is_test, price, date_start, cycle_type, cycle_amount, user_location_id)
+VALUES ('[DEMO] Tiếng Anh giao tiếp 2', 'class', 'offline', @lan, 1, 1, 1, 3600000, @today - INTERVAL 60 DAY, 'session', 12, @place);
+SET @eng = LAST_INSERT_ID();
+INSERT INTO items (title, type, subtype, user_id, status, user_status, is_test, price, date_start, cycle_type, cycle_amount)
+VALUES ('[DEMO] Kỹ năng sống: Làm chủ cảm xúc', 'class', 'online', @minh, 1, 1, 1, 1400000, @today - INTERVAL 60 DAY, 'session', 7);
+SET @life = LAST_INSERT_ID();
+INSERT INTO items (title, type, subtype, user_id, status, user_status, is_test, price, date_start, location)
+VALUES ('[DEMO] Dã ngoại Củ Chi', 'class', 'extra', @lan, 1, 1, 1, 450000, @today - INTERVAL 60 DAY, 'Địa đạo Củ Chi, Huyện Củ Chi, TP.HCM');
+SET @trip = LAST_INSERT_ID();
+INSERT INTO items (title, type, subtype, user_id, status, user_status, is_test, price, date_start, cycle_type, cycle_amount, user_location_id)
+VALUES ('[DEMO] Vẽ sáng tạo', 'class', 'offline', @minh, 1, 1, 1, 1500000, @today - INTERVAL 60 DAY, 'session', 10, @place);
+SET @paint = LAST_INSERT_ID();
+INSERT INTO items (title, type, subtype, user_id, status, user_status, is_test, price, date_start, cycle_type, cycle_amount, user_location_id)
+VALUES ('[DEMO] Piano cơ bản', 'class', 'offline', @minh, 1, 1, 1, 1200000, @today - INTERVAL 60 DAY, 'session', 4, @place);
+SET @piano = LAST_INSERT_ID();
+INSERT INTO items (title, type, subtype, user_id, status, user_status, is_test, price, date_start, cycle_type, cycle_amount, is_paymentfee, nolimit_time)
+VALUES ('[DEMO] Học phí lớp 3A', 'class', 'offline', @lan, 1, 1, 1, 2500000, @today - INTERVAL 60 DAY, 'month', 1, 1, '1');
+SET @fee = LAST_INSERT_ID();
+INSERT INTO items (title, type, subtype, user_id, status, user_status, is_test, price, date_start, cycle_type, cycle_amount)
+VALUES ('[DEMO] IELTS Writing', 'class', 'online', @minh, 1, 1, 1, 4800000, @today - INTERVAL 60 DAY, 'session', 8);
+SET @ielts = LAST_INSERT_ID();
+
+-- Schedules (today's weekday = @wd0, tomorrow = @wd1)
+INSERT INTO item_schedules (item_id, title, schedule_type, weekdays, time_start, time_end, location_note, user_location_id)
+VALUES (@eng, 'Lớp tối', 'recurring', CONCAT(@wd0, ',', @wd3), '17:30', '19:00', 'Phòng 204', @place);
+SET @s_eng = LAST_INSERT_ID();
+INSERT INTO item_schedules (item_id, title, schedule_type, weekdays, time_start, time_end, meeting_url, meeting_id, meeting_passcode)
+VALUES (@life, 'Ca tối', 'recurring', @wd0, '19:45', '21:00', 'https://zoom.us/j/1234567890', '123 456 7890', 'abc123');
+SET @s_life = LAST_INSERT_ID();
+INSERT INTO item_schedules (item_id, title, schedule_type, event_date, time_start, time_end, gather_time, bring_items, location_note)
+VALUES (@trip, 'Chuyến đi', 'event', @today + INTERVAL 2 DAY, '08:00', '16:00', '07:30', 'Nước uống, nón, kem chống nắng, giày thể thao', 'Cổng chính');
+SET @s_trip = LAST_INSERT_ID();
+INSERT INTO item_schedules (item_id, title, schedule_type, weekdays, time_start, time_end, location_note, user_location_id)
+VALUES (@paint, 'Ca sáng', 'recurring', @wd1, '09:00', '10:30', 'Phòng vẽ', @place);
+SET @s_paint = LAST_INSERT_ID();
+INSERT INTO item_schedules (item_id, title, schedule_type, weekdays, time_start, time_end, location_note, user_location_id)
+VALUES (@piano, 'Ca chiều', 'recurring', @wd1, '15:00', '16:00', 'Phòng 101', @place);
+SET @s_piano = LAST_INSERT_ID();
+INSERT INTO item_schedules (item_id, title, schedule_type, weekdays, time_start, time_end, meeting_url, meeting_id, meeting_passcode)
+VALUES (@ielts, 'Ca tối', 'recurring', @wd0, '20:00', '21:30', 'https://zoom.us/j/9876543210', '987 654 3210', 'ielts99');
+SET @s_ielts = LAST_INSERT_ID();
+
+-- Bin: onsite 8/12, online 5/7 (renew shows), extra in 2 days, fee due in 5 days
+INSERT INTO user_course_enrollments (user_id, item_id, schedule_id, start_date, end_date, status) VALUES
+ (@bin, @eng,  @s_eng,  @today - INTERVAL 28 DAY, @today + INTERVAL 10 DAY, 'active'),
+ (@bin, @life, @s_life, @today - INTERVAL 35 DAY, @today + INTERVAL 7 DAY,  'active'),
+ (@bin, @trip, @s_trip, @today + INTERVAL 2 DAY,  @today + INTERVAL 2 DAY,  'active'),
+ (@bin, @fee,  NULL,    @today - INTERVAL 25 DAY, @today + INTERVAL 5 DAY,  'active');
+
+-- Su: free today, next class tomorrow; piano used up (4/4); fee overdue
+INSERT INTO user_course_enrollments (user_id, item_id, schedule_id, start_date, end_date, status) VALUES
+ (@su, @paint, @s_paint, @today - INTERVAL 12 DAY, @today + INTERVAL 60 DAY, 'active'),
+ (@su, @piano, @s_piano, @today - INTERVAL 30 DAY, @today - INTERVAL 6 DAY,  'active'),
+ (@su, @fee,   NULL,     @today - INTERVAL 65 DAY, @today - INTERVAL 3 DAY,  'active');
+
+-- Student (no kids): one online class, fee paid far ahead (card hidden)
+INSERT INTO user_course_enrollments (user_id, item_id, schedule_id, start_date, end_date, status) VALUES
+ (@student, @ielts, @s_ielts, @today - INTERVAL 7 DAY,  @today + INTERVAL 42 DAY, 'active'),
+ (@student, @fee,   NULL,     @today - INTERVAL 20 DAY, @today + INTERVAL 40 DAY, 'active');
+
+-- Parent as a learner: fee payment waiting for confirmation, nothing else
+INSERT INTO orders (user_id, amount, quantity, status, payment) VALUES (@parent, 2500000, 1, 'pay_pending', 'bank_transfer');
+SET @order = LAST_INSERT_ID();
+INSERT INTO order_details (order_id, user_id, item_id, unit_price, paid_price, quanity, status)
+VALUES (@order, @parent, @fee, 2500000, 2500000, 1, 'pay_pending');

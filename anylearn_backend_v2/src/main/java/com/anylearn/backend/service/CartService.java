@@ -14,6 +14,8 @@ import com.anylearn.backend.service.points.CommissionConfig;
 import com.anylearn.backend.service.points.PointsBreakdown;
 import com.anylearn.backend.service.points.PointsEngine;
 import com.anylearn.backend.service.NotificationService;
+import com.anylearn.backend.service.today.DateRange;
+import com.anylearn.backend.service.today.FeeCards;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,6 +45,8 @@ public class CartService {
     private final NotificationService notificationService;
     private final ObjectMapper objectMapper;
     private final ItemTrackingService itemTrackingService;
+    private final UserCourseEnrollmentRepository enrollmentRepository;
+    private final FeeCards feeCards;
 
     private static final int POINT_RATE = 1000; // 1 anyPoint = 1,000 VND (kept for reference)
 
@@ -91,6 +95,20 @@ public class CartService {
         User author = userRepository.findById(item.getUserId()).orElse(null);
         result.put("authorName", author != null ? author.getName() : "");
         return result;
+    }
+
+    private void rejectOverlappingFee(Item item, Long studentUserId, String startDate) {
+        if (!Integer.valueOf(1).equals(item.getIsPaymentfee())) return;
+        if (orderDetailRepository.findItemIdsWithPendingPayment(studentUserId).contains(item.getId()))
+            throw new IllegalArgumentException("Khoản học phí này đang chờ xác nhận, bạn không cần đóng lại.");
+        if (startDate == null || startDate.isBlank()) return;
+        DateRange newPeriod = DateRange.of(java.time.LocalDate.parse(startDate),
+                feeCards.periodEnd(java.time.LocalDate.parse(startDate), item.getCycleType(), item.getCycleAmount()));
+        boolean overlaps = enrollmentRepository.findByUserIdAndStatus(studentUserId, "active").stream()
+                .filter(e -> e.getItemId().equals(item.getId()) && e.getScheduleId() == null && e.getStartDate() != null)
+                .anyMatch(e -> !newPeriod.intersect(DateRange.of(e.getStartDate(), e.getEndDate())).isEmpty());
+        if (overlaps)
+            throw new IllegalArgumentException("Kỳ học phí này đã được đóng. Vui lòng chọn kỳ tiếp theo.");
     }
 
     public Map<String, Object> addToCart(Long itemId, Long studentId, Long planId, Long scheduleId,
@@ -142,6 +160,9 @@ public class CartService {
             if (item.getAgesMax() != null && age > item.getAgesMax())
                 throw new IllegalArgumentException("Học sinh vượt quá độ tuổi (tối đa " + item.getAgesMax() + " tuổi).");
         }
+
+        // Rule 4: Fee period must not overlap a paid or waiting one
+        rejectOverlappingFee(item, studentUserId, startDate);
 
         // Rule 3: Seat capacity
         if (item.getSeats() != null && item.getSeats() > 0) {

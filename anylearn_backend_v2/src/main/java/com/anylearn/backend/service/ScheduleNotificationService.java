@@ -1,12 +1,22 @@
 package com.anylearn.backend.service;
 
+import com.anylearn.backend.dto.today.FeeView;
+import com.anylearn.backend.dto.today.PackageView;
+import com.anylearn.backend.entity.User;
 import com.anylearn.backend.repository.UserCourseEnrollmentRepository;
+import com.anylearn.backend.repository.UserRepository;
+import com.anylearn.backend.service.today.FeeCardState;
+import com.anylearn.backend.service.today.FeeCards;
+import com.anylearn.backend.service.today.LearnerData;
+import com.anylearn.backend.service.today.LearnerLoader;
+import com.anylearn.backend.service.today.PackageCards;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -19,6 +29,11 @@ public class ScheduleNotificationService {
 
     private final UserCourseEnrollmentRepository enrollmentRepository;
     private final NotificationService notificationService;
+    private final UserRepository userRepository;
+    private final LearnerLoader learnerLoader;
+    private final PackageCards packageCards;
+    private final FeeCards feeCards;
+    private final Clock clock;
 
     private static final Map<String, Integer> WEEKDAY_MAP = Map.of(
             "mon", 1, "tue", 2, "wed", 3, "thu", 4, "fri", 5, "sat", 6, "sun", 0
@@ -33,6 +48,7 @@ public class ScheduleNotificationService {
         scanUpcomingSessions();
         scanPendingEnrollments();
         scanRenewals();
+        scanLearnerRenewals();
     }
 
     private void scanUpcomingSessions() {
@@ -101,6 +117,66 @@ public class ScheduleNotificationService {
                     itemTitle + " kết thúc vào " + endDate + ". Gia hạn để tiếp tục →",
                     "/account/schedule", dedup, LocalDateTime.now().plusHours(2));
         }
+    }
+
+    private void scanLearnerRenewals() {
+        for (Long learnerId : enrollmentRepository.findActiveLearnerIds()) {
+            try {
+                remindLearner(learnerId);
+            } catch (Exception e) {
+                log.warn("LoyalEngine: renew reminder failed for learner {}: {}", learnerId, e.getMessage());
+            }
+        }
+    }
+
+    private void remindLearner(Long learnerId) {
+        User learner = userRepository.findById(learnerId).orElse(null);
+        if (learner == null) return;
+        Long accountId = accountIdOf(learner);
+        LearnerData data = learnerLoader.load(learnerId);
+        LocalDateTime now = LocalDateTime.now(clock);
+
+        packageCards.build(data.contexts(), now).stream()
+                .filter(PackageView::showRenew)
+                .forEach(pack -> remindSessionsLeft(accountId, learner, pack));
+        feeCards.build(data, now.toLocalDate()).stream()
+                .filter(fee -> fee.state().needsPayment())
+                .forEach(fee -> remindFee(accountId, learner, fee));
+    }
+
+    private void remindSessionsLeft(Long accountId, User learner, PackageView pack) {
+        String left = pack.remaining() == 0 ? "đã học hết số buổi" : "còn " + pack.remaining() + " buổi";
+        notificationService.createScheduledNotification(
+                accountId, "schedule_renewal", "Sắp hết buổi học",
+                "%s %s %s. Gia hạn để học tiếp →".formatted(displayName(learner), left, pack.title()),
+                todayRoute(learner), "renew-sessions:" + pack.enrollmentId(), LocalDateTime.now(clock).plusHours(2));
+    }
+
+    private void remindFee(Long accountId, User learner, FeeView fee) {
+        boolean overdue = fee.state() == FeeCardState.OVERDUE;
+        String title = overdue ? "Chưa nhận được học phí" : "Học phí sắp đến hạn";
+        String content = overdue
+                ? "anyLEARN chưa nhận được học phí %s của %s. Bạn đóng giúp để việc học không bị gián đoạn →"
+                    .formatted(fee.nextPeriodLabel(), displayName(learner))
+                : "%s của %s: đã đóng %s. Đóng %s để học liên tục →"
+                    .formatted(fee.itemTitle(), displayName(learner), fee.paidUntilText(), fee.nextPeriodLabel());
+        String dedup = "renew-fee:%d:%d:%s:%s".formatted(fee.itemId(), learner.getId(), fee.paidUntil(), fee.state());
+        notificationService.createScheduledNotification(
+                accountId, "schedule_renewal", title, content, todayRoute(learner), dedup,
+                LocalDateTime.now(clock).plusHours(2));
+    }
+
+    private Long accountIdOf(User learner) {
+        boolean isChild = Byte.valueOf((byte) 1).equals(learner.getIsChild()) && learner.getUserId() != null;
+        return isChild ? learner.getUserId() : learner.getId();
+    }
+
+    private String displayName(User learner) {
+        return Byte.valueOf((byte) 1).equals(learner.getIsChild()) ? learner.getName() : "Bạn";
+    }
+
+    private String todayRoute(User learner) {
+        return "/today?child=" + learner.getId();
     }
 
     // ── Dispatcher: runs every 5 minutes, fires due notifications ────────────

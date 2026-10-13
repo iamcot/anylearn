@@ -47,6 +47,14 @@ export default function Add2CartPage() {
   // Billing-only start month picker
   const [startMonth, setStartMonth] = useState('')
 
+  function prefillFromTodayLink(d: CartInfoData | null) {
+    const params = new URLSearchParams(window.location.search)
+    const childId = Number(params.get('child'))
+    if (childId && d?.children?.some(c => c.id === childId)) setSelectedStudent(childId)
+    const start = params.get('start')
+    if (start && /^\d{4}-\d{2}$/.test(start)) setStartMonth(start)
+  }
+
   useEffect(() => {
     if (isAuthLoading) return          // chờ auth load xong trước
     if (!user || !token) {
@@ -58,6 +66,7 @@ export default function Add2CartPage() {
       setLoading(false)
       if (d?.plans && d.plans.length > 0) setSelectedPlan(d.plans[0].id)
       if (d?.schedules && d.schedules.length === 1) setSelectedSchedule(d.schedules[0].id)
+      prefillFromTodayLink(d)
     })
   }, [isAuthLoading, user, token, itemId]) // eslint-disable-line react-hooks/exhaustive-deps
 

@@ -8,6 +8,11 @@ import java.util.List;
 
 public interface UserCourseEnrollmentRepository extends JpaRepository<UserCourseEnrollment, Long> {
 
+    List<UserCourseEnrollment> findByUserIdAndStatus(Long userId, String status);
+
+    @Query("SELECT DISTINCT e.userId FROM UserCourseEnrollment e WHERE e.status = 'active'")
+    List<Long> findActiveLearnerIds();
+
     @Query(value = """
         SELECT uce.id, uce.user_id, uce.item_id, uce.order_id, uce.schedule_id,
                uce.start_date, uce.end_date, uce.billing_period, uce.status,
@@ -59,6 +64,8 @@ public interface UserCourseEnrollmentRepository extends JpaRepository<UserCourse
         JOIN items i ON i.id = uce.item_id
         WHERE uce.status = 'active'
           AND uce.end_date BETWEEN :tomorrow AND DATE_ADD(:tomorrow, INTERVAL 7 DAY)
+          AND COALESCE(i.cycle_type, '') <> 'session'
+          AND NOT (i.is_paymentfee = 1 AND uce.schedule_id IS NULL)
         """, nativeQuery = true)
     List<java.util.Map<String, Object>> findEnrollmentsEndingSoon(@Param("tomorrow") java.time.LocalDate tomorrow);
 }
