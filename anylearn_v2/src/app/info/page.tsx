@@ -148,8 +148,10 @@ export default function InfoPage() {
         <div className="container grid grid-cols-1 sm:grid-cols-3 gap-5">
           {PROBLEMS.map(p => (
             <article key={p.title} className={CARD}>
-              <div className="mb-3.5 grid size-11 place-items-center rounded-2xl bg-green/10 text-green"><p.Icon className="size-6" /></div>
-              <h3 className="mb-2.5 mt-0 text-xl font-semibold text-ink">{p.title}</h3>
+              <div className="mb-3 flex items-center gap-3">
+                <div className="grid size-11 shrink-0 place-items-center rounded-xl bg-green/10 text-green"><p.Icon className="size-6" /></div>
+                <h3 className="m-0 min-w-0 text-xl font-semibold text-ink">{p.title}</h3>
+              </div>
               <p className="m-0 text-muted">{p.desc}</p>
             </article>
           ))}
@@ -167,8 +169,10 @@ export default function InfoPage() {
         <div className="container grid grid-cols-1 sm:grid-cols-3 gap-5">
           {COMMITS.map(c => (
             <article key={c.num} className={CARD}>
-              <div className="mb-4 grid size-11 place-items-center rounded-2xl bg-green text-xl font-extrabold text-white">{c.num}</div>
-              <h3 className="mb-2.5 mt-0 text-xl font-semibold text-ink">{c.title}</h3>
+              <div className="mb-3 flex items-center gap-3">
+                <div className="grid size-11 shrink-0 place-items-center rounded-xl bg-green text-xl font-extrabold text-white">{c.num}</div>
+                <h3 className="m-0 min-w-0 text-xl font-semibold text-ink">{c.title}</h3>
+              </div>
               <p className="m-0 text-muted">{c.desc}</p>
             </article>
           ))}

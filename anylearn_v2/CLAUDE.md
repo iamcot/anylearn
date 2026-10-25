@@ -51,7 +51,7 @@ ALLOWED_DEV_ORIGINS=192.168.1.10            # optional, comma-separated LAN IPs 
 
 | Component | File | Description |
 |---|---|---|
-| `Header` | `components/Header.tsx` | Sticky nav, auth state, cart count badge |
+| `Header` | `components/Header.tsx` | Sticky nav; pieces in `components/header/*` (`AccountMenu`, `NotificationBell`, `MobileMenu`, `useNotifications`) |
 | `Footer` | `components/Footer.tsx` | Site footer |
 | `AuthModal` | `components/AuthModal.tsx` | Global overlay login/register — triggered anywhere |
 | `CourseCard` | `components/CourseCard.tsx` | Reusable course card grid item |
@@ -70,6 +70,8 @@ ALLOWED_DEV_ORIGINS=192.168.1.10            # optional, comma-separated LAN IPs 
 - Auth pages (`/login`, `/register`) also work standalone
 
 ## API Client — `src/lib/api.ts`
+
+`lib/api.ts` only re-exports the modules in `lib/api/` (`client`, `catalog`, `articles`, `auth`, `notifications`, `cart`, `orders`, `account`). Keep importing from `@/lib/api`; add new functions to the module of their domain.
 
 Base URL: `API_BASE` from `src/lib/apiBase.ts` (`/v2/api` in the browser, `API_SERVER_ORIGIN` + `/v2/api` during SSR)
 

@@ -111,7 +111,7 @@ export default function NotificationDropdown({ token, onClose, onUnreadChange }:
 
   return (
     <div
-      className="absolute right-0 top-full mt-2 w-96 bg-white border border-[#e6edf4] rounded-[18px] shadow-[0_12px_40px_rgba(15,23,42,0.14)] overflow-hidden z-50">
+      className="fixed inset-x-3 top-[84px] z-50 overflow-hidden rounded-card border border-line bg-white shadow-raised lg:absolute lg:inset-x-auto lg:right-0 lg:top-full lg:mt-2 lg:w-96">
 
       <div className="flex items-center justify-between px-4 py-3 border-b border-[#e6edf4]">
         <span className="font-black text-[#17212f] text-sm">Thông báo</span>

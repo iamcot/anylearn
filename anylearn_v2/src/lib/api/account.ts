@@ -1,0 +1,152 @@
+import { API_BASE } from '@/lib/apiBase'
+import { authFetch } from './client'
+
+export interface UserProfile {
+  id: number
+  name: string
+  firstName?: string
+  phone: string
+  email?: string
+  role: string
+  image?: string
+  banner?: string
+  introduce?: string
+  fullContent?: string
+  title?: string
+  address?: string
+  dob?: string
+  sex?: string
+  walletM?: number
+  walletC?: number
+  apiToken: string
+}
+
+export interface ChildUser {
+  id: number
+  name: string
+  phone: string
+  image?: string
+  dob?: string
+}
+
+export interface UserOrder {
+  orderId: string
+  amount: number
+  status: string
+  payment: string
+  createdAt: string
+  items: { itemId: number; title: string; image?: string; paidPrice: number; studentName?: string }[]
+}
+
+export interface ItemCode {
+  codeId: number
+  code: string
+  itemId: number
+  itemTitle: string
+  itemImage?: string
+  subtype?: string
+  createdAt: string
+}
+
+export async function updateProfile(
+  data: Partial<Omit<UserProfile, 'id' | 'phone' | 'apiToken'>>,
+  token: string
+): Promise<{ data: UserProfile | null; error?: string }> {
+  return authFetch<UserProfile>('/user/edit', token, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+export async function getMyProfile(token: string): Promise<UserProfile | null> {
+  const { data } = await authFetch<{ user: UserProfile }>('/user', token)
+  return data?.user ?? null
+}
+
+export async function changePassword(
+  oldPass: string,
+  newPass: string,
+  token: string
+): Promise<{ error?: string }> {
+  const { error } = await authFetch('/user/changepass', token, {
+    method: 'POST',
+    body: JSON.stringify({ oldPass, newPass }),
+  })
+  return { error }
+}
+
+export async function getChildren(token: string): Promise<ChildUser[]> {
+  const { data } = await authFetch<ChildUser[]>('/user/children', token)
+  return data ?? []
+}
+
+export async function saveChild(
+  data: { id?: number; name: string; dob?: string },
+  token: string
+): Promise<{ data: ChildUser | null; error?: string }> {
+  return authFetch<ChildUser>('/user/children', token, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+export async function deleteChild(
+  childId: number,
+  token: string
+): Promise<{ error?: string }> {
+  const { error } = await authFetch(`/user/children/${childId}`, token, { method: 'DELETE' })
+  return { error }
+}
+
+export async function getUserOrders(token: string): Promise<UserOrder[]> {
+  const { data } = await authFetch<UserOrder[]>('/user/orders', token)
+  return data ?? []
+}
+
+export async function getUserItemCodes(token: string): Promise<ItemCode[]> {
+  const { data } = await authFetch<ItemCode[]>('/user/item-codes', token)
+  return data ?? []
+}
+
+export interface WalletTransaction {
+  id: number
+  type: string
+  amount: number
+  status: number
+  content?: string
+  createdAt: string
+}
+
+export async function getWalletCHistory(token: string): Promise<WalletTransaction[]> {
+  const { data } = await authFetch<WalletTransaction[]>('/user/wallet-c-history', token)
+  return data ?? []
+}
+
+export interface VoucherResult {
+  code: string
+  type: string
+  discountValue: number
+  message: string
+}
+
+export async function checkVoucher(code: string, orderAmount: number): Promise<{ data: VoucherResult | null; error?: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/voucher/check?code=${encodeURIComponent(code)}&orderAmount=${orderAmount}`, { cache: 'no-store' })
+    const json = await res.json()
+    if (json?.resultCode === 0) return { data: null, error: json?.message || 'Mã không hợp lệ' }
+    return { data: json?.data ?? null }
+  } catch {
+    return { data: null, error: 'Không thể kết nối máy chủ' }
+  }
+}
+
+export async function updateImageUrl(
+  type: string,
+  imageUrl: string,
+  token: string
+): Promise<{ data: UserProfile | null; error?: string }> {
+  return authFetch<UserProfile>(`/user/upload-image/${type}`, token, {
+    method: 'POST',
+    body: JSON.stringify({ imageUrl }),
+  })
+}
