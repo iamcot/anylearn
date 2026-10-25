@@ -1,6 +1,6 @@
 import { Avatar, Badge, Dropdown, Flex, Layout, List, Menu, Popover, Spin, Typography } from 'antd'
 import {
-  AuditOutlined, BankOutlined, BellOutlined, BookOutlined, CalendarOutlined, DashboardOutlined, FileTextOutlined,
+  AuditOutlined, BankOutlined, BellOutlined, BookOutlined, CalendarOutlined, DashboardOutlined, DollarOutlined, FileTextOutlined,
   CustomerServiceOutlined, FundOutlined, LineChartOutlined, SearchOutlined, LogoutOutlined, MailOutlined, ApiOutlined, OrderedListOutlined, SettingOutlined, SolutionOutlined, SwapOutlined,
   TeamOutlined, UserOutlined,
 } from '@ant-design/icons'
@@ -20,6 +20,7 @@ const NAV_ITEMS = [
   { key: '/schedule-monitor', icon: <CalendarOutlined />,    label: 'Lịch học'   },
   { key: '/schedule-requests', icon: <CustomerServiceOutlined />, label: 'Yêu cầu nghỉ / đổi lịch' },
   { key: '/course-requests', icon: <SearchOutlined />, label: 'Nhờ tìm khóa học' },
+  { key: '/price-reports', icon: <DollarOutlined />, label: 'Báo giá rẻ hơn' },
   { key: '/search-insights', icon: <LineChartOutlined />, label: 'Xu hướng nhu cầu' },
   { key: '/transactions',     icon: <SwapOutlined />,        label: 'anyPoints'  },
   { key: '/finance',          icon: <FundOutlined />,        label: 'Tài chính'  },

@@ -166,6 +166,11 @@ Thư mục `http/` chứa VS Code REST Client files cho mọi endpoint:
 - FE: `components/orders/*` (`usePendingOrders` + a small store with a 1-minute throttle, `PendingOrdersCard` on `/today` and above every `/account` page, red count on the "Tài khoản" tab and the "Đơn hàng của tôi" menu item, `DuplicateOrderModal` asked by `/add2cart` and `/checkout` through `lib/orders/pendingOrders.ts`); `/account/orders` has tabs Đang chờ / Hoàn thành / Đã hủy (`lib/orders/tabs.ts`, `?tab=`). Call `refreshPendingOrders(token, true)` after anything that creates, pays or cancels an order.
 - Not done: ZNS for the 24h reminder (needs an approved ZNS template id); vouchers are not marked as used at checkout, so there is nothing to give back on cancel.
 
+## anyLEARN promise and price reports
+
+- The promise ("giá bằng hoặc rẻ hơn tại trường", refund if the class does not open, all schedules in one place, Zalo support) lives in one file: `anylearn_v2/src/config/promise.ts` (`PROMISES`, `WHY_FAQ`, `PRICE_GUARANTEE_LINE`, Zalo link and hours). Shown by `components/promise/PromiseStrip` under the register button of a course, by one line under the totals at checkout, and in detail at `/info/why-anylearn`. The refund wording is still waiting for the owner's confirmation.
+- "Thấy giá rẻ hơn ở nơi khác? Báo cho chúng tôi": `ReportPriceButton` → `POST /api/price-reports` (open to visitors; a visitor without an account must leave a phone number; 5 per account or phone per day, `app.price-report.daily-limit`) → table `price_reports` (V21), every back-office recipient gets a notification. Back office page "Báo giá rẻ hơn" (`/admin/price-reports`: new / checking / fixed / rejected; `fixed` thanks a reporter who has an account). Backend: `service/pricing/*`, `AdminPriceReportController`. Samples: `http/admin.http`.
+
 ## Growth roadmap
 
 Feature plans live in `plans/` (start with `plans/00-overview.md`); progress, owner decisions and open questions in `plans/PROGRESS.md`. Update PROGRESS.md after every task.

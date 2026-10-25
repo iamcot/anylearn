@@ -56,7 +56,7 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 05.3 | Nhắc thanh toán | done | |
 | 05.4 | Tự huỷ đơn quá hạn | done | |
 | 05.5 | Đo đơn chờ | done | |
-| 10.1 | Lời hứa anyLEARN | todo | |
+| 10.1 | Lời hứa anyLEARN | done | chờ xác nhận câu chữ hoàn tiền; có cả form báo giá |
 
 ### Giai đoạn 2 – khám phá
 
@@ -120,6 +120,11 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 
 ## Nhật ký
 
+### 25/10/2026 – 10.1 Lời hứa anyLEARN
+- Nội dung một chỗ: `config/promise.ts` (4 lời hứa, FAQ, dòng cam kết giá, link Zalo + giờ làm việc). PDP: dải 4 icon dưới nút đăng ký (`PromiseStrip`) + link "Vì sao đặt qua anyLEARN?"; checkout: dòng "Giá đã bằng hoặc rẻ hơn tại trường." trên dòng "Đơn này bạn sẽ nhận +X anyPoint"; trang `/info/why-anylearn` (4 lời hứa chi tiết, FAQ, nút báo giá, nút Zalo).
+- "Thấy giá rẻ hơn ở nơi khác? Báo cho chúng tôi": form (nơi thấy, giá, số điện thoại, ghi chú) → `POST /api/price-reports` → bảng `price_reports` (V21); khách chưa đăng nhập bắt buộc để số điện thoại; tối đa 5 báo mỗi ngày mỗi tài khoản/số; báo cho tất cả người nhận thông báo admin; trang admin "Báo giá rẻ hơn" (mới / đang kiểm tra / đã chỉnh giá / không đúng), "đã chỉnh giá" gửi thông báo cảm ơn cho người có tài khoản.
+- Đã chạy thật: gửi báo giá bằng curl (đủ và thiếu số điện thoại), admin xem danh sách và cập nhật trạng thái trên MariaDB; form và trang giải thích kiểm trên mobile 390px.
+- **Câu chữ hoàn tiền cần chủ sản phẩm xác nhận**: "Nếu lớp bạn đã đăng ký không mở, anyLEARN hoàn lại số tiền đã thanh toán. Các trường hợp đổi, trả khác theo Chính sách đổi - trả và hoàn tiền." (sửa tại `config/promise.ts`).
 ### 25/10/2026 – 05 đơn chờ thanh toán (05.1–05.5)
 - 05.1: thêm giỏ (`/add2cart`) và thanh toán (`/checkout`) hỏi "Bạn đã có đơn #N cho khóa này" khi có đơn chờ cùng khóa + cùng người học + cùng ca (`findDuplicatePendingOrder`, có test); chọn "Tiếp tục thanh toán" hoặc "Tạo đơn mới". API `pending-orders` thêm `learnerId`, `scheduleId`, `createdAt`, `expiresAt`.
 - 05.2: chấm đỏ số đơn chờ trên tab "Tài khoản" và ở menu "Đơn hàng của tôi"; thẻ "Bạn có N đơn chờ thanh toán" (kèm "giữ chỗ đến …") ở `/today` và đầu các trang Tài khoản, nút "Thanh toán ngay" vào thẳng `/order/{id}`; trang đơn có tab Đang chờ / Hoàn thành / Đã hủy; trang đơn hiện "anyLEARN giữ chỗ đến …".

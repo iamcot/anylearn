@@ -8,6 +8,7 @@ import Articles from './pages/Articles'
 import Activities from './pages/Activities'
 import Audit from './pages/Audit'
 import CourseRequests from './pages/CourseRequests'
+import PriceReports from './pages/PriceReports'
 import SearchInsights from './pages/SearchInsights'
 import NotificationRecipients from './pages/NotificationRecipients'
 import BankAccount from './pages/BankAccount'
@@ -87,6 +88,7 @@ export default function App() {
                   <Route path="schedule-monitor" element={<ScheduleMonitor />} />
                   <Route path="schedule-requests" element={<ScheduleRequests />} />
                   <Route path="course-requests" element={<CourseRequests />} />
+                  <Route path="price-reports" element={<PriceReports />} />
                   <Route path="search-insights" element={<SearchInsights />} />
                   <Route path="settings" element={<Settings />} />
                   <Route path="transactions" element={<Transactions />} />

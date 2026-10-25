@@ -6,6 +6,8 @@ import ScrollRow from '@/components/ScrollRow'
 import BackButton from '@/components/BackButton'
 import RegisterButton from './RegisterButton'
 import PointsRewardBadge from '@/components/points/PointsRewardBadge'
+import PromiseStrip from '@/components/promise/PromiseStrip'
+import ReportPriceButton from '@/components/promise/ReportPriceButton'
 import FavButton from '@/components/FavButton'
 import ReviewsSection from '@/components/ReviewsSection'
 import ActivityButton from '@/components/ActivityButton'
@@ -191,6 +193,8 @@ export default async function PdpPage({ params }: Props) {
               <RegisterButton itemId={item.id} />
               <ActivityButton itemId={item.id}
                 activiyTrial={item.activiyTrial} activiyTest={item.activiyTest} activiyVisit={item.activiyVisit} />
+              <PromiseStrip />
+              <div className="mt-3"><ReportPriceButton itemId={item.id} /></div>
             </div>
           </div>
         </div>

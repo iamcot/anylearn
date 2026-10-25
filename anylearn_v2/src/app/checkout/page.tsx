@@ -18,12 +18,13 @@ import PaymentMethodSelector from '@/components/PaymentMethodSelector'
 import SectionCard from '@/components/SectionCard'
 import OrderLine from '@/components/cart/OrderLine'
 import { cartRewardLabel, sumCartPoints } from '@/lib/points/reward'
+import { PRICE_GUARANTEE_LINE } from '@/config/promise'
 import ApplyRow from '@/components/cart/ApplyRow'
 import LearnerDobForm from '@/components/cart/LearnerDobForm'
 import { learnersMissingFullDob, nextLearnerMessage, type LearnerNeedingDob } from '@/lib/checkout/learnerDob'
 import { useToast } from '@/components/ToastProvider'
 import { FormPageSkeleton, ListSkeleton } from '@/components/PageSkeleton'
-import { CardIcon, CartIcon, ClockIcon, CloseIcon, CoinIcon, GiftIcon } from '@/components/icons'
+import { CardIcon, CartIcon, CheckIcon, ClockIcon, CloseIcon, CoinIcon, GiftIcon } from '@/components/icons'
 
 const REMOVE_BUTTON_CLASS = 'grid size-11 cursor-pointer place-items-center rounded-full border-0 bg-transparent text-red hover:bg-red-soft'
 
@@ -54,8 +55,12 @@ function TotalsSummary({ subtotal, pointsDiscount, voucherDiscount, voucherCode,
         <span className="text-sm font-bold text-ink">Tổng thanh toán</span>
         <span className="text-xl font-extrabold text-red">{formatExactPrice(finalTotal)}</span>
       </div>
+      <div className="mt-1 flex items-center gap-1.5 text-sm text-green-dark">
+        <CheckIcon className="size-4 text-green" />
+        {PRICE_GUARANTEE_LINE}
+      </div>
       {pointsToEarn > 0 && (
-        <div className="mt-1 flex items-center gap-1.5 text-sm text-green-dark">
+        <div className="flex items-center gap-1.5 text-sm text-green-dark">
           <CoinIcon className="size-4 text-green" />
           {cartRewardLabel(pointsToEarn)}
         </div>
