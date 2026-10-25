@@ -11,12 +11,12 @@ interface Props {
 export default function CourseCard({ item }: Props) {
   const courseUrl = getCourseUrl(item)
   return (
-    <article className="bg-white border border-line rounded-card overflow-hidden shadow-[0_8px_24px_rgba(15,23,42,0.06)] flex flex-col relative">
+    <article className="bg-white border border-line rounded-card overflow-hidden shadow-card flex flex-col relative">
       {/* Full-card clickable overlay */}
       <Link href={courseUrl} className="absolute inset-0 z-10" aria-label={item.title} />
 
       {/* Image area */}
-      <div className="aspect-square bg-gradient-to-br from-green-soft to-blue-soft grid place-items-center relative overflow-hidden">
+      <div className="aspect-[16/10] bg-gradient-to-br from-green-soft to-blue-soft grid place-items-center relative overflow-hidden sm:aspect-square">
         {item.image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={item.image} alt={item.title} className="w-full h-full object-cover absolute inset-0" />
@@ -24,13 +24,13 @@ export default function CourseCard({ item }: Props) {
           <BookIcon className="size-14 text-blue/40" />
         )}
         {item.isHot ? (
-          <span className="absolute top-3 left-3 bg-yellow text-ink rounded-full px-2.5 py-1.5 font-black text-xs z-10">HOT</span>
+          <span className="absolute top-3 left-3 bg-yellow text-ink rounded-full px-2.5 py-1.5 font-extrabold text-xs z-10">HOT</span>
         ) : null}
       </div>
 
       {/* Body */}
       <div className="p-[18px] flex flex-col flex-1">
-        <h3 className="m-0 mb-1.5 text-green-dark leading-[1.35] text-lg font-black">
+        <h3 className="m-0 mb-1.5 text-green-dark leading-[1.35] text-lg font-extrabold">
           {item.title}
         </h3>
 
@@ -50,7 +50,7 @@ export default function CourseCard({ item }: Props) {
 
         <div className="flex flex-wrap gap-1.5 mb-2.5">
           {item.subtype && (
-            <span className="rounded-full px-2 py-1 bg-green-soft text-green-dark text-xs font-black">
+            <span className="rounded-full px-2 py-1 bg-green-soft text-green-dark text-xs font-extrabold">
               {SUBTYPE_LABELS[item.subtype] ?? item.subtype}
             </span>
           )}
@@ -63,7 +63,7 @@ export default function CourseCard({ item }: Props) {
         )}
 
         <div className="mt-auto">
-          <div className="text-red font-black text-lg mb-1.5">
+          <div className="text-red font-extrabold text-lg mb-1.5">
             {formatPrice(item.price)}
           </div>
           <div className="flex items-center justify-between gap-2">
@@ -75,7 +75,7 @@ export default function CourseCard({ item }: Props) {
                 <span className="inline-flex items-center gap-1"><HeartIcon filled className="size-3.5 text-red" />{item.num_favorite}</span>
               )}
             </div>
-            <span className="text-[#008244] font-black text-sm no-underline shrink-0">
+            <span className="text-green-dark font-extrabold text-sm no-underline shrink-0">
               Tìm hiểu thêm →
             </span>
           </div>

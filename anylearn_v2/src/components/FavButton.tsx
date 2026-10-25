@@ -3,20 +3,12 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { API_BASE } from '@/lib/apiBase'
+import { HeartIcon } from '@/components/icons'
 
 interface Props {
   itemId: number
   initialFaved: boolean
   initialCount: number
-}
-
-function HeartIcon({ filled }: { filled: boolean }) {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill={filled ? '#e73348' : 'none'}
-      stroke="#e73348" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z" />
-    </svg>
-  )
 }
 
 export default function FavButton({ itemId, initialFaved, initialCount }: Props) {
@@ -73,19 +65,11 @@ export default function FavButton({ itemId, initialFaved, initialCount }: Props)
       onClick={toggle}
       disabled={loading}
       title={faved ? 'Bỏ yêu thích' : 'Yêu thích'}
-      style={{
-        display: 'inline-flex', alignItems: 'center', gap: 5,
-        background: 'transparent', border: 'none',
-        padding: '4px 2px',
-        cursor: loading ? 'default' : 'pointer',
-        fontSize: 13, fontWeight: 500,
-        color: '#e73348',
-        opacity: loading ? 0.6 : 1,
-        transition: 'opacity 0.15s',
-      }}
+      aria-pressed={faved}
+      className={`inline-flex min-h-11 items-center gap-1.5 border-0 bg-transparent px-1 text-[13px] font-medium text-red transition-opacity ${loading ? 'cursor-default opacity-60' : 'cursor-pointer'}`}
     >
-      <HeartIcon filled={faved} />
-      {count > 0 && <span style={{ fontSize: 13 }}>{count}</span>}
+      <HeartIcon filled={faved} className="size-[18px]" />
+      {count > 0 && <span>{count}</span>}
     </button>
   )
 }

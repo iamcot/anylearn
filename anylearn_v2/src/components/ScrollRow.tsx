@@ -1,6 +1,11 @@
 'use client'
 
 import { useRef, useEffect, useState } from 'react'
+import { ChevronLeftIcon, ChevronRightIcon } from '@/components/icons'
+
+const SCROLL_STEP_PX = 240
+const EDGE_TOLERANCE_PX = 8
+const ARROW_CLASS = 'absolute top-[35%] z-[2] grid size-10 -translate-y-1/2 cursor-pointer place-items-center rounded-full border border-line bg-white p-0 text-ink shadow-raised'
 
 export default function ScrollRow({ children, className }: { children: React.ReactNode; className?: string }) {
   const ref = useRef<HTMLDivElement>(null)
@@ -10,8 +15,8 @@ export default function ScrollRow({ children, className }: { children: React.Rea
   const update = () => {
     const el = ref.current
     if (!el) return
-    setCanLeft(el.scrollLeft > 8)
-    setCanRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 8)
+    setCanLeft(el.scrollLeft > EDGE_TOLERANCE_PX)
+    setCanRight(el.scrollLeft + el.clientWidth < el.scrollWidth - EDGE_TOLERANCE_PX)
   }
 
   useEffect(() => {
@@ -23,32 +28,24 @@ export default function ScrollRow({ children, className }: { children: React.Rea
     return () => { el.removeEventListener('scroll', update); window.removeEventListener('resize', update) }
   }, [])
 
-  const scroll = (dir: 1 | -1) => {
-    ref.current?.scrollBy({ left: dir * 240, behavior: 'smooth' })
+  const scroll = (direction: 1 | -1) => {
+    ref.current?.scrollBy({ left: direction * SCROLL_STEP_PX, behavior: 'smooth' })
   }
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div className="relative">
       {canLeft && (
-        <button onClick={() => scroll(-1)} style={{
-          position: 'absolute', left: -16, top: '35%', transform: 'translateY(-50%)',
-          zIndex: 2, width: 36, height: 36, borderRadius: '50%',
-          background: 'white', border: '1px solid #e6edf4',
-          boxShadow: '0 4px 12px rgba(15,23,42,0.12)',
-          cursor: 'pointer', display: 'grid', placeItems: 'center', fontSize: 16,
-        }}>‹</button>
+        <button type="button" aria-label="Cuộn sang trái" onClick={() => scroll(-1)} className={`${ARROW_CLASS} -left-4`}>
+          <ChevronLeftIcon className="size-5" />
+        </button>
       )}
       <div ref={ref} className={`pdp-scroll-row ${className ?? ''}`}>
         {children}
       </div>
       {canRight && (
-        <button onClick={() => scroll(1)} style={{
-          position: 'absolute', right: -16, top: '35%', transform: 'translateY(-50%)',
-          zIndex: 2, width: 36, height: 36, borderRadius: '50%',
-          background: 'white', border: '1px solid #e6edf4',
-          boxShadow: '0 4px 12px rgba(15,23,42,0.12)',
-          cursor: 'pointer', display: 'grid', placeItems: 'center', fontSize: 16,
-        }}>›</button>
+        <button type="button" aria-label="Cuộn sang phải" onClick={() => scroll(1)} className={`${ARROW_CLASS} -right-4`}>
+          <ChevronRightIcon className="size-5" />
+        </button>
       )}
     </div>
   )

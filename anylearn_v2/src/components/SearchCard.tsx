@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { API_BASE } from '@/lib/apiBase'
+import { LightbulbIcon } from '@/components/icons'
 
 interface TagItem {
   label: string
@@ -64,8 +65,7 @@ export default function SearchCard({ variant = 'home', initialTags = [] }: Props
         <select
           value={searchMode}
           onChange={e => setSearchMode(e.target.value)}
-          className="field"
-          style={{ borderRadius: 18, fontWeight: 500 }}
+          className="field font-medium"
         >
           {SEARCH_MODES.map(m => (
             <option key={m.key} value={m.key}>{m.label}</option>
@@ -86,16 +86,16 @@ export default function SearchCard({ variant = 'home', initialTags = [] }: Props
       {searchMode === 'class' && tags.length > 0 && (
         <div className="quick-tags">
           {tags.map(tag => (
-            <span key={tag.label} className="tag" style={{ cursor: 'pointer' }}
-              onClick={() => handleTagClick(tag)}>
+            <button key={tag.label} type="button" className="tag" onClick={() => handleTagClick(tag)}>
               {tag.label}
-            </span>
+            </button>
           ))}
         </div>
       )}
 
-      <div className="search-hint">
-        💡 Gõ keyword để xem gợi ý, sau đó chuyển sang trang kết quả có filter đầy đủ
+      <div className="search-hint flex items-start gap-1.5">
+        <LightbulbIcon className="mt-0.5 size-4 shrink-0 text-yellow" />
+        Gõ keyword để xem gợi ý, sau đó chuyển sang trang kết quả có filter đầy đủ
       </div>
     </form>
   )

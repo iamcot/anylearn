@@ -6,7 +6,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import NotificationDropdown from './NotificationDropdown'
 import UpcomingEventsBar from './UpcomingEventsBar'
-import { BellIcon, CartIcon, CoinIcon, MenuIcon, SearchIcon } from './icons'
+import { BellIcon, CartIcon, ChevronDownIcon, CoinIcon, MenuIcon, SearchIcon } from './icons'
 import { getNotifications } from '@/lib/api'
 import { BROWSE_HOME_URL, markBrowsing } from '@/lib/today/links'
 import { TODAY_NAV, isNavActive } from '@/lib/today/nav'
@@ -37,7 +37,7 @@ const ICON_BUTTON_CLASS = 'relative grid size-11 cursor-pointer place-items-cent
 function CountBadge({ count }: { count: number }) {
   if (count <= 0) return null
   return (
-    <span className="absolute -right-1 -top-1 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-red px-1 text-[11px] font-black text-white">
+    <span className="absolute -right-1 -top-1 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-red px-1 text-[11px] font-extrabold text-white">
       {count > 99 ? '99+' : count}
     </span>
   )
@@ -155,7 +155,7 @@ export default function Header() {
           {navLinks.map(({ href, label }) => (
             <Link key={label} href={href}
               aria-current={isToday && isNavActive(pathname, href) ? 'page' : undefined}
-              className={`font-extrabold text-[15px] no-underline py-2 border-b-2 transition-all duration-200 hover:text-blue hover:border-green ${isToday && isNavActive(pathname, href) ? 'text-blue border-green' : 'text-[#4d5968] border-transparent'}`}>
+              className={`font-extrabold text-[15px] no-underline py-2 border-b-2 transition-all duration-200 hover:text-blue hover:border-green ${isToday && isNavActive(pathname, href) ? 'text-blue border-green' : 'text-text border-transparent'}`}>
               {label}
             </Link>
           ))}
@@ -181,21 +181,19 @@ export default function Header() {
                 {user.image
                   // eslint-disable-next-line @next/next/no-img-element
                   ? <img src={user.image} alt={user.name} className="w-[34px] h-[34px] rounded-full object-cover border-2 border-line" />
-                  : <div className="w-[34px] h-[34px] rounded-full bg-gradient-to-br from-blue to-green grid place-items-center text-white font-black text-sm">
+                  : <div className="w-[34px] h-[34px] rounded-full bg-gradient-to-br from-blue to-green grid place-items-center text-white font-extrabold text-sm">
                       {user.name?.charAt(0).toUpperCase()}
                     </div>
                 }
                 <span className="font-bold text-ink text-sm max-w-[120px] overflow-hidden text-ellipsis whitespace-nowrap">
                   {user.name}
                 </span>
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className={`transition-transform ${accountOpen ? 'rotate-180' : ''}`}>
-                  <path d="M2 4l4 4 4-4" stroke="#6d7a8a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
+                <ChevronDownIcon className={`size-4 text-muted transition-transform ${accountOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {/* Dropdown popup */}
               {accountOpen && (
-                <div className="absolute right-0 top-full mt-2 w-56 bg-white border border-line rounded-card shadow-[0_12px_40px_rgba(15,23,42,0.12)] overflow-hidden z-50">
+                <div className="absolute right-0 top-full mt-2 w-56 bg-white border border-line rounded-card shadow-raised overflow-hidden z-50">
                   {/* anyPoint — click to go to anypoint page */}
                   <Link
                     href="/account/anypoint"
@@ -204,7 +202,7 @@ export default function Header() {
                   >
                     <CoinIcon className="size-5 text-yellow" />
                     <span className="text-xs text-muted">anyPoint:</span>
-                    <span className="text-sm font-black text-ink">{(user.walletC ?? 0).toLocaleString()}</span>
+                    <span className="text-sm font-extrabold text-ink">{(user.walletC ?? 0).toLocaleString()}</span>
                   </Link>
 
                   {/* Menu items */}
@@ -263,7 +261,7 @@ export default function Header() {
         <div className="border-t border-line px-5 py-4 flex flex-col gap-3 bg-white lg:hidden">
           {NAV_LINKS.map(({ href, label }) => (
             <Link key={label} href={href} onClick={() => setMenuOpen(false)}
-              className="font-extrabold text-[#4d5968] no-underline text-base">
+              className="font-extrabold text-text no-underline text-base">
               {label}
             </Link>
           ))}
