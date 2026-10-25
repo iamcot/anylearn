@@ -36,7 +36,6 @@ export default function Header() {
   const isToday = pathname.startsWith('/today')
   const navLinks = isToday ? TODAY_NAV_LINKS : NAV_LINKS
   const homeHref = isToday ? BROWSE_HOME_URL : '/'
-  const mobileMaxWidth = isToday ? 1023 : 768
   const [menuOpen, setMenuOpen] = useState(false)
   const [accountOpen, setAccountOpen] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
@@ -147,7 +146,7 @@ export default function Header() {
         </Link>
 
         {/* Nav links */}
-        <nav className="hidden-mobile flex gap-6 items-center">
+        <nav className="hidden lg:flex gap-6 items-center">
           {navLinks.map(({ href, label }) => (
             <Link key={label} href={href}
               aria-current={isToday && isNavActive(pathname, href) ? 'page' : undefined}
@@ -158,7 +157,7 @@ export default function Header() {
         </nav>
 
         {/* Right actions */}
-        <div className="hidden-mobile flex items-center gap-2.5">
+        <div className="hidden lg:flex items-center gap-2.5">
           {/* Cart */}
           <Link href="/checkout" className="relative no-underline">
             <button className="w-[38px] h-[38px] rounded-full border border-line bg-white grid place-items-center cursor-pointer text-lg">🛒</button>
@@ -266,7 +265,7 @@ export default function Header() {
         </div>
 
         {/* Mobile toggle + icons */}
-        <div className="show-mobile hidden items-center gap-2">
+        <div className="flex lg:hidden items-center gap-2">
           {compactMobile && (
             <Link href="/search" onClick={isToday ? markBrowsing : undefined} aria-label="Tìm khóa học"
               className="w-[38px] h-[38px] rounded-full border border-line bg-white grid place-items-center text-lg no-underline">🔍</Link>
@@ -316,7 +315,7 @@ export default function Header() {
 
       {/* Mobile menu */}
       {menuOpen && (
-        <div className="border-t border-line px-5 py-4 flex flex-col gap-3 bg-white">
+        <div className="border-t border-line px-5 py-4 flex flex-col gap-3 bg-white lg:hidden">
           {NAV_LINKS.map(({ href, label }) => (
             <Link key={label} href={href} onClick={() => setMenuOpen(false)}
               className="font-extrabold text-[#4d5968] no-underline text-base">
@@ -345,12 +344,6 @@ export default function Header() {
         </div>
       )}
 
-      <style>{`
-        @media (max-width: ${mobileMaxWidth}px) {
-          .hidden-mobile { display: none !important; }
-          .show-mobile   { display: flex !important; }
-        }
-      `}</style>
     </header>
     <UpcomingEventsBar />
     </>

@@ -31,7 +31,7 @@ export default function SiteChrome({ header, footer, children }: Props) {
       {!isJoin && header}
       <main style={{ flex: 1 }}>{children}</main>
       {!isToday && !isJoin && footer}
-      {showTabs && <AppTabs wide={isToday} />}
+      {showTabs && <AppTabs />}
     </>
   )
 }

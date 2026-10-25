@@ -399,13 +399,8 @@ body {
   .footer-grid { grid-template-columns: 1fr !important; }
 }
 
-/* ── Bottom tabs for logged-in people on small screens ── */
-.app-tabs { display: none; }
-@media (max-width: 768px) {
-  .app-tabs { display: grid; }
+/* ── Room for the bottom tabs (AppTabs, shown below lg) ── */
+@media (max-width: 1023.98px) {
   .has-app-tabs { padding-bottom: calc(60px + env(safe-area-inset-bottom)); }
   .has-app-tabs .zalo-chat-widget { bottom: calc(72px + env(safe-area-inset-bottom)) !important; }
-}
-@media (max-width: 1023px) {
-  .app-tabs[data-wide="true"] { display: grid; }
 }
