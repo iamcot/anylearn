@@ -64,13 +64,17 @@ export default function BankTransferPanel({ orderId, amount, bank }: Props) {
       </div>
 
       <p className="m-0 mt-4 text-sm leading-relaxed text-text">
-        Quét mã bằng app ngân hàng, hoặc chuyển khoản theo thông tin bên cạnh. Đơn hàng tự được xác nhận khi
-        tiền về, trang này tự cập nhật không cần tải lại.
+        Đơn hàng tự được xác nhận khi tiền về, trang này tự cập nhật không cần tải lại.
       </p>
       {bank.zaloPhone && (
-        <p className="m-0 mt-2 text-sm text-muted">
-          Cần hỗ trợ? Gửi ảnh chuyển khoản qua Zalo: <strong>{bank.zaloPhone}</strong>
-        </p>
+        <>
+          <p className="m-0 mt-3 text-sm leading-relaxed text-text">
+            Nếu quý khách thanh toán trực tiếp tại quầy, vui lòng chụp biên lai và gửi qua Zalo anyLEARN để được xác nhận đơn.
+          </p>
+          <p className="m-0 mt-2 text-sm text-muted">
+            Cần hỗ trợ thêm? Liên hệ anyLEARN qua Zalo: <strong>{bank.zaloPhone}</strong>
+          </p>
+        </>
       )}
     </section>
   )
