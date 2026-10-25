@@ -81,6 +81,12 @@ payment:
   sepay:
     apiKey: ${SEPAY_API_KEY:}
 
+# Web Push for the PWA. Generate once: `npx web-push generate-vapid-keys`; empty keys turn push off.
+push:
+  vapidPublicKey: ${VAPID_PUBLIC_KEY:}
+  vapidPrivateKey: ${VAPID_PRIVATE_KEY:}
+  subject: ${VAPID_SUBJECT:mailto:info@anylearn.vn}
+
 aws:
   s3:
     accessKey: ${AWS_ACCESS_KEY:}

@@ -1,0 +1,31 @@
+@baseUrl = {{$dotenv BE_BASE_URL}}/api
+@jwtToken = {{$dotenv JWT_TOKEN}}
+
+### Push is on when the server has VAPID keys; the browser subscribes with publicKey
+GET {{baseUrl}}/push/public-key
+
+### Register this browser (body = PushSubscription.toJSON() + platform). Normally sent by the website.
+POST {{baseUrl}}/push/subscribe
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{
+  "endpoint": "https://fcm.googleapis.com/fcm/send/example-endpoint",
+  "keys": {
+    "p256dh": "BNcRdreALRFXTkOOUHK1EtK2wtaz5Ry4YfYCA_0QTpQtUbVlUls0VJXg7A8u-Ts1XbjhazAkj7I99e8QcYP7DkM",
+    "auth": "tBHItJI5svbpez7KI4CCXg"
+  },
+  "platform": "android",
+  "standalone": true
+}
+
+### Send a test notification to every device of the current account → { "delivered": n }
+POST {{baseUrl}}/push/test
+Authorization: Bearer {{jwtToken}}
+
+### Forget one device (the website calls this on logout)
+POST {{baseUrl}}/push/unsubscribe
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{ "endpoint": "https://fcm.googleapis.com/fcm/send/example-endpoint" }

@@ -8,6 +8,7 @@ import {
   INSTALL_DISMISS_DAYS, INSTALL_DISMISSED_KEY, INSTALL_MIN_TODAY_VISITS, TODAY_VISIT_COUNTED_KEY, TODAY_VISITS_KEY,
 } from '@/config/pwa'
 import { detectPlatform, installMode, isInAppBrowser, type InstallMode } from '@/lib/pwa/installPrompt'
+import { isStandalone } from './environment'
 import { getInstallPrompt, showInstallPrompt, subscribeInstallPrompt } from './installPromptStore'
 
 type Context = 'today' | 'order'
@@ -54,11 +55,6 @@ function countTodayVisit(): number {
   return todayVisitsThisLoad
 }
 
-function isStandalone(): boolean {
-  const iosStandalone = (navigator as Navigator & { standalone?: boolean }).standalone === true
-  return iosStandalone || window.matchMedia('(display-mode: standalone)').matches
-}
-
 function useInstallMode(): InstallMode {
   const isClient = useIsClient()
   const hasNativePrompt = useSyncExternalStore(subscribeInstallPrompt, () => getInstallPrompt() !== null, () => false)
@@ -75,7 +71,7 @@ function useInstallMode(): InstallMode {
   })
 }
 
-function IosSteps() {
+export function IosSteps() {
   return (
     <ol className="m-0 mt-3 flex list-decimal flex-col gap-2 pl-5 text-sm text-text">
       <li>

@@ -13,6 +13,7 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 25/10/2026 | Thử hạn anyPoint, chỉ cho thành viên mua hàng (`role = 'member'`); điểm của đối tác không hết hạn vì là tiền trả đối tác (plan 02.5). |
 | 25/10/2026 | Làm thêm cộng đồng: review (plan 09) và nhóm chat người cùng lớp (plan 11). |
 | 25/10/2026 | Khách chưa đăng nhập: hỏi tìm cho con hay bản thân, lưu tên/biệt danh + năm sinh vào `localStorage`, khi đăng ký tự tạo tài khoản con và chọn bé (plan 04.7). |
+| 25/10/2026 | Đồng ý thêm thư viện Java `nl.martijndwars:web-push` (+ BouncyCastle) cho Web Push (plan 13.4). |
 | 25/10/2026 | App cũ trên store đã bị xoá, lượt tải không đáng kể → **chỉ làm PWA**, làm trước (plan 13). Push dùng Web Push thuần, không FCM. |
 | 25/10/2026 | 04.7 làm ở **giai đoạn 1**. Lúc đầu chỉ cần năm sinh; checkout bắt buộc nhập ngày sinh đầy đủ của người học trước khi thanh toán (FE khoá nút + backend chặn tạo đơn). |
 
@@ -23,7 +24,6 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 - [ ] Câu chữ chính sách hoàn tiền trong "Lời hứa anyLEARN" (plan 10.1).
 - [ ] Hệ số điểm theo hạng thành viên có chấp nhận chi phí không (plan 10.2).
 - [ ] Trả góp: cách đối tác nhận tiền theo kỳ (plan 10.4).
-- [ ] Đồng ý thêm thư viện Java gửi Web Push (plan 13.4)?
 - [ ] Chat lớp: giáo viên có được vào nhóm không; nội quy và điều khoản cộng đồng (plan 11).
 
 ## Bảng task
@@ -42,9 +42,9 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 13.1 | Manifest + icon | done | `app/manifest.ts`, `public/icons/*` vẽ từ logo |
 | 13.2 | Service worker (cache tĩnh, offline, cập nhật) | done | Không cache trang/API; banner "Tải lại" |
 | 13.3 | Mời cài app đúng lúc (Android + hướng dẫn iOS) | done | `/today` từ lần 2, đơn thanh toán xong; chưa ghi sự kiện đo (để 13.7) |
-| 13.4 | Backend Web Push (VAPID, `push_subscriptions`, `PushService`) | todo | Chờ đồng ý thư viện |
-| 13.5 | FE xin quyền đúng cách + đăng ký push | todo | Bỏ xin quyền tự động lúc đăng nhập |
-| 13.6 | SW nhận push, chống trùng với SSE, badge | todo | |
+| 13.4 | Backend Web Push (VAPID, `push_subscriptions`, `WebPushService`) | done | Migration V16; cần đặt `VAPID_*` trên server |
+| 13.5 | FE xin quyền đúng cách + đăng ký push | done | Thẻ "Bật thông báo", `/account/notifications`; bỏ xin quyền lúc đăng nhập |
+| 13.6 | SW nhận push, chống trùng với SSE, badge | done | Cùng tag `notif-<id>`; bấm mở `/notifications/open` |
 | 13.7 | Đo cài app / push | todo | |
 | 02.1 | API điểm dự kiến nhận | todo | |
 | 02.2 | "+X điểm" ở PDP/giỏ/đơn | todo | |
@@ -118,6 +118,23 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 13.8 | Thay app cũ trên store bằng bản bọc web (TWA / Capacitor), cùng package/bundle id | todo | Theo kết quả 13.0; có thể kéo lên sớm |
 
 ## Nhật ký
+
+### 25/10/2026 – PWA: Web Push xong (13.4–13.6)
+- Backend: thư viện `nl.martijndwars:web-push` 5.1.1 (BouncyCastle `bcprov-jdk18on`, ép `jose4j` 0.9.6 vì bản 0.7.0 kèm theo có CVE).
+  Bảng `push_subscriptions` (V16), `WebPushService` (gửi bất đồng bộ qua pool `pushExecutor`, 404/410 xoá thiết bị, 5 lần lỗi
+  liên tiếp xoá), API `/v2/api/push/{public-key,subscribe,unsubscribe,test}`. Mọi `createNotification` và thông báo hẹn giờ
+  (`dispatchDueNotifications`) đều gửi push sau commit, trừ loại `sms`/`zalo`. Env `VAPID_PUBLIC_KEY/PRIVATE_KEY/SUBJECT`.
+- FE: bỏ xin quyền tự động lúc đăng nhập; `AppPromptCard` (thẻ "Bật thông báo" hoặc thẻ cài app) ở `/today` và trang đơn
+  (đang chờ chuyển khoản / đã thanh toán); trang `/account/notifications` (bật, tắt, gửi thử, hướng dẫn iPhone và khi bị chặn);
+  tự đăng ký lại thiết bị đã cho phép trước đây; đăng xuất thì gỡ thiết bị; SW hiện thông báo, số trên icon app; bấm vào mở
+  `/notifications/open` (đánh dấu đã đọc, chuyển đúng trang, dùng chung bộ map route với chuông).
+- Kiểm tra: backend 141 test (thêm test gửi thật qua thư viện tới server giả: mã hoá aes128gcm + chữ ký VAPID; test này bắt
+  được lỗi chưa đăng ký provider BouncyCastle, đã sửa). `AnyLearnBackendV2ApplicationTests` cần MySQL nên không chạy ở máy
+  test. FE: typecheck, lint, 21 file test, build ok. Playwright (Chromium, giả lập Android): thẻ hiện, không tự xin quyền,
+  push gửi vào SW hiện đúng tiêu đề/nội dung/tag, bấm thông báo về `/account/orders`, trang cài đặt hiện đúng trạng thái;
+  máy test không tới được máy chủ push của Google nên bước đăng ký thật báo "Chưa bật được" (đúng, sau 20 giây).
+- Chưa làm: chưa thử trên điện thoại thật với VAPID thật; 13.7 (đo); splash iOS; giờ yên lặng cho tin quảng cáo (chưa có
+  loại tin quảng cáo nào gửi push).
 
 ### 25/10/2026 – PWA 13.1–13.3 xong
 - Chủ sản phẩm: app cũ trên store đã xoá → chỉ PWA, làm trước. Thứ tự giai đoạn 1 giờ là 13 trước.

@@ -7,7 +7,7 @@ import { useAuth } from '@/context/AuthContext'
 import { useScrollEdges } from '@/lib/scrollEdges'
 import { ListSkeleton } from '@/components/PageSkeleton'
 import {
-  CalendarIcon, ChevronLeftIcon, ChevronRightIcon, CoinIcon, HeartIcon, KeyIcon, LockIcon, LogoutIcon, PackageIcon, UserIcon, UsersIcon,
+  BellIcon, CalendarIcon, ChevronLeftIcon, ChevronRightIcon, CoinIcon, HeartIcon, KeyIcon, LockIcon, LogoutIcon, PackageIcon, UserIcon, UsersIcon,
 } from '@/components/icons'
 
 type IconComponent = ComponentType<SVGProps<SVGSVGElement>>
@@ -21,6 +21,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/account/orders', label: 'Đơn hàng của tôi', Icon: PackageIcon },
   { href: '/account/favorites', label: 'Yêu thích', Icon: HeartIcon },
   { href: '/account/children', label: 'Tài khoản của con', Icon: UsersIcon },
+  { href: '/account/notifications', label: 'Thông báo', Icon: BellIcon },
   { href: '/account/change-password', label: 'Đổi mật khẩu', Icon: LockIcon },
 ]
 

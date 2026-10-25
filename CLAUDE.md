@@ -88,6 +88,7 @@ MEILI_HOST          # default: http://localhost:7700
 MEILI_MASTER_KEY    # default: local_dev_key
 BANK_NAME / BANK_BIN / BANK_ACCOUNT_NUMBER / BANK_ACCOUNT_NAME   # default receiving account; admins override it in the back office (BIN 970422 = MB Bank)
 SEPAY_API_KEY       # key of the SePay webhook, see "Bank transfer by QR"
+VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY / VAPID_SUBJECT   # Web Push keys (npx web-push generate-vapid-keys); empty = push off, see "PWA and push"
 ```
 
 ## CI (GitHub Actions, self-hosted runner)
@@ -106,6 +107,7 @@ Thư mục `http/` chứa VS Code REST Client files cho mọi endpoint:
 - `me.http` — dashboard, classes, students, cart (partner/student view)
 - `admin.http` — admin login, dashboard, CRUD users/items/orders/transactions/articles, config, ZNS
 - `today.http` — `/today` learners, today data, join, attendance, leave/reschedule requests
+- `push.http` — Web Push public key, subscribe/unsubscribe a device, test notification
 
 ## Porting Status (Portal → v2 + backend)
 
@@ -125,6 +127,12 @@ Thư mục `http/` chứa VS Code REST Client files cho mọi endpoint:
 | Today page (`/today`, learner dashboard) | new | ✅ | ✅ |
 | Knowledge base | ✅ | entity only | ❌ |
 | Social feed | ✅ | minimal | ❌ |
+
+## PWA and push
+
+- The website installs as an app (manifest, service worker, install card): details in `anylearn_v2/CLAUDE.md` > "PWA". There is no store app any more (the old one was removed), so this is the only app.
+- Web Push: every `NotificationService.createNotification` (and every scheduled notification when `dispatchDueNotifications` sends it) also goes to the person's subscribed devices after the commit, except `sms`/`zalo` types. Backend: `service/push/*` (`WebPushService`, `VapidPushTransport` with the `nl.martijndwars:web-push` library), table `push_subscriptions` (V16), API `/v2/api/push/*` (`PushController`). 404/410 from the push service deletes the device; 5 failures in a row too.
+- Production needs `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` (generate once with `npx web-push generate-vapid-keys`, never rotate casually). Without them the API answers `enabled: false` and the site hides the "Bật thông báo" cards.
 
 ## Growth roadmap
 

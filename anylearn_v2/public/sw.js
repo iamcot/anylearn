@@ -62,6 +62,43 @@ self.addEventListener('fetch', (event) => {
   if (request.mode === 'navigate') event.respondWith(networkWithOfflinePage(request))
 })
 
+// Same URL format as notificationOpenUrl in src/lib/notifications/route.ts: that page marks the notification read
+// and maps the portal route to a page of the site.
+function notificationOpenUrl(data) {
+  const params = new URLSearchParams()
+  if (data.notificationId != null) params.set('id', String(data.notificationId))
+  if (data.route) params.set('route', data.route)
+  if (data.extraContent) params.set('extra', data.extraContent)
+  const query = params.toString()
+  return query ? `/notifications/open?${query}` : '/notifications/open'
+}
+
+function readPushData(event) {
+  if (!event.data) return {}
+  try {
+    return event.data.json()
+  } catch {
+    return { body: event.data.text() }
+  }
+}
+
+// Always show something: Safari revokes push permission from sites that receive pushes silently.
+// An open tab shows the same notification (same tag) from its own live connection, so the two replace each other.
+self.addEventListener('push', (event) => {
+  const data = readPushData(event)
+  const badge = typeof data.unread === 'number' && self.navigator.setAppBadge
+    ? self.navigator.setAppBadge(data.unread).catch(() => {})
+    : Promise.resolve()
+  const shown = self.registration.showNotification(data.title || 'anyLEARN', {
+    body: data.body || '',
+    icon: '/icons/icon-192.png',
+    badge: '/icons/badge-96.png',
+    tag: data.tag || undefined,
+    data: { url: notificationOpenUrl(data) },
+  })
+  event.waitUntil(Promise.all([badge, shown]))
+})
+
 self.addEventListener('notificationclick', (event) => {
   event.notification.close()
   const url = event.notification.data?.url || '/'
