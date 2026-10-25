@@ -13,7 +13,8 @@ Giai đoạn 2 (04.1–04.5), giai đoạn 4 (04.6). Trụ cột A. Cần plan 0
 ### 04.1 Chip chọn người học ("Cho Bin · 15 tuổi")
 - Đầu trang chủ và trang search, khi đã đăng nhập và có con: hàng chip `Tất cả | Bin 15t | Su 9t | Tôi`.
 - Chọn chip → mọi danh sách lọc theo tuổi người đó (`ageFor`). Nhớ lựa chọn trong `localStorage`.
-- Chưa đăng nhập: chip độ tuổi chung (3–5, 6–10, 11–15, 16+).
+- Chưa đăng nhập: dùng người học khách khai trong 04.7 (lưu `localStorage`); nếu khách bỏ qua thì chip độ tuổi chung
+  (3–5, 6–10, 11–15, 16+).
 
 ### 04.2 Chip lọc nhanh + bộ lọc đầy đủ
 - Dưới ô tìm kiếm: chip cuộn ngang `Gần tôi · Cuối tuần · Tối trong tuần · Học thử miễn phí · Đang giảm giá · Online`.
@@ -43,10 +44,60 @@ Giai đoạn 2 (04.1–04.5), giai đoạn 4 (04.6). Trụ cột A. Cần plan 0
   các khóa đang mở, nút "Theo dõi" (nhận thông báo khi mở lớp mới, bảng `follows`).
 - "Thử điều mới cho con": nút trên trang chủ mở danh sách ngẫu nhiên hợp tuổi, lọc theo khu vực (random có seed theo ngày).
 
+### 04.7 Hỏi "Tìm cho ai?" khi chưa đăng nhập → tự tạo tài khoản con khi đăng ký
+Yêu cầu của chủ sản phẩm (25/10/2026). Làm được độc lập, nên làm ngay sau 04.1 (hoặc trước, chỉ phần lưu + PDP).
+
+**Luồng**
+1. Khách chưa đăng nhập vào trang chủ / search / PDP lần đầu → bottom sheet nhẹ (không chặn trang):
+   "Bạn đang tìm khóa học cho ai?" `[Cho con]` `[Cho bản thân]` `[Để sau]`.
+2. `Cho con` → nhập **tên hoặc biệt danh** + **năm sinh** (chọn từ danh sách năm), nút "+ Thêm bé" (tối đa 5).
+   `Cho bản thân` → năm sinh tuỳ chọn. `Để sau` → không hỏi lại trong N ngày (config FE, gợi ý 7).
+3. Lưu vào `localStorage`, **không gửi lên server** trước khi khách tạo tài khoản. Có nút "Xoá thông tin" trong sheet.
+4. Dùng ngay khi chưa đăng nhập:
+   - chip người học (04.1) hiện "Bin · 11t"; lọc tuổi tính từ năm sinh;
+   - PDP "Bạn đang đăng ký cho": liệt kê các bé trong storage, khách chọn bé trước khi bấm "Thêm vào giỏ hàng";
+   - mở lại sheet để sửa từ chip "Sửa".
+5. Khi **đăng ký tài khoản** (sau OTP thành công): FE đọc storage → gọi `POST /user/children` cho từng bé
+   (`name`, `dob`) → map `localId` → `childId` → chọn sẵn bé đó cho thao tác đang dở (thêm giỏ, checkout) → xoá storage.
+   Lỗi giữa chừng: giữ lại các bé chưa tạo, thử lại lần sau, không tạo trùng.
+6. Khi **đăng nhập** tài khoản có sẵn: không tự tạo. So khớp với danh sách con hiện có (tên không dấu + năm sinh):
+   khớp → dùng con đó; không khớp → hỏi "Thêm Bin (2015) vào tài khoản?" `[Thêm]` `[Bỏ qua]`.
+7. Ghi `audience` (child/self) và tuổi vào `search_logs.filters` (plan 01) để biết khách chưa đăng nhập tìm cho ai.
+
+**Dữ liệu `localStorage`** (key `anylearn.guestLearners`, có `version` để đổi cấu trúc sau này):
+```ts
+interface GuestLearnerStore {
+  version: 1
+  audience: 'child' | 'self'
+  learners: { localId: string; nickname: string; birthYear: number }[]
+  selfBirthYear?: number
+  selectedLocalId?: string
+  dismissedAt?: string   // ISO, khi khách bấm "Để sau"
+}
+```
+Đọc/ghi trong `try/catch` (trình duyệt riêng tư có thể chặn); hỏng dữ liệu thì bỏ qua như chưa có.
+
+**Năm sinh → ngày sinh**: API con hiện nhận `dob` dạng `yyyy-MM-dd` (`UserService.saveChild`). Gửi `yyyy-01-01` và thêm
+cột `users.dob_year_only TINYINT DEFAULT 0` (migration mới) để biết ngày sinh chưa đầy đủ; trang từng con (plan 06.2) nhắc
+bổ sung ngày sinh (cần cho ưu đãi sinh nhật, plan 10.2). Backend nhận thêm tham số `dobYearOnly` ở `POST /user/children`.
+
+**Code**
+- Hook `useGuestLearners` (đọc/ghi storage) + component `GuestLearnerSheet`.
+- Hàm thuần có test: `ageFromBirthYear(year, today)`, `parseGuestLearnerStore(raw)` (validate + version),
+  `matchGuestToChildren(guests, children)` (so khớp không dấu + năm sinh).
+- Gắn bước 5 vào chỗ xử lý sau đăng ký thành công (`components/auth/RegisterForm.tsx` / `AuthModal`), bước 6 vào sau đăng nhập.
+
+**Tiêu chí xong**
+- Khách chưa đăng nhập khai "Bin, 2015" → trang chủ/search lọc đúng tuổi, PDP chọn được Bin.
+- Bấm thêm giỏ → đăng ký → tài khoản có sẵn con "Bin" (dob 2015-01-01, `dob_year_only = 1`), giỏ hàng gắn đúng Bin,
+  storage đã xoá.
+- Đăng nhập tài khoản đã có con "Bin" 2015 → không tạo trùng.
+
 ### 04.6 So sánh khóa học (giai đoạn 4)
 - Chọn tối đa 3 khóa → bảng so sánh: giá, giá/buổi, số buổi, lịch, khoảng cách, đánh giá, học thử, điểm nhận.
 
 ## Tiêu chí xong (giai đoạn 2)
 - Phụ huynh có 2 con chọn chip từng con và thấy danh sách khác nhau, đúng tuổi.
+- Khách chưa đăng nhập khai con ở 04.7, đăng ký xong có sẵn tài khoản con và bé được chọn.
 - Tìm được "bóng đá, quận 7, cuối tuần, có học thử" bằng chip/bộ lọc, link chia sẻ được.
 - Trang chủ mobile ≤ 6 khối chính.
