@@ -1,6 +1,6 @@
 # 04 – Giao diện khám phá khóa học (mobile trước)
 
-Giai đoạn 2 (04.1–04.5), giai đoạn 4 (04.6). Trụ cột A. Cần plan 03 xong phần API.
+Giai đoạn 1 (04.7), giai đoạn 2 (04.1–04.5), giai đoạn 4 (04.6). Trụ cột A. Cần plan 03 xong phần API.
 
 ## Vấn đề (từ ảnh chụp mobile)
 
@@ -45,7 +45,8 @@ Giai đoạn 2 (04.1–04.5), giai đoạn 4 (04.6). Trụ cột A. Cần plan 0
 - "Thử điều mới cho con": nút trên trang chủ mở danh sách ngẫu nhiên hợp tuổi, lọc theo khu vực (random có seed theo ngày).
 
 ### 04.7 Hỏi "Tìm cho ai?" khi chưa đăng nhập → tự tạo tài khoản con khi đăng ký
-Yêu cầu của chủ sản phẩm (25/10/2026). Làm được độc lập, nên làm ngay sau 04.1 (hoặc trước, chỉ phần lưu + PDP).
+Yêu cầu của chủ sản phẩm (25/10/2026). **Làm ở giai đoạn 1**, trước cả 04.1: đây là cách sớm nhất để biết khách tìm cho ai.
+Ở giai đoạn 1, "lọc theo tuổi" dùng bộ lọc độ tuổi đang có (`age` trong `config/searchFilters.ts`), chưa cần plan 03.
 
 **Luồng**
 1. Khách chưa đăng nhập vào trang chủ / search / PDP lần đầu → bottom sheet nhẹ (không chặn trang):
@@ -77,21 +78,33 @@ interface GuestLearnerStore {
 ```
 Đọc/ghi trong `try/catch` (trình duyệt riêng tư có thể chặn); hỏng dữ liệu thì bỏ qua như chưa có.
 
-**Năm sinh → ngày sinh**: API con hiện nhận `dob` dạng `yyyy-MM-dd` (`UserService.saveChild`). Gửi `yyyy-01-01` và thêm
-cột `users.dob_year_only TINYINT DEFAULT 0` (migration mới) để biết ngày sinh chưa đầy đủ; trang từng con (plan 06.2) nhắc
-bổ sung ngày sinh (cần cho ưu đãi sinh nhật, plan 10.2). Backend nhận thêm tham số `dobYearOnly` ở `POST /user/children`.
+**Năm sinh trước, ngày sinh đầy đủ ở checkout** (chủ sản phẩm chốt 25/10/2026):
+- Lúc khai và lúc tạo tài khoản con: **chỉ cần năm sinh**. API con hiện nhận `dob` dạng `yyyy-MM-dd`
+  (`UserService.saveChild`), nên gửi `yyyy-01-01` + cờ `dobYearOnly = true`; migration mới thêm cột
+  `users.dob_year_only TINYINT NOT NULL DEFAULT 0`.
+- **Checkout bắt buộc ngày sinh đầy đủ**: trước nút "Thanh toán", mọi người học trong giỏ có `dob` rỗng hoặc
+  `dob_year_only = 1` phải nhập ngày/tháng/năm (năm điền sẵn, chỉ chọn ngày + tháng). Chưa nhập thì nút thanh toán bị khoá,
+  báo rõ "Nhập ngày sinh của Bin để tiếp tục". Lưu xong → `dob_year_only = 0`.
+- Áp dụng cho cả con đã có từ trước mà thiếu ngày sinh, và cho "Tôi" nếu chính chủ là người học.
+- Backend kiểm tra lại khi tạo đơn (không chỉ khoá ở FE): người học thiếu ngày sinh đầy đủ → trả lỗi có mã
+  `LEARNER_DOB_REQUIRED` + danh sách `learnerIds` để FE mở lại form.
+- Ngày sinh nhập phải khớp năm đã khai; khác năm thì hỏi xác nhận (có thể khách khai nhầm năm lúc đầu).
 
 **Code**
 - Hook `useGuestLearners` (đọc/ghi storage) + component `GuestLearnerSheet`.
 - Hàm thuần có test: `ageFromBirthYear(year, today)`, `parseGuestLearnerStore(raw)` (validate + version),
   `matchGuestToChildren(guests, children)` (so khớp không dấu + năm sinh).
 - Gắn bước 5 vào chỗ xử lý sau đăng ký thành công (`components/auth/RegisterForm.tsx` / `AuthModal`), bước 6 vào sau đăng nhập.
+- Checkout: component `LearnerDobForm` + hàm thuần `learnersMissingFullDob(cartLines, learners)` có test (FE) và kiểm tra
+  tương ứng ở service tạo đơn (backend, có unit test).
 
 **Tiêu chí xong**
 - Khách chưa đăng nhập khai "Bin, 2015" → trang chủ/search lọc đúng tuổi, PDP chọn được Bin.
 - Bấm thêm giỏ → đăng ký → tài khoản có sẵn con "Bin" (dob 2015-01-01, `dob_year_only = 1`), giỏ hàng gắn đúng Bin,
   storage đã xoá.
 - Đăng nhập tài khoản đã có con "Bin" 2015 → không tạo trùng.
+- Vào checkout với Bin chỉ có năm sinh → phải nhập ngày/tháng mới thanh toán được; gọi API tạo đơn thẳng (bỏ qua FE) cũng
+  bị chặn với `LEARNER_DOB_REQUIRED`.
 
 ### 04.6 So sánh khóa học (giai đoạn 4)
 - Chọn tối đa 3 khóa → bảng so sánh: giá, giá/buổi, số buổi, lịch, khoảng cách, đánh giá, học thử, điểm nhận.

@@ -17,7 +17,8 @@ Luồng hiện có: tìm kiếm → PDP → chọn người học & ca → giỏ
    dụng cho điểm của đối tác vì điểm cũng là đơn vị trả lại cho đối tác (xem `PointsEngine.authorPoints`).
 3. **Cộng đồng:** làm thêm review và **nhóm chat của người cùng lớp**.
 4. **Khách chưa đăng nhập:** hỏi "tìm cho con hay bản thân"; nếu cho con thì hỏi tên/biệt danh + năm sinh, lưu
-   `localStorage`; khi tạo tài khoản tự tạo tài khoản con và chọn sẵn bé (plan 04.7).
+   `localStorage`; khi tạo tài khoản tự tạo tài khoản con và chọn sẵn bé (plan 04.7). **Làm ở giai đoạn 1.** Chỉ cần năm
+   sinh lúc đầu; vào checkout mới bắt buộc ngày sinh đầy đủ trước khi thanh toán.
 
 ## 4 trụ cột + cộng đồng
 
@@ -37,7 +38,7 @@ Luồng hiện có: tìm kiếm → PDP → chọn người học & ca → giỏ
 | 01 | `01-search-insights.md` | 1 | Log tìm kiếm, form "Tìm giúp tôi", dashboard xu hướng cho BD |
 | 02 | `02-anypoint-clarity.md` | 1 | Hiện "+X điểm", công tắc dùng điểm, trang lịch sử điểm, điểm hết hạn (member) |
 | 03 | `03-course-attributes.md` | 2 | Chuẩn hoá thuộc tính khóa học (tuổi, vị trí, khung giờ, học thử, loại đối tác) |
-| 04 | `04-discovery-ui.md` | 2 | Chip chọn con, hỏi "tìm cho ai" khi chưa đăng nhập (tự tạo con khi đăng ký), bộ lọc mới, trang chủ mobile gọn, bộ sưu tập, trang chuyên gia, so sánh |
+| 04 | `04-discovery-ui.md` | 1 (04.7) + 2 | Chip chọn con, hỏi "tìm cho ai" khi chưa đăng nhập (tự tạo con khi đăng ký), bộ lọc mới, trang chủ mobile gọn, bộ sưu tập, trang chuyên gia, so sánh |
 | 05 | `05-pending-order-recovery.md` | 1 | Nhắc đơn chờ thanh toán, chống đơn trùng, tự huỷ |
 | 06 | `06-account-restructure.md` | 3 | Tái cấu trúc trang Tài khoản, trang riêng từng con |
 | 07 | `07-enrollment-lifecycle.md` | 3 | Vòng đời đăng ký: trước khai giảng → đang học → gia hạn → kết thúc, qua ZNS/push |
@@ -49,7 +50,7 @@ Luồng hiện có: tìm kiếm → PDP → chọn người học & ca → giỏ
 
 ## Thứ tự làm đề xuất
 
-- **Giai đoạn 1 (2–4 tuần) – thắng nhanh + nền dữ liệu:** 12 → 01 → 02 → 05 → 10 (phần lời hứa).
+- **Giai đoạn 1 (2–4 tuần) – thắng nhanh + nền dữ liệu:** 12 → 04.7 → 01 → 02 → 05 → 10 (phần lời hứa).
 - **Giai đoạn 2 (1–2 tháng) – khám phá:** 03 → 04 → 09 (phần nền review).
 - **Giai đoạn 3 (2–3 tháng) – giữ chân:** 07 → 08 → 06 → 09 (phần còn lại) → 11 (MVP).
 - **Giai đoạn 4 – mở rộng:** 10 (hạng, gói gia đình, trả góp), 11 (đầy đủ), so sánh khóa học.

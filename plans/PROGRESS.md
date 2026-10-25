@@ -13,6 +13,7 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 25/10/2026 | Thử hạn anyPoint, chỉ cho thành viên mua hàng (`role = 'member'`); điểm của đối tác không hết hạn vì là tiền trả đối tác (plan 02.5). |
 | 25/10/2026 | Làm thêm cộng đồng: review (plan 09) và nhóm chat người cùng lớp (plan 11). |
 | 25/10/2026 | Khách chưa đăng nhập: hỏi tìm cho con hay bản thân, lưu tên/biệt danh + năm sinh vào `localStorage`, khi đăng ký tự tạo tài khoản con và chọn bé (plan 04.7). |
+| 25/10/2026 | 04.7 làm ở **giai đoạn 1**. Lúc đầu chỉ cần năm sinh; checkout bắt buộc nhập ngày sinh đầy đủ của người học trước khi thanh toán (FE khoá nút + backend chặn tạo đơn). |
 
 ## Câu hỏi đang chờ chủ sản phẩm
 
@@ -30,6 +31,7 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | Task | Mô tả | Trạng thái | Ghi chú |
 |---|---|---|---|
 | 12.1–12.6 | Sửa lỗi UI mobile | todo | |
+| 04.7 | Hỏi "Tìm cho ai?" khi chưa đăng nhập + tự tạo con khi đăng ký + bắt buộc ngày sinh đầy đủ ở checkout | todo | Dùng bộ lọc `age` có sẵn, không chờ plan 03 |
 | 01.1 | `search_logs` + ghi log + click | todo | |
 | 01.2 | Form "Tìm giúp tôi" (`course_requests`) | todo | |
 | 01.3 | Admin xử lý yêu cầu | todo | |
@@ -55,7 +57,6 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 03.4 | Index MeiliSearch | todo | |
 | 03.5 | API search bộ lọc mới | todo | |
 | 04.1 | Chip chọn người học | todo | |
-| 04.7 | Hỏi "Tìm cho ai?" khi chưa đăng nhập + tự tạo con khi đăng ký | todo | Làm được độc lập, có thể kéo lên giai đoạn 1 |
 | 04.2 | Chip lọc nhanh + bộ lọc đầy đủ | todo | |
 | 04.3 | Trang chủ mobile gọn | todo | |
 | 04.4 | Bộ sưu tập | todo | |
@@ -106,6 +107,10 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 11.5 | Chat mở rộng | todo | |
 
 ## Nhật ký
+
+### 25/10/2026 – 04.7 lên giai đoạn 1
+- Chủ sản phẩm chốt: 04.7 làm ngay giai đoạn 1; năm sinh trước, ngày sinh đầy đủ bắt buộc ở checkout.
+- Plan 04.7 thêm: form ngày sinh ở checkout, backend trả `LEARNER_DOB_REQUIRED` khi tạo đơn thiếu ngày sinh.
 
 ### 25/10/2026 – bổ sung 04.7
 - Thêm task 04.7 theo yêu cầu: hỏi khách chưa đăng nhập tìm cho ai, lưu `localStorage` (`anylearn.guestLearners`),
