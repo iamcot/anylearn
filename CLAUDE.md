@@ -152,6 +152,10 @@ Thư mục `http/` chứa VS Code REST Client files cho mọi endpoint:
 - Web Push: every `NotificationService.createNotification` (and every scheduled notification when `dispatchDueNotifications` sends it) also goes to the person's subscribed devices after the commit, except `sms`/`zalo` types. Backend: `service/push/*` (`WebPushService`, `VapidPushTransport` with the `nl.martijndwars:web-push` library), table `push_subscriptions` (V16), API `/v2/api/push/*` (`PushController`). 404/410 from the push service deletes the device; 5 failures in a row too.
 - Production needs `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` (generate once with `npx web-push generate-vapid-keys`, never rotate casually). Without them the API answers `enabled: false` and the site hides the "Bật thông báo" cards.
 
+## anyPoint preview
+
+- `ItemPointsResolver` (`service/points`) resolves an item's commission settings (global config, item `company_commission`, item/author rate) and is the only place that does it: order creation (`CartService.createPendingCommissions`) and the preview both call it. `GET /v2/api/points/preview?itemId=` (public) returns `{itemId, points, vndValue}`; each `GET /cart` line has `points`. Preview = the buyer points written when the order is created (same price, same config); test `ItemPointsResolverTest`.
+
 ## Growth roadmap
 
 Feature plans live in `plans/` (start with `plans/00-overview.md`); progress, owner decisions and open questions in `plans/PROGRESS.md`. Update PROGRESS.md after every task.

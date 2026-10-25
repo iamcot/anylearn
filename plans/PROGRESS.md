@@ -47,7 +47,7 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 13.5 | FE xin quyền đúng cách + đăng ký push | done | Thẻ "Bật thông báo", `/account/notifications`; bỏ xin quyền lúc đăng nhập |
 | 13.6 | SW nhận push, chống trùng với SSE, badge | done | Cùng tag `notif-<id>`; bấm mở `/notifications/open` |
 | 13.7 | Đo cài app / push | todo | |
-| 02.1 | API điểm dự kiến nhận | todo | |
+| 02.1 | API điểm dự kiến nhận | done | `ItemPointsResolver`, `GET /points/preview`, `points` trên dòng giỏ |
 | 02.2 | "+X điểm" ở PDP/giỏ/đơn | todo | |
 | 02.3 | Công tắc dùng điểm ở checkout | todo | |
 | 02.4 | Trang anyPoint timeline + `/info/anypoint` | todo | |
@@ -120,6 +120,11 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 
 ## Nhật ký
 
+### 25/10/2026 – 02.1 API điểm dự kiến nhận
+- `ItemPointsResolver` gom phần lấy cấu hình hoa hồng của khóa (config chung, `company_commission` của khóa, tỉ lệ khóa/tác giả); `CartService.createPendingCommissions` và API xem trước cùng dùng nó nên không lệch nhau.
+- `GET /v2/api/points/preview?itemId=` (công khai) → `{points, vndValue}`; mỗi dòng `GET /cart` có thêm `points`. Tổng giỏ do FE cộng (giữ nguyên dạng danh sách của `/cart`).
+- Điểm người mua tính trên giá niêm yết của khóa (giống lúc tạo đơn), chưa trừ mã giảm giá hay điểm đã dùng.
+- Test: `ItemPointsResolverTest` (preview = điểm lúc tạo đơn, ghi đè theo khóa, `bonus_rate` khác, hoa hồng -1 / giá 0). Chưa làm: 02.2 (hiện ra giao diện).
 ### 25/10/2026 – chỉnh nhỏ PWA và admin (việc chen ngang, trước plan 02)
 - Thanh tab dưới cao hơn (3,75rem + vùng an toàn; khi chạy dạng app đã cài thì đệm thêm 1,25rem cho màn hình cong). Biến `--app-tabs-pad`, `--app-tabs-h` trong `globals.css`, các chỗ nổi phía trên thanh tab dùng chung biến này.
 - Bấm ra ngoài hoặc nhấn Esc thì đóng popup chuông thông báo và menu tài khoản (`useDismissOnOutside`, nghe `pointerdown` ở `document` vì header có `backdrop-blur` nên lớp phủ `fixed` bị kẹt trong header).

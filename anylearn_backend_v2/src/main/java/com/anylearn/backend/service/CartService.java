@@ -13,6 +13,7 @@ import com.anylearn.backend.entity.Transaction;
 import com.anylearn.backend.entity.User;
 import com.anylearn.backend.repository.*;
 import com.anylearn.backend.service.points.CommissionConfig;
+import com.anylearn.backend.service.points.ItemPointsResolver;
 import com.anylearn.backend.service.points.PointsBreakdown;
 import com.anylearn.backend.service.points.PointsEngine;
 import com.anylearn.backend.service.NotificationService;
@@ -41,9 +42,9 @@ public class CartService {
     private final OrderRepository orderRepository;
     private final OrderDetailRepository orderDetailRepository;
     private final TransactionRepository transactionRepository;
-    private final ConfigurationRepository configurationRepository;
     private final ConfigService configService;
     private final PointsEngine pointsEngine;
+    private final ItemPointsResolver itemPointsResolver;
     private final NotificationService notificationService;
     private final ObjectMapper objectMapper;
     private final ItemTrackingService itemTrackingService;
@@ -227,6 +228,7 @@ public class CartService {
             row.put("image", item.getImage());
             row.put("price", item.getPrice());
             row.put("orgPrice", item.getOrgPrice());
+            row.put("points", itemPointsResolver.buyerPoints(item));
             row.put("dateStart", item.getDateStart());
             userRepository.findById(item.getUserId()).ifPresent(u -> row.put("authorName", u.getName()));
             putLearner(row, action, currentUser);
@@ -572,21 +574,10 @@ public class CartService {
         long price = item.getPrice() != null ? item.getPrice() : 0L;
         if (price <= 0) return;
 
-        // Load global config
-        Map<String, String> configMap = new java.util.HashMap<>();
-        configurationRepository.findAll().forEach(c -> configMap.put(c.getKey(), c.getValue()));
-        CommissionConfig baseConfig = CommissionConfig.fromMap(configMap);
-
-        // Merge per-item company_commission JSON overrides
-        CommissionConfig config = pointsEngine.mergeCompanyCommission(baseConfig, item.getCompanyCommission());
-
-        // Resolve effective commission rate: item > author > system default
-        User author = userRepository.findById(item.getUserId()).orElse(null);
-        double commRate = pointsEngine.resolveCommissionRate(
-                item.getCommissionRate(),
-                author != null ? author.getCommissionRate() : null,
-                config.commission()
-        );
+        ItemPointsResolver.ItemPoints resolved = itemPointsResolver.resolve(item);
+        CommissionConfig config = resolved.config();
+        User author = resolved.author();
+        double commRate = resolved.commissionRate();
 
         // Count buyer's referral chain depth
         int referralDepth = 0;
