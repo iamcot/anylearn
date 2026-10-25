@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import Modal from '@/components/Modal'
+import { useToast } from '@/components/ToastProvider'
 import { useIsClient } from '@/components/useIsClient'
 import { GUEST_PROMPT_DISMISS_DAYS } from '@/config/guestLearners'
 import { getChildren } from '@/lib/api'
@@ -48,6 +49,7 @@ function WhoForPrompt() {
 // (Registering creates them straight away in AuthContext.register, so only logins with leftovers get here.)
 function LoginLeftovers() {
   const { token } = useAuth()
+  const toast = useToast()
   const store = useGuestLearners()
   const [offer, setOffer] = useState<GuestLearner[]>([])
   const [busy, setBusy] = useState(false)
@@ -70,9 +72,14 @@ function LoginLeftovers() {
         notifyChildrenChanged()
       }
       saveGuestStore(withoutLearners(getGuestStore(), matched.map(match => match.guest.localId)))
+      if (matched.length > 0) {
+        // No question is asked for a child the account already has, so say what happened instead of staying silent.
+        const names = matched.map(match => match.child.name).join(', ')
+        toast({ kind: 'success', text: `Bé ${names} đã có trong tài khoản, không thêm lại.` })
+      }
       setOffer(unmatched)
     })
-  }, [token, store])
+  }, [token, store, toast])
 
   if (offer.length === 0) return null
 

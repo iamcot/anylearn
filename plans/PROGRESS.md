@@ -120,6 +120,12 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 
 ## Nhật ký
 
+### 25/10/2026 – popup "tìm cho ai" không hiện lại (04.7)
+- Kiểm tra lại: khách mới và khách vừa đăng xuất đều được hỏi. Không hỏi lại trong 7 ngày sau "Để sau" hoặc "Xoá thông tin đã
+  nhập", và khi đó trang chủ không có chỗ mở lại → thêm nút "Tìm cho ai?" dưới ô tìm kiếm (trang tìm kiếm đã có sẵn).
+- Đăng nhập mà bé khai đã có trong tài khoản (trùng tên) thì không hỏi "Thêm bé" nữa → hiện thông báo "Bé Bin đã có trong tài
+  khoản, không thêm lại" để người dùng biết chuyện gì xảy ra.
+
 ### 25/10/2026 – sửa 2 lỗi 04.7 (bé trùng tên, danh sách không tự tải)
 - Lỗi 1: khai "Bin" 2020 trong khi tài khoản đã có "Bin" 15 tuổi vẫn bị thêm thành bé thứ hai (so khớp cần cả năm sinh).
   Sửa: so khớp theo **tên không dấu** (bé trùng tên dùng luôn bé đã có), và backend không cho tạo/đổi tên thành tên đã có trong

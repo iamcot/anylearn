@@ -16,11 +16,11 @@ export default function GuestLearnerStrip() {
   const isClient = useIsClient()
   const store = useGuestLearners()
   const people = guestPeople(store)
-  if (!isClient || isAuthLoading || user || people.length === 0) return null
+  if (!isClient || isAuthLoading || user) return null
 
   return (
     <div className="mt-4 flex flex-wrap items-center gap-2" aria-label="Khóa học theo người học">
-      <span className="mr-1 text-sm text-white/90">Gợi ý cho</span>
+      {people.length > 0 && <span className="mr-1 text-sm text-white/90">Gợi ý cho</span>}
       {people.map(person => (
         <Link
           key={person.key}
@@ -31,7 +31,7 @@ export default function GuestLearnerStrip() {
           {person.label}
         </Link>
       ))}
-      <button type="button" onClick={openGuestSheet} className={CHIP_CLASS}>Sửa</button>
+      <button type="button" onClick={openGuestSheet} className={CHIP_CLASS}>{store.audience ? 'Sửa' : 'Tìm cho ai?'}</button>
     </div>
   )
 }

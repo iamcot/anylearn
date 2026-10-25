@@ -72,7 +72,7 @@ export default function GuestLearnerChips({ activeAge, onPickAge }: Props) {
         )
       })}
       <button type="button" onClick={openGuestSheet} className={chipClass(false)}>
-        {people.length > 0 ? 'Sửa' : 'Tìm cho ai?'}
+        {store.audience ? 'Sửa' : 'Tìm cho ai?'}
       </button>
     </div>
   )
