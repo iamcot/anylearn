@@ -13,10 +13,10 @@ interface Props {
 export default function ApplyRow({ label, hint, inputProps, buttonLabel, onApply, disabled, message }: Props) {
   return (
     <div>
-      <div className="mb-1 flex flex-wrap items-baseline justify-between gap-x-3">
+      {/* <div className="mb-1 flex flex-wrap items-baseline justify-between gap-x-3">
         <label className="text-xs font-bold text-muted">{label}</label>
         {hint}
-      </div>
+      </div> */}
       <div className="flex gap-2">
         <input {...inputProps} className="field min-h-11 flex-1 text-sm" />
         <button
