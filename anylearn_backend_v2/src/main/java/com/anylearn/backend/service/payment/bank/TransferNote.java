@@ -7,16 +7,18 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Bank transfer note of an order, e.g. {@code ALQRPAY1234}. The fixed prefix lets the owner filter
- * these transfers on SePay; banks often add their own prefix, change case or drop spaces, so the
- * note is searched in normalized text.
+ * Bank transfer note of an order: {@code ALQR} + the order id, e.g. {@code ALQR7} or {@code ALQR1234}. It follows the "payment code" format configured at SePay
+ * (prefix of 2-5 letters, suffix of 1-10 digits), so SePay also sends it in the webhook field
+ * {@code code}. Banks often add their own prefix, change case or drop spaces, so the note is
+ * searched in normalized text.
  */
 public final class TransferNote {
 
-    public static final String PREFIX = "ALQRPAY";
+    public static final String PREFIX = "ALQR";
 
-    private static final int MAX_ORDER_ID_DIGITS = 12;
-    private static final Pattern ORDER_REF = Pattern.compile(PREFIX + "(\\d{1," + MAX_ORDER_ID_DIGITS + "})");
+    private static final int MIN_DIGITS = 1;
+    private static final int MAX_DIGITS = 10;
+    private static final Pattern ORDER_REF = Pattern.compile(PREFIX + "(\\d{" + MIN_DIGITS + "," + MAX_DIGITS + "})");
     private static final Pattern COMBINING_MARKS = Pattern.compile("\\p{M}+");
     private static final Pattern NOT_ALPHANUMERIC = Pattern.compile("[^A-Z0-9]");
 

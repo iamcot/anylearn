@@ -82,7 +82,7 @@ class SepayWebhookServiceTest {
 
     @Test
     void approvesTheOrderWhenExactAmountArrives() {
-        String status = handle(transfer("1", true, 1_000_000, "MBVCB.1.ALQRPAY42.CT", ACCOUNT));
+        String status = handle(transfer("1", true, 1_000_000, "MBVCB.1.ALQR42.CT", ACCOUNT));
 
         assertThat(status).isEqualTo(BankWebhookEvent.PAID);
         verify(approvalService).approveOrder(ORDER_ID, "bank_transfer");
@@ -91,8 +91,16 @@ class SepayWebhookServiceTest {
     }
 
     @Test
+    void approvesUsingThePaymentCodeWhenTheContentIsEmpty() {
+        SepayEvent withCode = new SepayEvent("10", true, 1_000_000, "", "ALQR42", ACCOUNT, LocalDateTime.of(2026, 10, 24, 7, 0));
+
+        assertThat(service.handle(withCode, Map.of("id", "10"))).isEqualTo(BankWebhookEvent.PAID);
+        verify(approvalService).approveOrder(ORDER_ID, "bank_transfer");
+    }
+
+    @Test
     void approvesAndWarnsAdminsOnOverpayment() {
-        String status = handle(transfer("2", true, 1_200_000, "ALQRPAY42", ACCOUNT));
+        String status = handle(transfer("2", true, 1_200_000, "ALQR42", ACCOUNT));
 
         assertThat(status).isEqualTo(BankWebhookEvent.PAID);
         verify(approvalService).approveOrder(ORDER_ID, "bank_transfer");
@@ -101,7 +109,7 @@ class SepayWebhookServiceTest {
 
     @Test
     void doesNotApproveWhenAmountIsShort() {
-        String status = handle(transfer("3", true, 900_000, "ALQRPAY42", ACCOUNT));
+        String status = handle(transfer("3", true, 900_000, "ALQR42", ACCOUNT));
 
         assertThat(status).isEqualTo(BankWebhookEvent.MISMATCH);
         verify(approvalService, never()).approveOrder(anyLong(), anyString());
@@ -112,7 +120,7 @@ class SepayWebhookServiceTest {
     void flagsMoneyForAnOrderThatIsNoLongerWaiting() {
         order.setStatus(OrderStatus.CANCEL_BUYER);
 
-        String status = handle(transfer("4", true, 1_000_000, "ALQRPAY42", ACCOUNT));
+        String status = handle(transfer("4", true, 1_000_000, "ALQR42", ACCOUNT));
 
         assertThat(status).isEqualTo(BankWebhookEvent.NEEDS_REVIEW);
         verify(approvalService, never()).approveOrder(anyLong(), anyString());
@@ -121,14 +129,14 @@ class SepayWebhookServiceTest {
     @Test
     void flagsTransfersWithoutKnownOrder() {
         assertThat(handle(transfer("5", true, 1_000_000, "hoc phi", ACCOUNT))).isEqualTo(BankWebhookEvent.UNMATCHED);
-        assertThat(handle(transfer("6", true, 1_000_000, "ALQRPAY999", ACCOUNT))).isEqualTo(BankWebhookEvent.UNMATCHED);
+        assertThat(handle(transfer("6", true, 1_000_000, "ALQR999", ACCOUNT))).isEqualTo(BankWebhookEvent.UNMATCHED);
         verify(approvalService, never()).approveOrder(anyLong(), anyString());
     }
 
     @Test
     void ignoresOutgoingTransfersAndOtherAccounts() {
-        assertThat(handle(transfer("7", false, 1_000_000, "ALQRPAY42", ACCOUNT))).isEqualTo(BankWebhookEvent.IGNORED);
-        assertThat(handle(transfer("8", true, 1_000_000, "ALQRPAY42", "999"))).isEqualTo(BankWebhookEvent.IGNORED);
+        assertThat(handle(transfer("7", false, 1_000_000, "ALQR42", ACCOUNT))).isEqualTo(BankWebhookEvent.IGNORED);
+        assertThat(handle(transfer("8", true, 1_000_000, "ALQR42", "999"))).isEqualTo(BankWebhookEvent.IGNORED);
         verify(approvalService, never()).approveOrder(anyLong(), anyString());
     }
 
@@ -136,7 +144,7 @@ class SepayWebhookServiceTest {
     void skipsATransferThatWasAlreadyProcessed() {
         when(eventRepository.existsByProviderAndProviderTxnId("sepay", "9")).thenReturn(true);
 
-        assertThat(handle(transfer("9", true, 1_000_000, "ALQRPAY42", ACCOUNT))).isNull();
+        assertThat(handle(transfer("9", true, 1_000_000, "ALQR42", ACCOUNT))).isNull();
         verify(approvalService, never()).approveOrder(anyLong(), anyString());
         verify(eventRepository, never()).save(any());
     }

@@ -1,4 +1,4 @@
-import { ORDER_TRANSFER_PREFIX, TRANSFER_NOTE_MAX_LENGTH } from '@/config/payment'
+import { TRANSFER_NOTE_MAX_LENGTH } from '@/config/payment'
 
 export interface VietQrInput {
   bankBin: string
@@ -42,11 +42,6 @@ export function sanitizeTransferNote(note: string): string {
     .replace(/\s+/g, ' ')
     .trim()
     .slice(0, TRANSFER_NOTE_MAX_LENGTH)
-}
-
-// Transfer note of an order, for example 'ALQRPAY1234'
-export function orderTransferNote(orderId: string | number): string {
-  return `${ORDER_TRANSFER_PREFIX}${orderId}`
 }
 
 // VietQR string for a transfer to an account (Napas 247) with amount and note filled in

@@ -67,7 +67,7 @@ export default function BankAccount() {
               <Input placeholder="VD: 0374900344" />
             </Form.Item>
             <Typography.Paragraph type="secondary" style={{ fontSize: 12 }}>
-              Nội dung chuyển khoản của khách luôn là <code>ALQRPAY</code> + mã đơn hàng (VD <code>ALQRPAY1234</code>).
+              Nội dung chuyển khoản của khách luôn là <code>ALQR</code> + mã đơn hàng (VD <code>ALQR1234</code>).
             </Typography.Paragraph>
             <Button type="primary" htmlType="submit" icon={<SaveOutlined />} loading={save.isPending}>Lưu</Button>
           </Form>

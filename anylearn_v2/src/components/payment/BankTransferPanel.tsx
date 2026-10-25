@@ -1,13 +1,13 @@
 'use client'
 
 import CopyButton from '@/components/CopyButton'
-import { buildVietQrPayload, orderTransferNote } from '@/lib/vietqr/payload'
+import { buildVietQrPayload } from '@/lib/vietqr/payload'
 import { formatExactPrice } from '@/lib/format/price'
 import type { BankInfo } from '@/lib/api'
 import { QR_IMAGE_SIZE_PX, saveQrImage, useQrImage } from './useQrImage'
 
 interface Props {
-  orderId: string
+  note: string
   amount: number
   bank: BankInfo
 }
@@ -33,8 +33,7 @@ function buildPayload(bank: BankInfo, amount: number, note: string): string | nu
   }
 }
 
-export default function BankTransferPanel({ orderId, amount, bank }: Props) {
-  const note = orderTransferNote(orderId)
+export default function BankTransferPanel({ note, amount, bank }: Props) {
   const qrImage = useQrImage(buildPayload(bank, amount, note))
   const hasAmount = amount > 0
 

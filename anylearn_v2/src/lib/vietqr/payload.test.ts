@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildVietQrPayload, crc16, orderTransferNote, sanitizeTransferNote } from '@/lib/vietqr/payload'
+import { buildVietQrPayload, crc16, sanitizeTransferNote } from '@/lib/vietqr/payload'
 
 interface Field { id: string; value: string }
 
@@ -14,7 +14,7 @@ function readFields(text: string): Field[] {
   return fields
 }
 
-const SAMPLE = { bankBin: '970422', accountNo: '0123456789', amount: 100000, addInfo: 'ALQRPAY1234' }
+const SAMPLE = { bankBin: '970422', accountNo: '0123456789', amount: 100000, addInfo: 'ALQR1234' }
 
 describe('crc16', () => {
   it('matches the CRC-16/CCITT-FALSE check value', () => {
@@ -33,7 +33,7 @@ describe('buildVietQrPayload', () => {
     expect(byId('53')).toBe('704')
     expect(byId('54')).toBe('100000')
     expect(byId('58')).toBe('VN')
-    expect(byId('62')).toBe('0811ALQRPAY1234')
+    expect(byId('62')).toBe('0808ALQR1234')
   })
 
   it('keeps bank BIN and account number inside field 38', () => {
@@ -66,8 +66,7 @@ describe('transfer note', () => {
     expect(sanitizeTransferNote('A'.repeat(40))).toHaveLength(25)
   })
 
-  it('builds the note of an order', () => {
-    expect(orderTransferNote(1234)).toBe('ALQRPAY1234')
-    expect(orderTransferNote('77')).toBe('ALQRPAY77')
+  it('keeps an order note unchanged', () => {
+    expect(sanitizeTransferNote('ALQR42')).toBe('ALQR42')
   })
 })

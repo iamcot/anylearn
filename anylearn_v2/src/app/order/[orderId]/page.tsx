@@ -189,8 +189,8 @@ export default function OrderPage() {
               </ul>
             </section>
 
-            {isAwaitingBankTransfer && bankInfo && (
-              <BankTransferPanel orderId={orderId} amount={order.amount ?? 0} bank={bankInfo} />
+            {isAwaitingBankTransfer && bankInfo && order.transferNote && (
+              <BankTransferPanel note={order.transferNote} amount={order.amount ?? 0} bank={bankInfo} />
             )}
 
             {order.paymentMethod !== 'bank_transfer' && instructions && (

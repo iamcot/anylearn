@@ -42,6 +42,7 @@ export interface OrderData {
   paymentMethod: string
   status?: string
   amount?: number
+  transferNote?: string
 }
 
 export async function getCartInfo(itemId: number, token: string): Promise<CartInfoData | null> {

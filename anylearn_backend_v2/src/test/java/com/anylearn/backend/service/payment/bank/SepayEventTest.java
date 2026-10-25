@@ -17,7 +17,7 @@ class SepayEventTest {
         body.put("transferType", "in");
         body.put("transferAmount", 2000000);
         body.put("transactionDate", "2026-10-24 14:02:37");
-        body.put("content", "ALQRPAY1234");
+        body.put("content", "ALQR1234");
         body.put("accountNumber", "0123456789");
         return body;
     }
@@ -30,7 +30,7 @@ class SepayEventTest {
         assertThat(event.get().txnId()).isEqualTo("92704");
         assertThat(event.get().incoming()).isTrue();
         assertThat(event.get().amount()).isEqualTo(2_000_000L);
-        assertThat(event.get().content()).isEqualTo("ALQRPAY1234");
+        assertThat(event.get().content()).isEqualTo("ALQR1234");
         assertThat(event.get().transferredAt()).isEqualTo(LocalDateTime.of(2026, 10, 24, 7, 2, 37));
     }
 
@@ -38,9 +38,9 @@ class SepayEventTest {
     void fallsBackToDescriptionWhenContentIsMissing() {
         Map<String, Object> body = validBody();
         body.remove("content");
-        body.put("description", "BankAPINotify ALQRPAY9");
+        body.put("description", "BankAPINotify ALQR9");
 
-        assertThat(SepayEvent.parse(body).orElseThrow().content()).isEqualTo("BankAPINotify ALQRPAY9");
+        assertThat(SepayEvent.parse(body).orElseThrow().content()).isEqualTo("BankAPINotify ALQR9");
     }
 
     @Test

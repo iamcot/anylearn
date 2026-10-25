@@ -1,5 +1,6 @@
 package com.anylearn.backend.service;
 
+import com.anylearn.backend.service.payment.bank.TransferNote;
 import com.anylearn.backend.entity.Item;
 import com.anylearn.backend.entity.ItemActivity;
 import com.anylearn.backend.entity.ItemSchedule;
@@ -509,7 +510,8 @@ public class CartService {
                 "items", items,
                 "paymentMethod", order.getPayment() != null ? order.getPayment() : "",
                 "status", order.getStatus(),
-                "amount", order.getAmount()
+                "amount", order.getAmount(),
+                "transferNote", TransferNote.forOrder(order.getId())
         );
     }
 
