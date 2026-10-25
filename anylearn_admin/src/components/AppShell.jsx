@@ -56,6 +56,7 @@ export default function AppShell() {
   const [notifItems, setNotifItems] = useState([])
   const [notifLoading, setNotifLoading] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
   const esRef = useRef(null)
 
   // Drag-to-scroll for all horizontal tables
@@ -248,7 +249,13 @@ export default function AppShell() {
           </div>
 
           {/* Settings — always at bottom, never overlaps nav items */}
-          <Popover content={<Menu items={settingsMenu} style={{ border: 'none' }} />} trigger="click" placement="rightBottom">
+          <Popover
+            content={<Menu items={settingsMenu} style={{ border: 'none' }} onClick={() => setSettingsOpen(false)} />}
+            trigger="click"
+            placement="rightBottom"
+            open={settingsOpen}
+            onOpenChange={setSettingsOpen}
+          >
             <Flex
               align="center" gap={10}
               className="sider-settings"

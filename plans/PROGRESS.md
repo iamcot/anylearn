@@ -120,6 +120,12 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 
 ## Nhật ký
 
+### 25/10/2026 – chỉnh nhỏ PWA và admin (việc chen ngang, trước plan 02)
+- Thanh tab dưới cao hơn (3,75rem + vùng an toàn; khi chạy dạng app đã cài thì đệm thêm 1,25rem cho màn hình cong). Biến `--app-tabs-pad`, `--app-tabs-h` trong `globals.css`, các chỗ nổi phía trên thanh tab dùng chung biến này.
+- Bấm ra ngoài hoặc nhấn Esc thì đóng popup chuông thông báo và menu tài khoản (`useDismissOnOutside`, nghe `pointerdown` ở `document` vì header có `backdrop-blur` nên lớp phủ `fixed` bị kẹt trong header).
+- Admin: menu "Cài đặt" tự đóng sau khi chọn mục con.
+- Đã kiểm tay bằng Playwright: tab cao 69px, popup đóng khi bấm ngoài và khi Esc, menu admin đóng sau khi chọn.
+
 ### 25/10/2026 – người nhận thông báo admin (việc chen ngang, trước plan 02)
 - Trước đây thông báo cho quản trị chỉ gửi tới user có role `admin`. Giờ trong admin (Cài đặt > "Người nhận thông báo admin") thêm
   được thành viên khác (tối đa 50, không phải admin/bé/tài khoản khoá); mọi nơi gửi thông báo admin (đơn mới, chuyển khoản, yêu cầu

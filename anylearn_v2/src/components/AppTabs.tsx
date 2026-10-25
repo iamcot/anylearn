@@ -35,7 +35,7 @@ function Tab({ item, active }: { item: TodayNavItem; active: boolean }) {
     <Link
       href={item.href}
       aria-current={active ? 'page' : undefined}
-      className={`flex min-h-14 flex-col items-center justify-center gap-0.5 text-[11px] font-semibold no-underline ${active ? 'text-blue' : 'text-muted'}`}
+      className={`flex min-h-[3.75rem] flex-col items-center justify-center gap-0.5 text-[11px] font-semibold no-underline ${active ? 'text-blue' : 'text-muted'}`}
     >
       {item.href === ACCOUNT_HREF ? <UserAvatar active={active} /> : <TabIcon path={item.icon} />}
       {item.label}
@@ -47,7 +47,7 @@ export default function AppTabs() {
   const pathname = usePathname()
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-line bg-white pb-[env(safe-area-inset-bottom)] lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-line bg-white px-1 pb-[var(--app-tabs-pad)] lg:hidden"
       aria-label="Menu chính"
     >
       {TODAY_NAV.map(item => <Tab key={item.href} item={item} active={isNavActive(pathname, item.href)} />)}

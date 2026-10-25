@@ -44,7 +44,7 @@ export default function ToastProvider({ children }: { children: React.ReactNode 
       <div
         role="status"
         aria-live="polite"
-        className="pointer-events-none fixed inset-x-0 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-[60] mx-auto flex max-w-[480px] flex-col gap-2 px-3 lg:bottom-6"
+        className="pointer-events-none fixed inset-x-0 bottom-[calc(var(--app-tabs-h)+0.5rem)] z-[60] mx-auto flex max-w-[480px] flex-col gap-2 px-3 lg:bottom-6"
       >
         {toasts.map((toast) => (
           <ToastItem key={toast.id} toast={toast} onDone={dismiss} />

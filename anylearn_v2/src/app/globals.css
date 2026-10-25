@@ -66,6 +66,18 @@ body {
   overflow-x: hidden;
 }
 
+/* Height of the bottom tabs (AppTabs). The installed app (standalone) gets more room below the labels: curved screen
+   corners and the gesture bar hide the lowest ~12px of the screen, and env(safe-area-inset-bottom) is 0 on most Android phones. */
+@layer base {
+  :root {
+    --app-tabs-pad: max(env(safe-area-inset-bottom), 0.5rem);
+    --app-tabs-h: calc(3.75rem + 1px + var(--app-tabs-pad));
+  }
+  @media (display-mode: standalone) {
+    :root { --app-tabs-pad: max(env(safe-area-inset-bottom), 1.25rem); }
+  }
+}
+
 /* In @layer base so Tailwind's min-w-* utilities can override the reset. */
 @layer base {
   *,
@@ -301,8 +313,8 @@ body {
 
   /* ── Room for the bottom tabs (AppTabs, shown below lg) ── */
   @media (max-width: 1023.98px) {
-    .has-app-tabs { padding-bottom: calc(60px + env(safe-area-inset-bottom)); }
-    .has-app-tabs .zalo-chat-widget { bottom: calc(72px + env(safe-area-inset-bottom)) !important; }
+    .has-app-tabs { padding-bottom: var(--app-tabs-h); }
+    .has-app-tabs .zalo-chat-widget { bottom: calc(var(--app-tabs-h) + 12px) !important; }
   }
 }
 

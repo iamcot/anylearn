@@ -54,7 +54,7 @@ export default function ServiceWorkerRegister() {
   return (
     <div
       role="status"
-      className="fixed inset-x-4 bottom-20 z-50 mx-auto flex max-w-[420px] items-center gap-3 rounded-2xl bg-navy p-3 pl-4 text-white shadow-raised lg:bottom-6"
+      className="fixed inset-x-4 bottom-[calc(var(--app-tabs-h)+0.5rem)] z-50 mx-auto flex max-w-[420px] items-center gap-3 rounded-2xl bg-navy p-3 pl-4 text-white shadow-raised lg:bottom-6"
     >
       <p className="m-0 flex-1 text-sm font-medium">anyLEARN có bản mới</p>
       <button
