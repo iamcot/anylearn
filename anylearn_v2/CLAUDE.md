@@ -147,6 +147,12 @@ getOrder(orderId, token)       // GET /order/:orderId     [auth]
 
 - `lib/vietqr/payload.ts` builds the VietQR (EMVCo, Napas 247) string, tested; the QR is drawn in the browser with the `qrcode` package (`components/payment/useQrImage.ts`). The transfer note (`ALQR{orderId}`) comes from the order API (`transferNote`, built by `TransferNote.java`). `orderTransferNote` is only the fallback for an older backend (FE and Java deploy separately), so the QR never depends on the new field; keep both in the same format. Never hide the whole panel because an API field is missing. `BankTransferPanel` shows only while the order is `new`/`pay_pending`; `useOrderStatus` polls every `ORDER_STATUS_POLL_MS`.
 
+## Search insights and "Tìm giúp tôi"
+
+- `app/search/page.tsx` fetches through `fetchSearchResults(state, createSearchTracking())` (`components/search/searchTracking.ts`: a random `ref` per search, a random browser id in `localStorage` `anylearn.sessionKey`, who the visitor said the courses are for; pure parts in `lib/search/searchTracking.ts`). Only page 0 sends the tracking query. A tap on a result calls `trackSearchClick(item.id)` (`CourseResultCard`).
+- A visitor with a guest answer gets the search opened already filtered to their age: `takeGuestAutoAge` runs in the fetch effect, applies the filter to the URL and waits for the next render, so the search is fetched (and logged) once.
+- Form: `components/search/CourseRequestModal.tsx` (fields, prefilled from the search and the guest answer) opened by `CourseRequestCta` from the empty result (`NoResults`), a line under every result list (`RequestHelpLine`) and a block on the home page. Validation is pure in `lib/search/courseRequest.ts` (same phone rule as the server); options in `config/courseRequest.ts`; call in `lib/api/courseRequests.ts`.
+
 ## Guest learners (who the courses are for)
 
 - A visitor who is not logged in is asked once "Bạn đang tìm khóa học cho ai?" (`components/guest/GuestLearnerSheet.tsx`, mounted by `GuestLearnerHost` in the root layout, only on `/`, `/search`, `/class/*`; "Để sau" waits `GUEST_PROMPT_DISMISS_DAYS`). The answer (children: nickname + birth year, up to 5; or themselves) lives only in `localStorage` key `anylearn.guestLearners` (`config/guestLearners.ts`); `components/guest/guestLearnerStore.ts` is the store (memory fallback when storage is blocked), `useGuestLearners` the hook. All rules are pure and tested in `lib/guest/guestLearners.ts` (parse/validate, age bucket for the search filter, name+year matching, store updates).

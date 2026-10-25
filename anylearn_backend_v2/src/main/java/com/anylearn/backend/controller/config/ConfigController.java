@@ -8,9 +8,14 @@ import com.anylearn.backend.repository.KnowledgeTopicRepository;
 import com.anylearn.backend.repository.VoucherGroupRepository;
 import com.anylearn.backend.repository.VoucherRepository;
 import com.anylearn.backend.service.ConfigService;
+import com.anylearn.backend.entity.User;
 import com.anylearn.backend.service.MeilisearchService;
+import com.anylearn.backend.service.insights.SearchContext;
+import com.anylearn.backend.service.insights.SearchLogService;
+import com.anylearn.backend.service.insights.SearchQuery;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.LinkedHashMap;
@@ -23,6 +28,7 @@ public class ConfigController {
 
     private final ConfigService configService;
     private final MeilisearchService meilisearchService;
+    private final SearchLogService searchLogService;
     private final VoucherRepository voucherRepository;
     private final VoucherGroupRepository voucherGroupRepository;
     private final ConfigurationRepository configurationRepository;
@@ -55,9 +61,28 @@ public class ConfigController {
                                   @RequestParam(required = false) String age,
                                   @RequestParam(required = false) String priceRange,
                                   @RequestParam(required = false) String location,
-                                  @RequestParam(required = false) String mode) {
+                                  @RequestParam(required = false) String mode,
+                                  @RequestParam(required = false) String ref,
+                                  @RequestParam(required = false, name = "sk") String sessionKey,
+                                  @RequestParam(required = false, name = "aud") String audience,
+                                  @RequestParam(required = false, name = "lage") Integer learnerAge,
+                                  @AuthenticationPrincipal User user) {
         var result = meilisearchService.search(q, page, pageSize, category, sort, authorId, age, priceRange, location, mode);
+        searchLogService.record(new SearchQuery(q, "class", category, age, priceRange, location, mode, authorId), page,
+                new SearchContext(ref, sessionKey, audience, learnerAge, user != null ? user.getId() : null), totalOf(result));
         return ApiResponse.ok(result);
+    }
+
+    @PostMapping("/search/click")
+    public ApiResponse<?> searchClick(@RequestBody Map<String, Object> body) {
+        Object itemId = body.get("itemId");
+        searchLogService.recordClick(body.get("ref") instanceof String ref ? ref : null,
+                itemId instanceof Number number ? number.longValue() : null);
+        return ApiResponse.ok();
+    }
+
+    private static int totalOf(Map<String, Object> result) {
+        return result.get("total") instanceof Number total ? total.intValue() : 0;
     }
 
     @GetMapping("/search-tags")
@@ -71,8 +96,15 @@ public class ConfigController {
                                        @RequestParam(defaultValue = "20") int pageSize,
                                        @RequestParam(required = false) String role,
                                        @RequestParam(required = false) String sort,
-                                       @RequestParam(required = false) Long authorId) {
+                                       @RequestParam(required = false) Long authorId,
+                                       @RequestParam(required = false) String ref,
+                                       @RequestParam(required = false, name = "sk") String sessionKey,
+                                       @RequestParam(required = false, name = "aud") String audience,
+                                       @RequestParam(required = false, name = "lage") Integer learnerAge,
+                                       @AuthenticationPrincipal User user) {
         var result = meilisearchService.searchUsers(q, role, page, pageSize, sort, authorId);
+        searchLogService.record(new SearchQuery(q, role, null, null, null, null, null, authorId), page,
+                new SearchContext(ref, sessionKey, audience, learnerAge, user != null ? user.getId() : null), totalOf(result));
         return ApiResponse.ok(result);
     }
 

@@ -35,10 +35,10 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 |---|---|---|---|
 | 12.1–12.6 | Sửa lỗi UI mobile | done | Chờ chủ sản phẩm chốt luật VNPay "giảm 1%, trên 100 triệu" |
 | 04.7 | Hỏi "Tìm cho ai?" khi chưa đăng nhập + tự tạo con khi đăng ký + bắt buộc ngày sinh đầy đủ ở checkout | done | Chưa ghi `audience`/tuổi vào `search_logs` (chờ plan 01.1) |
-| 01.1 | `search_logs` + ghi log + click | todo | |
-| 01.2 | Form "Tìm giúp tôi" (`course_requests`) | todo | |
-| 01.3 | Admin xử lý yêu cầu | todo | |
-| 01.4 | Dashboard xu hướng | todo | |
+| 01.1 | `search_logs` + ghi log + click | done | V18; `ref` do trình duyệt tạo thay cho `searchLogId`; cột lọc thay cho JSON |
+| 01.2 | Form "Tìm giúp tôi" (`course_requests`) | done | Hiện ở kết quả trống, dưới mọi danh sách kết quả, trang chủ |
+| 01.3 | Admin xử lý yêu cầu | done | Trang "Nhờ tìm khóa học"; thông báo cho khách có tài khoản; ZNS chưa làm |
+| 01.4 | Dashboard xu hướng | done | Trang "Xu hướng nhu cầu" + CSV; truy vấn trực tiếp, chưa tính sẵn ban đêm |
 | 13.0 | Kiểm kê app cũ trên store | done | App cũ đã xoá → chỉ PWA |
 | 13.1 | Manifest + icon | done | `app/manifest.ts`, `public/icons/*` vẽ từ logo |
 | 13.2 | Service worker (cache tĩnh, offline, cập nhật) | done | Không cache trang/API; banner "Tải lại" |
@@ -119,6 +119,20 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 13.8 | Thay app cũ trên store bằng bản bọc web (TWA / Capacitor), cùng package/bundle id | todo | Theo kết quả 13.0; có thể kéo lên sớm |
 
 ## Nhật ký
+
+### 25/10/2026 – plan 01 xong (01.1–01.4)
+- Backend (V18): `search_logs`, `course_requests`; `SearchLogService` ghi bất đồng bộ trên một luồng riêng để giữ thứ tự; tìm lại cùng
+  từ khoá trong 10 giây thì **cập nhật dòng cũ** (bộ lọc mới nhất, `ref` mới nhất) thay vì thêm dòng; chỉ giữ lượt bấm đầu tiên.
+  `POST /api/course-requests` mở cho khách chưa đăng nhập (chuẩn hoá số điện thoại, tối đa 3 yêu cầu/số/ngày), admin nhận thông báo.
+  Admin: `/admin/course-requests` (đổi trạng thái, gán khóa học, thông báo khách có tài khoản), `/admin/insights/search`.
+- FE: tracking trong `createSearchTracking`/`trackSearchClick`; form `CourseRequestModal` (điền sẵn từ khoá, tuổi, khu vực); bộ lọc tuổi
+  của khách được áp trước lần tìm đầu để không tìm (và ghi log) hai lần. Admin: 2 trang mới + xuất CSV.
+- Kiểm tra bằng **MariaDB 10.11 thật** (cài trong máy test): 18 migration chạy, Hibernate `validate` qua, gọi API thật (tìm kiếm, bấm,
+  gửi yêu cầu, giới hạn 3/ngày, admin cập nhật, báo cáo) và truy vấn báo cáo chạy đúng; Playwright: khách khai bé → tìm "cờ vua" →
+  không có kết quả → gửi form → có dòng ở admin; trang admin chụp ở 1440px, CSV mở đúng tiếng Việt. Meilisearch không chạy trong máy test
+  nên mọi tìm kiếm trả 0 kết quả; "lĩnh vực xem nhiều ít đơn" chưa có dữ liệu để thử (truy vấn đã chạy, trả rỗng).
+- Chưa làm: 01.5 (khảo sát sở thích khi thêm con, giai đoạn 2); ZNS/email cho khách khi tìm được khóa; tính sẵn báo cáo ban đêm (đo
+  khi dữ liệu lớn); dọn log cũ hơn 12 tháng.
 
 ### 25/10/2026 – thống nhất màu nút (04.7)
 - Chip "tìm cho ai" ở trang chủ (trắng), tìm kiếm (xanh dương), khóa học (xanh lá nhạt) đang ba kiểu → dùng một hệ xanh lá

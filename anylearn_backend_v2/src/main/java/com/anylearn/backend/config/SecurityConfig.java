@@ -60,6 +60,7 @@ public class SecurityConfig {
                 // Payment bank info (public config)
                 .requestMatchers(HttpMethod.GET, "/api/payment/bank-info").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/push/public-key").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/search/click", "/api/course-requests").permitAll()
                 // Admin login (public — role check is inside the controller)
                 .requestMatchers(HttpMethod.POST, "/admin/login").permitAll()
                 // Admin ZNS OAuth callback (browser redirect from Zalo, no JWT possible)

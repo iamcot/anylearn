@@ -1,0 +1,46 @@
+@baseUrl = {{$dotenv BE_BASE_URL}}/api
+@adminUrl = {{$dotenv BE_BASE_URL}}/admin
+@adminToken = {{$dotenv ADMIN_TOKEN}}
+
+### Search (logged when it has a keyword or a filter, first page only). ref = random id made by the browser,
+### sk = random id of the browser, aud/lage = who the courses are for (child|self, age)
+GET {{baseUrl}}/search?q=cờ%20vua&age=6-10&location=79&ref=abc123def456ghi789&sk=browser0123456789&aud=child&lage=9
+
+### The visitor opened a result of that search (only the first click is kept)
+POST {{baseUrl}}/search/click
+Content-Type: application/json
+
+{ "ref": "abc123def456ghi789", "itemId": 5 }
+
+### "Tìm giúp tôi": open to visitors without an account. 3 requests per phone number per 24 hours.
+POST {{baseUrl}}/course-requests
+Content-Type: application/json
+
+{
+  "name": "Mẹ Bin",
+  "phone": "0912 345 678",
+  "subject": "Cờ vua cho bé",
+  "learnerAge": 9,
+  "provinceCode": "79",
+  "districtText": "Quận 7",
+  "budgetMax": 2000000,
+  "preferredTime": "weekend",
+  "mode": "offline",
+  "note": "gần nhà",
+  "sourceRef": "abc123def456ghi789"
+}
+
+### Admin: requests (new ones first). status = new | contacting | matched | no_partner | closed
+GET {{adminUrl}}/course-requests?status=new
+Authorization: Bearer {{adminToken}}
+
+### Admin: handle a request. "matched" needs matchedItemId and notifies the requester when they have an account
+PUT {{adminUrl}}/course-requests/1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "status": "matched", "matchedItemId": 5, "adminNote": "Đã gọi, hẹn học thử thứ 7" }
+
+### Admin: what visitors look for and cannot find (days = 1..365, default 30)
+GET {{adminUrl}}/insights/search?days=30
+Authorization: Bearer {{adminToken}}

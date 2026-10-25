@@ -108,6 +108,7 @@ Thư mục `http/` chứa VS Code REST Client files cho mọi endpoint:
 - `admin.http` — admin login, dashboard, CRUD users/items/orders/transactions/articles, config, ZNS
 - `today.http` — `/today` learners, today data, join, attendance, leave/reschedule requests
 - `push.http` — Web Push public key, subscribe/unsubscribe a device, test notification
+- `insights.http` — search logging, "Tìm giúp tôi" course requests, admin request handling and the demand report
 
 ## Porting Status (Portal → v2 + backend)
 
@@ -134,6 +135,11 @@ Thư mục `http/` chứa VS Code REST Client files cho mọi endpoint:
 - `CartService.checkout` first calls `requireFullDobForLearners`: any learner (a child, or the account owner when they are the learner) without a full date makes it throw `LearnerDobRequiredException` → HTTP 400, `resultCode 0`, `data = {code: "LEARNER_DOB_REQUIRED", learnerIds: [...]}`; with full dates it checks the age limit of every course again. `GET /cart` returns per line `studentId`, `learnerId`, `learnerName`, `dobComplete`, `learnerDobYear`.
 - A parent cannot have two children with the same name (accents, case and spacing ignored, `PersonNames`): `POST /user/children` answers 400 "Đã có bé tên …" for a new or renamed child (editing other fields of an old duplicate still works).
 - `POST /user/children` and `POST /user/edit` accept `dob` (+ `dobYearOnly: true` for a birth year); a full `dob` clears the flag. Samples: `http/user.http`.
+
+## Search insights and course requests
+
+- Every search with a keyword or a filter (first page only) is logged in `search_logs` (V18) by `SearchLogService`, asynchronously on a single thread (`searchLogExecutor`, so order is kept): normalized keyword (`PersonNames.normalize`), the filters as columns, result count, and who the courses are for (`aud`, `lage` params from the visitor's guest answer). The browser sends `ref` (random per search), `sk` (random id of the browser) on `/api/search` and `/api/search/users`; `POST /api/search/click {ref, itemId}` keeps the first click. Searching the same words again within 10 seconds by the same browser **refines** the earlier row instead of adding one. Pure rules: `SearchLogPolicy`.
+- "Tìm giúp tôi": `POST /api/course-requests` (no login needed; phone normalized by `CourseRequestRules`, 3 requests per phone per day, `app.course-request.daily-limit`) → table `course_requests`, every admin gets a notification. Back office pages: "Nhờ tìm khóa học" (`/admin/course-requests`: statuses new/contacting/matched/no_partner/closed; `matched` needs an item id and notifies a requester who has an account with a link to the course) and "Xu hướng nhu cầu" (`/admin/search-insights`: top keywords, keywords with no result with CSV export, demand by age × area × field, requests by subject, fields with many views but few orders). Backend: `service/insights/*`, `AdminCourseRequestController`, `AdminInsightsController`.
 
 ## PWA and push
 

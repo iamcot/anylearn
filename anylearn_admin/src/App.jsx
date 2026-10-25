@@ -7,6 +7,8 @@ import { AuthProvider, useAuth } from './contexts/AuthContext'
 import Articles from './pages/Articles'
 import Activities from './pages/Activities'
 import Audit from './pages/Audit'
+import CourseRequests from './pages/CourseRequests'
+import SearchInsights from './pages/SearchInsights'
 import BankAccount from './pages/BankAccount'
 import Dashboard from './pages/Dashboard'
 import Finance from './pages/Finance'
@@ -83,6 +85,8 @@ export default function App() {
                   <Route path="activities" element={<Activities />} />
                   <Route path="schedule-monitor" element={<ScheduleMonitor />} />
                   <Route path="schedule-requests" element={<ScheduleRequests />} />
+                  <Route path="course-requests" element={<CourseRequests />} />
+                  <Route path="search-insights" element={<SearchInsights />} />
                   <Route path="settings" element={<Settings />} />
                   <Route path="transactions" element={<Transactions />} />
                   <Route path="articles" element={<Articles />} />

@@ -1,6 +1,5 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { useIsClient } from '@/components/useIsClient'
 import { guestPeople, selectedGuestPerson, withSelected, type GuestPerson } from '@/lib/guest/guestLearners'
@@ -9,46 +8,21 @@ import GuestChangeButton from './GuestChangeButton'
 import { getGuestStore, openGuestSheet, saveGuestStore } from './guestLearnerStore'
 import { useGuestLearners } from './useGuestLearners'
 
-const AGE_APPLIED_KEY = 'anylearn.guestAgeApplied'
-
-function alreadyApplied(): boolean {
-  try {
-    return sessionStorage.getItem(AGE_APPLIED_KEY) === '1'
-  } catch {
-    return true
-  }
-}
-
-function markApplied() {
-  try {
-    sessionStorage.setItem(AGE_APPLIED_KEY, '1')
-  } catch {}
-}
-
 interface Props {
   // The age filter currently in the search URL ('all' when none)
   activeAge: string
   onPickAge: (ageFilter: string | null) => void
 }
 
-// Search page: who the visitor is shopping for, one tap to filter by that age. Only for visitors who are not logged in
+// Search page: who the visitor is shopping for, one tap to filter by that age (the first filter is applied by the page,
+// see takeGuestAutoAge, so the search is not fetched twice). Only for visitors who are not logged in
 // (people with an account get this from their children, plan 04.1).
 export default function GuestLearnerChips({ activeAge, onPickAge }: Props) {
   const { user, isAuthLoading } = useAuth()
   const isClient = useIsClient()
   const store = useGuestLearners()
   const people = guestPeople(store)
-  const first = selectedGuestPerson(store)
-  const applied = useRef(false)
   const visible = isClient && !isAuthLoading && !user
-
-  // Once per tab: open the search already filtered to the age they told us. After that the chips are theirs to toggle.
-  useEffect(() => {
-    if (!visible || applied.current || !first || activeAge !== 'all' || alreadyApplied()) return
-    applied.current = true
-    markApplied()
-    onPickAge(first.ageFilter)
-  }, [visible, first, activeAge, onPickAge])
 
   if (!visible) return null
 

@@ -205,6 +205,7 @@ export function withoutLearners(store: GuestLearnerStore, localIds: string[]): G
 export interface GuestPerson {
   key: string
   label: string
+  age: number
   ageFilter: string
   // Set for a child (selecting it is remembered); the visitor themselves has no localId.
   localId?: string
@@ -213,14 +214,12 @@ export interface GuestPerson {
 export function guestPeople(store: GuestLearnerStore, today = new Date()): GuestPerson[] {
   if (store.audience === 'self' && store.selfBirthYear) {
     const age = ageFromBirthYear(store.selfBirthYear, today)
-    return [{ key: 'self', label: `Tôi · ${age}t`, ageFilter: ageFilterFor(age) }]
+    return [{ key: 'self', label: `Tôi · ${age}t`, age, ageFilter: ageFilterFor(age) }]
   }
-  return store.learners.map(learner => ({
-    key: learner.localId,
-    label: describeGuestLearner(learner, today),
-    ageFilter: ageFilterFor(ageFromBirthYear(learner.birthYear, today)),
-    localId: learner.localId,
-  }))
+  return store.learners.map(learner => {
+    const age = ageFromBirthYear(learner.birthYear, today)
+    return { key: learner.localId, label: describeGuestLearner(learner, today), age, ageFilter: ageFilterFor(age), localId: learner.localId }
+  })
 }
 
 export function selectedGuestPerson(store: GuestLearnerStore, today = new Date()): GuestPerson | undefined {

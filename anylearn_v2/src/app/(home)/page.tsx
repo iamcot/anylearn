@@ -8,6 +8,7 @@ import CategoryIcon from '@/components/CategoryIcon'
 import { BoltIcon, BookIcon, ChatIcon, GiftIcon, PlayIcon, SearchIcon } from '@/components/icons'
 import ChevronLabel from '@/components/ChevronLabel'
 import GuestLearnerStrip from '@/components/guest/GuestLearnerStrip'
+import CourseRequestCta from '@/components/search/CourseRequestCta'
 
 const BENEFITS = [
   { Icon: SearchIcon, title: 'Dễ tìm kiếm', desc: 'Tìm trường học, khóa học và chuyên gia theo nhu cầu của con' },
@@ -137,6 +138,19 @@ export default async function HomePage() {
               </div>
             </article>
           ))}
+        </div>
+      </section>
+
+      {/* ── Ask us to find a course ── */}
+      <section className="section">
+        <div className="container">
+          <div className="flex flex-col items-start gap-4 rounded-card border border-green-line bg-green-soft p-6 md:flex-row md:items-center md:justify-between md:p-8">
+            <div>
+              <h2 className="m-0 mb-1 text-xl font-extrabold text-ink">Chưa thấy khóa học bạn cần?</h2>
+              <p className="m-0 text-muted">Cho anyLEARN biết con cần học gì, chúng tôi sẽ tìm đối tác phù hợp và gọi lại cho bạn.</p>
+            </div>
+            <CourseRequestCta label="Nhờ anyLEARN tìm giúp" variant="primary" defaults={{}} />
+          </div>
         </div>
       </section>
 
