@@ -124,7 +124,7 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 - 12.1: nút "N" là dev indicator của `next dev` → `devIndicators: false` trong `next.config.ts` (bản production không có nút này).
 - 12.2: thanh sự kiện dưới header xuống tối đa 2 dòng thay vì cắt chữ; nút còn "Hôm nay" trên mobile.
 - 12.3: footer dưới `lg` gập 2 nhóm link thành accordion (`<details>`, đóng mặc định), giữ liên hệ + mạng xã hội;
-  cao ~554px ở 390px (trước khoảng gấp đôi). Desktop giữ nguyên lưới 4 cột.
+  cao ~554px ở 390px khi đóng (chưa đo bản cũ để so). Desktop giữ nguyên lưới 4 cột.
 - 12.4: checkout và trang đơn ghi đủ số tiền (`formatExactPrice`): dòng khóa học, Tạm tính / Dùng anyPoint / Mã giảm giá /
   Tổng thanh toán, đơn chờ thanh toán.
 - 12.5: bỏ "(giảm 1%) (trên 100 triệu)" khỏi VNPay vì backend không áp dụng (hỏi lại chủ sản phẩm); viết lại nhãn trả góp.
