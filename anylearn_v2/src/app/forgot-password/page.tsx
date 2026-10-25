@@ -19,7 +19,7 @@ const STEPS: Step[] = ['PHONE', 'OTP', 'NEW_PASSWORD']
 function StepIndicator({ current }: { current: Step }) {
   const currentIndex = STEPS.indexOf(current)
   return (
-    <ol className="m-0 mb-8 flex list-none items-center justify-center gap-2 p-0" aria-label="Các bước">
+    <ol className="m-0 mb-6 flex list-none items-center gap-2 p-0" aria-label="Các bước">
       {STEPS.map((step, index) => {
         const done = currentIndex > index
         return (
@@ -110,7 +110,7 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <AuthCard title="Quên mật khẩu" subtitle={subtitles[step]} maxWidth="max-w-md" logo>
+    <AuthCard title="Quên mật khẩu" subtitle={subtitles[step]} maxWidth="max-w-[420px]">
       <StepIndicator current={step} />
       {error && <Alert kind="error" className="mb-5">{error}</Alert>}
 
@@ -163,7 +163,7 @@ export default function ForgotPasswordPage() {
         </form>
       )}
 
-      <div className="mt-6 flex justify-center">
+      <div className="mt-6 flex">
         <BackLink href="/login">Quay lại đăng nhập</BackLink>
       </div>
     </AuthCard>
