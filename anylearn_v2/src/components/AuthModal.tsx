@@ -58,7 +58,7 @@ function AuthModalBody({ initialTab }: { initialTab: Tab }) {
 
         <div className="px-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-6 sm:px-7">
           {tab === 'login'
-            ? <LoginForm onSuccess={finish} onSwitchToRegister={() => setTab('register')} />
+            ? <LoginForm onSuccess={finish} onLeave={closeAuthModal} onSwitchToRegister={() => setTab('register')} />
             : <RegisterForm onSuccess={finish} onSwitchToLogin={() => setTab('login')} />
           }
         </div>

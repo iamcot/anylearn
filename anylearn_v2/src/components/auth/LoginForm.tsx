@@ -10,9 +10,10 @@ import { rememberPhone, useRememberedPhone } from './useRememberedPhone'
 interface Props {
   onSuccess: () => void
   onSwitchToRegister?: () => void
+  onLeave?: () => void
 }
 
-export default function LoginForm({ onSuccess, onSwitchToRegister }: Props) {
+export default function LoginForm({ onSuccess, onSwitchToRegister, onLeave }: Props) {
   const { login } = useAuth()
   const remembered = useRememberedPhone()
   const [typedPhone, setTypedPhone] = useState<string | null>(null)
@@ -42,7 +43,7 @@ export default function LoginForm({ onSuccess, onSwitchToRegister }: Props) {
       <div>
         <div className="mb-1.5 flex items-center justify-between">
           <label htmlFor="login-password" className="text-xs font-bold text-muted">Mật khẩu</label>
-          <Link href="/forgot-password" className="inline-flex min-h-11 items-center text-xs text-blue hover:underline">Quên mật khẩu?</Link>
+          <Link href="/forgot-password" onClick={onLeave} className="inline-flex min-h-11 items-center text-xs text-blue hover:underline">Quên mật khẩu?</Link>
         </div>
         <input id="login-password" className="field" type="password" autoComplete="current-password" placeholder="Nhập mật khẩu"
           value={password} onChange={event => setPassword(event.target.value)} required />
