@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { getArticleUrl } from '@/lib/api'
 import { ChevronLeftIcon, ChevronRightIcon, GiftIcon } from '@/components/icons'
 
@@ -12,20 +12,36 @@ interface Promo {
   image?: string
 }
 
+const SWIPE_THRESHOLD_PX = 40
+const NAV_BUTTON_CLASS = 'grid size-11 cursor-pointer place-items-center rounded-full border-0 bg-transparent p-0 text-muted hover:text-ink md:hidden'
 const ARROW_CLASS = 'absolute top-1/2 hidden size-11 md:grid -translate-y-1/2 cursor-pointer place-items-center rounded-full border border-white/40 bg-white/25 p-0 text-white'
 
 export default function PromoSlider({ promos }: { promos: Promo[] }) {
   const [current, setCurrent] = useState(0)
+  const touchStartX = useRef<number | null>(null)
 
   if (!promos.length) return null
 
   const showPrevious = () => setCurrent(c => (c - 1 + promos.length) % promos.length)
   const showNext = () => setCurrent(c => (c + 1) % promos.length)
 
+  const handleTouchEnd = (endX: number) => {
+    if (touchStartX.current === null) return
+    const distance = endX - touchStartX.current
+    touchStartX.current = null
+    if (Math.abs(distance) < SWIPE_THRESHOLD_PX) return
+    if (distance < 0) showNext()
+    else showPrevious()
+  }
+
   return (
     <section className="section">
       <div className="container">
-        <div className="relative overflow-hidden rounded-[32px]">
+        <div
+          className="relative overflow-hidden rounded-[32px]"
+          onTouchStart={e => { touchStartX.current = e.touches[0]?.clientX ?? null }}
+          onTouchEnd={e => handleTouchEnd(e.changedTouches[0]?.clientX ?? 0)}
+        >
           <div
             className="flex w-full transition-transform duration-[400ms] ease-out"
             style={{ transform: `translateX(-${current * 100}%)` }}
@@ -68,7 +84,10 @@ export default function PromoSlider({ promos }: { promos: Promo[] }) {
         </div>
 
         {promos.length > 1 && (
-          <div className="mt-2 flex justify-center">
+          <div className="mt-2 flex items-center justify-center gap-1">
+            <button type="button" aria-label="Chương trình trước" onClick={showPrevious} className={NAV_BUTTON_CLASS}>
+              <ChevronLeftIcon />
+            </button>
             {promos.map((promo, index) => (
               <button
                 key={promo.id}
@@ -81,6 +100,9 @@ export default function PromoSlider({ promos }: { promos: Promo[] }) {
                 <span className={`h-2 rounded-full transition-all duration-300 ${index === current ? 'w-6 bg-blue' : 'w-2 bg-line'}`} />
               </button>
             ))}
+            <button type="button" aria-label="Chương trình sau" onClick={showNext} className={NAV_BUTTON_CLASS}>
+              <ChevronRightIcon />
+            </button>
           </div>
         )}
       </div>
