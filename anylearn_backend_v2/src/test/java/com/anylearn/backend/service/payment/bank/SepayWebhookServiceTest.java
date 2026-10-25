@@ -1,6 +1,5 @@
 package com.anylearn.backend.service.payment.bank;
 
-import com.anylearn.backend.config.PaymentConfig;
 import com.anylearn.backend.entity.BankWebhookEvent;
 import com.anylearn.backend.entity.Order;
 import com.anylearn.backend.entity.OrderStatus;
@@ -49,8 +48,9 @@ class SepayWebhookServiceTest {
         UserRepository userRepository = mock(UserRepository.class);
         notificationService = mock(NotificationService.class);
         approvalService = mock(PaymentApprovalService.class);
-        PaymentConfig config = new PaymentConfig();
-        config.getBankTransfer().setAccountNumber(ACCOUNT);
+        BankAccountService bankAccountService = mock(BankAccountService.class);
+        when(bankAccountService.current()).thenReturn(
+                new BankAccountService.BankAccount("ACB", "970416", ACCOUNT, "CONG TY", ""));
 
         User admin = new User();
         admin.setId(1L);
@@ -63,7 +63,7 @@ class SepayWebhookServiceTest {
         when(orderRepository.findById(ORDER_ID)).thenReturn(Optional.of(order));
 
         service = new SepayWebhookService(eventRepository, orderRepository, userRepository, notificationService,
-                approvalService, config, new ObjectMapper());
+                approvalService, bankAccountService, new ObjectMapper());
     }
 
     private SepayEvent transfer(String txnId, boolean incoming, long amount, String content, String account) {

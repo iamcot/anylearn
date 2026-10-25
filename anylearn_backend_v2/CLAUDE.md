@@ -214,7 +214,8 @@ Logic lives in `service/today` (small rule classes with unit tests). Demo data: 
 | POST | `/payment-notify/momo` | Public | MoMo IPN (JSON body) — approve order |
 | GET | `/payment-return/momo` | Public | MoMo return → approve order + redirect FE |
 | POST | `/payment-notify/sepay` | Public (header `Authorization: Apikey <SEPAY_API_KEY>`) | SePay bank-transfer webhook: note `ALQRPAY{orderId}`, amount >= order amount → `approveOrder(id, "bank_transfer")`; others recorded in `bank_webhook_events` and admins notified. 401 wrong key, 400 bad body, 500 = SePay retries |
-| GET | `/api/payment/bank-info` | Public | Bank details incl. `bankBin` for the VietQR code |
+| GET | `/api/payment/bank-info` | Public | Bank details incl. `bankBin` for the VietQR code (from `BankAccountService`) |
+| GET/PUT | `/admin/bank-account` | Admin | Read / save the receiving bank account (`configurations` keys `bank/*`, env `BANK_*` are the defaults) |
 Study, social feed, and open/webhook endpoints — see `http/` files for usage.
 
 ## Key Entities (JPA)

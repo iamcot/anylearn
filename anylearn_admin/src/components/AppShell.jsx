@@ -1,6 +1,6 @@
 import { Avatar, Badge, Dropdown, Flex, Layout, List, Menu, Popover, Spin, Typography } from 'antd'
 import {
-  AuditOutlined, BellOutlined, BookOutlined, CalendarOutlined, DashboardOutlined, FileTextOutlined,
+  AuditOutlined, BankOutlined, BellOutlined, BookOutlined, CalendarOutlined, DashboardOutlined, FileTextOutlined,
   CustomerServiceOutlined, FundOutlined, LogoutOutlined, MailOutlined, ApiOutlined, OrderedListOutlined, SettingOutlined, SolutionOutlined, SwapOutlined,
   TeamOutlined, UserOutlined,
 } from '@ant-design/icons'
@@ -124,6 +124,7 @@ export default function AppShell() {
     ...SETTINGS_MENU.map(item =>
       item.key === 'email-settings' ? { ...item, onClick: () => navigate('/settings') } : item
     ),
+    { key: 'bank-account', icon: <BankOutlined />, label: 'Tài khoản ngân hàng', onClick: () => navigate('/bank-account') },
     { type: 'divider' },
     { key: 'audit', icon: <AuditOutlined />, label: 'Kiểm toán anyPoint', onClick: () => navigate('/audit') },
   ]

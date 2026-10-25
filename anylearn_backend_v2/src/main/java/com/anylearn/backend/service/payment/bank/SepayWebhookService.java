@@ -1,6 +1,5 @@
 package com.anylearn.backend.service.payment.bank;
 
-import com.anylearn.backend.config.PaymentConfig;
 import com.anylearn.backend.entity.BankWebhookEvent;
 import com.anylearn.backend.entity.Order;
 import com.anylearn.backend.entity.OrderStatus;
@@ -37,7 +36,7 @@ public class SepayWebhookService {
     private final UserRepository userRepository;
     private final NotificationService notificationService;
     private final PaymentApprovalService approvalService;
-    private final PaymentConfig paymentConfig;
+    private final BankAccountService bankAccountService;
     private final ObjectMapper objectMapper;
 
     /** Returns the match status that was recorded, or null when this transfer was already processed. */
@@ -102,7 +101,7 @@ public class SepayWebhookService {
     }
 
     private boolean isOurAccount(String accountNumber) {
-        String configured = paymentConfig.getBankTransfer().getAccountNumber();
+        String configured = bankAccountService.current().accountNumber();
         if (configured == null || configured.isBlank()) return true;
         return configured.replaceAll("\\s", "").equals(accountNumber == null ? "" : accountNumber.replaceAll("\\s", ""));
     }

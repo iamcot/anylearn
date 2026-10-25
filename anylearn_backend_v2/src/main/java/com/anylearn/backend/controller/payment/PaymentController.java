@@ -14,6 +14,7 @@ import com.anylearn.backend.service.payment.MomoService;
 import com.anylearn.backend.service.payment.OnepayService;
 import com.anylearn.backend.service.payment.PaymentApprovalService;
 import com.anylearn.backend.service.payment.VnpayService;
+import com.anylearn.backend.service.payment.bank.BankAccountService;
 import com.anylearn.backend.service.payment.bank.SepayAuth;
 import com.anylearn.backend.service.payment.bank.SepayEvent;
 import com.anylearn.backend.service.payment.bank.SepayWebhookService;
@@ -47,6 +48,7 @@ public class PaymentController {
     private final ItemRepository itemRepository;
     private final PaymentConfig paymentConfig;
     private final SepayWebhookService sepayWebhookService;
+    private final BankAccountService bankAccountService;
 
     // ── Admin approve (bank_transfer) ─────────────────────────────────────────
 
@@ -62,14 +64,14 @@ public class PaymentController {
 
     @GetMapping("/api/payment/bank-info")
     public ApiResponse<?> bankInfo() {
-        var bt = paymentConfig.getBankTransfer();
+        var account = bankAccountService.current();
         return ApiResponse.ok(Map.of(
-                "bankName", bt.getBankName(),
-                "bankBin", bt.getBankBin(),
-                "accountNumber", bt.getAccountNumber(),
-                "accountName", bt.getAccountName(),
-                "transferContent", bt.getTransferContent(),
-                "zaloPhone", bt.getZaloPhone()
+                "bankName", account.bankName(),
+                "bankBin", account.bankBin(),
+                "accountNumber", account.accountNumber(),
+                "accountName", account.accountName(),
+                "transferContent", paymentConfig.getBankTransfer().getTransferContent(),
+                "zaloPhone", account.zaloPhone()
         ));
     }
 
