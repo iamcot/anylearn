@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { API_BASE } from '@/lib/apiBase'
 import BackLink from '@/components/BackLink'
+import { ChevronRightIcon } from '@/components/icons'
 
 interface TopicData {
   id: number; title: string; url: string
@@ -30,21 +31,21 @@ export default async function HelpcenterTopicPage({ params }: { params: Promise<
   if (!data) notFound()
 
   return (
-    <div className="section section--soft">
+    <div className="bg-bg py-10 lg:py-14">
       <div className="container max-w-[780px]">
         <div className="mb-6">
           <BackLink href="/helpcenter">Trung tâm hỗ trợ</BackLink>
         </div>
-        <h1 className="text-[clamp(22px,3vw,30px)] font-black text-ink mb-6">{data.title}</h1>
+        <h1 className="text-[clamp(22px,3vw,30px)] font-extrabold text-ink mb-6">{data.title}</h1>
 
         {data.knowledge.length > 0 ? (
           <div className="bg-white border border-line rounded-card overflow-hidden">
-            <ul className="list-none p-0 m-0">
-              {data.knowledge.map((k, i) => (
-                <li key={k.id} className={i < data.knowledge.length - 1 ? 'border-b border-[#f0f0f0]' : ''}>
+            <ul className="m-0 list-none divide-y divide-line p-0">
+              {data.knowledge.map(k => (
+                <li key={k.id}>
                   <Link href={`/helpcenter/${k.id}/${k.url}`}
-                    className="flex items-center gap-2 px-5 py-3.5 text-sm text-ink no-underline hover:bg-bg transition-colors">
-                    <span className="text-green shrink-0">›</span>
+                    className="flex min-h-12 items-center gap-2 px-5 py-3 text-sm text-ink no-underline hover:bg-bg transition-colors">
+                    <ChevronRightIcon className="size-4 shrink-0 text-green" />
                     {k.title}
                   </Link>
                 </li>

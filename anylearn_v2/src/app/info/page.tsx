@@ -1,10 +1,13 @@
 import SearchCard from '@/components/SearchCard'
 import Link from 'next/link'
+import {
+  BookIcon, CalendarIcon, ChevronRightIcon, ClockIcon, LightbulbIcon, ListIcon, PhoneIcon, SchoolIcon, UsersIcon,
+} from '@/components/icons'
 
 const PROBLEMS = [
-  { emoji: '⏳', title: 'Mất thời gian tìm kiếm', desc: 'Thông tin trường học, khóa học và chuyên gia thường nằm rải rác trên nhiều kênh khác nhau' },
-  { emoji: '⚖️', title: 'Khó so sánh lựa chọn', desc: 'Không có công cụ so sánh rõ ràng về chương trình, học phí, đánh giá và phù hợp với con' },
-  { emoji: '🧭', title: 'Thiếu tư vấn chuyên sâu', desc: 'Phụ huynh thường không biết bắt đầu từ đâu khi tìm chương trình phù hợp với độ tuổi và mục tiêu' },
+  { Icon: ClockIcon, title: 'Mất thời gian tìm kiếm', desc: 'Thông tin trường học, khóa học và chuyên gia thường nằm rải rác trên nhiều kênh khác nhau' },
+  { Icon: ListIcon, title: 'Khó so sánh lựa chọn', desc: 'Không có công cụ so sánh rõ ràng về chương trình, học phí, đánh giá và phù hợp với con' },
+  { Icon: LightbulbIcon, title: 'Thiếu tư vấn chuyên sâu', desc: 'Phụ huynh thường không biết bắt đầu từ đâu khi tìm chương trình phù hợp với độ tuổi và mục tiêu' },
 ]
 
 const COMMITS = [
@@ -14,11 +17,11 @@ const COMMITS = [
 ]
 
 const ECOSYSTEM = [
-  { emoji: '🏫', name: 'anySCHOOL', desc: 'Tìm trường học, hệ quốc tế và chương trình chính quy phù hợp' },
-  { emoji: '📚', name: 'anyCOURSE', desc: 'Khóa học ngoại khóa, kỹ năng, thể thao và nghệ thuật online & offline' },
-  { emoji: '👨‍🏫', name: 'anyPROFESSOR', desc: 'Kết nối với gia sư, huấn luyện viên và chuyên gia 1-1' },
-  { emoji: '📱', name: 'anyAPP', desc: 'Ứng dụng di động quản lý lịch học, bài tập và tiến độ của con' },
-  { emoji: '🎉', name: 'anyEVENT', desc: 'Sự kiện, hội thảo và chương trình trải nghiệm giáo dục cho trẻ' },
+  { Icon: SchoolIcon, name: 'anySCHOOL', desc: 'Tìm trường học, hệ quốc tế và chương trình chính quy phù hợp' },
+  { Icon: BookIcon, name: 'anyCOURSE', desc: 'Khóa học ngoại khóa, kỹ năng, thể thao và nghệ thuật online & offline' },
+  { Icon: UsersIcon, name: 'anyPROFESSOR', desc: 'Kết nối với gia sư, huấn luyện viên và chuyên gia 1-1' },
+  { Icon: PhoneIcon, name: 'anyAPP', desc: 'Ứng dụng di động quản lý lịch học, bài tập và tiến độ của con' },
+  { Icon: CalendarIcon, name: 'anyEVENT', desc: 'Sự kiện, hội thảo và chương trình trải nghiệm giáo dục cho trẻ' },
 ]
 
 const STATS = [
@@ -77,21 +80,21 @@ const PARTNER_LOGOS = [
   'W-63.png','W-64.png','W-65.png','W-66.jpg',
 ].map(f => `/cdn/onepage/images/schools/${f}`)
 
-const CARD = 'bg-white border border-[#e6edf4] rounded-[22px] p-6 shadow-[0_8px_24px_rgba(15,23,42,0.05)]'
+const CARD = 'rounded-card border border-line bg-white p-6 shadow-card'
 
 export default function InfoPage() {
   return (
     <>
       {/* ── Hero ── */}
-      <section className="hero-section flex items-center bg-[linear-gradient(135deg,#00539b,#00a651)] text-white">
+      <section className="hero-section flex items-center bg-gradient-to-br from-blue to-green text-white">
         <div className="container">
-          <span className="inline-flex rounded-full px-3.5 py-2 text-sm font-black mb-5 bg-[rgba(255,255,255,0.16)] border border-[rgba(255,255,255,0.24)]">
+          <span className="mb-5 inline-flex rounded-full border border-white/25 bg-white/15 px-3.5 py-2 text-sm font-semibold">
             Giới thiệu anyLEARN
           </span>
-          <h1 className="font-black leading-none mb-5 max-w-3xl text-[clamp(36px,5vw,62px)] tracking-[-1.4px]">
+          <h1 className="mb-5 max-w-3xl text-[clamp(32px,5vw,62px)] font-extrabold leading-tight tracking-[-1.4px]">
             Tìm trường học, khóa học và chuyên gia phù hợp cho con
           </h1>
-          <p className="text-lg mb-8 max-w-2xl text-[rgba(255,255,255,0.9)]">
+          <p className="mb-8 max-w-2xl text-lg text-white/90">
             anyLEARN giúp phụ huynh tìm kiếm, so sánh và đăng ký chương trình học chính quy, ngoại khóa, online và offline trong một hành trình rõ ràng hơn
           </p>
           <SearchCard variant="about" />
@@ -101,14 +104,14 @@ export default function InfoPage() {
       {/* ── Intro ── */}
       <section className="section">
         <div className="container grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-14 items-center">
-          <div className="text-[clamp(64px,12vw,130px)] font-black leading-[0.88] tracking-[-6px] select-none">
-            <div className="text-[#00539b]">any</div>
-            <div className="text-[#00a651]">LEARN</div>
+          <div className="text-[clamp(64px,12vw,130px)] font-extrabold leading-[0.88] tracking-[-4px] select-none">
+            <div className="text-blue">any</div>
+            <div className="text-green">LEARN</div>
           </div>
           <div>
             <span className="section-kicker">anyLEARN là gì?</span>
             <h2 className="section-title">Nền tảng booking giáo dục cho phụ huynh hiện đại</h2>
-            <p className="text-[17px] text-[#6d7a8a] mt-4 mb-6">
+            <p className="mb-6 mt-4 text-[17px] text-muted">
               anyLEARN giúp cha mẹ tìm và đăng ký các chương trình học tập chính quy và ngoại khóa, offline hoặc online tại các trường quốc tế, học viện và trung tâm đào tạo chất lượng cao.
             </p>
             <div className="quick-tags">
@@ -127,8 +130,8 @@ export default function InfoPage() {
             <div key={s.label} className={CARD}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={s.img} alt={s.label} className="w-14 h-14 object-contain mx-auto mb-3" />
-              <div className="text-[38px] font-black text-[#00539b] mb-1.5">{s.num}</div>
-              <div className="text-[#6d7a8a] font-bold">{s.label}</div>
+              <div className="mb-1.5 text-[38px] font-extrabold text-blue">{s.num}</div>
+              <div className="font-semibold text-muted">{s.label}</div>
             </div>
           ))}
         </div>
@@ -145,9 +148,9 @@ export default function InfoPage() {
         <div className="container grid grid-cols-1 sm:grid-cols-3 gap-5">
           {PROBLEMS.map(p => (
             <article key={p.title} className={CARD}>
-              <div className="feature-icon">{p.emoji}</div>
-              <h3 className="mt-0 mb-2.5 text-[#17212f] text-xl font-black">{p.title}</h3>
-              <p className="m-0 text-[#6d7a8a]">{p.desc}</p>
+              <div className="mb-3.5 grid size-11 place-items-center rounded-2xl bg-green/10 text-green"><p.Icon className="size-6" /></div>
+              <h3 className="mb-2.5 mt-0 text-xl font-semibold text-ink">{p.title}</h3>
+              <p className="m-0 text-muted">{p.desc}</p>
             </article>
           ))}
         </div>
@@ -164,9 +167,9 @@ export default function InfoPage() {
         <div className="container grid grid-cols-1 sm:grid-cols-3 gap-5">
           {COMMITS.map(c => (
             <article key={c.num} className={CARD}>
-              <div className="w-11 h-11 rounded-2xl bg-[#00a651] text-white font-black text-xl grid place-items-center mb-4">{c.num}</div>
-              <h3 className="mt-0 mb-2.5 text-[#17212f] text-xl font-black">{c.title}</h3>
-              <p className="m-0 text-[#6d7a8a]">{c.desc}</p>
+              <div className="mb-4 grid size-11 place-items-center rounded-2xl bg-green text-xl font-extrabold text-white">{c.num}</div>
+              <h3 className="mb-2.5 mt-0 text-xl font-semibold text-ink">{c.title}</h3>
+              <p className="m-0 text-muted">{c.desc}</p>
             </article>
           ))}
         </div>
@@ -184,12 +187,12 @@ export default function InfoPage() {
           {ECOSYSTEM.map(e => (
             <article key={e.name} className={`${CARD} flex flex-col justify-between min-h-[200px]`}>
               <div>
-                <div className="icon-square">{e.emoji}</div>
-                <h3 className="mt-0 mb-2 text-[#00539b] text-lg font-black">{e.name}</h3>
-                <p className="m-0 text-[#6d7a8a] text-sm">{e.desc}</p>
+                <div className="mb-4 grid size-14 place-items-center rounded-2xl bg-gradient-to-br from-green to-blue text-white"><e.Icon className="size-7" /></div>
+                <h3 className="mb-2 mt-0 text-lg font-semibold text-blue">{e.name}</h3>
+                <p className="m-0 text-muted text-sm">{e.desc}</p>
               </div>
-              <Link href="/search" className="text-[#008244] font-black mt-4 no-underline hover:underline text-sm">
-                Xem {e.name} →
+              <Link href="/search" className="mt-4 inline-flex min-h-11 items-center gap-0.5 text-sm font-semibold text-green-dark no-underline hover:underline">
+                Xem {e.name} <ChevronRightIcon className="size-4" />
               </Link>
             </article>
           ))}
@@ -207,8 +210,8 @@ export default function InfoPage() {
         <div className="container grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-3">
           {PARTNER_LOGOS.map((src, i) => (
             // eslint-disable-next-line @next/next/no-img-element
-            <img key={i} src={src} alt={`Đối tác ${i + 1}`}
-              className="w-full aspect-square object-contain rounded-xl bg-white p-2 border border-[#e6edf4]" />
+            <img key={i} src={src} alt={`Đối tác ${i + 1}`} loading="lazy"
+              className="aspect-square w-full rounded-xl border border-line bg-white object-contain p-2" />
           ))}
         </div>
       </section>
@@ -226,13 +229,13 @@ export default function InfoPage() {
             <article key={i} className={CARD}>
               <div className="flex items-center gap-3.5 mb-4">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={t.img} alt={t.name} className="w-14 h-14 rounded-full object-cover border-2 border-[#e6edf4] flex-shrink-0" />
+                <img src={t.img} alt={t.name} loading="lazy" className="w-14 h-14 rounded-full object-cover border-2 border-line shrink-0" />
                 <div>
-                  <div className="font-black text-[#17212f]">{t.name}</div>
-                  <div className="text-[13px] text-[#6d7a8a]">{t.title}</div>
+                  <div className="font-semibold text-ink">{t.name}</div>
+                  <div className="text-[13px] text-muted">{t.title}</div>
                 </div>
               </div>
-              <p className="m-0 text-[#2f3b4a] leading-relaxed italic">{t.quote}</p>
+              <p className="m-0 italic leading-relaxed text-text">{t.quote}</p>
             </article>
           ))}
         </div>
@@ -248,9 +251,9 @@ export default function InfoPage() {
         </div>
         <div className="container flex gap-6 justify-center flex-wrap">
           {PRESS.map(p => (
-            <div key={p.name} className="bg-white border border-[#e6edf4] rounded-[18px] px-10 py-5 flex items-center shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
+            <div key={p.name} className="flex items-center rounded-2xl border border-line bg-white px-10 py-5 shadow-card">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={p.img} alt={p.name} className="h-12 object-contain" />
+              <img src={p.img} alt={p.name} loading="lazy" className="h-12 object-contain" />
             </div>
           ))}
         </div>
@@ -266,12 +269,12 @@ export default function InfoPage() {
         </div>
         <div className="container grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {TEAM.map(m => (
-            <article key={m.name} className="bg-white border border-[#e6edf4] rounded-[22px] overflow-hidden shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
+            <article key={m.name} className="overflow-hidden rounded-card border border-line bg-white shadow-card">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={m.img} alt={m.name} className="w-full aspect-[4/3] object-cover block" />
+              <img src={m.img} alt={m.name} loading="lazy" className="w-full aspect-[4/3] object-cover block" />
               <div className="px-5 py-4">
-                <div className="font-black text-[#17212f] text-lg">{m.name}</div>
-                <div className="text-sm text-[#00539b] font-bold mt-1.5">{m.title}</div>
+                <div className="text-lg font-semibold text-ink">{m.name}</div>
+                <div className="mt-1.5 text-sm font-semibold text-blue">{m.title}</div>
               </div>
             </article>
           ))}

@@ -2,6 +2,9 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { getArticles, getArticleUrl } from '@/lib/api'
 import ChevronLabel from '@/components/ChevronLabel'
+import ArticleTypeLabel from '@/components/article/ArticleTypeLabel'
+import { BookIcon, ChevronLeftIcon, ChevronRightIcon } from '@/components/icons'
+import { ARTICLE_TYPE_FILTERS } from '@/config/articleTypes'
 
 export const metadata: Metadata = {
   title: 'Bài viết & Kiến thức giáo dục | anyLEARN',
@@ -9,13 +12,6 @@ export const metadata: Metadata = {
 }
 
 const PAGE_SIZE = 12
-
-const TYPE_LABELS: Record<string, string> = {
-  read: '📖 Bài viết',
-  video: '🎬 Video',
-  event: '📅 Sự kiện',
-  promotion: '🎁 Khuyến mãi',
-}
 
 export default async function ArticlesPage({
   searchParams,
@@ -37,8 +33,8 @@ export default async function ArticlesPage({
   }
 
   return (
-    <div className="container" style={{ padding: '2rem 1rem' }}>
-      <div className="section-head" style={{ marginBottom: '1.5rem' }}>
+    <div className="container py-8 lg:py-12">
+      <div className="section-head !mb-6">
         <div>
           <span className="section-kicker">Kiến thức giáo dục</span>
           <h1 className="section-title">Học và hỏi cùng anyLEARN</h1>
@@ -48,50 +44,50 @@ export default async function ArticlesPage({
 
       {/* Type filter */}
       <div className="flex gap-2 flex-wrap mb-6">
-        {[undefined, 'read', 'video', 'event', 'promotion'].map(t => (
+        {ARTICLE_TYPE_FILTERS.map(t => (
           <Link
             key={t ?? 'all'}
             href={buildUrl(0, t)}
-            className={`px-4 py-1.5 rounded-full text-sm font-black border transition-colors ${
+            className={`inline-flex min-h-11 items-center rounded-full border px-4 text-sm font-semibold no-underline transition-colors ${
               type === t
                 ? 'bg-blue text-white border-blue'
-                : 'bg-white text-blue border-[#d0e3f5] hover:border-blue'
+                : 'bg-white text-blue border-blue-line hover:border-blue'
             }`}
           >
-            {t ? TYPE_LABELS[t] ?? t : 'Tất cả'}
+            {t ? <ArticleTypeLabel type={t} /> : 'Tất cả'}
           </Link>
         ))}
       </div>
 
       {result.items.length === 0 ? (
-        <p className="text-center text-[#6d7a8a] py-16">Chưa có bài viết nào.</p>
+        <p className="py-16 text-center text-muted">Chưa có bài viết nào.</p>
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {result.items.map(a => (
-              <article key={a.id} className="bg-white border border-[#e6edf4] rounded-[22px] overflow-hidden flex flex-col shadow-[0_8px_24px_rgba(15,23,42,0.06)]">
+              <article key={a.id} className="flex flex-col overflow-hidden rounded-card border border-line bg-white shadow-card">
                 <Link href={getArticleUrl(a)} className="block no-underline">
-                  <div className="min-h-[180px] grid place-items-center relative overflow-hidden bg-[linear-gradient(135deg,#eef7ff,#e9fff3)]">
+                  <div className="min-h-[180px] grid place-items-center relative overflow-hidden bg-gradient-to-br from-blue-soft to-green-soft">
                     {a.image
                       // eslint-disable-next-line @next/next/no-img-element
-                      ? <img src={a.image} alt={a.title} className="absolute inset-0 w-full h-full object-cover" />
-                      : <span className="text-5xl">📚</span>
+                      ? <img src={a.image} alt={a.title} loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
+                      : <BookIcon className="size-12 text-blue/40" />
                     }
-                    <span className="absolute top-3 left-3 bg-[#00539b] text-white rounded-full px-2.5 py-1 text-[11px] font-black uppercase">
-                      {TYPE_LABELS[a.type] ?? a.type}
+                    <span className="absolute left-3 top-3 rounded-full bg-blue px-2.5 py-1 text-[11px] font-semibold uppercase text-white">
+                      <ArticleTypeLabel type={a.type} />
                     </span>
                   </div>
                 </Link>
                 <div className="p-5 flex flex-col flex-1">
                   <Link href={getArticleUrl(a)} className="no-underline">
-                    <h2 className="mt-0 mb-2.5 text-[#17212f] text-[17px] font-black leading-snug hover:text-blue transition-colors">
+                    <h2 className="mt-0 mb-2.5 text-[17px] font-semibold leading-snug text-ink hover:text-blue transition-colors">
                       {a.title}
                     </h2>
                   </Link>
                   {a.short_content && (
-                    <p className="mb-4 text-[#6d7a8a] text-sm flex-1 line-clamp-2">{a.short_content}</p>
+                    <p className="mb-4 text-sm text-muted flex-1 line-clamp-2">{a.short_content}</p>
                   )}
-                  <Link href={getArticleUrl(a)} className="mt-auto text-sm font-extrabold text-green-dark no-underline">
+                  <Link href={getArticleUrl(a)} className="mt-auto text-sm font-semibold text-green-dark no-underline">
                     <ChevronLabel>Đọc thêm</ChevronLabel>
                   </Link>
                 </div>
@@ -103,26 +99,26 @@ export default async function ArticlesPage({
           {totalPages > 1 && (
             <div className="flex gap-2 justify-center mt-10 flex-wrap">
               {page > 0 && (
-                <Link href={buildUrl(page - 1, type)} className="px-4 py-2 rounded-lg border border-[#d0e3f5] text-blue font-black text-sm hover:bg-[#f0f7ff]">
-                  ← Trước
+                <Link href={buildUrl(page - 1, type)} className="inline-flex min-h-11 items-center gap-1 rounded-lg border border-blue-line px-4 text-sm font-semibold text-blue no-underline hover:bg-blue-soft">
+                  <ChevronLeftIcon className="size-4" /> Trước
                 </Link>
               )}
               {Array.from({ length: totalPages }, (_, i) => (
                 <Link
                   key={i}
                   href={buildUrl(i, type)}
-                  className={`px-4 py-2 rounded-lg text-sm font-black ${
+                  className={`inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-sm font-semibold no-underline ${
                     i === page
                       ? 'bg-blue text-white'
-                      : 'border border-[#d0e3f5] text-blue hover:bg-[#f0f7ff]'
+                      : 'border border-blue-line text-blue hover:bg-blue-soft'
                   }`}
                 >
                   {i + 1}
                 </Link>
               ))}
               {page < totalPages - 1 && (
-                <Link href={buildUrl(page + 1, type)} className="px-4 py-2 rounded-lg border border-[#d0e3f5] text-blue font-black text-sm hover:bg-[#f0f7ff]">
-                  Tiếp →
+                <Link href={buildUrl(page + 1, type)} className="inline-flex min-h-11 items-center gap-1 rounded-lg border border-blue-line px-4 text-sm font-semibold text-blue no-underline hover:bg-blue-soft">
+                  Tiếp <ChevronRightIcon className="size-4" />
                 </Link>
               )}
             </div>

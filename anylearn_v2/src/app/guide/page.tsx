@@ -1,5 +1,6 @@
-import { Metadata } from 'next'
-import { API_BASE } from '@/lib/apiBase'
+import type { Metadata } from 'next'
+import DocPage from '@/components/DocPage'
+import { fetchDoc } from '@/lib/docs/fetchDoc'
 
 const GUIDE_TITLES: Record<string, string> = {
   guide_toc: 'Điều khoản sử dụng',
@@ -20,40 +21,9 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
   return { title: `${title} - anyLEARN` }
 }
 
-async function fetchDoc(key: string): Promise<{ content: string; updatedAt?: string } | null> {
-  try {
-    const res = await fetch(`${API_BASE}/doc/${key}`, { next: { revalidate: 3600 } })
-    const json = await res.json()
-    if (json?.resultCode === 1 && json?.data) return json.data
-  } catch {}
-  return null
-}
-
 export default async function GuidePage({ searchParams }: { searchParams: Promise<{ p?: string }> }) {
   const { p } = await searchParams
-  if (!p) return <section className="section"><div className="container"><p className="text-muted">Trang không tìm thấy.</p></div></section>
+  if (!p) return <section className="py-10"><div className="container"><p className="text-muted">Trang không tìm thấy.</p></div></section>
 
-  const doc = await fetchDoc(p)
-  const title = GUIDE_TITLES[p] ?? 'Hướng dẫn'
-
-  return (
-    <section className="section">
-      <div className="container max-w-[780px]">
-        <h1 className="text-[clamp(24px,4vw,36px)] font-black text-ink mb-2">{title}</h1>
-        {doc?.updatedAt && (
-          <p className="text-muted text-sm mb-8">
-            Cập nhật lần cuối: {new Date(doc.updatedAt).toLocaleDateString('vi-VN')}
-          </p>
-        )}
-        {doc?.content ? (
-          <div
-            className="prose max-w-none text-text leading-relaxed"
-            dangerouslySetInnerHTML={{ __html: doc.content }}
-          />
-        ) : (
-          <p className="text-muted">Nội dung đang được cập nhật.</p>
-        )}
-      </div>
-    </section>
-  )
+  return <DocPage title={GUIDE_TITLES[p] ?? 'Hướng dẫn'} doc={await fetchDoc(p)} />
 }

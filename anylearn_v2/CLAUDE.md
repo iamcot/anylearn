@@ -140,6 +140,11 @@ getOrder(orderId, token)       // GET /order/:orderId     [auth]
 - `/login?redirect=` goes through `safeRedirect` (same-site paths only). `/login?reset=success` shows the "password reset" message.
 - `AuthModal` mounts its body only while open, so each opening starts on the requested tab with empty forms.
 
+## Static and content pages
+
+- API HTML (policies, guides, articles, help center) is rendered with the `rich-content` class (list, heading, link, image styles in `globals.css`; there is no typography plugin, `prose` does nothing). Policy and guide pages share `components/DocPage.tsx` + `lib/docs/fetchDoc.ts`.
+- Article type labels and icons: `config/articleTypes.ts`, `components/article/ArticleTypeLabel.tsx`. Terms text: `config/terms.ts`.
+
 ## Utility
 
 ```typescript
