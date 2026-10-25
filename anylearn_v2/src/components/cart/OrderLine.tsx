@@ -44,11 +44,10 @@ export default function OrderLine({ item, href, action }: Props) {
         }
         {schedule && <div className="mt-0.5 text-xs text-blue">{schedule}</div>}
         <ItemActivityChips activities={item.activities} />
+        <div className="mt-1 text-[15px] font-extrabold text-red sm:hidden">{formatPrice(item.price)}</div>
       </div>
-      <div className="shrink-0 text-right">
-        <div className="text-[15px] font-extrabold text-red">{formatPrice(item.price)}</div>
-        {action}
-      </div>
+      <div className="hidden shrink-0 text-right text-[15px] font-extrabold text-red sm:block">{formatPrice(item.price)}</div>
+      {action && <div className="-mt-3 -mr-2.5 -mb-3 grid w-11 shrink-0 place-items-center self-start">{action}</div>}
     </li>
   )
 }

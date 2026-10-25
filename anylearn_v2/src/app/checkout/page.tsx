@@ -138,7 +138,7 @@ export default function CheckoutPage() {
                     key={item.cartItemId}
                     item={item}
                     action={
-                      <button type="button" aria-label={`Xóa ${item.title} khỏi giỏ`} onClick={() => handleRemove(item.cartItemId)} className={`${REMOVE_BUTTON_CLASS} -mr-2.5`}>
+                      <button type="button" aria-label={`Xóa ${item.title} khỏi giỏ`} onClick={() => handleRemove(item.cartItemId)} className={REMOVE_BUTTON_CLASS}>
                         <CloseIcon className="size-5" />
                       </button>
                     }
