@@ -40,6 +40,7 @@ export default async function HomePage() {
             anyLEARN giúp phụ huynh tìm kiếm, so sánh, nhận tư vấn và đăng ký chương trình học chính quy, ngoại khóa, online và offline dễ dàng hơn
           </p>
           <SearchCard variant="home" initialTags={categories.slice(0, 6).map(c => ({ label: c.title, categoryUrl: c.url }))} />
+          <GuestLearnerStrip />
         </div>
       </section>
 
@@ -61,7 +62,6 @@ export default async function HomePage() {
       </div>
 
       {/* ── Promo ── */}
-      <GuestLearnerStrip />
       <PromoSlider promos={promos} />
 
       {/* ── Categories ── */}
