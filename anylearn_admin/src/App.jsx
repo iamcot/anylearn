@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext'
 import Articles from './pages/Articles'
 import Activities from './pages/Activities'
 import Audit from './pages/Audit'
+import BankAccount from './pages/BankAccount'
 import Dashboard from './pages/Dashboard'
 import Finance from './pages/Finance'
 import Items from './pages/Items'
@@ -86,6 +87,7 @@ export default function App() {
                   <Route path="transactions" element={<Transactions />} />
                   <Route path="articles" element={<Articles />} />
                   <Route path="audit" element={<Audit />} />
+                  <Route path="bank-account" element={<BankAccount />} />
                   <Route path="finance" element={<Finance />} />
                 </Route>
                 <Route path="*" element={<Navigate to="/dashboard" replace />} />

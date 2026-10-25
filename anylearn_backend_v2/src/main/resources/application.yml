@@ -73,10 +73,13 @@ payment:
     secretKey: ${MOMO_SECRET_KEY:}
   bankTransfer:
     bankName: ${BANK_NAME:MB Bank}
+    bankBin: ${BANK_BIN:970422}
     accountNumber: ${BANK_ACCOUNT_NUMBER:}
     accountName: ${BANK_ACCOUNT_NAME:}
     transferContent: ${BANK_TRANSFER_CONTENT:[Họ tên] + [Số điện thoại]}
     zaloPhone: ${BANK_ZALO_PHONE:}
+  sepay:
+    apiKey: ${SEPAY_API_KEY:}
 
 aws:
   s3:

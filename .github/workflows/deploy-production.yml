@@ -55,6 +55,9 @@ jobs:
 
       - name: Build with Maven
         working-directory: anylearn_backend_v2
+        env:
+          # runner has 4 GB shared with the running app: keep the JVM small (measured peak about 0.5 GB)
+          MAVEN_OPTS: -Xmx768m
         run: nice -n 19 mvn clean package -DskipTests -B
 
       - name: Upload backend artifact
@@ -67,7 +70,10 @@ jobs:
   build-frontend:
     name: Build Frontend
     runs-on: [self-hosted, production]
-    if: github.event.inputs.deploy_frontend == 'true'
+    # Builds share one small runner: run them one after another (needs only orders them, a failed or skipped
+    # backend build does not block this one) so Maven, npm ci and next build do not fight for CPU and RAM.
+    needs: build-backend
+    if: ${{ !cancelled() && github.event.inputs.deploy_frontend == 'true' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -120,7 +126,8 @@ jobs:
   build-admin:
     name: Build Admin
     runs-on: [self-hosted, production]
-    if: github.event.inputs.deploy_admin == 'true'
+    needs: build-frontend
+    if: ${{ !cancelled() && github.event.inputs.deploy_admin == 'true' }}
     steps:
       - uses: actions/checkout@v4
 

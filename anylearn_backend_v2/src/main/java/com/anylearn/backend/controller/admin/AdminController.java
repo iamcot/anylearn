@@ -8,6 +8,7 @@ import com.anylearn.backend.service.AuthService;
 import com.anylearn.backend.service.AuditService;
 import com.anylearn.backend.service.MeilisearchService;
 import com.anylearn.backend.service.NotificationService;
+import com.anylearn.backend.service.payment.bank.BankAccountService;
 import com.anylearn.backend.service.S3Service;
 import com.anylearn.backend.service.ZnsService;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +38,7 @@ public class AdminController {
     private final AuditService auditService;
     private final EntityManager em;
     private final S3Service s3Service;
+    private final BankAccountService bankAccountService;
 
     /** All categories regardless of status — for admin item editing */
     @GetMapping("/categories")
@@ -134,6 +136,23 @@ public class AdminController {
 
         var notif = notificationService.createNotification(targetUser.getId(), type, title, content, route, extraContent);
         return ApiResponse.ok(Map.of("notificationId", notif.getId(), "userId", targetUser.getId()));
+    }
+
+    @GetMapping("/bank-account")
+    public ApiResponse<?> getBankAccount(@AuthenticationPrincipal User user) {
+        if (user == null || !"admin".equals(user.getRole())) return ApiResponse.fail("Forbidden");
+        return ApiResponse.ok(bankAccountService.current());
+    }
+
+    @PutMapping("/bank-account")
+    public ApiResponse<?> updateBankAccount(
+            @AuthenticationPrincipal User user,
+            @RequestBody Map<String, String> body) {
+        if (user == null || !"admin".equals(user.getRole())) return ApiResponse.fail("Forbidden");
+        String problem = bankAccountService.save(new BankAccountService.BankAccount(
+                body.get("bankName"), body.get("bankBin"), body.get("accountNumber"),
+                body.get("accountName"), body.get("zaloPhone")));
+        return problem == null ? ApiResponse.ok(bankAccountService.current()) : ApiResponse.fail(problem);
     }
 
     @GetMapping("/config")

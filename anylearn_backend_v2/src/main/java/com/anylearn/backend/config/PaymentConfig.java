@@ -20,14 +20,23 @@ public class PaymentConfig {
     private OnepayProps onepaytg = new OnepayProps();   // onepaytg — trả góp quốc tế
     private MomoProps momo = new MomoProps();
     private BankTransferProps bankTransfer = new BankTransferProps();
+    private SepayProps sepay = new SepayProps();
 
     @Data
     public static class BankTransferProps {
         private String bankName = "MB Bank";
+        // 6-digit Napas BIN of the bank, needed to draw the VietQR code (970422 = MB Bank)
+        private String bankBin = "970422";
         private String accountNumber = "";
         private String accountName = "";
         private String transferContent = "[Họ tên] + [Số điện thoại]";
         private String zaloPhone = "";
+    }
+
+    @Data
+    public static class SepayProps {
+        // Key set at my.sepay.vn when the webhook is created; SePay sends it as "Authorization: Apikey <key>"
+        private String apiKey = "";
     }
 
     @Data

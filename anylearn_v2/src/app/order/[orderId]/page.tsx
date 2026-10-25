@@ -10,6 +10,9 @@ import CheckCircle from '@/components/CheckCircle'
 import OrderLine from '@/components/cart/OrderLine'
 import { FormPageSkeleton, ListSkeleton } from '@/components/PageSkeleton'
 import { ClockIcon, CloseIcon } from '@/components/icons'
+import BankTransferPanel from '@/components/payment/BankTransferPanel'
+import { orderTransferNote } from '@/lib/vietqr/payload'
+import { useOrderStatus } from '@/components/payment/useOrderStatus'
 
 const GATEWAY_WAIT_STEPS = ['Giao dịch đang được xử lý. Vui lòng kiểm tra email xác nhận.']
 
@@ -36,6 +39,33 @@ function InstructionBox({ title, children }: { title: string; children: React.Re
     </div>
   )
 }
+
+function OrderHeading({ awaitingPayment, paid }: { awaitingPayment: boolean; paid: boolean }) {
+  if (awaitingPayment) {
+    return (
+      <>
+        <StatusIcon failed={false} />
+        <h1 className="mb-2 text-[28px] font-extrabold text-ink">Vui lòng thanh toán để hoàn tất đăng ký</h1>
+        <p className="mb-8 mt-0 text-muted">
+          Đơn hàng đã được ghi nhận. Quét mã QR hoặc chuyển khoản theo thông tin bên dưới để hoàn tất đăng ký.
+        </p>
+      </>
+    )
+  }
+  return (
+    <>
+      <div className="mb-4 flex justify-center"><CheckCircle size={64} /></div>
+      <h1 className="mb-2 text-[28px] font-extrabold text-ink">{paid ? 'Thanh toán thành công!' : 'Đặt hàng thành công!'}</h1>
+      <p className="mb-8 mt-0 text-muted">
+        {paid
+          ? 'Cảm ơn bạn đã thanh toán. Đăng ký của bạn đã được xác nhận.'
+          : 'Cảm ơn bạn đã tin tưởng anyLEARN. Vui lòng hoàn tất thanh toán để xác nhận đăng ký.'}
+      </p>
+    </>
+  )
+}
+
+const AWAITING_PAYMENT_STATUSES = ['new', 'pay_pending']
 
 const STEP_CLASS = 'mb-1 text-sm leading-[1.7] text-text'
 
@@ -83,6 +113,15 @@ export default function OrderPage() {
       setLoading(false)
     })
   }, [token, orderId])
+
+  const isAwaitingBankTransfer = order?.paymentMethod === 'bank_transfer'
+    && paymentStatus !== 'success'
+    && AWAITING_PAYMENT_STATUSES.includes(order.status ?? '')
+  const orderStatus = useOrderStatus(orderId, token, order?.status, isAwaitingBankTransfer)
+
+  useEffect(() => {
+    if (orderStatus === 'delivered' && isAwaitingBankTransfer) router.replace(`/order/${orderId}?status=success`)
+  }, [orderStatus, isAwaitingBankTransfer, orderId, router])
 
   if (isAuthLoading) return <FormPageSkeleton />
   if (!user) return null
@@ -140,15 +179,7 @@ export default function OrderPage() {
           </>
         ) : (
           <>
-            <div className="mb-4 flex justify-center"><CheckCircle size={64} /></div>
-            <h1 className="mb-2 text-[28px] font-extrabold text-ink">
-              {paymentStatus === 'success' ? 'Thanh toán thành công!' : 'Đặt hàng thành công!'}
-            </h1>
-            <p className="mb-8 mt-0 text-muted">
-              {paymentStatus === 'success'
-                ? 'Cảm ơn bạn đã thanh toán. Đăng ký của bạn đã được xác nhận.'
-                : 'Cảm ơn bạn đã tin tưởng anyLEARN. Vui lòng hoàn tất thanh toán để xác nhận đăng ký.'}
-            </p>
+            <OrderHeading awaitingPayment={isAwaitingBankTransfer} paid={paymentStatus === 'success'} />
 
             <section className="mb-5 overflow-hidden rounded-card border border-line bg-white text-left">
               <h2 className="m-0 border-b border-line bg-bg px-5 py-3 text-base font-extrabold text-ink">Khóa học đã đặt</h2>
@@ -159,12 +190,8 @@ export default function OrderPage() {
               </ul>
             </section>
 
-            {order.paymentMethod === 'bank_transfer' && bankInfo && (
-              <InstructionBox title="Hướng dẫn chuyển khoản">
-                <li className={STEP_CLASS}>Chuyển khoản đến tài khoản: <strong>{bankInfo.bankName} - {bankInfo.accountNumber} - {bankInfo.accountName}</strong></li>
-                <li className={STEP_CLASS}>Nội dung chuyển khoản: <strong>{bankInfo.transferContent}</strong></li>
-                <li className={STEP_CLASS}>Sau khi chuyển khoản, vui lòng gửi ảnh xác nhận qua Zalo: <strong>{bankInfo.zaloPhone}</strong></li>
-              </InstructionBox>
+            {isAwaitingBankTransfer && bankInfo && (
+              <BankTransferPanel note={order.transferNote ?? orderTransferNote(orderId)} amount={order.amount ?? 0} bank={bankInfo} />
             )}
 
             {order.paymentMethod !== 'bank_transfer' && instructions && (

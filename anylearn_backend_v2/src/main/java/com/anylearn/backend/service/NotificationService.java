@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -45,9 +47,24 @@ public class NotificationService {
         n.setCreatedAt(LocalDateTime.now());
         n.setUpdatedAt(LocalDateTime.now());
         notificationRepository.save(n);
-        sseService.notifyUser(userId);
+        pushToBrowser(userId);
         tryEmailForNotification(userId, type, title, content);
         return n;
+    }
+
+    // The browser refetches its notifications as soon as it gets the event, so inside a transaction the event
+    // must wait for the commit, otherwise the refetch misses the new row and the bell stays stale until reload.
+    void pushToBrowser(Long userId) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            sseService.notifyUser(userId);
+            return;
+        }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                sseService.notifyUser(userId);
+            }
+        });
     }
 
     private void tryEmailForNotification(Long userId, String type, String title, String content) {
@@ -85,7 +102,7 @@ public class NotificationService {
     public void dispatchDueNotifications() {
         var due = notificationRepository.findBySendBeforeAndIsSend(LocalDateTime.now(), (byte) 0);
         for (Notification n : due) {
-            sseService.notifyUser(n.getUserId());
+            pushToBrowser(n.getUserId());
             n.setIsSend((byte) 1);
             n.setUpdatedAt(LocalDateTime.now());
             notificationRepository.save(n);

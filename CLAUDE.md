@@ -86,7 +86,13 @@ Testing on a phone: `ngrok http 3000` and open the ngrok URL. One tunnel is enou
 JWT_SECRET          # default: change-me-in-production-use-at-least-32-chars
 MEILI_HOST          # default: http://localhost:7700
 MEILI_MASTER_KEY    # default: local_dev_key
+BANK_NAME / BANK_BIN / BANK_ACCOUNT_NUMBER / BANK_ACCOUNT_NAME   # default receiving account; admins override it in the back office (BIN 970422 = MB Bank)
+SEPAY_API_KEY       # key of the SePay webhook, see "Bank transfer by QR"
 ```
+
+## CI (GitHub Actions, self-hosted runner)
+
+- The runner is the production box: 2 cores, 4 GB RAM shared with Java, MySQL, MeiliSearch, Next.js and nginx. Measured peaks on 2 cores: `npm ci` about 0.9 GB, `next build` about 1 GB, `mvn package` about 0.5 GB. The three build jobs therefore run one after another (`build-backend` → `build-frontend` → `build-admin`); do not make them parallel again. If builds still get killed, add 2 GB of swap on the server.
 
 ## HTTP Test Files
 
@@ -129,6 +135,28 @@ Course structure: `class_plans`, `schedules`, `item_schedule_plans`, `item_video
 User relations: `user_locations`, `user_banks`, `user_documents`, `user_spec_links`
 
 Full schema in memory: `db_schema_anylearn.md`
+
+## Bank transfer by QR (SePay)
+
+- Order page `/order/[orderId]` shows a VietQR code next to the bank details for `bank_transfer` orders. Transfer note = `ALQR{orderId}` (e.g. `ALQR42`), built in `TransferNote.java`; the order API returns it as `transferNote`, and the FE has the same one-line format in `orderTransferNote` as a fallback when the backend is older. Keep both identical. FE: `components/payment/BankTransferPanel.tsx`, `lib/vietqr/payload.ts`; the page polls the order every 3 seconds and moves to `?status=success` when it is `delivered`.
+- SePay (my.sepay.vn) webhook: `POST https://<domain>/v2/payment-notify/sepay`, authentication "API Key" (header `Authorization: Apikey <SEPAY_API_KEY>`), `SepayWebhookService` in the backend. Money in with `ALQR{id}` and amount >= order amount approves the order through `PaymentApprovalService.approveOrder` (buyer gets the in-app notification and email, admins too). Short amount, unknown order and an order that is no longer waiting are saved in `bank_webhook_events` (`mismatch`, `unmatched`, `needs_review`) and admins are notified; extra money approves and notifies admins. A transfer id is processed once.
+- The receiving account is edited in the back office: user menu "Cài đặt" > "Tài khoản ngân hàng" (`/admin/bank-account`, `anylearn_admin/src/pages/BankAccount.jsx`). It is saved in the `configurations` table under `bank/*` (`BankAccountService`); the `BANK_*` env values are only the defaults used until an admin saves it. Only `SEPAY_API_KEY` must be set on the server. Sample calls: `http/payment.http`.
+- SePay setup (Cấu hình công ty > Cấu trúc mã thanh toán): prefix `ALQR`, suffix from 1 to 10 characters, type "Số nguyên", turned on. SePay then also sends the extracted code in the webhook field `code`; the backend reads `code` first, then the transfer content.
+- The BIN is the 6-digit Napas code of the receiving bank (the VietQR needs it; the admin page fills it from the bank you pick). Common codes (same list as `BANKS` in the CLR project):
+
+| Bank | BIN | Bank | BIN |
+|---|---|---|---|
+| ACB | `970416` | MB Bank | `970422` |
+| Agribank | `970405` | MSB | `970426` |
+| Bản Việt (VietCapital) | `970454` | OCB | `970448` |
+| BIDV | `970418` | Sacombank | `970403` |
+| Eximbank | `970431` | SCB | `970429` |
+| HDBank | `970437` | SeABank | `970440` |
+| LPBank | `970449` | SHB | `970443` |
+| Techcombank | `970407` | TPBank | `970423` |
+| VIB | `970441` | VietinBank | `970415` |
+| Vietcombank | `970436` | VPBank | `970432` |
+
 
 ## /today page (learner dashboard)
 

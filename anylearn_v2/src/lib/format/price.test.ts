@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatPrice } from './price'
+import { formatExactPrice, formatPrice } from './price'
 
 describe('formatPrice', () => {
   it('shows the empty label for a zero price', () => {
@@ -15,5 +15,12 @@ describe('formatPrice', () => {
     expect(formatPrice(1_000_000)).toBe('1 triệu')
     expect(formatPrice(1_500_000)).toBe('1.5 triệu')
     expect(formatPrice(12_000_000)).toBe('12 triệu')
+  })
+})
+
+describe('formatExactPrice', () => {
+  it('never rounds to millions', () => {
+    expect(formatExactPrice(1_500_000)).toBe('1.500.000 đ')
+    expect(formatExactPrice(250_000)).toBe('250.000 đ')
   })
 })

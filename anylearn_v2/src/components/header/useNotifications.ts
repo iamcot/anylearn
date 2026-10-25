@@ -25,14 +25,24 @@ export function useNotifications() {
   }, [user])
 
   // SSE for real-time notifications + browser push
-  useEffect(() => {
-    if (!user) return
-    getNotifications(user.jwtToken).then(({ unread }) => setUnreadCount(unread ?? 0))
+  const jwtToken = user?.jwtToken
+  const apiToken = user?.apiToken
 
-    const es = new EventSource(`${API_BASE}/user/notification/stream?api_token=${user.apiToken}`)
+  useEffect(() => {
+    if (!jwtToken || !apiToken) return
+    const loadUnread = () => getNotifications(jwtToken).then(({ unread }) => setUnreadCount(unread ?? 0))
+    loadUnread()
+
+    const es = new EventSource(`${API_BASE}/user/notification/stream?api_token=${apiToken}`)
+
+    // The server says "connected" on every (re)connection: events sent while offline are not replayed, so recount.
+    es.addEventListener('connected', loadUnread)
+
+    const recountWhenVisible = () => { if (!document.hidden) loadUnread() }
+    document.addEventListener('visibilitychange', recountWhenVisible)
 
     es.addEventListener('notification', async () => {
-      const result = await getNotifications(user.jwtToken)
+      const result = await getNotifications(jwtToken)
       setUnreadCount(result.unread ?? 0)
 
       // Refresh wallet_c and user profile so anyPoint balance is up to date
@@ -57,8 +67,11 @@ export function useNotifications() {
       }
     })
 
-    return () => es.close()
-  }, [user, refreshUser])
+    return () => {
+      es.close()
+      document.removeEventListener('visibilitychange', recountWhenVisible)
+    }
+  }, [jwtToken, apiToken, refreshUser])
 
   return { unreadCount: user ? unreadCount : 0, setUnreadCount }
 }
