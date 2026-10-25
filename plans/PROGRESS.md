@@ -120,6 +120,10 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 
 ## Nhật ký
 
+### 25/10/2026 – chỉnh dải gợi ý trang chủ (04.7)
+- Dải "Khóa học hợp với Bin" nằm sát khối benefits và kéo dài hết chiều ngang trên desktop → chuyển vào ngay dưới ô tìm kiếm
+  của hero, dạng chip nền trắng có viền như trang tìm kiếm ("Gợi ý cho" [Bin · 6t] [Su · 9t] [Sửa]); bấm chip mở `/search?age=...`.
+
 ### 25/10/2026 – 04.7 xong
 - Khách chưa đăng nhập vào `/`, `/search`, `/class/*` được hỏi "Tìm cho ai?" (sheet nhẹ, hiện sau 1,5 giây, "Để sau" ẩn 7 ngày).
   Con: tên/biệt danh + năm sinh (tối đa 5); bản thân: năm sinh tuỳ chọn. Lưu `localStorage` (`anylearn.guestLearners`).
