@@ -44,7 +44,7 @@ export default function ReviewsSection({ itemId, initialReviews, initialRating }
       })
       .catch(() => {})
       .finally(() => setChecked(true))
-  }, [itemId, user]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [itemId, user])
 
   // Always fetch fresh reviews on mount
   useEffect(() => {
@@ -59,7 +59,7 @@ export default function ReviewsSection({ itemId, initialReviews, initialRating }
         }
       })
       .catch(() => {})
-  }, [itemId]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [itemId])
 
   async function refreshReviews() {
     const res = await fetch(`${API_BASE}/item/${itemId}/reviews`).catch(() => null)
@@ -104,8 +104,9 @@ export default function ReviewsSection({ itemId, initialReviews, initialRating }
               onSaved={handleSaved}
             />
             <button
+              type="button"
               onClick={() => setEditing(false)}
-              style={{ fontSize: 12, color: '#9aa5b1', background: 'none', border: 'none', cursor: 'pointer', marginTop: 6, padding: 0 }}
+              className="mt-1.5 min-h-11 cursor-pointer border-0 bg-transparent p-0 text-xs text-subtle hover:text-ink"
             >
               Hủy
             </button>
@@ -114,12 +115,13 @@ export default function ReviewsSection({ itemId, initialReviews, initialRating }
 
         {/* Already rated — show summary + edit button */}
         {checked && hasPurchased && myRating && !editing && (
-          <div className="flex items-center gap-3 rounded-[12px] bg-[#f0fff8] border border-[#c3f0d8] px-4 py-3">
+          <div className="flex items-center gap-3 rounded-xl border border-green-line bg-green-soft px-4 py-3">
             <StarRating value={myRating.value} />
-            <span className="text-sm text-[#008244] font-bold flex-1">Đánh giá của bạn</span>
+            <span className="flex-1 text-sm font-bold text-green-dark">Đánh giá của bạn</span>
             <button
+              type="button"
               onClick={startEdit}
-              style={{ fontSize: 12, color: '#00539b', fontWeight: 500, background: 'none', cursor: 'pointer', padding: '4px 10px', borderRadius: 8, border: '1px solid #00539b' } as React.CSSProperties}
+              className="min-h-11 cursor-pointer rounded-lg border border-blue bg-transparent px-3 text-xs font-medium text-blue"
             >
               Sửa
             </button>

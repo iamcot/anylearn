@@ -89,7 +89,7 @@ export function PdpSkeleton() {
       <section className="section--soft pb-10 pt-10">
         <div className="container">
           <Bar className="mb-5 h-5 w-24" />
-          <div className="pdp-hero">
+          <div className="grid items-start gap-6 lg:grid-cols-[1fr_480px] lg:gap-10">
             <div>
               <div className="aspect-video rounded-card bg-line/60" />
               <Bar className="mt-6 h-8 w-4/5" />

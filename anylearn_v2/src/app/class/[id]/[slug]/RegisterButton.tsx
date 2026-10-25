@@ -32,24 +32,12 @@ export default function RegisterButton({ itemId }: { itemId: number }) {
     }
   }
 
+  // Logged-in people have the bottom tabs below lg, so the bar sits above them.
+  const bottomClass = user ? 'bottom-[calc(4.5rem+env(safe-area-inset-bottom))] lg:bottom-4' : 'bottom-4'
+
   const stickyBar = sticky ? (
-    <div style={{
-      position: 'fixed', bottom: 16, left: '50%', transform: 'translateX(-50%)',
-      width: 'min(calc(100vw - 32px), 1180px)',
-      background: '#fff',
-      boxShadow: '0 -2px 0 0 #e6edf4, 0 8px 32px rgba(15,23,42,0.16)',
-      borderRadius: 18,
-      padding: '12px 16px',
-      display: 'flex', justifyContent: 'center',
-      zIndex: 1000,
-    }}>
-      <button onClick={handleRegister}
-        className="btn btn--green"
-        style={{
-          width: '100%',
-          maxWidth: 'min(50%, 480px)',
-          padding: '12px 24px', fontSize: 15,
-        }}>
+    <div className={`fixed left-1/2 z-[45] flex w-[min(calc(100vw-32px),1180px)] -translate-x-1/2 justify-center rounded-[18px] bg-white px-4 py-3 shadow-raised ${bottomClass}`}>
+      <button type="button" onClick={handleRegister} className="btn btn--green w-full max-w-[480px] py-3 text-[15px] md:w-1/2">
         Đăng ký ngay
       </button>
     </div>
@@ -58,7 +46,7 @@ export default function RegisterButton({ itemId }: { itemId: number }) {
   return (
     <>
       <div ref={sentinelRef} />
-      <button onClick={handleRegister} className="btn btn--green" style={{ width: '100%', fontSize: 17, padding: '16px 24px' }}>
+      <button type="button" onClick={handleRegister} className="btn btn--green w-full px-6 py-4 text-[17px]">
         Đăng ký ngay
       </button>
       {mounted && createPortal(stickyBar, document.body)}

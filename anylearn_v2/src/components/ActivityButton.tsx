@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { API_BASE } from '@/lib/apiBase'
+import { CheckIcon, CloseIcon } from '@/components/icons'
 
 const TYPE_LABEL: Record<string, string> = {
   trial: 'Học thử', test: 'Test đầu vào', visit: 'Tham quan',
@@ -39,10 +40,10 @@ export default function ActivityButton({ itemId, activiyTrial, activiyTest, acti
   const [noteVisit, setNoteVisit] = useState('')
 
   const hasAny = activiyTrial === 1 || activiyTest === 1 || activiyVisit === 1
-  if (!hasAny) return null
 
   // Fetch my activities on mount
   useEffect(() => {
+    if (!hasAny) return
     if (!user) { setChecked(true); return }
     fetch(`${API_BASE}/item/${itemId}/my-activities`, {
       headers: { Authorization: `Bearer ${user.jwtToken}` },
@@ -50,7 +51,7 @@ export default function ActivityButton({ itemId, activiyTrial, activiyTest, acti
       .then(r => r.json())
       .then(json => { setMyActivities(json.data ?? []); setChecked(true) })
       .catch(() => setChecked(true))
-  }, [itemId, user]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [itemId, user, hasAny])
 
   // Determine if already registered with future date
   const today = new Date().toISOString().slice(0, 10)
@@ -84,17 +85,17 @@ export default function ActivityButton({ itemId, activiyTrial, activiyTest, acti
     setSaving(false)
   }
 
-  if (!checked) return null
+  if (!hasAny || !checked) return null
 
   return (
     <>
       {isRegisteredActive ? (
         // Already registered — show status
-        <div className="mt-2 rounded-[10px] border border-[#c3f0d8] bg-[#f0fff8] px-4 py-3 text-sm">
+        <div className="mt-2 rounded-xl border border-green-line bg-green-soft px-4 py-3 text-sm">
           <div className="text-xs font-bold text-muted mb-1">Đã đăng ký trải nghiệm</div>
           {myActivities.filter(a => !a.date || a.date >= today).map(a => (
-            <div key={a.id} className="text-[#008244] flex items-center gap-1">
-              <span style={{ color: '#00a651', fontWeight: 500 }}>✓</span>
+            <div key={a.id} className="flex items-center gap-1 text-green-dark">
+              <CheckIcon className="size-4 text-green" />
               <span className="font-medium">{TYPE_LABEL[a.type] ?? a.type}</span>
               {a.date && <span className="text-muted font-normal">· ngày {a.date}</span>}
             </div>
@@ -103,7 +104,7 @@ export default function ActivityButton({ itemId, activiyTrial, activiyTest, acti
       ) : (
         <button
           onClick={() => setOpen(true)}
-          className="mt-2 w-full py-3 rounded-[12px] border-2 border-[#00a651] text-[#00a651] bg-transparent font-bold text-sm cursor-pointer hover:bg-[#f0fff8] transition-colors"
+          className="mt-2 min-h-11 w-full cursor-pointer rounded-xl border-2 border-green bg-transparent py-3 text-sm font-bold text-green transition-colors hover:bg-green-soft"
         >
           Đăng ký trải nghiệm
         </button>
@@ -111,15 +112,17 @@ export default function ActivityButton({ itemId, activiyTrial, activiyTest, acti
 
       {/* Modal */}
       {open && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div className="bg-white rounded-[18px] p-6 w-full max-w-[400px] shadow-xl">
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-ink/45 p-4">
+          <div className="w-full max-w-[400px] rounded-[18px] bg-white p-6 shadow-raised">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="m-0 text-base font-black text-ink">Đăng ký trải nghiệm</h3>
-              <button onClick={() => setOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, color: '#9ca3af' }}>×</button>
+              <h3 className="m-0 text-base font-extrabold text-ink">Đăng ký trải nghiệm</h3>
+              <button type="button" aria-label="Đóng" onClick={() => setOpen(false)} className="-mr-2 grid size-11 cursor-pointer place-items-center border-0 bg-transparent text-muted hover:text-ink">
+                <CloseIcon />
+              </button>
             </div>
 
             {done ? (
-              <div className="text-center py-6 text-[#008244] font-bold">✓ Đăng ký thành công!</div>
+              <div className="flex items-center justify-center gap-2 py-6 font-bold text-green-dark"><CheckIcon className="size-5" />Đăng ký thành công!</div>
             ) : (
               <div className="flex flex-col gap-4">
                 {activiyTrial === 1 && (
@@ -135,7 +138,7 @@ export default function ActivityButton({ itemId, activiyTrial, activiyTest, acti
                     date={dateVisit} onDate={setDateVisit} note={noteVisit} onNote={setNoteVisit} />
                 )}
                 <button onClick={handleSave} disabled={saving || (!selTrial && !selTest && !selVisit)}
-                  className="btn btn--green w-full mt-2" style={{ opacity: (!selTrial && !selTest && !selVisit) ? 0.5 : 1 }}>
+                  className={`btn btn--green mt-2 w-full ${(!selTrial && !selTest && !selVisit) ? 'opacity-50' : ''}`}>
                   {saving ? 'Đang gửi...' : 'Gửi đăng ký'}
                 </button>
               </div>
@@ -152,10 +155,10 @@ function ActivityRow({ label, checked, onCheck, date, onDate, note, onNote }: {
   date: string; onDate: (v: string) => void; note: string; onNote: (v: string) => void
 }) {
   return (
-    <div className={`rounded-[10px] border p-3 transition-colors ${checked ? 'border-[#00a651] bg-[#f0fff8]' : 'border-line'}`}>
-      <label className="flex items-center gap-2 cursor-pointer mb-2">
+    <div className={`rounded-xl border p-3 transition-colors ${checked ? 'border-green bg-green-soft' : 'border-line'}`}>
+      <label className="mb-2 flex min-h-11 cursor-pointer items-center gap-2">
         <input type="checkbox" checked={checked} onChange={e => onCheck(e.target.checked)} className="accent-green w-4 h-4" />
-        <span className={`font-bold text-sm ${checked ? 'text-[#008244]' : 'text-ink'}`}>{label}</span>
+        <span className={`text-sm font-bold ${checked ? 'text-green-dark' : 'text-ink'}`}>{label}</span>
       </label>
       {checked && (
         <div className="flex flex-col gap-2 pl-6">

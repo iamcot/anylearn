@@ -39,7 +39,7 @@ export default function ScrollRow({ children, className }: { children: React.Rea
           <ChevronLeftIcon className="size-5" />
         </button>
       )}
-      <div ref={ref} className={`pdp-scroll-row ${className ?? ''}`}>
+      <div ref={ref} className={`flex gap-4 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${className ?? ''}`}>
         {children}
       </div>
       {canRight && (
