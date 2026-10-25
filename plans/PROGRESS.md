@@ -22,6 +22,8 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 - [ ] Câu chữ chính sách hoàn tiền trong "Lời hứa anyLEARN" (plan 10.1).
 - [ ] Hệ số điểm theo hạng thành viên có chấp nhận chi phí không (plan 10.2).
 - [ ] Trả góp: cách đối tác nhận tiền theo kỳ (plan 10.4).
+- [ ] Đồng ý thêm thư viện Java gửi Web Push (plan 13.4)?
+- [ ] Có lên Google Play / App Store không, khi nào (plan 13.8)?
 - [ ] Chat lớp: giáo viên có được vào nhóm không; nội quy và điều khoản cộng đồng (plan 11).
 
 ## Bảng task
@@ -36,6 +38,13 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 01.2 | Form "Tìm giúp tôi" (`course_requests`) | todo | |
 | 01.3 | Admin xử lý yêu cầu | todo | |
 | 01.4 | Dashboard xu hướng | todo | |
+| 13.1 | Manifest + icon | todo | Tham khảo CLR `src/app/manifest.ts` |
+| 13.2 | Service worker (cache tĩnh, offline, cập nhật) | todo | |
+| 13.3 | Mời cài app đúng lúc (Android + hướng dẫn iOS) | todo | |
+| 13.4 | Backend Web Push (VAPID, `push_subscriptions`, `PushService`) | todo | Chờ đồng ý thư viện |
+| 13.5 | FE xin quyền đúng cách + đăng ký push | todo | Bỏ xin quyền tự động lúc đăng nhập |
+| 13.6 | SW nhận push, chống trùng với SSE, badge | todo | |
+| 13.7 | Đo cài app / push | todo | |
 | 02.1 | API điểm dự kiến nhận | todo | |
 | 02.2 | "+X điểm" ở PDP/giỏ/đơn | todo | |
 | 02.3 | Công tắc dùng điểm ở checkout | todo | |
@@ -105,8 +114,14 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 10.3 | Gói gia đình | todo | |
 | 10.4 | Trả góp / đóng theo kỳ | todo | Chờ chủ sản phẩm |
 | 11.5 | Chat mở rộng | todo | |
+| 13.8 | App trên store (TWA / Capacitor) | todo | Chờ số liệu 13.7 + chủ sản phẩm |
 
 ## Nhật ký
+
+### 25/10/2026 – thêm plan 13 (PWA + push)
+- Hiện trạng: `public/sw.js` chỉ xử lý click; thông báo trình duyệt chỉ chạy khi tab mở (qua SSE); chưa có manifest,
+  chưa có Web Push; `useNotifications` tự xin quyền lúc đăng nhập (cần bỏ).
+- Plan 13 vào giai đoạn 1, làm trước 05 (nhắc thanh toán dùng push).
 
 ### 25/10/2026 – 04.7 lên giai đoạn 1
 - Chủ sản phẩm chốt: 04.7 làm ngay giai đoạn 1; năm sinh trước, ngày sinh đầy đủ bắt buộc ở checkout.

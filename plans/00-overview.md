@@ -29,7 +29,7 @@ Luồng hiện có: tìm kiếm → PDP → chọn người học & ca → giỏ
 | C. Lý do đặt qua anyLEARN | Lời hứa giá, hoàn tiền, anyPoint dễ hiểu, hạng thành viên | 02, 10 |
 | D. Hậu mãi | Không bỏ rơi đơn chờ, nhắc lịch/gia hạn, lộ trình, up-sell, cross-sell | 05, 07, 08 |
 | E. Cộng đồng | Review đáng tin, chat lớp học, giữ chân bằng quan hệ | 09, 11 |
-| Nền | Khu vực cá nhân gọn, sửa lỗi UI mobile | 06, 12 |
+| Nền | Khu vực cá nhân gọn, sửa lỗi UI mobile, PWA + push | 06, 12, 13 |
 
 ## Danh sách plan
 
@@ -47,10 +47,12 @@ Luồng hiện có: tìm kiếm → PDP → chọn người học & ca → giỏ
 | 10 | `10-membership-promise.md` | 1 + 4 | Lời hứa anyLEARN (giai đoạn 1), hạng thành viên, gói gia đình, trả góp (giai đoạn 4) |
 | 11 | `11-class-chat.md` | 3–4 | Nhóm chat người cùng lớp, kiểm duyệt, an toàn trẻ em |
 | 12 | `12-mobile-ui-fixes.md` | 1 | Lỗi UI thấy trong ảnh chụp mobile |
+| 13 | `13-pwa-push.md` | 1 + 4 | Cài như app (manifest, service worker), Web Push tới điện thoại khi app đóng; TWA/store để sau |
 
 ## Thứ tự làm đề xuất
 
-- **Giai đoạn 1 (2–4 tuần) – thắng nhanh + nền dữ liệu:** 12 → 04.7 → 01 → 02 → 05 → 10 (phần lời hứa).
+- **Giai đoạn 1 (2–4 tuần) – thắng nhanh + nền dữ liệu:** 12 → 04.7 → 01 → 13 → 02 → 05 → 10 (phần lời hứa).
+  13 (push) làm trước 05 vì nhắc thanh toán cần kênh push.
 - **Giai đoạn 2 (1–2 tháng) – khám phá:** 03 → 04 → 09 (phần nền review).
 - **Giai đoạn 3 (2–3 tháng) – giữ chân:** 07 → 08 → 06 → 09 (phần còn lại) → 11 (MVP).
 - **Giai đoạn 4 – mở rộng:** 10 (hạng, gói gia đình, trả góp), 11 (đầy đủ), so sánh khóa học.
