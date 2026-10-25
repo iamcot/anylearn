@@ -120,6 +120,15 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 
 ## Nhật ký
 
+### 25/10/2026 – sửa 2 lỗi 04.7 (bé trùng tên, danh sách không tự tải)
+- Lỗi 1: khai "Bin" 2020 trong khi tài khoản đã có "Bin" 15 tuổi vẫn bị thêm thành bé thứ hai (so khớp cần cả năm sinh).
+  Sửa: so khớp theo **tên không dấu** (bé trùng tên dùng luôn bé đã có), và backend không cho tạo/đổi tên thành tên đã có trong
+  tài khoản (`PersonNames`, lỗi 400 "Đã có bé tên …"); bảng khai báo lỗi khi hai bé trùng tên.
+- Lỗi 2: bấm "Thêm" bé sau khi đăng nhập ở `/add2cart` phải F5 mới thấy → `notifyChildrenChanged` làm trang đang mở tải lại
+  danh sách bé (giữ nguyên ca/lịch đã chọn) và chọn bé vừa chọn.
+- Kiểm tra: backend 159 test, FE 174 test, typecheck, lint, build ok; Playwright với API giả: đăng nhập khi đang ở `/add2cart`
+  với "Bin 2020" + "Gà 2017" → chọn sẵn Bin 15 tuổi có sẵn, chỉ hỏi thêm Gà, bấm Thêm thấy Gà ngay, server không có Bin thứ hai.
+
 ### 25/10/2026 – chỉnh dải gợi ý trang chủ (04.7)
 - Dải "Khóa học hợp với Bin" nằm sát khối benefits và kéo dài hết chiều ngang trên desktop → chuyển vào ngay dưới ô tìm kiếm
   của hero, dạng chip nền trắng có viền như trang tìm kiếm ("Gợi ý cho" [Bin · 6t] [Su · 9t] [Sửa]); bấm chip mở `/search?age=...`.

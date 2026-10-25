@@ -61,8 +61,10 @@ Yêu cầu của chủ sản phẩm (25/10/2026). **Làm ở giai đoạn 1**, t
 5. Khi **đăng ký tài khoản** (sau OTP thành công): FE đọc storage → gọi `POST /user/children` cho từng bé
    (`name`, `dob`) → map `localId` → `childId` → chọn sẵn bé đó cho thao tác đang dở (thêm giỏ, checkout) → xoá storage.
    Lỗi giữa chừng: giữ lại các bé chưa tạo, thử lại lần sau, không tạo trùng.
-6. Khi **đăng nhập** tài khoản có sẵn: không tự tạo. So khớp với danh sách con hiện có (tên không dấu + năm sinh):
-   khớp → dùng con đó; không khớp → hỏi "Thêm Bin (2015) vào tài khoản?" `[Thêm]` `[Bỏ qua]`.
+6. Khi **đăng nhập** tài khoản có sẵn: không tự tạo. So khớp với danh sách con hiện có theo **tên không dấu** (năm sinh không
+   cần khớp, vì một tài khoản không có hai bé trùng tên): khớp → dùng con đó; không khớp → hỏi "Thêm Gà (2017) vào tài khoản?"
+   `[Thêm]` `[Bỏ qua]`. Thêm xong, trang đang mở (add2cart) tự tải lại danh sách bé và chọn bé đã chọn.
+   Trong bảng khai, hai bé không được trùng tên.
 7. Ghi `audience` (child/self) và tuổi vào `search_logs.filters` (plan 01) để biết khách chưa đăng nhập tìm cho ai.
 
 **Dữ liệu `localStorage`** (key `anylearn.guestLearners`, có `version` để đổi cấu trúc sau này):
@@ -93,7 +95,7 @@ interface GuestLearnerStore {
 **Code**
 - Hook `useGuestLearners` (đọc/ghi storage) + component `GuestLearnerSheet`.
 - Hàm thuần có test: `ageFromBirthYear(year, today)`, `parseGuestLearnerStore(raw)` (validate + version),
-  `matchGuestToChildren(guests, children)` (so khớp không dấu + năm sinh).
+  `matchGuestToChildren(guests, children)` (so khớp tên không dấu).
 - Gắn bước 5 vào chỗ xử lý sau đăng ký thành công (`components/auth/RegisterForm.tsx` / `AuthModal`), bước 6 vào sau đăng nhập.
 - Checkout: component `LearnerDobForm` + hàm thuần `learnersMissingFullDob(cartLines, learners)` có test (FE) và kiểm tra
   tương ứng ở service tạo đơn (backend, có unit test).
@@ -102,7 +104,7 @@ interface GuestLearnerStore {
 - Khách chưa đăng nhập khai "Bin, 2015" → trang chủ/search lọc đúng tuổi, PDP chọn được Bin.
 - Bấm thêm giỏ → đăng ký → tài khoản có sẵn con "Bin" (dob 2015-01-01, `dob_year_only = 1`), giỏ hàng gắn đúng Bin,
   storage đã xoá.
-- Đăng nhập tài khoản đã có con "Bin" 2015 → không tạo trùng.
+- Đăng nhập tài khoản đã có con "Bin" (dù khai năm sinh khác) → không tạo thêm một Bin nữa.
 - Vào checkout với Bin chỉ có năm sinh → phải nhập ngày/tháng mới thanh toán được; gọi API tạo đơn thẳng (bỏ qua FE) cũng
   bị chặn với `LEARNER_DOB_REQUIRED`.
 

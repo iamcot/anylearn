@@ -2,7 +2,7 @@ import { saveChild, updateProfile } from '@/lib/api'
 import {
   EMPTY_GUEST_STORE, dobFromBirthYear, selectedGuestLearner, withoutLearners, type GuestLearner,
 } from '@/lib/guest/guestLearners'
-import { getGuestStore, saveGuestStore, setPendingChildId } from './guestLearnerStore'
+import { getGuestStore, notifyChildrenChanged, saveGuestStore, setPendingChildId } from './guestLearnerStore'
 
 export interface ImportResult {
   created: number
@@ -34,6 +34,7 @@ export async function importGuestLearners(token: string, only?: GuestLearner[]):
   }
 
   if (!only && failed.length === 0) await finishSelfAnswer(token)
+  if (created > 0) notifyChildrenChanged()
   return { created, failed }
 }
 

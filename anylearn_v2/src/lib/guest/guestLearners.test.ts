@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   EMPTY_GUEST_STORE, ageFilterFor, ageFromBirthYear, birthYearOfDob, birthYearOptions, describeGuestLearner, dobFromBirthYear,
-  guestPeople, matchGuestToChildren, normalizeName, selectedGuestPerson, parseGuestLearnerStore, shouldAskWhoFor, withAnswer, withDismissed, withSelected,
+  duplicateNickname, guestPeople, matchGuestToChildren, normalizeName, selectedGuestPerson, parseGuestLearnerStore, shouldAskWhoFor, withAnswer, withDismissed, withSelected,
   withoutLearners, type GuestLearner, type GuestLearnerStore,
 } from './guestLearners'
 
@@ -87,7 +87,7 @@ describe('normalizeName', () => {
 })
 
 describe('matchGuestToChildren', () => {
-  it('matches by name without accents plus birth year', () => {
+  it('matches by name without accents', () => {
     const result = matchGuestToChildren(
       [{ localId: 'a', nickname: 'duc', birthYear: 2015 }],
       [{ id: 7, name: 'Đức', dob: '2015-06-30' }],
@@ -96,21 +96,38 @@ describe('matchGuestToChildren', () => {
     expect(result.unmatched).toEqual([])
   })
 
-  it('does not match a different year or a different name', () => {
-    const result = matchGuestToChildren([BIN, SU], [{ id: 1, name: 'Bin', dob: '2014-01-01' }, { id: 2, name: 'Mai', dob: '2017-01-01' }])
+  it('matches the same name even with another birth year (no second Bin is created)', () => {
+    const result = matchGuestToChildren([BIN], [{ id: 1, name: 'Bin', dob: '2011-03-02' }])
+    expect(result.matched.map(item => item.child.id)).toEqual([1])
+    expect(result.unmatched).toEqual([])
+  })
+
+  it('does not match a different name', () => {
+    const result = matchGuestToChildren([BIN, SU], [{ id: 2, name: 'Mai', dob: '2017-01-01' }])
     expect(result.matched).toEqual([])
     expect(result.unmatched).toEqual([BIN, SU])
   })
 
-  it('uses each child once, so same-name siblings stay separate', () => {
-    const twin: GuestLearner = { localId: 'c3', nickname: 'Bin', birthYear: 2015 }
-    const result = matchGuestToChildren([BIN, twin], [{ id: 1, name: 'Bin', dob: '2015-01-01' }])
+  it('uses each child once', () => {
+    const again: GuestLearner = { localId: 'c3', nickname: 'Bin', birthYear: 2015 }
+    const result = matchGuestToChildren([BIN, again], [{ id: 1, name: 'Bin', dob: '2015-01-01' }])
     expect(result.matched).toHaveLength(1)
-    expect(result.unmatched).toEqual([twin])
+    expect(result.unmatched).toEqual([again])
   })
 
-  it('treats a child without a date of birth as no match', () => {
-    expect(matchGuestToChildren([BIN], [{ id: 1, name: 'Bin' }]).unmatched).toEqual([BIN])
+  it('matches a child that has no date of birth', () => {
+    expect(matchGuestToChildren([BIN], [{ id: 1, name: 'Bin' }]).matched).toHaveLength(1)
+  })
+})
+
+describe('duplicateNickname', () => {
+  it('finds a name typed twice, ignoring accents and case', () => {
+    expect(duplicateNickname([BIN, SU, { localId: 'z', nickname: ' bin ', birthYear: 2020 }])).toBe('bin')
+  })
+
+  it('returns null when every name differs or is empty', () => {
+    expect(duplicateNickname([BIN, SU])).toBeNull()
+    expect(duplicateNickname([{ nickname: '' }, { nickname: ' ' }])).toBeNull()
   })
 })
 

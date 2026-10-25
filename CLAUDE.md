@@ -132,6 +132,7 @@ Thư mục `http/` chứa VS Code REST Client files cho mọi endpoint:
 
 - `users.dob_year_only` (V17): a child created from a guest's answer only has a birth year; `dob` is then January 1st of it. `LearnerDob` (service) holds the rules: complete = `dob` set and not year-only; with a year only the age is a range (`ageBounds`), so `addToCart` rejects only when no possible age fits an item's `ages_min/ages_max`.
 - `CartService.checkout` first calls `requireFullDobForLearners`: any learner (a child, or the account owner when they are the learner) without a full date makes it throw `LearnerDobRequiredException` → HTTP 400, `resultCode 0`, `data = {code: "LEARNER_DOB_REQUIRED", learnerIds: [...]}`; with full dates it checks the age limit of every course again. `GET /cart` returns per line `studentId`, `learnerId`, `learnerName`, `dobComplete`, `learnerDobYear`.
+- A parent cannot have two children with the same name (accents, case and spacing ignored, `PersonNames`): `POST /user/children` answers 400 "Đã có bé tên …" for a new or renamed child (editing other fields of an old duplicate still works).
 - `POST /user/children` and `POST /user/edit` accept `dob` (+ `dobYearOnly: true` for a birth year); a full `dob` clears the flag. Samples: `http/user.http`.
 
 ## PWA and push

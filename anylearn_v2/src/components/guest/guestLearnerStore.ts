@@ -8,6 +8,7 @@ let cachedRaw: string | null | undefined
 let cachedStore: GuestLearnerStore = EMPTY_GUEST_STORE
 const subscribers = new Set<() => void>()
 let sheetOpen = false
+let childrenVersion = 0
 
 function readRaw(): string | null {
   try {
@@ -68,6 +69,17 @@ export function closeGuestSheet() {
 
 export function isGuestSheetOpen(): boolean {
   return sheetOpen
+}
+
+// Bumped when children were added to (or matched on) the logged-in account, so a page that is already open
+// (add2cart) reloads its list instead of waiting for F5.
+export function notifyChildrenChanged() {
+  childrenVersion++
+  notify()
+}
+
+export function getChildrenVersion(): number {
+  return childrenVersion
 }
 
 // The child that register/login created or matched, picked on /add2cart.

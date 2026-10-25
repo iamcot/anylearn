@@ -136,20 +136,32 @@ export interface GuestMatchResult {
   unmatched: GuestLearner[]
 }
 
-// A guest learner is the same person as an existing child when the name (without accents) and birth year agree.
-// One child answers for one guest only, so two siblings with the same name stay two people.
+// A guest learner is the same person as an existing child when the name (without accents) is the same: the server
+// does not allow two children with one name, so "Bin" typed with another birth year is still that Bin (the year may just
+// be a typo, and checkout asks for the exact date anyway). One child answers for one guest only.
 export function matchGuestToChildren(guests: GuestLearner[], children: ChildRecord[]): GuestMatchResult {
   const available = [...children]
   const matched: GuestMatch[] = []
   const unmatched: GuestLearner[] = []
   for (const guest of guests) {
-    const index = available.findIndex(child =>
-      normalizeName(child.name) === normalizeName(guest.nickname) && birthYearOfDob(child.dob) === guest.birthYear)
+    const index = available.findIndex(child => normalizeName(child.name) === normalizeName(guest.nickname))
     const child = index >= 0 ? available.splice(index, 1)[0] : undefined
     if (child) matched.push({ guest, child })
     else unmatched.push(guest)
   }
   return { matched, unmatched }
+}
+
+// First name used more than once in a list ("Bin" and "bin "), or null.
+export function duplicateNickname(learners: { nickname: string }[]): string | null {
+  const seen = new Set<string>()
+  for (const learner of learners) {
+    const key = normalizeName(learner.nickname)
+    if (!key) continue
+    if (seen.has(key)) return learner.nickname.trim()
+    seen.add(key)
+  }
+  return null
 }
 
 export function selectedGuestLearner(store: GuestLearnerStore): GuestLearner | undefined {

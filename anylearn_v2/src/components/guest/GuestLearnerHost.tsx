@@ -12,7 +12,7 @@ import {
   type GuestLearner,
 } from '@/lib/guest/guestLearners'
 import GuestLearnerSheet from './GuestLearnerSheet'
-import { getGuestStore, saveGuestStore, setPendingChildId } from './guestLearnerStore'
+import { getGuestStore, notifyChildrenChanged, saveGuestStore, setPendingChildId } from './guestLearnerStore'
 import { importGuestLearners } from './importGuestLearners'
 import { useGuestLearners, useGuestSheetOpen } from './useGuestLearners'
 
@@ -65,7 +65,10 @@ function LoginLeftovers() {
       const { matched, unmatched } = matchGuestToChildren(store.learners, children)
       const chosen = selectedGuestLearner(store)
       const chosenMatch = matched.find(match => match.guest.localId === chosen?.localId)
-      if (chosenMatch) setPendingChildId(chosenMatch.child.id)
+      if (chosenMatch) {
+        setPendingChildId(chosenMatch.child.id)
+        notifyChildrenChanged()
+      }
       saveGuestStore(withoutLearners(getGuestStore(), matched.map(match => match.guest.localId)))
       setOffer(unmatched)
     })

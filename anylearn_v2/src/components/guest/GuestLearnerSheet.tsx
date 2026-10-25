@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { CloseIcon } from '@/components/icons'
 import { CHILD_MAX_AGE, MAX_GUEST_LEARNERS, MAX_NICKNAME_LENGTH, SELF_MAX_AGE, SELF_MIN_AGE } from '@/config/guestLearners'
 import {
-  EMPTY_GUEST_STORE, birthYearOptions, withAnswer, withDismissed, type GuestLearnerStore,
+  EMPTY_GUEST_STORE, birthYearOptions, duplicateNickname, withAnswer, withDismissed, type GuestLearnerStore,
 } from '@/lib/guest/guestLearners'
 import { closeGuestSheet, getGuestStore, saveGuestStore } from './guestLearnerStore'
 
@@ -61,6 +61,8 @@ function ChildStep({ store, onSaved }: { store: GuestLearnerStore; onSaved: () =
   const handleSave = () => {
     const filled = rows.map(row => ({ ...row, nickname: row.nickname.trim() }))
     if (filled.some(row => !row.nickname || !row.birthYear)) { setError('Nhập tên (hoặc biệt danh) và chọn năm sinh cho từng bé'); return }
+    const repeated = duplicateNickname(filled)
+    if (repeated) { setError(`Hai bé không được trùng tên "${repeated}". Thêm biệt danh để phân biệt.`); return }
     saveGuestStore(withAnswer(getGuestStore(), { audience: 'child', learners: filled }))
     onSaved()
   }

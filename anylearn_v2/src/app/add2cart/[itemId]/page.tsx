@@ -19,6 +19,7 @@ import ChildFormModal, { type ChildDraft } from '@/components/ChildFormModal'
 import { useToast } from '@/components/ToastProvider'
 import { BookIcon, CalendarIcon, GiftIcon, PencilIcon, UserIcon } from '@/components/icons'
 import { takePendingChildId } from '@/components/guest/guestLearnerStore'
+import { useChildrenVersion } from '@/components/guest/useGuestLearners'
 
 const ACTIVITY_ROW_LABELS: Record<ActivityType, string> = { trial: 'Học thử', test: 'Đăng ký thi đầu vào', visit: 'Tham quan trường' }
 const BILLING_CYCLES = ['month', 'year', 'week', 'day']
@@ -54,6 +55,7 @@ export default function Add2CartPage() {
   const [activities, setActivities] = useState<ActivitySelection>(EMPTY_SELECTION)
   const [startMonth, setStartMonth] = useState('')
 
+  const childrenVersion = useChildrenVersion()
   const [childDraft, setChildDraft] = useState<ChildDraft | null>(null)
   const [savingChild, setSavingChild] = useState(false)
 
@@ -80,6 +82,20 @@ export default function Add2CartPage() {
       if (start && /^\d{4}-\d{2}$/.test(start)) setStartMonth(start)
     })
   }, [isAuthLoading, user, token, itemId]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Children added (or matched) right after a login while this page was already open: refresh only the list and the
+  // choice, so the plan and schedule picked meanwhile stay as they are.
+  useEffect(() => {
+    if (!token || childrenVersion === 0) return
+    let cancelled = false
+    getCartInfo(Number(itemId), token).then(info => {
+      if (cancelled || !info) return
+      setData(prev => (prev ? { ...prev, children: info.children } : prev))
+      const pendingChildId = takePendingChildId()
+      if (pendingChildId && info.children.some(child => child.id === pendingChildId)) setSelectedStudent(pendingChildId)
+    })
+    return () => { cancelled = true }
+  }, [childrenVersion, token, itemId])
 
   async function handleSaveChild(draft: ChildDraft) {
     if (!token) return

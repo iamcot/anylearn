@@ -154,8 +154,14 @@ public class UserService {
             if (!user.getId().equals(child.getUserId()) || child.getIsChild() == null || child.getIsChild() != 1) {
                 throw new IllegalArgumentException("Không có quyền chỉnh sửa tài khoản này");
             }
-            if (body.containsKey("name") && body.get("name") != null)
-                child.setName(body.get("name").toString());
+            if (body.containsKey("name") && body.get("name") != null) {
+                String newName = body.get("name").toString();
+                // Only a real rename is checked, so an old family that already has twins can still edit other fields.
+                if (!PersonNames.sameName(child.getName(), newName))
+                    PersonNames.requireUniqueChildName(
+                            userRepository.findByUserIdAndIsChild(user.getId(), (byte) 1), newName, childId);
+                child.setName(newName);
+            }
             applyDob(child, body);
             child.setUpdatedAt(LocalDateTime.now());
             userRepository.save(child);
@@ -164,6 +170,8 @@ public class UserService {
             // Create new child
             User child = new User();
             child.setName(body.get("name") != null ? body.get("name").toString() : "Con " + (user.getName()));
+            PersonNames.requireUniqueChildName(
+                    userRepository.findByUserIdAndIsChild(user.getId(), (byte) 1), child.getName(), null);
             child.setPhone(user.getPhone() + System.currentTimeMillis() % 10000);
             child.setRefcode(child.getPhone());
             child.setPassword(passwordEncoder.encode(user.getPhone()));
