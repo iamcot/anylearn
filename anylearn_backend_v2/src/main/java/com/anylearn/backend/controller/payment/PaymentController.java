@@ -14,6 +14,10 @@ import com.anylearn.backend.service.payment.MomoService;
 import com.anylearn.backend.service.payment.OnepayService;
 import com.anylearn.backend.service.payment.PaymentApprovalService;
 import com.anylearn.backend.service.payment.VnpayService;
+import com.anylearn.backend.service.payment.bank.SepayAuth;
+import com.anylearn.backend.service.payment.bank.SepayEvent;
+import com.anylearn.backend.service.payment.bank.SepayWebhookService;
+import org.springframework.http.ResponseEntity;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -42,6 +46,7 @@ public class PaymentController {
     private final OrderDetailRepository orderDetailRepository;
     private final ItemRepository itemRepository;
     private final PaymentConfig paymentConfig;
+    private final SepayWebhookService sepayWebhookService;
 
     // ── Admin approve (bank_transfer) ─────────────────────────────────────────
 
@@ -60,6 +65,7 @@ public class PaymentController {
         var bt = paymentConfig.getBankTransfer();
         return ApiResponse.ok(Map.of(
                 "bankName", bt.getBankName(),
+                "bankBin", bt.getBankBin(),
                 "accountNumber", bt.getAccountNumber(),
                 "accountName", bt.getAccountName(),
                 "transferContent", bt.getTransferContent(),
@@ -203,6 +209,27 @@ public class PaymentController {
         }
 
         return ApiResponse.ok(result);
+    }
+
+    // ── SePay (bank transfer received) ───────────────────────────────────────
+
+    // SePay expects 200 with {"success": true}; a 500 makes it send the transfer again.
+    @PostMapping("/payment-notify/sepay")
+    public ResponseEntity<Map<String, Object>> sepayNotify(
+            @RequestHeader(value = "Authorization", required = false) String authorization,
+            @RequestBody(required = false) Map<String, Object> body) {
+        if (!SepayAuth.isValid(authorization, paymentConfig.getSepay().getApiKey())) {
+            return ResponseEntity.status(401).body(Map.of("success", false, "error", "Unauthorized"));
+        }
+        var event = SepayEvent.parse(body);
+        if (event.isEmpty()) return ResponseEntity.badRequest().body(Map.of("success", false, "error", "Bad Request"));
+        try {
+            sepayWebhookService.handle(event.get(), body);
+        } catch (Exception e) {
+            log.error("[SePay] webhook processing failed", e);
+            return ResponseEntity.status(500).body(Map.of("success", false));
+        }
+        return ResponseEntity.ok(Map.of("success", true));
     }
 
     // ── VNPay ─────────────────────────────────────────────────────────────────

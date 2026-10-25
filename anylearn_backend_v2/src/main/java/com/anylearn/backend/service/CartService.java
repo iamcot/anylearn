@@ -508,7 +508,8 @@ public class CartService {
                 "orderId", orderId,
                 "items", items,
                 "paymentMethod", order.getPayment() != null ? order.getPayment() : "",
-                "status", order.getStatus()
+                "status", order.getStatus(),
+                "amount", order.getAmount()
         );
     }
 
