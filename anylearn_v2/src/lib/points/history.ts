@@ -13,7 +13,7 @@ export interface HistoryReason {
 }
 
 const FIXED_REASONS: Record<string, string> = {
-  commission_add: 'Cộng điểm bổ sung',
+  commission_add: 'Cộng anyPoint bổ sung',
   activitybonus: 'Thưởng hoạt động',
 }
 
@@ -22,12 +22,12 @@ export function describeTransaction(txn: WalletTransactionLike): HistoryReason {
   const orderSuffix = txn.orderId ? ` #${txn.orderId}` : ''
   if (txn.type === 'commission') {
     return txn.orderId
-      ? { title: `Điểm từ đơn${orderSuffix}`, tone: 'earn' }
-      : { title: 'Điểm giới thiệu bạn bè', tone: 'earn' }
+      ? { title: `anyPoint từ đơn${orderSuffix}`, tone: 'earn' }
+      : { title: 'anyPoint giới thiệu bạn bè', tone: 'earn' }
   }
-  if (txn.type === 'exchange') return { title: `Dùng điểm cho đơn${orderSuffix}`, tone: 'spend' }
-  if (txn.type === 'exchange_refund') return { title: `Hoàn điểm đơn${orderSuffix}`, tone: 'earn' }
-  return { title: FIXED_REASONS[txn.type] ?? 'Thay đổi điểm', tone: txn.amount < 0 ? 'spend' : 'neutral' }
+  if (txn.type === 'exchange') return { title: `Dùng anyPoint cho đơn${orderSuffix}`, tone: 'spend' }
+  if (txn.type === 'exchange_refund') return { title: `Hoàn anyPoint đơn${orderSuffix}`, tone: 'earn' }
+  return { title: FIXED_REASONS[txn.type] ?? 'Thay đổi anyPoint', tone: txn.amount < 0 ? 'spend' : 'neutral' }
 }
 
 export function sumPendingPoints(history: WalletTransactionLike[]): number {

@@ -36,7 +36,7 @@ export default function AnypointPage() {
   const balance = user?.walletC ?? 0
 
   return (
-    <AccountCard title="anyPoint" subtitle="Điểm tích lũy từ các hoạt động trên anyLEARN">
+    <AccountCard title="anyPoint" subtitle="anyPoint tích lũy từ các hoạt động trên anyLEARN">
       <div className="border-b border-line bg-gradient-to-r from-blue-soft to-green-soft px-5 py-5">
         <div className="flex flex-wrap items-center gap-6">
           <div>
@@ -46,23 +46,23 @@ export default function AnypointPage() {
               {formatPoints(balance)}
               <span className="ml-1 text-base font-bold text-muted">anyPoint</span>
             </div>
-            <div className="mt-1 text-sm text-muted">= {formatExactPrice(balance * POINT_VALUE_VND)} giảm cho khóa học tiếp theo</div>
+            <div className="mt-1 text-sm text-muted">~ {formatExactPrice(balance * POINT_VALUE_VND)} giảm cho khóa học tiếp theo</div>
           </div>
           {totalPending > 0 && (
             <div>
               <div className="mb-1 text-xs text-muted">Đang chờ xác nhận</div>
-              <div className="text-xl font-extrabold text-warn-text">+{formatPoints(totalPending)} điểm</div>
+              <div className="text-xl font-extrabold text-warn-text">+{formatPoints(totalPending)} anyPoint</div>
             </div>
           )}
         </div>
       </div>
 
-      <h3 className="m-0 border-b border-line bg-bg px-5 py-2.5 text-sm font-extrabold text-ink">Lịch sử điểm</h3>
+      <h3 className="m-0 border-b border-line bg-bg px-5 py-2.5 text-sm font-extrabold text-ink">Lịch sử anyPoint</h3>
 
       {loading ? (
         <div className="p-5"><ListSkeleton showTitle={false} /></div>
       ) : history.length === 0 ? (
-        <div className="p-10 text-center text-sm text-muted">Chưa có lịch sử điểm nào.</div>
+        <div className="p-10 text-center text-sm text-muted">Chưa có lịch sử anyPoint nào.</div>
       ) : (
         <div className="divide-y divide-line">
           {history.map(txn => {

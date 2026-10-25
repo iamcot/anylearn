@@ -617,7 +617,7 @@ public class CartService {
                             .map(u -> " [" + u.getName() + "]").orElse("");
                 }
                 saveTx(buyer.getId(), null, "commission", bd.buyerPoints(), "wallet_c", detail.getId(),
-                        "Nhận điểm từ khóa học đã mua: " + label);
+                        "Nhận anyPoint từ khóa học đã mua: " + label);
             }
 
             // 3. Referral chain → wallet_c pending (one transaction per level)
@@ -628,7 +628,7 @@ public class CartService {
                 if (refUser == null) break;
                 if (refAmt > 0) {
                     saveTx(currentUserId, buyer.getId(), "commission", refAmt, "wallet_c", detail.getId(),
-                            "Nhận điểm từ " + buyer.getName() + " mua khóa học: " + item.getTitle());
+                            "Nhận anyPoint từ " + buyer.getName() + " mua khóa học: " + item.getTitle());
                 }
                 currentUserId = refUser.getUserId();
             }

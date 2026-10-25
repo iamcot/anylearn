@@ -207,7 +207,7 @@ export default function CheckoutPage() {
 
               <div className="flex items-center gap-2 border-y border-line bg-bg px-5 py-2.5 text-muted">
                 <GiftIcon className="size-4" />
-                <span className="text-sm font-bold">Đổi điểm & Mã khuyến mãi</span>
+                <span className="text-sm font-bold">Dùng anyPoint & Mã khuyến mãi</span>
               </div>
 
               <div className="flex flex-col gap-4 px-4 py-4 sm:px-5">

@@ -21,12 +21,12 @@ export function AnyPointInfoModal({ onClose }: { onClose: () => void }) {
   return (
     <Modal title="anyPoint là gì?" onClose={onClose}>
       <ul className="m-0 flex list-disc flex-col gap-2 pl-5 text-sm text-text">
-        <li>Mỗi khóa học bạn mua đều tặng lại điểm. Điểm hiện ngay trước khi bạn thanh toán.</li>
-        <li>1 điểm = {formatExactPrice(POINT_VALUE_VND)}. Dùng điểm để giảm tiền cho khóa học tiếp theo.</li>
-        <li>Giới thiệu bạn bè mua khóa học cũng được thêm điểm.</li>
+        <li>Mỗi khóa học bạn mua đều tặng lại anyPoint. Số anyPoint hiện ngay trước khi bạn thanh toán.</li>
+        <li>1 anyPoint ~ {formatExactPrice(POINT_VALUE_VND)}. Dùng anyPoint để giảm tiền cho khóa học tiếp theo.</li>
+        <li>Giới thiệu bạn bè mua khóa học cũng được thêm anyPoint.</li>
       </ul>
       <Link href="/info/anypoint" className="mt-4 inline-block text-sm font-medium text-green-dark" onClick={onClose}>
-        Xem chi tiết cách nhận và dùng điểm
+        Xem chi tiết cách nhận và dùng anyPoint
       </Link>
     </Modal>
   )
@@ -58,7 +58,7 @@ function CustomPointsInput({ maxPoints, onSubmit }: { maxPoints: number; onSubmi
         min={0}
         max={maxPoints}
         value={value}
-        placeholder={`Tối đa ${formatPoints(maxPoints)} điểm`}
+        placeholder={`Tối đa ${formatPoints(maxPoints)} anyPoint`}
         onChange={event => setValue(event.target.value)}
         onKeyDown={event => { if (event.key === 'Enter') submit() }}
         className="field min-h-11 flex-1 text-sm"
@@ -85,7 +85,7 @@ export default function UsePointsToggle({ balance, maxPoints, applied, on, onTog
       <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-muted">
         <span className="flex items-center gap-1.5">
           <CoinIcon className="size-4 text-green" />
-          {balance <= 0 ? 'Bạn chưa có anyPoint. Mua khóa này để nhận điểm cho lần sau.' : 'Đơn này không cần dùng điểm.'}
+          {balance <= 0 ? 'Bạn chưa có anyPoint. Mua khóa này để nhận anyPoint cho lần sau.' : 'Đơn này không cần dùng anyPoint.'}
         </span>
         {infoLink}
         {showInfo && <AnyPointInfoModal onClose={() => setShowInfo(false)} />}
@@ -99,10 +99,10 @@ export default function UsePointsToggle({ balance, maxPoints, applied, on, onTog
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
           <div className="text-sm font-medium text-ink">
-            Dùng {formatPoints(shownPoints)} điểm, giảm {formatExactPrice(shownPoints * POINT_VALUE_VND)}
+            Dùng {formatPoints(shownPoints)} anyPoint, giảm {formatExactPrice(shownPoints * POINT_VALUE_VND)}
           </div>
           <div className="mt-0.5 flex flex-wrap items-center gap-x-3 text-xs text-muted">
-            <span>Bạn có {formatPoints(balance)} điểm</span>
+            <span>Bạn có {formatPoints(balance)} anyPoint</span>
             {infoLink}
           </div>
         </div>
@@ -115,7 +115,7 @@ export default function UsePointsToggle({ balance, maxPoints, applied, on, onTog
             onClick={() => setShowCustom(open => !open)}
             className="cursor-pointer border-0 bg-transparent p-0 font-[inherit] text-xs font-medium text-green-dark underline"
           >
-            Dùng số điểm khác
+            Dùng số anyPoint khác
           </button>
           {showCustom && <CustomPointsInput maxPoints={maxPoints} onSubmit={onCustomPoints} />}
         </div>

@@ -120,6 +120,8 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 
 ## Nhật ký
 
+### 25/10/2026 – thống nhất từ "anyPoint"
+- Mọi chữ hiển thị (giao diện, thông báo, lịch sử giao dịch mới, admin) viết **anyPoint**, không viết "điểm"; giá trị quy đổi dùng dấu "~" ("Nhận +120 anyPoint (~120.000đ)"). Ghi trong `CLAUDE.md` gốc. Dòng lịch sử cũ trong DB vẫn giữ chữ cũ (chỉ nội dung giao dịch tạo từ nay mới dùng chữ mới).
 ### 25/10/2026 – 02.3 công tắc dùng điểm, 02.4 trang anyPoint
 - Checkout: ô nhập điểm thay bằng công tắc "Dùng X điểm, giảm Y đ" (`UsePointsToggle`). X = `maxUsablePoints` = min(số dư, phần tiền còn lại sau mã giảm giá / 1.000đ), nên không bao giờ trừ điểm thừa không giảm thêm tiền; đổi mã giảm giá thì X tự tính lại. "Dùng số điểm khác" mở ô nhập số điểm ít hơn. "anyPoint là gì?" mở popup 3 dòng và link `/info/anypoint`. Tổng tiền: Tạm tính / Dùng anyPoint / Mã giảm giá / Tổng thanh toán (có sẵn). Sửa luôn lỗi cũ: số điểm gửi lên server là số điểm đang áp dụng, không phải chữ trong ô nhập.
 - `/account/anypoint`: thẻ số dư kèm quy đổi VND, lịch sử có lý do ("Điểm từ đơn #42", "Dùng điểm cho đơn #41", "Điểm giới thiệu bạn bè") và link "Xem đơn", khối "Cách nhận / Cách dùng điểm" ở dưới lịch sử. `/info/anypoint` công khai, link từ PDP.

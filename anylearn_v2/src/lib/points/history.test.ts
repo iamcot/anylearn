@@ -3,20 +3,20 @@ import { describeTransaction, sumPendingPoints } from './history'
 
 describe('describeTransaction', () => {
   it('names the reward of an own purchase after the order', () => {
-    expect(describeTransaction({ type: 'commission', amount: 80, status: 1, orderId: 42 })).toEqual({ title: 'Điểm từ đơn #42', tone: 'earn' })
+    expect(describeTransaction({ type: 'commission', amount: 80, status: 1, orderId: 42 })).toEqual({ title: 'anyPoint từ đơn #42', tone: 'earn' })
   })
 
   it('treats a commission without an order as a referral reward', () => {
-    expect(describeTransaction({ type: 'commission', amount: 20, status: 1 }).title).toBe('Điểm giới thiệu bạn bè')
+    expect(describeTransaction({ type: 'commission', amount: 20, status: 1 }).title).toBe('anyPoint giới thiệu bạn bè')
   })
 
   it('shows spent and refunded points with their order', () => {
-    expect(describeTransaction({ type: 'exchange', amount: -50, status: 1, orderId: 7 })).toEqual({ title: 'Dùng điểm cho đơn #7', tone: 'spend' })
-    expect(describeTransaction({ type: 'exchange_refund', amount: 50, status: 1, orderId: 7 }).title).toBe('Hoàn điểm đơn #7')
+    expect(describeTransaction({ type: 'exchange', amount: -50, status: 1, orderId: 7 })).toEqual({ title: 'Dùng anyPoint cho đơn #7', tone: 'spend' })
+    expect(describeTransaction({ type: 'exchange_refund', amount: 50, status: 1, orderId: 7 }).title).toBe('Hoàn anyPoint đơn #7')
   })
 
   it('has a neutral fallback for unknown types', () => {
-    expect(describeTransaction({ type: 'something', amount: 5, status: 1 })).toEqual({ title: 'Thay đổi điểm', tone: 'neutral' })
+    expect(describeTransaction({ type: 'something', amount: 5, status: 1 })).toEqual({ title: 'Thay đổi anyPoint', tone: 'neutral' })
   })
 })
 

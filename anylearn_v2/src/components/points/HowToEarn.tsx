@@ -19,8 +19,8 @@ function WayList({ title, ways }: { title: string; ways: AnyPointWay[] }) {
 export default function HowToEarn() {
   return (
     <div className="grid gap-5 md:grid-cols-2">
-      <WayList title="Cách nhận điểm" ways={HOW_TO_EARN} />
-      <WayList title="Cách dùng điểm" ways={HOW_TO_USE} />
+      <WayList title="Cách nhận anyPoint" ways={HOW_TO_EARN} />
+      <WayList title="Cách dùng anyPoint" ways={HOW_TO_USE} />
     </div>
   )
 }

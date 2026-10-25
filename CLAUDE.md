@@ -154,6 +154,8 @@ Thư mục `http/` chứa VS Code REST Client files cho mọi endpoint:
 
 ## anyPoint preview
 
+- Wording: the currency is always written **anyPoint** in every screen, notification and document ("120 anyPoint", never "120 điểm"); an approximate money value uses "~" ("~120.000đ"), not "=". Keep it in new texts.
+
 - `ItemPointsResolver` (`service/points`) resolves an item's commission settings (global config, item `company_commission`, item/author rate) and is the only place that does it: order creation (`CartService.createPendingCommissions`) and the preview both call it. `GET /v2/api/points/preview?itemId=` (public) returns `{itemId, points, vndValue}`; each `GET /cart` line has `points`. Preview = the buyer points written when the order is created (same price, same config); test `ItemPointsResolverTest`. `GET /order/{id}` also returns `pointsEarned` (the buyer's own reward for the order). FE: PDP badge, checkout line and order note use `lib/points/reward.ts` (`components/points/PointsRewardBadge`). Checkout uses a switch (`components/cart/UsePointsToggle`, rules in `lib/checkout/totals.ts`: `maxUsablePoints`, `pointsToApply`); `/account/anypoint` and the public `/info/anypoint` share `components/points/HowToEarn` (texts in `config/points.ts`); `GET /user/wallet-c-history` rows carry `orderId` for the person's own purchases and spent/refunded points.
 
 ## Growth roadmap

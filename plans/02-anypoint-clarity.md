@@ -25,14 +25,14 @@ Giai đoạn 1 (02.1–02.4), giai đoạn 3 (02.5–02.6). Trụ cột C.
 - Test: điểm preview = điểm thực nhận khi đơn được duyệt (cùng giá, cùng commission).
 
 ### 02.2 Hiện "+X điểm" ở PDP, giỏ hàng, trang đơn
-- PDP (gần giá và nút "Thêm vào giỏ hàng"): badge **"Nhận +150 điểm (= 150.000đ)"**.
-- Giỏ hàng: "Đơn này bạn sẽ nhận +X điểm".
-- Trang đơn thành công: "Đã cộng X điểm, số dư Y điểm".
+- PDP (gần giá và nút "Thêm vào giỏ hàng"): badge **"Nhận +150 anyPoint (~150.000đ)"**.
+- Giỏ hàng: "Đơn này bạn sẽ nhận +X anyPoint".
+- Trang đơn thành công: "Đã cộng X anyPoint, số dư Y anyPoint".
 - Thẻ khóa học trong danh sách: chỉ hiện nếu không làm rối (thử badge nhỏ "+150đ điểm"), sau feature flag.
 
 ### 02.3 Công tắc dùng điểm ở checkout
-- Thay ô nhập bằng **một công tắc**: "Dùng 270 điểm, giảm 270.000đ" (tự giới hạn theo tổng đơn và luật tối đa hiện có).
-- Link nhỏ "Dùng số điểm khác" mở lại ô nhập cho người muốn tuỳ chỉnh.
+- Thay ô nhập bằng **một công tắc**: "Dùng 270 anyPoint, giảm 270.000đ" (tự giới hạn theo tổng đơn và luật tối đa hiện có).
+- Link nhỏ "Dùng số anyPoint khác" mở lại ô nhập cho người muốn tuỳ chỉnh.
 - Hiện dòng giảm trừ rõ trong tổng tiền: Tạm tính / Dùng điểm / Mã giảm giá / **Tổng thanh toán** (ghi đủ số).
 - Tooltip "anyPoint là gì?" → popup 3 dòng giải thích.
 

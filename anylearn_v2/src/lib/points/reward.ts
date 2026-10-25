@@ -9,11 +9,11 @@ export function formatVndAmount(amount: number): string {
 }
 
 export function rewardLabel(points: number, vndValue = points * POINT_VALUE_VND): string {
-  return `Nhận +${formatPoints(points)} điểm (= ${formatVndAmount(vndValue)})`
+  return `Nhận +${formatPoints(points)} anyPoint (~${formatVndAmount(vndValue)})`
 }
 
 export function cartRewardLabel(points: number): string {
-  return `Đơn này bạn sẽ nhận +${formatPoints(points)} điểm (= ${formatVndAmount(points * POINT_VALUE_VND)})`
+  return `Đơn này bạn sẽ nhận +${formatPoints(points)} anyPoint (~${formatVndAmount(points * POINT_VALUE_VND)})`
 }
 
 export function sumCartPoints(items: { points?: number }[]): number {
@@ -21,6 +21,6 @@ export function sumCartPoints(items: { points?: number }[]): number {
 }
 
 export function earnedLabel(pointsEarned: number, balance?: number): string {
-  const earned = `Đã cộng ${formatPoints(pointsEarned)} điểm`
-  return balance === undefined ? earned : `${earned}, số dư ${formatPoints(balance)} điểm`
+  const earned = `Đã cộng ${formatPoints(pointsEarned)} anyPoint`
+  return balance === undefined ? earned : `${earned}, số dư ${formatPoints(balance)} anyPoint`
 }
