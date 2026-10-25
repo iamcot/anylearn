@@ -261,7 +261,7 @@ export default async function PdpPage({ params }: Props) {
         <section className="section">
           <div className="container">
             <h2 className="section-kicker mb-5">Thông tin khóa học</h2>
-            <div className="pdp-content"
+            <div className="cms-content"
               dangerouslySetInnerHTML={{ __html: content.content_advantage }} />
           </div>
         </section>

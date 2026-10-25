@@ -69,8 +69,11 @@ body {
 }
 
 .container {
-  width: min(1180px, calc(100% - 40px));
+  width: min(1180px, calc(100% - 32px));
   margin-inline: auto;
+}
+@media (min-width: 768px) {
+  .container { width: min(1180px, calc(100% - 40px)); }
 }
 
 /* Legacy component classes live in the components layer so Tailwind utilities can override them. */
@@ -206,11 +209,6 @@ body {
   .search-row--home {
     grid-template-columns: auto 1fr auto;
   }
-  /* Search page: input | button */
-  .search-row--page {
-    grid-template-columns: 1fr auto;
-    gap: 12px;
-  }
   .field {
     min-height: 50px;
     border-radius: 18px;
@@ -235,43 +233,35 @@ body {
     margin-top: 12px;
   }
 
-  /* ── PDP: HTML from the CMS ── */
-  .pdp-content { line-height: 1.8; color: var(--color-text); font-size: 16px; }
-  .pdp-content img { max-width: 100%; border-radius: 12px; margin: 12px 0; }
-  .pdp-content ul, .pdp-content ol { padding-left: 20px; margin: 0 0 14px; }
-.pdp-content ul { list-style: disc; }
-.pdp-content ol { list-style: decimal; }
-.pdp-content li { margin-bottom: 4px; }
-.pdp-content h2 { font-size: 1.4em; font-weight: var(--font-weight-bold); }
-.pdp-content h3 { font-size: 1.2em; font-weight: var(--font-weight-bold); }
-.pdp-content a { color: var(--color-blue); text-decoration: underline; }
-  .pdp-content p { margin: 0 0 14px; }
-  .pdp-content h2, .pdp-content h3 { color: var(--color-ink); margin: 24px 0 12px; }
+  /* ── HTML from the CMS ── */
+  .cms-content { line-height: 1.8; color: var(--color-text); font-size: 16px; }
+  .cms-content img { max-width: 100%; border-radius: 12px; margin: 12px 0; }
+  .cms-content ul, .cms-content ol { padding-left: 20px; margin: 0 0 14px; }
+.cms-content ul { list-style: disc; }
+.cms-content ol { list-style: decimal; }
+.cms-content li { margin-bottom: 4px; }
+.cms-content h2 { font-size: 1.4em; font-weight: var(--font-weight-bold); }
+.cms-content h3 { font-size: 1.2em; font-weight: var(--font-weight-bold); }
+.cms-content a { color: var(--color-blue); text-decoration: underline; }
+  .cms-content p { margin: 0 0 14px; }
+  .cms-content h2, .cms-content h3 { color: var(--color-ink); margin: 24px 0 12px; }
 
   /* ── Grid utilities ── */
 
   /* ── Responsive ── */
   /* Hero section */
   .hero-section { padding: 80px 0 140px; }
-  /* Search page hero */
-  .search-hero { padding: 32px 0 34px; }
 
   @media (max-width: 1100px) {
     .search-row--home { grid-template-columns: 1fr 1fr; }
   }
   @media (max-width: 768px) {
     .hero-section  { padding: 48px 0 100px; min-height: unset !important; }
-    .search-hero   { padding: 24px 0 26px; }
-    .search-hero h1 { font-size: clamp(22px, 6vw, 32px) !important; margin-bottom: 8px !important; }
-    .search-hero p  { font-size: 15px !important; margin-bottom: 16px !important; }
 
-    .container  { width: min(100% - 28px, 1180px); }
     .section    { padding: 56px 0; }
 
     /* Search rows: each block stacks individually */
     .search-row--home { grid-template-columns: 1fr; }
-    .search-row--page { grid-template-columns: 1fr; }
-    .search-row--page .btn { width: 100%; }
 
     /* Quick-tags: smaller on mobile */
     .quick-tags { gap: 6px; margin-top: 10px; }
@@ -281,23 +271,6 @@ body {
     .search-hint { font-size: 12px; margin-top: 8px; }
 
     .section-head { flex-direction: column; align-items: flex-start; }
-
-    /* Responsive grid utilities */
-    .grid-2-col { grid-template-columns: 1fr !important; }
-    .grid-2-aside { grid-template-columns: 1fr !important; }
-    .grid-intro { grid-template-columns: 1fr !important; gap: 24px !important; }
-    .promo-grid { grid-template-columns: 1fr !important; }
-    .result-card-grid { grid-template-columns: 1fr !important; }
-    .search-layout { grid-template-columns: 1fr !important; }
-
-    /* Partner logos */
-    .grid-8 { grid-template-columns: repeat(4, 1fr) !important; }
-
-    /* Search page layout */
-    [style*="300px 1fr"] { grid-template-columns: 1fr !important; }
-
-    /* Result card inner: stack image on top */
-    [style*="150px 1fr"][style*="gap: 18"] { grid-template-columns: 1fr !important; }
   }
 
   /* ── Room for the bottom tabs (AppTabs, shown below lg) ── */

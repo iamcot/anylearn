@@ -117,6 +117,11 @@ getOrder(orderId, token)       // GET /order/:orderId     [auth]
 - **Pure logic** (formatting, query building, price/date helpers) lives in `src/lib/**` as plain functions with a vitest `*.test.ts` next to it. Do not copy helpers between files.
 - UI strings in Vietnamese with diacritics.
 
+## /search
+
+- The URL is the only state: `lib/search/query.ts` parses it (`parseSearchParams`) and writes it (`buildSearchUrl`); every control calls `apply()` in `app/search/page.tsx`, which rewrites the URL with `history.replaceState`, and one effect fetches for the current URL (`lib/search/fetchResults.ts`). Page number is the `page` param (1-based). Do not add parallel `useState` copies of filters.
+- UI pieces live in `components/search/*`; filter options in `config/searchFilters.ts`; recent searches in `localStorage` via `useSearchHistory`.
+
 ## Utility
 
 ```typescript

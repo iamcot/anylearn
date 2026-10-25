@@ -169,3 +169,7 @@ export const ClockIcon = (props: IconProps) => (
 export const ChevronDownIcon = (props: IconProps) => (
   <Icon strokeWidth="2.2" {...props}><path d="m6 9 6 6 6-6" /></Icon>
 )
+
+export const FilterIcon = (props: IconProps) => (
+  <Icon strokeWidth="2.2" {...props}><path d="M4 6h16M8 12h12M12 18h8" /></Icon>
+)

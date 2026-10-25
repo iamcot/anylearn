@@ -83,6 +83,24 @@ export function HomeSkeleton() {
   )
 }
 
+export function ResultRowsSkeleton() {
+  return (
+    <div className="grid animate-pulse gap-3 xl:grid-cols-2" aria-busy="true" aria-label="Đang tải">
+      {Array.from({ length: 6 }, (_, index) => (
+        <div key={index} className="grid grid-cols-[112px_1fr] overflow-hidden rounded-2xl border border-line md:grid-cols-[160px_1fr]">
+          <div className="min-h-[132px] bg-line/60" />
+          <div className="flex flex-col gap-2 p-4">
+            <Bar className="h-4 w-4/5" />
+            <Bar className="h-3 w-2/5" />
+            <Bar className="h-3 w-full" />
+            <Bar className="h-5 w-1/4" />
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 export function PdpSkeleton() {
   return (
     <div className="animate-pulse" aria-busy="true" aria-label="Đang tải">
@@ -116,13 +134,13 @@ export function PdpSkeleton() {
 export function SearchSkeleton() {
   return (
     <div className="animate-pulse" aria-busy="true" aria-label="Đang tải">
-      <section className="search-hero bg-gradient-to-br from-blue to-green">
+      <section className="bg-gradient-to-br from-blue to-green py-6 lg:py-8">
         <div className="container">
           <div className="mb-3 h-8 w-1/2 rounded bg-white/20" />
           <div className="h-[66px] max-w-[900px] rounded-[28px] bg-white/90" />
         </div>
       </section>
-      <div className="container search-layout section grid items-start gap-7 lg:grid-cols-[300px_1fr]">
+      <div className="container section grid items-start gap-7 lg:grid-cols-[300px_1fr]">
         <div className="hidden h-80 rounded-card bg-line/60 lg:block" />
         <CardGridSkeleton />
       </div>
