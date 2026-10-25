@@ -5,7 +5,8 @@ import { getHomeV2, Category, getArticleUrl, Article } from '@/lib/api'
 import Link from 'next/link'
 import TodayRedirect from '@/components/TodayRedirect'
 import CategoryIcon from '@/components/CategoryIcon'
-import { ArrowRightIcon, BoltIcon, BookIcon, ChatIcon, GiftIcon, PlayIcon, SearchIcon } from '@/components/icons'
+import { BoltIcon, BookIcon, ChatIcon, GiftIcon, PlayIcon, SearchIcon } from '@/components/icons'
+import ChevronLabel from '@/components/ChevronLabel'
 
 const BENEFITS = [
   { Icon: SearchIcon, title: 'Dễ tìm kiếm', desc: 'Tìm trường học, khóa học và chuyên gia theo nhu cầu của con' },
@@ -129,7 +130,7 @@ export default async function HomePage() {
               <div className="p-5 flex flex-col flex-1">
                 {e.short_content && <p className="mb-4 flex-1 text-muted">{e.short_content}</p>}
                 <div className="mt-auto flex justify-end">
-                  <span className="inline-flex items-center gap-1 text-sm font-extrabold text-green-dark">Xem chi tiết <ArrowRightIcon className="size-4" /></span>
+                  <ChevronLabel className="text-sm font-extrabold text-green-dark">Xem chi tiết</ChevronLabel>
                 </div>
               </div>
             </article>
@@ -169,7 +170,7 @@ export default async function HomePage() {
                     <p className="mb-4 line-clamp-2 flex-1 text-sm text-muted">{a.short_content}</p>
                   )}
                   <div className="mt-auto flex justify-end">
-                    <span className="inline-flex items-center gap-1 text-sm font-extrabold text-green-dark">Đọc thêm <ArrowRightIcon className="size-4" /></span>
+                    <ChevronLabel className="text-sm font-extrabold text-green-dark">Đọc thêm</ChevronLabel>
                   </div>
                 </div>
               </article>

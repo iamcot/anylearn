@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { getArticles, getArticleUrl } from '@/lib/api'
+import ChevronLabel from '@/components/ChevronLabel'
 
 export const metadata: Metadata = {
   title: 'Bài viết & Kiến thức giáo dục | anyLEARN',
@@ -90,8 +91,8 @@ export default async function ArticlesPage({
                   {a.short_content && (
                     <p className="mb-4 text-[#6d7a8a] text-sm flex-1 line-clamp-2">{a.short_content}</p>
                   )}
-                  <Link href={getArticleUrl(a)} className="text-[#008244] font-black text-sm no-underline mt-auto">
-                    Đọc thêm →
+                  <Link href={getArticleUrl(a)} className="mt-auto text-sm font-extrabold text-green-dark no-underline">
+                    <ChevronLabel>Đọc thêm</ChevronLabel>
                   </Link>
                 </div>
               </article>

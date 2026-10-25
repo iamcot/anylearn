@@ -3,6 +3,7 @@ import { Item, getCourseUrl } from '@/lib/api'
 import { formatPrice } from '@/lib/format/price'
 import { SUBTYPE_LABELS } from '@/config/itemLabels'
 import { BookIcon, HeartIcon, StarIcon, UserIcon } from './icons'
+import ChevronLabel from '@/components/ChevronLabel'
 
 interface Props {
   item: Item
@@ -75,9 +76,7 @@ export default function CourseCard({ item }: Props) {
                 <span className="inline-flex items-center gap-1"><HeartIcon filled className="size-3.5 text-red" />{item.num_favorite}</span>
               )}
             </div>
-            <span className="text-green-dark font-extrabold text-sm no-underline shrink-0">
-              Tìm hiểu thêm →
-            </span>
+            <ChevronLabel className="shrink-0 text-sm font-extrabold text-green-dark">Tìm hiểu thêm</ChevronLabel>
           </div>
         </div>
       </div>

@@ -33,7 +33,7 @@ export default function PromoSlider({ promos }: { promos: Promo[] }) {
             {promos.map(promo => (
               <div
                 key={promo.id}
-                className="grid min-h-[300px] min-w-full grid-cols-1 overflow-hidden bg-linear-[100deg] from-blue-dark/95 to-green/80 text-white shadow-card md:grid-cols-[1.2fr_0.8fr]"
+                className="grid min-h-[300px] shrink-0 basis-full grid-cols-1 overflow-hidden bg-linear-[100deg] from-blue-dark/95 to-green/80 text-white shadow-card md:grid-cols-[1.2fr_0.8fr]"
               >
                 <div className="p-6 md:p-10">
                   <span className="mb-4 inline-flex rounded-full bg-white/15 px-3 py-1.5 text-sm font-medium">Chương trình nổi bật</span>

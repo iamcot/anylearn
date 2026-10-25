@@ -6,6 +6,7 @@ import { searchItems, searchUsers, Item, UserResult, SearchResult, UserSearchRes
 import Link from 'next/link'
 import { formatPrice } from '@/lib/format/price'
 import { SUBTYPE_LABELS } from '@/config/itemLabels'
+import ChevronLabel from '@/components/ChevronLabel'
 
 const MODES = [
   { key: 'class',   label: 'Khóa học' },
@@ -605,7 +606,7 @@ function SearchPageInner() {
                             {item.rating != null && item.rating > 0 && <span>⭐ {item.rating.toFixed(1)}</span>}
                             {item.num_favorite != null && item.num_favorite > 0 && <span>❤️ {item.num_favorite}</span>}
                           </div>
-                          <span className="text-[#008244] font-black text-[10px] md:text-sm shrink-0">Tìm hiểu thêm →</span>
+                          <ChevronLabel className="shrink-0 text-[10px] font-extrabold text-green-dark md:text-sm">Tìm hiểu thêm</ChevronLabel>
                         </div>
                       </div>
                     </div>
@@ -644,7 +645,7 @@ function SearchPageInner() {
                         <p className="m-0 text-[#6d7a8a] text-[10px] md:text-sm line-clamp-2 flex-1">{u.introduce}</p>
                       )}
                       <div className="text-right mt-auto pt-1">
-                        <span className="text-[#008244] font-black text-[10px] md:text-sm">Xem khóa học →</span>
+                        <ChevronLabel className="text-[10px] font-extrabold text-green-dark md:text-sm">Xem khóa học</ChevronLabel>
                       </div>
                     </div>
                   </article>
