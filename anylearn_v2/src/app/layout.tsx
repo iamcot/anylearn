@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Be_Vietnam_Pro } from 'next/font/google'
 import Script from 'next/script'
+import { Suspense } from 'react'
 import './globals.css'
 import SiteChrome from '@/components/SiteChrome'
 import Header from '@/components/Header'
@@ -8,6 +9,7 @@ import Footer from '@/components/Footer'
 import FloatContact from '@/components/FloatContact'
 import { AuthProvider } from '@/context/AuthContext'
 import AuthModal from '@/components/AuthModal'
+import NavigationProgress from '@/components/NavigationProgress'
 import ToastProvider from '@/components/ToastProvider'
 
 const beVietnamPro = Be_Vietnam_Pro({
@@ -30,6 +32,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <AuthProvider>
           <ToastProvider>
+            <Suspense fallback={null}>
+              <NavigationProgress />
+            </Suspense>
             <SiteChrome
               header={<Header />}
               footer={<><Footer /><FloatContact /></>}

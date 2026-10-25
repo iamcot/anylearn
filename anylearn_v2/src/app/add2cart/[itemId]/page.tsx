@@ -7,7 +7,7 @@ import { getCartInfo, addToCart, CartInfoData, ItemSchedule, getCourseUrl } from
 import Link from 'next/link'
 import { API_BASE } from '@/lib/apiBase'
 import { formatPrice } from '@/lib/format/price'
-import { ListSkeleton } from '@/components/PageSkeleton'
+import { FormPageSkeleton, ListSkeleton } from '@/components/PageSkeleton'
 
 export default function Add2CartPage() {
   const { user, token, openAuthModal, refreshCartCount, isAuthLoading } = useAuth()
@@ -129,7 +129,7 @@ export default function Add2CartPage() {
     router.push('/checkout')
   }
 
-  if (isAuthLoading) return null
+  if (isAuthLoading) return <FormPageSkeleton />
   if (!user) return null
   if (loading) return <div className="section"><div className="container max-w-[720px]"><ListSkeleton /></div></div>
   if (!data) return <div className="section"><div className="container text-center text-red">Không tìm thấy khóa học</div></div>

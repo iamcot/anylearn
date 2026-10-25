@@ -8,7 +8,7 @@ import PaymentMethodSelector from '@/components/PaymentMethodSelector'
 import Link from 'next/link'
 import CheckCircle from '@/components/CheckCircle'
 import { formatPrice } from '@/lib/format/price'
-import { ListSkeleton } from '@/components/PageSkeleton'
+import { FormPageSkeleton, ListSkeleton } from '@/components/PageSkeleton'
 
 const PAYMENT_INSTRUCTIONS: Record<string, { title: string; steps: string[] }> = {
   bank_transfer: {
@@ -69,7 +69,7 @@ export default function OrderPage() {
     })
   }, [token, orderId])
 
-  if (isAuthLoading) return null
+  if (isAuthLoading) return <FormPageSkeleton />
   if (!user) { router.push('/login'); return null }
 
   const instructions = order?.paymentMethod ? PAYMENT_INSTRUCTIONS[order.paymentMethod] : null

@@ -111,7 +111,7 @@ getOrder(orderId, token)       // GET /order/:orderId     [auth]
 - **Mobile and desktop**: design for 360px first, check 360 / 768 / 1280. One breakpoint for the app chrome: below `lg` (1024px) is mobile (compact header, bottom tabs for logged-in people), `lg` and up is desktop (full header, no tabs). Touch targets at least 44px, no horizontal page scroll.
 - **Icons**: inline SVG from `components/icons.tsx`, not emoji. Star ratings use `components/StarRating.tsx`.
 - **Shared pieces, do not re-implement**: `formatPrice` / `formatDate` / `formatRelativeDay` in `lib/format/`, `SUBTYPE_LABELS` in `config/itemLabels.ts`, `BackLink` (fixed target) and `BackButton` (history back), skeletons in `components/PageSkeleton.tsx`, `useToast()` from `components/ToastProvider.tsx` instead of `alert()`/`confirm()`.
-- **New page**: add a `loading.tsx` with a skeleton so the page never shows blank while loading.
+- **New page**: add a `loading.tsx` with a skeleton that matches the page layout (skeletons live in `components/PageSkeleton.tsx`). Without it a Server Component page freezes the old screen until its API calls finish, so a click looks dead. A `loading.tsx` also covers child routes (`helpcenter/loading.tsx` serves `helpcenter/[id]/[slug]`). Pages that read `useAuth()` must render a skeleton, not `null`, while `isAuthLoading`. The home page lives in `app/(home)/` so its skeleton does not leak onto other routes; the root `loading.tsx` is a neutral fallback.
 - **Pure logic** (formatting, query building, price/date helpers) lives in `src/lib/**` as plain functions with a vitest `*.test.ts` next to it. Do not copy helpers between files.
 - UI strings in Vietnamese with diacritics.
 

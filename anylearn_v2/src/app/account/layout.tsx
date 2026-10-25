@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef } from 'react'
 import { useScrollEdges } from '@/lib/scrollEdges'
+import { ListSkeleton } from '@/components/PageSkeleton'
 
 const NAV_ITEMS = [
   { href: '/account/anypoint', label: 'anyPoint', icon: '🟡', isPoint: true },
@@ -154,7 +155,16 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
     if (!isAuthLoading && !user) router.push('/login')
   }, [isAuthLoading, user, router])
 
-  if (isAuthLoading || !user) return null
+  if (isAuthLoading) {
+    return (
+      <div className="bg-bg min-h-[80vh] py-3 md:py-10">
+        <div className="container rounded-card border border-line bg-white p-5">
+          <ListSkeleton />
+        </div>
+      </div>
+    )
+  }
+  if (!user) return null
 
   const handleLogout = () => { logout(); router.push('/') }
 
