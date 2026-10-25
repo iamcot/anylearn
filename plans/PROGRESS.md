@@ -23,7 +23,7 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 - [ ] Hệ số điểm theo hạng thành viên có chấp nhận chi phí không (plan 10.2).
 - [ ] Trả góp: cách đối tác nhận tiền theo kỳ (plan 10.4).
 - [ ] Đồng ý thêm thư viện Java gửi Web Push (plan 13.4)?
-- [ ] Có lên Google Play / App Store không, khi nào (plan 13.8)?
+- [ ] App cũ trên store: còn hoạt động không, công nghệ gì, còn khóa ký / tài khoản store / Firebase không; chọn gỡ, thay bằng bản bọc web, hay giữ (plan 13.0, 13.8).
 - [ ] Chat lớp: giáo viên có được vào nhóm không; nội quy và điều khoản cộng đồng (plan 11).
 
 ## Bảng task
@@ -38,6 +38,7 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 01.2 | Form "Tìm giúp tôi" (`course_requests`) | todo | |
 | 01.3 | Admin xử lý yêu cầu | todo | |
 | 01.4 | Dashboard xu hướng | todo | |
+| 13.0 | Kiểm kê app cũ trên store + `users.notif_token` | todo | Cần chủ sản phẩm cung cấp thông tin |
 | 13.1 | Manifest + icon | todo | Tham khảo CLR `src/app/manifest.ts` |
 | 13.2 | Service worker (cache tĩnh, offline, cập nhật) | todo | |
 | 13.3 | Mời cài app đúng lúc (Android + hướng dẫn iOS) | todo | |
@@ -114,9 +115,13 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 10.3 | Gói gia đình | todo | |
 | 10.4 | Trả góp / đóng theo kỳ | todo | Chờ chủ sản phẩm |
 | 11.5 | Chat mở rộng | todo | |
-| 13.8 | App trên store (TWA / Capacitor) | todo | Chờ số liệu 13.7 + chủ sản phẩm |
+| 13.8 | Thay app cũ trên store bằng bản bọc web (TWA / Capacitor), cùng package/bundle id | todo | Theo kết quả 13.0; có thể kéo lên sớm |
 
 ## Nhật ký
+
+### 25/10/2026 – app cũ trên store
+- Chủ sản phẩm cho biết đã từng có app trên store. DB có `users.notif_token` (từ portal), backend v2 không dùng.
+- Plan 13: thêm 13.0 kiểm kê app cũ; 13.4 chọn FCM nếu còn app store; 13.8 đổi thành phát hành bản cập nhật cho app cũ.
 
 ### 25/10/2026 – thêm plan 13 (PWA + push)
 - Hiện trạng: `public/sw.js` chỉ xử lý click; thông báo trình duyệt chỉ chạy khi tab mở (qua SSE); chưa có manifest,

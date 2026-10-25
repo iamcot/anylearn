@@ -1,6 +1,6 @@
 # 13 – PWA (cài như app) và push notification
 
-Giai đoạn 1 (13.1–13.6), giai đoạn 4 (13.8). Nền cho trụ cột D: nhắc thanh toán (05), nhắc lịch/gia hạn (07),
+Giai đoạn 1 (13.0–13.6), 13.8 tuỳ kết quả kiểm kê app cũ (13.0). Nền cho trụ cột D: nhắc thanh toán (05), nhắc lịch/gia hạn (07),
 gợi ý (08), chat lớp (11) đều cần một kênh **miễn phí, tới được điện thoại khi app đang đóng**. ZNS tốn tiền theo tin,
 email ít người đọc; push là kênh rẻ nhất cho nhắc việc hằng ngày.
 
@@ -15,6 +15,20 @@ email ít người đọc; push là kênh rẻ nhất cho nhắc việc hằng n
 - Không có `manifest` → không cài được lên màn hình chính đúng cách; iOS không cho push nếu chưa cài.
 - Tham khảo: dự án CLR đã có `src/app/manifest.ts` + `public/sw.js` viết tay (cache tĩnh, "Có bản mới") – dùng lại cách làm.
 
+## App cũ trên store (chủ sản phẩm cho biết 25/10/2026)
+
+- anyLEARN **đã từng có app trên store**. Dấu vết trong DB: cột `users.notif_token` (varchar 255, có từ schema portal) –
+  nhiều khả năng là token Firebase Cloud Messaging (FCM) của app cũ. Backend v2 **không đọc/ghi** cột này.
+- Ảnh hưởng tới plan:
+  1. **Không tạo app mới trên store**: nếu lên store thì phát hành **bản cập nhật** cho đúng app cũ (giữ package name
+     Android / bundle id iOS, khóa ký app, tài khoản store) để giữ lượt cài, đánh giá và người dùng cũ tự lên bản mới.
+  2. **Kênh push**: nếu app store còn sống hoặc sẽ thay bằng bản bọc web, dùng **FCM** làm một đường gửi chung
+     (FCM gửi được cho Android, iOS qua APNs và cả web) thay vì chỉ Web Push thuần → 13.4 chọn sau khi có 13.0.
+  3. **Mời cài**: nếu app store vẫn là kênh chính, manifest khai `related_applications` và lời mời chuyển khách sang
+     store thay vì cài PWA; tránh mời cài hai thứ cùng lúc.
+  4. **Người dùng app cũ**: nếu app cũ còn gọi API portal (Laravel) thì họ không có QR SePay, `/today`… → cần phương án
+     chuyển (cập nhật app, hoặc thông báo cuối cùng qua `notif_token` mời sang bản mới).
+
 ## Ràng buộc nền tảng (ghi nhớ khi làm)
 
 - Web Push cần HTTPS (production đã có; local dùng `localhost` hoặc ngrok).
@@ -24,6 +38,17 @@ email ít người đọc; push là kênh rẻ nhất cho nhắc việc hằng n
 - Next.js 16: đọc `node_modules/next/dist/docs/` (mục PWA / manifest) trước khi viết `app/manifest.ts`.
 
 ## Task
+
+### 13.0 Kiểm kê app cũ (làm trước 13.3, 13.4, 13.8)
+Cần chủ sản phẩm/đội cũ cung cấp, ghi kết quả vào PROGRESS.md:
+- App còn trên Google Play / App Store không? Lượt cài, người dùng hoạt động 30 ngày gần nhất.
+- Công nghệ (native, Flutter, React Native, webview?) và còn source không. App gọi API nào (portal `/api/*`?), portal còn chạy không.
+- Package name Android, bundle id iOS; **khóa ký Android (keystore) hoặc Play App Signing**; quyền vào Google Play Console,
+  App Store Connect, tài khoản Apple Developer còn hạn; dự án Firebase (file cấu hình, server key / service account).
+- `users.notif_token` là gì (FCM? OneSignal?), bao nhiêu dòng còn giá trị:
+  `SELECT COUNT(*) FROM users WHERE notif_token IS NOT NULL AND notif_token <> ''`.
+- Quyết định sau kiểm kê (hỏi chủ sản phẩm): (a) gỡ app cũ, chỉ dùng PWA; (b) giữ listing, phát hành bản bọc web mới
+  (TWA Android / Capacitor iOS) cùng package/bundle id; (c) giữ app cũ như hiện tại (không khuyến khích: hai giao diện).
 
 ### 13.1 Web App Manifest + icon
 - `anylearn_v2/src/app/manifest.ts`: `name: 'anyLEARN'`, `short_name`, `lang: 'vi'`, `display: 'standalone'`,
@@ -49,7 +74,11 @@ email ít người đọc; push là kênh rẻ nhất cho nhắc việc hằng n
 - Ghi sự kiện `pwa_prompt_shown / accepted / dismissed / installed` (`appinstalled`) để đo.
 
 ### 13.4 Backend Web Push
-- Thư viện Java gửi Web Push (ví dụ `nl.martijndwars:web-push` + BouncyCastle) → **thư viện mới, hỏi chủ sản phẩm trước**.
+- Chọn đường gửi theo kết quả 13.0:
+  - có app store (cũ hoặc bản bọc mới) → **Firebase Admin SDK (FCM)** cho cả app lẫn web, dùng lại dự án Firebase cũ nếu còn;
+  - chỉ PWA → thư viện Web Push (ví dụ `nl.martijndwars:web-push` + BouncyCastle).
+  Cả hai đều là **thư viện mới, hỏi chủ sản phẩm trước**. Bảng `push_subscriptions` thêm cột `provider` (`webpush` / `fcm`)
+  và `token` cho FCM; `users.notif_token` giữ nguyên cho portal cũ, chỉ đọc để chuyển dữ liệu nếu cần.
   Phương án không thêm thư viện: tự ký VAPID JWT + mã hoá `aes128gcm` – nhiều code, không khuyến khích.
 - Env: `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` (`mailto:info@anylearn.vn`). Ghi vào `CLAUDE.md` mục env.
   Public key trả qua `GET /v2/api/push/public-key` (không hardcode ở FE).
@@ -101,10 +130,14 @@ email ít người đọc; push là kênh rẻ nhất cho nhắc việc hằng n
 ### 13.7 Đo
 - Admin dashboard: số thiết bị đăng ký push (theo nền tảng), tỉ lệ cài PWA, tỉ lệ gửi thành công, tỉ lệ click theo loại.
 
-### 13.8 App trên store (giai đoạn 4, chỉ khi cần)
-- Android: bọc PWA bằng **TWA** (Trusted Web Activity) để lên Google Play, dùng lại toàn bộ web + push.
-- iOS: nếu tỉ lệ cài PWA trên iPhone thấp, cân nhắc Capacitor (cần APNs, tài khoản Apple Developer) → quyết định sau khi có
-  số liệu 13.7. **Hỏi chủ sản phẩm.**
+### 13.8 Thay app cũ trên store bằng bản dùng lại web (sau 13.0)
+- Android: **TWA** (Trusted Web Activity) bọc anyLEARN web, **cùng package name + khóa ký** của app cũ → phát hành như bản
+  cập nhật. Cần `/.well-known/assetlinks.json` trên domain (thêm vào Next.js `public/` hoặc nginx).
+- iOS: **Capacitor** bọc web, cùng bundle id, push qua APNs/FCM. Apple có thể từ chối app chỉ là webview (guideline 4.2):
+  cần thêm phần native tối thiểu (push, badge, mở link sâu) → ước lượng công riêng.
+- Link sâu: `anylearn.vn/today`, `/order/...` mở thẳng trong app (Android App Links / iOS Universal Links).
+- Nếu chọn (a) gỡ app: trước khi gỡ gửi thông báo cuối qua `notif_token` + bản cập nhật cuối của app cũ mở web, mời cài PWA.
+- **Hỏi chủ sản phẩm** chọn (a)/(b)/(c) ở 13.0; ưu tiên có thể kéo lên giai đoạn 1–2 nếu app cũ còn nhiều người dùng.
 
 ## Tiêu chí xong (giai đoạn 1)
 - Android Chrome và iPhone (đã thêm vào MH chính) cài được anyLEARN, mở từ icon vào `/today`.
@@ -114,4 +147,4 @@ email ít người đọc; push là kênh rẻ nhất cho nhắc việc hằng n
 
 ## Cần hỏi lại khi làm
 - Đồng ý thêm thư viện Java gửi Web Push (13.4)?
-- Có muốn lên Google Play / App Store không, và khi nào (13.8)?
+- Kết quả kiểm kê app cũ (13.0) và chọn phương án (a) gỡ / (b) thay bằng bản bọc web / (c) giữ nguyên.
