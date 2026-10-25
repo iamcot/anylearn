@@ -3,27 +3,41 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { useRouter, useParams, useSearchParams } from 'next/navigation'
-import { getOrder, initiatePayment, getBankInfo, OrderData, BankInfo, getCourseUrl } from '@/lib/api'
-import PaymentMethodSelector from '@/components/PaymentMethodSelector'
 import Link from 'next/link'
+import { getOrder, initiatePayment, getBankInfo, getCourseUrl, type OrderData, type BankInfo } from '@/lib/api'
+import PaymentMethodSelector from '@/components/PaymentMethodSelector'
 import CheckCircle from '@/components/CheckCircle'
-import { formatPrice } from '@/lib/format/price'
+import OrderLine from '@/components/cart/OrderLine'
 import { FormPageSkeleton, ListSkeleton } from '@/components/PageSkeleton'
+import { ClockIcon, CloseIcon } from '@/components/icons'
+
+const GATEWAY_WAIT_STEPS = ['Giao dịch đang được xử lý. Vui lòng kiểm tra email xác nhận.']
 
 const PAYMENT_INSTRUCTIONS: Record<string, { title: string; steps: string[] }> = {
-  bank_transfer: {
-    title: 'Hướng dẫn chuyển khoản',
-    steps: [
-      'Chuyển khoản đến tài khoản: MB Bank - 0123456789 - CÔNG TY ANYLEARN',
-      'Nội dung chuyển khoản: [Họ tên] + [Số điện thoại]',
-      'Sau khi chuyển khoản, vui lòng gửi ảnh xác nhận qua Zalo: 0909xxxxxx',
-    ],
-  },
-  card: { title: 'Thanh toán thẻ OnePay', steps: ['Giao dịch đang được xử lý. Vui lòng kiểm tra email xác nhận.'] },
-  vnpay: { title: 'Thanh toán VNPay', steps: ['Giao dịch đang được xử lý. Vui lòng kiểm tra email xác nhận.'] },
-  momo: { title: 'Thanh toán MoMo', steps: ['Giao dịch đang được xử lý. Vui lòng kiểm tra email xác nhận.'] },
+  card: { title: 'Thanh toán thẻ OnePay', steps: GATEWAY_WAIT_STEPS },
+  vnpay: { title: 'Thanh toán VNPay', steps: GATEWAY_WAIT_STEPS },
+  momo: { title: 'Thanh toán MoMo', steps: GATEWAY_WAIT_STEPS },
   installment: { title: 'Đăng ký trả góp', steps: ['Đội ngũ anyLEARN sẽ liên hệ trong vòng 24h để hỗ trợ đăng ký trả góp 0% lãi suất.'] },
 }
+
+function StatusIcon({ failed }: { failed: boolean }) {
+  return (
+    <div className={`mx-auto mb-4 grid size-16 place-items-center rounded-full ${failed ? 'bg-red-soft text-red' : 'bg-blue-soft text-blue'}`}>
+      {failed ? <CloseIcon className="size-8" /> : <ClockIcon className="size-8" />}
+    </div>
+  )
+}
+
+function InstructionBox({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="mb-6 rounded-card border border-blue-line bg-blue-soft p-5 text-left">
+      <h3 className="m-0 mb-3 text-base font-extrabold text-blue">{title}</h3>
+      <ol className="m-0 list-decimal pl-5">{children}</ol>
+    </div>
+  )
+}
+
+const STEP_CLASS = 'mb-1 text-sm leading-[1.7] text-text'
 
 export default function OrderPage() {
   const { user, token, isAuthLoading } = useAuth()
@@ -31,8 +45,8 @@ export default function OrderPage() {
   const { orderId } = useParams<{ orderId: string }>()
   const searchParams = useSearchParams()
   const paymentStatus = searchParams.get('status') // 'success' | 'fail' | 'pending' | null
-  const isPending = paymentStatus === 'pending'  // đến từ checkout, chưa thanh toán lần nào
-  const isFail = paymentStatus === 'fail'        // đến từ gateway sau khi thanh toán thất bại
+  const isPending = paymentStatus === 'pending'    // from checkout, nothing paid yet
+  const isFail = paymentStatus === 'fail'          // back from the gateway after a failed payment
   const [order, setOrder] = useState<OrderData | null>(null)
   const [bankInfo, setBankInfo] = useState<BankInfo | null>(null)
   const [loading, setLoading] = useState(true)
@@ -49,7 +63,7 @@ export default function OrderPage() {
     if (error) { setRetryError(error); return }
 
     if (retryMethod === 'bank_transfer') {
-      // Ghi nhận pay_pending, chuyển về trang hướng dẫn chuyển khoản
+      // Order is now pay_pending: show the bank transfer instructions
       window.location.href = `/order/${orderId}`
       return
     }
@@ -58,11 +72,12 @@ export default function OrderPage() {
   }
 
   useEffect(() => {
+    if (!isAuthLoading && !user) router.push('/login')
+  }, [isAuthLoading, user, router])
+
+  useEffect(() => {
     if (!token) return
-    Promise.all([
-      getOrder(orderId, token),
-      getBankInfo(),
-    ]).then(([orderData, bank]) => {
+    Promise.all([getOrder(orderId, token), getBankInfo()]).then(([orderData, bank]) => {
       setOrder(orderData)
       setBankInfo(bank)
       setLoading(false)
@@ -70,147 +85,97 @@ export default function OrderPage() {
   }, [token, orderId])
 
   if (isAuthLoading) return <FormPageSkeleton />
-  if (!user) { router.push('/login'); return null }
+  if (!user) return null
 
   const instructions = order?.paymentMethod ? PAYMENT_INSTRUCTIONS[order.paymentMethod] : null
 
   return (
-    <div className="section">
-      <div className="container text-center">
+    <div className="section py-6 lg:py-10">
+      <div className="container max-w-[720px] text-center">
         {loading ? (
-          <div className="mx-auto max-w-[720px] text-left"><ListSkeleton /></div>
+          <div className="text-left"><ListSkeleton /></div>
         ) : !order ? (
           <div>
-            <p className="text-red mb-4">Không tìm thấy đơn hàng</p>
-            <Link href="/" className="btn btn--outline">Về trang chủ</Link>
+            <p className="mb-4 text-red">Không tìm thấy đơn hàng</p>
+            <Link href="/" className="btn btn--outline no-underline">Về trang chủ</Link>
           </div>
         ) : (isFail || isPending) ? (
           <>
-            <div className="text-[64px] mb-4">{isFail ? '❌' : '🔔'}</div>
-            <h1 className={`text-[28px] font-black mb-2 ${isFail ? 'text-red' : 'text-ink'}`}>
+            <StatusIcon failed={isFail} />
+            <h1 className={`mb-2 text-[28px] font-extrabold ${isFail ? 'text-red' : 'text-ink'}`}>
               {isFail ? 'Thanh toán thất bại' : 'Tiếp tục thanh toán'}
             </h1>
-            <p className="text-muted mb-6">
+            <p className="mb-6 mt-0 text-muted">
               {isFail
                 ? 'Giao dịch không thành công hoặc đã bị hủy. Chọn phương thức khác để thử lại.'
                 : 'Đơn hàng chưa được thanh toán. Vui lòng chọn một phương thức bên dưới.'}
             </p>
 
             {order.items.length > 0 && (
-              <div className="bg-white border border-line rounded-card mb-4 overflow-hidden text-left">
-                <div className="bg-bg border-b border-line py-3 px-5 font-black text-ink">Khóa học trong đơn</div>
-                {order.items.map((item, i) => (
-                  <div key={item.itemId} className={`flex gap-3 py-3 px-5 items-center ${i < order.items.length - 1 ? 'border-b border-[#f0f0f0]' : ''}`}>
-                    {item.image && <img src={item.image} alt={item.title} className="w-11 h-11 object-cover rounded-lg shrink-0" />}
-                    <span className="text-sm font-bold text-ink">{item.title}</span>
-                  </div>
-                ))}
-              </div>
+              <section className="mb-4 overflow-hidden rounded-card border border-line bg-white text-left">
+                <h2 className="m-0 border-b border-line bg-bg px-5 py-3 text-base font-extrabold text-ink">Khóa học trong đơn</h2>
+                <ul className="m-0 list-none p-0">
+                  {order.items.map(item => <OrderLine key={item.itemId} item={item} />)}
+                </ul>
+              </section>
             )}
 
-            {/* Payment method selector */}
-            <div className="bg-white border border-line rounded-card mb-4 p-5 text-left">
-              <p className="font-bold text-ink mb-3">Chọn phương thức thanh toán</p>
+            <div className="mb-4 rounded-card border border-line bg-white p-4 text-left sm:p-5">
+              <p className="mb-3 mt-0 font-bold text-ink">Chọn phương thức thanh toán</p>
               <PaymentMethodSelector
-                total={order.items.reduce((s, i) => s + i.price, 0)}
+                total={order.items.reduce((sum, item) => sum + item.price, 0)}
                 value={retryMethod}
                 onChange={setRetryMethod}
                 name="retryMethod"
               />
             </div>
 
-            {retryError && <p className="text-red text-sm mb-3">{retryError}</p>}
-            <div className="flex gap-3 justify-center flex-wrap">
-              <button onClick={handleRetry} className="btn btn--green" disabled={retrying}>
+            {retryError && <p className="mb-3 mt-0 text-sm text-red">{retryError}</p>}
+            <div className="flex flex-wrap justify-center gap-3">
+              <button type="button" onClick={handleRetry} className="btn btn--green" disabled={retrying}>
                 {retrying ? 'Đang xử lý...' : 'Thử lại thanh toán'}
               </button>
-              <Link href="/" className="btn btn--outline">Về trang chủ</Link>
+              <Link href="/" className="btn btn--outline no-underline">Về trang chủ</Link>
             </div>
           </>
         ) : (
-          /* Success or bank_transfer pending */
           <>
             <div className="mb-4 flex justify-center"><CheckCircle size={64} /></div>
-            <h1 className="text-[28px] font-black text-ink mb-2">
+            <h1 className="mb-2 text-[28px] font-extrabold text-ink">
               {paymentStatus === 'success' ? 'Thanh toán thành công!' : 'Đặt hàng thành công!'}
             </h1>
-            <p className="text-muted mb-8">
+            <p className="mb-8 mt-0 text-muted">
               {paymentStatus === 'success'
                 ? 'Cảm ơn bạn đã thanh toán. Đăng ký của bạn đã được xác nhận.'
                 : 'Cảm ơn bạn đã tin tưởng anyLEARN. Vui lòng hoàn tất thanh toán để xác nhận đăng ký.'}
             </p>
 
-            {/* Danh sách khóa học đã đặt */}
-            <div className="bg-white border border-line rounded-card mb-5 overflow-hidden text-left">
-              <div className="bg-bg border-b border-line py-3 px-5 font-black text-ink">
-                Khóa học đã đặt
-              </div>
-              {order.items.map((item, i) => (
-                <div key={item.itemId} className={`flex gap-3.5 py-3.5 px-5 items-center ${i < order.items.length - 1 ? 'border-b border-[#f0f0f0]' : ''}`}>
-                  {item.image && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={item.image} alt={item.title} className="w-14 h-14 object-cover rounded-xl shrink-0" />
-                  )}
-                  <div className="flex-1">
-                    <Link href={getCourseUrl({ id: item.itemId, seoUrl: item.seoUrl })} className="font-black text-green-dark text-[15px] no-underline leading-tight block">
-                      {item.title}
-                      {item.studentName && <span className="text-muted font-normal text-sm"> ({item.studentName})</span>}
-                    </Link>
-                    {(item.scheduleTitle || item.scheduleTime) && (
-                      <div className="text-xs text-[#00539b] mt-[3px]">
-                        {[item.scheduleTitle, item.scheduleTime].filter(Boolean).join(' · ')}
-                      </div>
-                    )}
-                    {item.activities && item.activities.length > 0 && (
-                      <div className="text-xs text-[#008244] mt-[3px] flex gap-2 flex-wrap">
-                        {item.activities.map((a, i) => (
-                          <span key={i} className="flex items-center gap-1">
-                            <span style={{color:'#00a651',fontWeight: 500}}>✓</span>
-                            {{ trial:'Học thử', test:'Test đầu vào', visit:'Tham quan' }[a.type] ?? a.type}
-                            {a.date ? ` · ${a.date}` : ''}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  <div className="font-black text-red text-[15px]">{formatPrice(item.price)}</div>
-                </div>
-              ))}
-            </div>
+            <section className="mb-5 overflow-hidden rounded-card border border-line bg-white text-left">
+              <h2 className="m-0 border-b border-line bg-bg px-5 py-3 text-base font-extrabold text-ink">Khóa học đã đặt</h2>
+              <ul className="m-0 list-none p-0">
+                {order.items.map(item => (
+                  <OrderLine key={item.itemId} item={item} href={getCourseUrl({ id: item.itemId, seoUrl: item.seoUrl })} />
+                ))}
+              </ul>
+            </section>
 
-            {/* Hướng dẫn chuyển khoản từ config */}
             {order.paymentMethod === 'bank_transfer' && bankInfo && (
-              <div className="bg-blue-soft border border-[#d8e9f8] rounded-card p-5 mb-6 text-left">
-                <h3 className="m-0 mb-3 font-black text-blue text-base">Hướng dẫn chuyển khoản</h3>
-                <ol className="m-0 pl-5">
-                  <li className="text-text text-sm leading-[1.7] mb-1">
-                    Chuyển khoản đến tài khoản: <strong>{bankInfo.bankName} - {bankInfo.accountNumber} - {bankInfo.accountName}</strong>
-                  </li>
-                  <li className="text-text text-sm leading-[1.7] mb-1">
-                    Nội dung chuyển khoản: <strong>{bankInfo.transferContent}</strong>
-                  </li>
-                  <li className="text-text text-sm leading-[1.7] mb-1">
-                    Sau khi chuyển khoản, vui lòng gửi ảnh xác nhận qua Zalo: <strong>{bankInfo.zaloPhone}</strong>
-                  </li>
-                </ol>
-              </div>
+              <InstructionBox title="Hướng dẫn chuyển khoản">
+                <li className={STEP_CLASS}>Chuyển khoản đến tài khoản: <strong>{bankInfo.bankName} - {bankInfo.accountNumber} - {bankInfo.accountName}</strong></li>
+                <li className={STEP_CLASS}>Nội dung chuyển khoản: <strong>{bankInfo.transferContent}</strong></li>
+                <li className={STEP_CLASS}>Sau khi chuyển khoản, vui lòng gửi ảnh xác nhận qua Zalo: <strong>{bankInfo.zaloPhone}</strong></li>
+              </InstructionBox>
             )}
 
-            {/* Hướng dẫn cho các phương thức khác */}
             {order.paymentMethod !== 'bank_transfer' && instructions && (
-              <div className="bg-blue-soft border border-[#d8e9f8] rounded-card p-5 mb-6 text-left">
-                <h3 className="m-0 mb-3 font-black text-blue text-base">{instructions.title}</h3>
-                <ol className="m-0 pl-5">
-                  {instructions.steps.map((step, i) => (
-                    <li key={i} className="text-text text-sm leading-[1.7] mb-1">{step}</li>
-                  ))}
-                </ol>
-              </div>
+              <InstructionBox title={instructions.title}>
+                {instructions.steps.map((step, index) => <li key={index} className={STEP_CLASS}>{step}</li>)}
+              </InstructionBox>
             )}
 
-            <div className="flex gap-3 justify-center flex-wrap">
-              <Link href="/" className="btn btn--outline">Về trang chủ</Link>
-              <Link href="/search" className="btn btn--green">Tìm thêm khóa học</Link>
+            <div className="flex flex-wrap justify-center gap-3">
+              <Link href="/" className="btn btn--outline no-underline">Về trang chủ</Link>
+              <Link href="/search" className="btn btn--green no-underline">Tìm thêm khóa học</Link>
             </div>
           </>
         )}

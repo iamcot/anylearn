@@ -3,11 +3,13 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { API_BASE } from '@/lib/apiBase'
-import { CheckIcon, CloseIcon } from '@/components/icons'
-
-const TYPE_LABEL: Record<string, string> = {
-  trial: 'Học thử', test: 'Test đầu vào', visit: 'Tham quan',
-}
+import { CheckIcon } from '@/components/icons'
+import { ACTIVITY_LABELS } from '@/config/itemLabels'
+import {
+  ACTIVITY_TYPES, EMPTY_SELECTION, buildActivityPayload, hasChosenActivity, type ActivitySelection, type ActivityType,
+} from '@/lib/activities'
+import ActivityFields from '@/components/ActivityFields'
+import Modal from '@/components/Modal'
 
 interface ActivityReg {
   id: number; type: string; date?: string; note?: string; status: number
@@ -28,18 +30,10 @@ export default function ActivityButton({ itemId, activiyTrial, activiyTest, acti
   const [saving, setSaving] = useState(false)
   const [done, setDone] = useState(false)
 
-  // Form state
-  const [selTrial, setSelTrial] = useState(false)
-  const [selTest, setSelTest] = useState(false)
-  const [selVisit, setSelVisit] = useState(false)
-  const [dateTrial, setDateTrial] = useState('')
-  const [dateTest, setDateTest] = useState('')
-  const [dateVisit, setDateVisit] = useState('')
-  const [noteTrial, setNoteTrial] = useState('')
-  const [noteTest, setNoteTest] = useState('')
-  const [noteVisit, setNoteVisit] = useState('')
+  const [selection, setSelection] = useState<ActivitySelection>(EMPTY_SELECTION)
 
-  const hasAny = activiyTrial === 1 || activiyTest === 1 || activiyVisit === 1
+  const enabled: Record<ActivityType, boolean> = { trial: activiyTrial === 1, test: activiyTest === 1, visit: activiyVisit === 1 }
+  const hasAny = ACTIVITY_TYPES.some(type => enabled[type])
 
   // Fetch my activities on mount
   useEffect(() => {
@@ -60,11 +54,7 @@ export default function ActivityButton({ itemId, activiyTrial, activiyTest, acti
 
   async function handleSave() {
     if (!user) return
-    const activities = [
-      selTrial && activiyTrial === 1 && { type: 'trial', date: dateTrial || undefined, note: noteTrial || undefined },
-      selTest  && activiyTest  === 1 && { type: 'test',  date: dateTest  || undefined, note: noteTest  || undefined },
-      selVisit && activiyVisit === 1 && { type: 'visit', date: dateVisit || undefined, note: noteVisit || undefined },
-    ].filter(Boolean)
+    const activities = buildActivityPayload(selection, enabled)
     if (!activities.length) return
     setSaving(true)
     try {
@@ -96,7 +86,7 @@ export default function ActivityButton({ itemId, activiyTrial, activiyTest, acti
           {myActivities.filter(a => !a.date || a.date >= today).map(a => (
             <div key={a.id} className="flex items-center gap-1 text-green-dark">
               <CheckIcon className="size-4 text-green" />
-              <span className="font-medium">{TYPE_LABEL[a.type] ?? a.type}</span>
+              <span className="font-medium">{ACTIVITY_LABELS[a.type] ?? a.type}</span>
               {a.date && <span className="text-muted font-normal">· ngày {a.date}</span>}
             </div>
           ))}
@@ -110,64 +100,24 @@ export default function ActivityButton({ itemId, activiyTrial, activiyTest, acti
         </button>
       )}
 
-      {/* Modal */}
       {open && (
-        <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-ink/45 p-4">
-          <div className="w-full max-w-[400px] rounded-[18px] bg-white p-6 shadow-raised">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="m-0 text-base font-extrabold text-ink">Đăng ký trải nghiệm</h3>
-              <button type="button" aria-label="Đóng" onClick={() => setOpen(false)} className="-mr-2 grid size-11 cursor-pointer place-items-center border-0 bg-transparent text-muted hover:text-ink">
-                <CloseIcon />
+        <Modal title="Đăng ký trải nghiệm" onClose={() => setOpen(false)}>
+          {done ? (
+            <div className="flex items-center justify-center gap-2 py-6 font-bold text-green-dark"><CheckIcon className="size-5" />Đăng ký thành công!</div>
+          ) : (
+            <div className="flex flex-col gap-4">
+              {ACTIVITY_TYPES.filter(type => enabled[type]).map(type => (
+                <ActivityFields key={type} type={type} choice={selection[type]}
+                  onChange={choice => setSelection(prev => ({ ...prev, [type]: choice }))} />
+              ))}
+              <button onClick={handleSave} disabled={saving || !hasChosenActivity(selection, enabled)}
+                className={`btn btn--green mt-2 w-full ${hasChosenActivity(selection, enabled) ? '' : 'opacity-50'}`}>
+                {saving ? 'Đang gửi...' : 'Gửi đăng ký'}
               </button>
             </div>
-
-            {done ? (
-              <div className="flex items-center justify-center gap-2 py-6 font-bold text-green-dark"><CheckIcon className="size-5" />Đăng ký thành công!</div>
-            ) : (
-              <div className="flex flex-col gap-4">
-                {activiyTrial === 1 && (
-                  <ActivityRow label="Học thử" checked={selTrial} onCheck={setSelTrial}
-                    date={dateTrial} onDate={setDateTrial} note={noteTrial} onNote={setNoteTrial} />
-                )}
-                {activiyTest === 1 && (
-                  <ActivityRow label="Test đầu vào" checked={selTest} onCheck={setSelTest}
-                    date={dateTest} onDate={setDateTest} note={noteTest} onNote={setNoteTest} />
-                )}
-                {activiyVisit === 1 && (
-                  <ActivityRow label="Tham quan" checked={selVisit} onCheck={setSelVisit}
-                    date={dateVisit} onDate={setDateVisit} note={noteVisit} onNote={setNoteVisit} />
-                )}
-                <button onClick={handleSave} disabled={saving || (!selTrial && !selTest && !selVisit)}
-                  className={`btn btn--green mt-2 w-full ${(!selTrial && !selTest && !selVisit) ? 'opacity-50' : ''}`}>
-                  {saving ? 'Đang gửi...' : 'Gửi đăng ký'}
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
+          )}
+        </Modal>
       )}
     </>
-  )
-}
-
-function ActivityRow({ label, checked, onCheck, date, onDate, note, onNote }: {
-  label: string; checked: boolean; onCheck: (v: boolean) => void
-  date: string; onDate: (v: string) => void; note: string; onNote: (v: string) => void
-}) {
-  return (
-    <div className={`rounded-xl border p-3 transition-colors ${checked ? 'border-green bg-green-soft' : 'border-line'}`}>
-      <label className="mb-2 flex min-h-11 cursor-pointer items-center gap-2">
-        <input type="checkbox" checked={checked} onChange={e => onCheck(e.target.checked)} className="accent-green w-4 h-4" />
-        <span className={`text-sm font-bold ${checked ? 'text-green-dark' : 'text-ink'}`}>{label}</span>
-      </label>
-      {checked && (
-        <div className="flex flex-col gap-2 pl-6">
-          <input type="date" value={date} onChange={e => onDate(e.target.value)}
-            className="field text-sm" placeholder="Ngày mong muốn" />
-          <input type="text" value={note} onChange={e => onNote(e.target.value)}
-            className="field text-sm" placeholder="Ghi chú (tuỳ chọn)" />
-        </div>
-      )}
-    </div>
   )
 }

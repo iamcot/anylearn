@@ -12,7 +12,8 @@ import ChevronLabel from '@/components/ChevronLabel'
 import StarRating from '@/components/StarRating'
 import { BookIcon, CheckIcon, SchoolIcon, UserIcon } from '@/components/icons'
 import { formatPrice } from '@/lib/format/price'
-import { SUBTYPE_LABELS } from '@/config/itemLabels'
+import { CYCLE_LABELS, SUBTYPE_LABELS } from '@/config/itemLabels'
+import { formatSchedule } from '@/lib/format/schedule'
 
 function formatAge(min?: number, max?: number) {
   if (!min && !max) return null
@@ -21,8 +22,6 @@ function formatAge(min?: number, max?: number) {
   return `${min} – ${max} tuổi`
 }
 
-const WD_LABEL: Record<string, string> = { mon:'Thứ Hai', tue:'Thứ Ba', wed:'Thứ Tư', thu:'Thứ Năm', fri:'Thứ Sáu', sat:'Thứ Bảy', sun:'Chủ Nhật' }
-const CYCLE_LABEL: Record<string, string> = { session:'buổi', day:'ngày', week:'tuần', month:'tháng', year:'năm' }
 const SCHEDULE_TYPE_LABEL: Record<string, string> = { recurring:'Lớp cố định', event:'Một buổi', open:'Khai giảng linh hoạt' }
 const SCHEDULE_BADGE_CLASS: Record<string, string> = {
   recurring: 'bg-blue-soft text-blue',
@@ -34,17 +33,6 @@ const FEATURE_LABELS = [
   { key: 'activiyTest', label: 'Có test đầu vào' },
   { key: 'activiyVisit', label: 'Có tham quan' },
 ] as const
-
-function formatSchedule(s: ItemSchedule) {
-  if (s.scheduleType === 'event' && s.eventDate) {
-    const d = new Date(s.eventDate).toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })
-    return `${d}${s.timeStart ? ` · ${s.timeStart}${s.timeEnd ? '–'+s.timeEnd : ''}` : ''}`
-  }
-  const days = s.weekdays ? s.weekdays.split(',').map(d => WD_LABEL[d] ?? d).join(' ') : ''
-  const time = s.timeStart ? `${s.timeStart}${s.timeEnd ? '–'+s.timeEnd : ''}` : ''
-  const from = s.dateStart ? `từ ${new Date(s.dateStart).toLocaleDateString('vi-VN')}` : ''
-  return [days, time, from].filter(Boolean).join(' · ')
-}
 
 function parseContent(raw?: string) {
   if (!raw) return {} as Record<string, string>
@@ -143,7 +131,7 @@ export default async function PdpPage({ params }: Props) {
                 {(item.cycleAmount || item.cycleType) && (
                   <MetaItem
                     label="Chu kỳ học"
-                    value={`${item.cycleAmount ? `${item.cycleAmount} ` : ''}${item.cycleType ? (CYCLE_LABEL[item.cycleType] ?? item.cycleType) : ''}`}
+                    value={`${item.cycleAmount ? `${item.cycleAmount} ` : ''}${item.cycleType ? (CYCLE_LABELS[item.cycleType] ?? item.cycleType) : ''}`}
                   />
                 )}
               </div>

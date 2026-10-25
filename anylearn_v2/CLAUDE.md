@@ -117,6 +117,13 @@ getOrder(orderId, token)       // GET /order/:orderId     [auth]
 - **Pure logic** (formatting, query building, price/date helpers) lives in `src/lib/**` as plain functions with a vitest `*.test.ts` next to it. Do not copy helpers between files.
 - UI strings in Vietnamese with diacritics.
 
+## Cart, checkout, order
+
+- Shared pieces: `SectionCard` (card with icon header), `RadioOption` (large tap target radio), `Modal`, `ActivityFields` + `lib/activities.ts` (trial/test/visit selection and the payload sent to the API), `ItemActivityChips`, `cart/OrderLine` (one cart or order row), `cart/ApplyRow` (points / voucher input).
+- Totals live in `lib/checkout/totals.ts` (`calcCheckoutTotals`, `clampPoints`); 1 anyPoint = `POINT_VALUE_VND` in `config/points.ts`.
+- Schedule text comes from `lib/format/schedule.ts`; labels (cycle, weekday, activity) from `config/itemLabels.ts`.
+- Tailwind resets `ol`/`ul`: add `list-decimal` / `list-disc` yourself.
+
 ## /search
 
 - The URL is the only state: `lib/search/query.ts` parses it (`parseSearchParams`) and writes it (`buildSearchUrl`); every control calls `apply()` in `app/search/page.tsx`, which rewrites the URL with `history.replaceState`, and one effect fetches for the current URL (`lib/search/fetchResults.ts`). Page number is the `page` param (1-based). Do not add parallel `useState` copies of filters.

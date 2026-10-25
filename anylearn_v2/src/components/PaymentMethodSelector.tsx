@@ -1,5 +1,7 @@
 'use client'
 
+import RadioOption from '@/components/RadioOption'
+
 export interface PaymentMethod {
   value: string
   label: string
@@ -28,16 +30,11 @@ interface Props {
 }
 
 export default function PaymentMethodSelector({ total, value, onChange, name = 'payment' }: Props) {
-  const methods = getPaymentMethods(total)
   return (
-    <>
-      {methods.map(m => (
-        <label key={m.value} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, cursor: 'pointer' }}>
-          <input type="radio" name={name} value={m.value} checked={value === m.value}
-            onChange={() => onChange(m.value)} style={{ accentColor: '#00a651' }} />
-          <span style={{ fontSize: 15, color: '#17212f', lineHeight: 1.4 }}>{m.label}</span>
-        </label>
+    <div className="flex flex-col gap-2.5">
+      {getPaymentMethods(total).map(method => (
+        <RadioOption key={method.value} name={name} checked={value === method.value} onChange={() => onChange(method.value)} label={method.label} />
       ))}
-    </>
+    </div>
   )
 }
