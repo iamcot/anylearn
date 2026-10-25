@@ -19,13 +19,13 @@ const STEPS: Step[] = ['PHONE', 'OTP', 'NEW_PASSWORD']
 function StepIndicator({ current }: { current: Step }) {
   const currentIndex = STEPS.indexOf(current)
   return (
-    <ol className="m-0 mb-6 flex list-none items-center gap-2 p-0" aria-label="Các bước">
+    <ol className="m-0 mb-6 flex list-none items-center justify-center gap-2 p-0" aria-label="Các bước">
       {STEPS.map((step, index) => {
         const done = currentIndex > index
         return (
           <li key={step} className="flex items-center gap-2" aria-current={step === current ? 'step' : undefined}>
             <span className={`grid size-8 place-items-center rounded-full text-sm font-extrabold ${
-              step === current ? 'bg-blue text-white' : done ? 'bg-green text-white' : 'bg-surface text-muted'
+              step === current ? 'bg-green text-white' : done ? 'bg-green-soft text-green-dark' : 'bg-surface text-muted'
             }`}>
               {done ? <CheckIcon className="size-4" /> : index + 1}
             </span>
@@ -115,26 +115,26 @@ export default function ForgotPasswordPage() {
       {error && <Alert kind="error" className="mb-5">{error}</Alert>}
 
       {step === 'PHONE' && (
-        <form onSubmit={handleSendOtp} className="flex flex-col gap-4">
+        <form onSubmit={handleSendOtp} className="flex flex-col gap-3.5">
           <FormField label="Số điện thoại">
             <input type="tel" inputMode="tel" autoComplete="tel" value={phone} onChange={event => setPhone(event.target.value)}
               placeholder="0374900344" className="field" required />
           </FormField>
-          <button type="submit" disabled={loading} className="btn btn--blue w-full">
+          <button type="submit" disabled={loading} className="btn btn--green mt-2 w-full py-3.5 text-base">
             {loading ? 'Đang gửi...' : 'Gửi OTP qua Zalo'}
           </button>
         </form>
       )}
 
       {step === 'OTP' && (
-        <form onSubmit={handleVerifyOtp} className="flex flex-col gap-4">
+        <form onSubmit={handleVerifyOtp} className="flex flex-col gap-3.5">
           <FormField label={`Mã OTP (${OTP_LENGTH} chữ số)`}>
             <input type="text" inputMode="numeric" autoComplete="one-time-code" value={otp}
               onChange={event => setOtp(digitsOnly(event.target.value, OTP_LENGTH))}
               placeholder="123456" maxLength={OTP_LENGTH} required
               className="field text-center text-2xl font-extrabold tracking-[0.5em]" />
           </FormField>
-          <button type="submit" disabled={loading} className="btn btn--blue w-full">
+          <button type="submit" disabled={loading} className="btn btn--green mt-2 w-full py-3.5 text-base">
             {loading ? 'Đang xác thực...' : 'Xác nhận OTP'}
           </button>
           <div className="text-center text-sm text-muted">
@@ -148,7 +148,7 @@ export default function ForgotPasswordPage() {
       )}
 
       {step === 'NEW_PASSWORD' && (
-        <form onSubmit={handleResetPassword} className="flex flex-col gap-4">
+        <form onSubmit={handleResetPassword} className="flex flex-col gap-3.5">
           <FormField label="Mật khẩu mới">
             <input type="password" autoComplete="new-password" value={newPassword} onChange={event => setNewPassword(event.target.value)}
               placeholder={`Tối thiểu ${MIN_PASSWORD_LENGTH} ký tự`} className="field" required />
@@ -157,13 +157,13 @@ export default function ForgotPasswordPage() {
             <input type="password" autoComplete="new-password" value={confirmPassword} onChange={event => setConfirmPassword(event.target.value)}
               placeholder="Nhập lại mật khẩu" className="field" required />
           </FormField>
-          <button type="submit" disabled={loading} className="btn btn--green w-full">
+          <button type="submit" disabled={loading} className="btn btn--green mt-2 w-full py-3.5 text-base">
             {loading ? 'Đang cập nhật...' : 'Cập nhật mật khẩu'}
           </button>
         </form>
       )}
 
-      <div className="mt-6 flex">
+      <div className="mt-4 flex justify-center">
         <BackLink href="/login">Quay lại đăng nhập</BackLink>
       </div>
     </AuthCard>
