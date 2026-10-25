@@ -124,7 +124,7 @@ export default function OrdersPage() {
                           {index === 0 && <div className="text-xs text-muted">{paymentLabel}</div>}
                         </div>
                       </div>
-                      {order.status === 'delivered' && <OrderItemRating itemId={item.itemId} itemTitle={item.title} />}
+                      {order.status === 'delivered' && <OrderItemRating itemId={item.itemId} />}
                     </div>
                   ))}
                 </div>

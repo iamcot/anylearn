@@ -25,7 +25,7 @@ interface Props {
 export default function ActivityButton({ itemId, activiyTrial, activiyTest, activiyVisit }: Props) {
   const { user } = useAuth()
   const [myActivities, setMyActivities] = useState<ActivityReg[]>([])
-  const [checked, setChecked] = useState(false)
+  const [loadedFor, setLoadedFor] = useState<string | null>(null)
   const [open, setOpen] = useState(false)
   const [saving, setSaving] = useState(false)
   const [done, setDone] = useState(false)
@@ -35,16 +35,18 @@ export default function ActivityButton({ itemId, activiyTrial, activiyTest, acti
   const enabled: Record<ActivityType, boolean> = { trial: activiyTrial === 1, test: activiyTest === 1, visit: activiyVisit === 1 }
   const hasAny = ACTIVITY_TYPES.some(type => enabled[type])
 
+  const checked = !user || loadedFor === user.jwtToken
+
   // Fetch my activities on mount
   useEffect(() => {
-    if (!hasAny) return
-    if (!user) { setChecked(true); return }
+    if (!hasAny || !user) return
+    const token = user.jwtToken
     fetch(`${API_BASE}/item/${itemId}/my-activities`, {
       headers: { Authorization: `Bearer ${user.jwtToken}` },
     })
       .then(r => r.json())
-      .then(json => { setMyActivities(json.data ?? []); setChecked(true) })
-      .catch(() => setChecked(true))
+      .then(json => { setMyActivities(json.data ?? []); setLoadedFor(token) })
+      .catch(() => setLoadedFor(token))
   }, [itemId, user, hasAny])
 
   // Determine if already registered with future date

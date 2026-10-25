@@ -4,11 +4,9 @@ import { useState, useEffect } from 'react'
 import type { PdpReview } from '@/lib/api'
 import ReviewsList from './ReviewsList'
 import RatingForm from './RatingForm'
-import { useAuth } from '@/context/AuthContext'
 import { API_BASE } from '@/lib/apiBase'
 import StarRating from './StarRating'
-
-interface MyRating { value: number; comment: string }
+import { useItemRatingStatus, type MyRating } from './useItemRatingStatus'
 
 interface Props {
   itemId: number
@@ -17,34 +15,11 @@ interface Props {
 }
 
 export default function ReviewsSection({ itemId, initialReviews, initialRating }: Props) {
-  const { user } = useAuth()
   const [reviews, setReviews] = useState(initialReviews)
   const [rating, setRating] = useState(initialRating)
 
-  // User purchase/rating status (fetched client-side — server has no auth token)
-  const [checked, setChecked] = useState(false)
-  const [hasPurchased, setHasPurchased] = useState(false)
-  const [myRating, setMyRating] = useState<MyRating | null>(null)
-
+  const { checked, hasPurchased, myRating, saveRating } = useItemRatingStatus(itemId)
   const [editing, setEditing] = useState(false)
-
-  // Fetch user status
-  useEffect(() => {
-    if (!user) { setChecked(true); return }
-    fetch(`${API_BASE}/item/${itemId}/is-fav`, {
-      headers: { Authorization: `Bearer ${user.jwtToken}` },
-    })
-      .then(r => r.json())
-      .then(json => {
-        if (json.resultCode === 1) {
-          setHasPurchased(json.data.has_purchased)
-          const mr = json.data.my_rating
-          setMyRating(mr ? { value: Number(mr.value), comment: mr.comment ?? '' } : null)
-        }
-      })
-      .catch(() => {})
-      .finally(() => setChecked(true))
-  }, [itemId, user])
 
   // Always fetch fresh reviews on mount
   useEffect(() => {
@@ -74,7 +49,7 @@ export default function ReviewsSection({ itemId, initialReviews, initialRating }
   }
 
   function handleSaved(saved: MyRating) {
-    setMyRating(saved)
+    saveRating(saved)
     setEditing(false)
     refreshReviews()
   }

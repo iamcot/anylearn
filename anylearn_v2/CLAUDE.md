@@ -64,7 +64,7 @@ ALLOWED_DEV_ORIGINS=192.168.1.10            # optional, comma-separated LAN IPs 
 ## Auth System
 
 - `src/context/AuthContext.tsx` — React Context provider
-- User object stored in `localStorage` as key `anylearn_user`
+- User object stored in `localStorage` as key `anylearn_user`, read through `useSyncExternalStore` (`lib/auth/userStore.ts`), so tabs stay in sync and there is no setState-in-effect. `isAuthLoading` is true on the server and during hydration.
 - Exposes `user`, `login(user)`, `logout()`, `cartCount`, `refreshCartCount()`
 - `AuthModal` can be opened globally; auto-redirects after login
 - Auth pages (`/login`, `/register`) also work standalone
@@ -154,6 +154,8 @@ getCourseUrl(item)  // Generates /class/:id/:slug with Vietnamese diacritic stri
 ```
 
 ## Patterns
+
+- Lint must stay at 0 problems. Do not call `setState` synchronously inside `useEffect`: derive the value, use `useSyncExternalStore` (`useIsClient`, browser-only values) or set state inside the promise callback. Rating status for an item: `components/useItemRatingStatus.ts`.
 
 - Server Components fetch on the server for SEO (homepage, PDP, info)
 - Client Components handle interactivity (search filters, cart, auth forms)

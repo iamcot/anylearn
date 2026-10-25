@@ -4,16 +4,16 @@ import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { useIsClient } from '@/components/useIsClient'
 
 export default function RegisterButton({ itemId }: { itemId: number }) {
   const { user, openAuthModal } = useAuth()
   const router = useRouter()
   const [sticky, setSticky] = useState(false)
-  const [mounted, setMounted] = useState(false)
+  const mounted = useIsClient()
   const sentinelRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    setMounted(true)
     const el = sentinelRef.current
     if (!el) return
     const observer = new IntersectionObserver(

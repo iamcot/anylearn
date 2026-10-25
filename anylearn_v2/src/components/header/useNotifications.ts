@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { getNotifications } from '@/lib/api'
 import { API_BASE } from '@/lib/apiBase'
@@ -8,12 +8,6 @@ import { API_BASE } from '@/lib/apiBase'
 export function useNotifications() {
   const { user, refreshUser } = useAuth()
   const [unreadCount, setUnreadCount] = useState(0)
-
-  const fetchUnreadCount = useCallback(async () => {
-    if (!user) return
-    const { unread } = await getNotifications(user.jwtToken)
-    setUnreadCount(unread ?? 0)
-  }, [user])
 
   // Register service worker for reliable browser notifications (Chrome requires this)
   useEffect(() => {
@@ -32,8 +26,8 @@ export function useNotifications() {
 
   // SSE for real-time notifications + browser push
   useEffect(() => {
-    if (!user) { setUnreadCount(0); return }
-    fetchUnreadCount()
+    if (!user) return
+    getNotifications(user.jwtToken).then(({ unread }) => setUnreadCount(unread ?? 0))
 
     const es = new EventSource(`${API_BASE}/user/notification/stream?api_token=${user.apiToken}`)
 
@@ -64,7 +58,7 @@ export function useNotifications() {
     })
 
     return () => es.close()
-  }, [user, fetchUnreadCount])
+  }, [user, refreshUser])
 
-  return { unreadCount, setUnreadCount }
+  return { unreadCount: user ? unreadCount : 0, setUnreadCount }
 }

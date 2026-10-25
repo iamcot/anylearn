@@ -1,16 +1,14 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useSyncExternalStore } from 'react'
 import { ChevronLeftIcon } from '@/components/icons'
+
+const subscribeNever = () => () => {}
 
 export default function BackButton() {
   const router = useRouter()
-  const [canGoBack, setCanGoBack] = useState(false)
-
-  useEffect(() => {
-    setCanGoBack(window.history.length > 1)
-  }, [])
+  const canGoBack = useSyncExternalStore(subscribeNever, () => window.history.length > 1, () => false)
 
   if (!canGoBack) return null
 

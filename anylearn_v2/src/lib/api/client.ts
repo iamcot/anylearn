@@ -21,7 +21,7 @@ export async function authFetch<T>(path: string, token: string, options?: Reques
     if (!res.ok) return { data: null, error: json?.message || 'Lỗi không xác định' }
     if (json?.resultCode === 0) return { data: null, error: json?.message || 'Lỗi không xác định' }
     return { data: json?.data ?? json }
-  } catch (e) {
+  } catch {
     return { data: null, error: 'Không thể kết nối máy chủ' }
   }
 }
