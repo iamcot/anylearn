@@ -269,6 +269,7 @@ public class UserService {
 
     public List<Map<String, Object>> getWalletCHistory(User user) {
         var txns = transactionRepository.findByUserIdAndTypeIn(user.getId(), WALLET_C_TYPES);
+        Map<Long, Long> orderOfDetail = orderIdsOfBuyerRewards(txns);
         var result = new ArrayList<Map<String, Object>>();
         for (var t : txns) {
             var row = new LinkedHashMap<String, Object>();
@@ -278,9 +279,29 @@ public class UserService {
             row.put("status", t.getStatus());
             row.put("content", t.getContent());
             row.put("createdAt", t.getCreatedAt());
+            row.put("orderId", orderIdOf(t, orderOfDetail));
             result.add(row);
         }
         return result;
+    }
+
+    /** The user's own reward is stored against the order line; map the lines to their orders in one query. */
+    private Map<Long, Long> orderIdsOfBuyerRewards(List<com.anylearn.backend.entity.Transaction> txns) {
+        List<Long> detailIds = txns.stream().filter(this::isBuyerReward)
+                .map(com.anylearn.backend.entity.Transaction::getOrderId).filter(java.util.Objects::nonNull).distinct().toList();
+        Map<Long, Long> orderOfDetail = new java.util.HashMap<>();
+        if (!detailIds.isEmpty()) orderDetailRepository.findAllById(detailIds).forEach(d -> orderOfDetail.put(d.getId(), d.getOrderId()));
+        return orderOfDetail;
+    }
+
+    // Referral rewards come from a friend's order, which this user cannot open, so they get no order link.
+    private boolean isBuyerReward(com.anylearn.backend.entity.Transaction t) {
+        return "commission".equals(t.getType()) && t.getRefUserId() == null;
+    }
+
+    private Long orderIdOf(com.anylearn.backend.entity.Transaction t, Map<Long, Long> orderOfDetail) {
+        if ("exchange".equals(t.getType()) || "exchange_refund".equals(t.getType())) return t.getOrderId();
+        return isBuyerReward(t) ? orderOfDetail.get(t.getOrderId()) : null;
     }
 
     // ── Update image URL (after S3 upload) ───────────────────────────────────

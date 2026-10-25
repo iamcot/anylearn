@@ -182,8 +182,9 @@ export default async function PdpPage({ params }: Props) {
               </div>
 
               {pointsPreview && pointsPreview.points > 0 && (
-                <div className="-mt-3 mb-4">
+                <div className="-mt-3 mb-4 flex flex-wrap items-center gap-x-3 gap-y-1">
                   <PointsRewardBadge points={pointsPreview.points} vndValue={pointsPreview.vndValue} />
+                  <Link href="/info/anypoint" className="text-xs font-medium text-green-dark underline">anyPoint là gì?</Link>
                 </div>
               )}
 

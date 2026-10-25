@@ -9,8 +9,8 @@ import {
   type CartItem, type PendingOrder, type VoucherResult,
 } from '@/lib/api'
 import { formatExactPrice } from '@/lib/format/price'
-import { POINT_VALUE_VND } from '@/config/points'
-import { calcCheckoutTotals, clampPoints } from '@/lib/checkout/totals'
+import { calcCheckoutTotals, maxUsablePoints, pointsToApply, type PointsChoice } from '@/lib/checkout/totals'
+import UsePointsToggle from '@/components/cart/UsePointsToggle'
 import PaymentMethodSelector from '@/components/PaymentMethodSelector'
 import SectionCard from '@/components/SectionCard'
 import OrderLine from '@/components/cart/OrderLine'
@@ -72,10 +72,9 @@ export default function CheckoutPage() {
   const [error, setError] = useState('')
   const [paymentMethod, setPaymentMethod] = useState('bank_transfer')
   const [coupon, setCoupon] = useState('')
-  const [points, setPoints] = useState('')
   const [agreedTerms, setAgreedTerms] = useState(true)
 
-  const [pointsApplied, setPointsApplied] = useState(0)
+  const [pointsChoice, setPointsChoice] = useState<PointsChoice>({ on: false, custom: null })
   const [voucherResult, setVoucherResult] = useState<VoucherResult | null>(null)
   const [voucherError, setVoucherError] = useState('')
   const [voucherLoading, setVoucherLoading] = useState(false)
@@ -98,8 +97,11 @@ export default function CheckoutPage() {
   if (!user) return null
 
   const subtotal = items.reduce((sum, item) => sum + item.price, 0)
-  const { pointsDiscount, voucherDiscount, finalTotal } = calcCheckoutTotals(subtotal, pointsApplied, voucherResult?.discountValue ?? 0)
   const walletPoints = user.walletC ?? 0
+  const voucherValue = voucherResult?.discountValue ?? 0
+  const maxPoints = maxUsablePoints(walletPoints, subtotal, voucherValue)
+  const pointsApplied = pointsToApply(pointsChoice, maxPoints)
+  const { pointsDiscount, voucherDiscount, finalTotal } = calcCheckoutTotals(subtotal, pointsApplied, voucherValue)
   const learnersMissingDob = learnersMissingFullDob(items)
 
   const handleRemove = async (id: number) => {
@@ -107,14 +109,6 @@ export default function CheckoutPage() {
     await removeCartItem(id, token)
     setItems(prev => prev.filter(item => item.cartItemId !== id))
     await refreshCartCount()
-  }
-
-  const handleApplyPoints = () => {
-    const applied = clampPoints(parseInt(points) || 0, walletPoints)
-    if (applied === 0) { setPoints(''); return }
-    setPointsApplied(applied)
-    setPoints(String(applied))
-    toast({ kind: 'success', text: `Đã áp dụng ${applied.toLocaleString()} anyPoint` })
   }
 
   const handleApplyCoupon = async () => {
@@ -158,7 +152,7 @@ export default function CheckoutPage() {
     if (learnersMissingDob.length > 0) { setError(nextLearnerMessage(learnersMissingDob)); return }
     setSubmitting(true)
     setError('')
-    const { data, error: err } = await checkout({ paymentMethod, couponCode: coupon || undefined, pointsUsed: points ? Number(points) : undefined }, token)
+    const { data, error: err } = await checkout({ paymentMethod, couponCode: coupon || undefined, pointsUsed: pointsApplied > 0 ? pointsApplied : undefined }, token)
     if (err || !data) {
       setError(err || 'Thanh toán thất bại')
       setSubmitting(false)
@@ -217,21 +211,13 @@ export default function CheckoutPage() {
               </div>
 
               <div className="flex flex-col gap-4 px-4 py-4 sm:px-5">
-                <ApplyRow
-                  label="anyPoint"
-                  hint={
-                    <span className="text-xs text-muted">
-                      Có <strong className="text-green-dark">{walletPoints}</strong> điểm
-                      {walletPoints > 0 && ` (= ${formatExactPrice(walletPoints * POINT_VALUE_VND)})`}
-                      {' · '}
-                      <button type="button" onClick={() => setPoints(String(walletPoints))}
-                        className="cursor-pointer border-0 bg-transparent p-0 font-[inherit] text-xs font-bold text-blue">Dùng hết</button>
-                    </span>
-                  }
-                  inputProps={{ type: 'number', placeholder: 'Nhập số điểm', value: points, onChange: event => { setPoints(event.target.value); setPointsApplied(0) } }}
-                  buttonLabel={pointsApplied > 0 ? 'Đã dùng' : 'Dùng điểm'}
-                  onApply={handleApplyPoints}
-                  message={pointsApplied > 0 ? { kind: 'success', text: `Giảm ${formatExactPrice(pointsDiscount)} từ anyPoint` } : null}
+                <UsePointsToggle
+                  balance={walletPoints}
+                  maxPoints={maxPoints}
+                  applied={pointsApplied}
+                  on={pointsChoice.on}
+                  onToggle={on => setPointsChoice({ on, custom: null })}
+                  onCustomPoints={custom => setPointsChoice({ on: true, custom })}
                 />
                 <ApplyRow
                   label="Mã giảm giá"

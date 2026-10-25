@@ -117,6 +117,8 @@ export interface WalletTransaction {
   status: number
   content?: string
   createdAt: string
+  // Order this movement belongs to (own purchases, spent and refunded points); referral rewards have none
+  orderId?: number | null
 }
 
 export async function getWalletCHistory(token: string): Promise<WalletTransaction[]> {

@@ -49,8 +49,8 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 13.7 | Đo cài app / push | todo | |
 | 02.1 | API điểm dự kiến nhận | done | `ItemPointsResolver`, `GET /points/preview`, `points` trên dòng giỏ |
 | 02.2 | "+X điểm" ở PDP/giỏ/đơn | done | thẻ khóa trong danh sách chưa làm |
-| 02.3 | Công tắc dùng điểm ở checkout | todo | |
-| 02.4 | Trang anyPoint timeline + `/info/anypoint` | todo | |
+| 02.3 | Công tắc dùng điểm ở checkout | done | `UsePointsToggle`, `maxUsablePoints` |
+| 02.4 | Trang anyPoint timeline + `/info/anypoint` | done | chưa có dòng hết hạn (02.5) |
 | 05.1 | Chống đơn trùng | todo | |
 | 05.2 | Lối vào đơn chờ | todo | |
 | 05.3 | Nhắc thanh toán | todo | |
@@ -120,6 +120,11 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 
 ## Nhật ký
 
+### 25/10/2026 – 02.3 công tắc dùng điểm, 02.4 trang anyPoint
+- Checkout: ô nhập điểm thay bằng công tắc "Dùng X điểm, giảm Y đ" (`UsePointsToggle`). X = `maxUsablePoints` = min(số dư, phần tiền còn lại sau mã giảm giá / 1.000đ), nên không bao giờ trừ điểm thừa không giảm thêm tiền; đổi mã giảm giá thì X tự tính lại. "Dùng số điểm khác" mở ô nhập số điểm ít hơn. "anyPoint là gì?" mở popup 3 dòng và link `/info/anypoint`. Tổng tiền: Tạm tính / Dùng anyPoint / Mã giảm giá / Tổng thanh toán (có sẵn). Sửa luôn lỗi cũ: số điểm gửi lên server là số điểm đang áp dụng, không phải chữ trong ô nhập.
+- `/account/anypoint`: thẻ số dư kèm quy đổi VND, lịch sử có lý do ("Điểm từ đơn #42", "Dùng điểm cho đơn #41", "Điểm giới thiệu bạn bè") và link "Xem đơn", khối "Cách nhận / Cách dùng điểm" ở dưới lịch sử. `/info/anypoint` công khai, link từ PDP.
+- Backend: `GET /user/wallet-c-history` thêm `orderId` (điểm từ đơn của chính mình và điểm đã dùng/hoàn; điểm giới thiệu không có link vì đơn của người khác).
+- Chưa làm: dòng "X điểm hết hạn ngày …" (chờ 02.5), điểm review (chờ plan 09). Nội dung "cách nhận điểm" là chữ chung, chưa có số cụ thể vì mỗi khóa mỗi khác (số hiện ở trang khóa).
 ### 25/10/2026 – 02.2 hiện "+X điểm"
 - PDP: badge "Nhận +120 điểm (= 120.000đ)" dưới giá (gọi `/points/preview` cùng lúc với `/pdp`, ẩn khi 0 điểm). Checkout: dòng "Đơn này bạn sẽ nhận +X điểm (= Y đ)" dưới Tổng thanh toán, cộng từ `points` của từng dòng giỏ. Trang đơn: "Đã cộng X điểm, số dư Y điểm" khi đơn đã duyệt; trang tải lại đơn và số dư khi vừa thanh toán xong.
 - Backend: `GET /order/{id}` thêm `pointsEarned` (tổng điểm thưởng người mua của các dòng trong đơn, giao dịch `commission` không có `ref_user_id`).
