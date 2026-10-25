@@ -120,6 +120,12 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 
 ## Nhật ký
 
+### 25/10/2026 – thống nhất màu nút (04.7)
+- Chip "tìm cho ai" ở trang chủ (trắng), tìm kiếm (xanh dương), khóa học (xanh lá nhạt) đang ba kiểu → dùng một hệ xanh lá
+  nhạt (`components/guest/chipStyles.ts`): chọn = xanh lá nhạt viền xanh; chưa chọn = trắng viền mảnh; nút đổi = tròn xanh lá,
+  icon refresh trắng, tooltip "Thay đổi". Chữ "Gợi ý cho" nằm trong từng nút ở trang chủ. Bảng khai cũng đổi từ xanh dương sang xanh lá.
+- Quy tắc màu nút ghi vào `anylearn_v2/CLAUDE.md` (primary xanh lá đặc, secondary trắng viền, chip chọn xanh lá nhạt, không dùng xanh dương cho nút).
+
 ### 25/10/2026 – popup "tìm cho ai" không hiện lại (04.7)
 - Kiểm tra lại: khách mới và khách vừa đăng xuất đều được hỏi. Không hỏi lại trong 7 ngày sau "Để sau" hoặc "Xoá thông tin đã
   nhập", và khi đó trang chủ không có chỗ mở lại → thêm nút "Tìm cho ai?" dưới ô tìm kiếm (trang tìm kiếm đã có sẵn).
