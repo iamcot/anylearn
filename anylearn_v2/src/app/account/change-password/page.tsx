@@ -3,6 +3,12 @@
 import { useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { changePassword } from '@/lib/api'
+import AccountCard from '@/components/account/AccountCard'
+import FormField from '@/components/FormField'
+import Alert from '@/components/Alert'
+import { CheckIcon } from '@/components/icons'
+
+const MIN_PASSWORD_LENGTH = 6
 
 export default function ChangePasswordPage() {
   const { token } = useAuth()
@@ -11,13 +17,17 @@ export default function ChangePasswordPage() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const setField = (field: keyof typeof form) => (event: React.ChangeEvent<HTMLInputElement>) =>
+    setForm(prev => ({ ...prev, [field]: event.target.value }))
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault()
     if (form.newPass !== form.confirmPass) { setError('Mật khẩu mới không khớp'); return }
-    if (form.newPass.length < 6) { setError('Mật khẩu mới phải có ít nhất 6 ký tự'); return }
+    if (form.newPass.length < MIN_PASSWORD_LENGTH) { setError(`Mật khẩu mới phải có ít nhất ${MIN_PASSWORD_LENGTH} ký tự`); return }
     if (!token) return
     setLoading(true)
     setError('')
+    setSuccess(false)
     const { error: err } = await changePassword(form.oldPass, form.newPass, token)
     setLoading(false)
     if (err) { setError(err); return }
@@ -26,42 +36,32 @@ export default function ChangePasswordPage() {
   }
 
   return (
-    <div className="bg-white border border-line rounded-card overflow-hidden">
-      <div className="border-b border-line px-5 py-4">
-        <h2 className="m-0 text-lg font-black text-ink">Đổi mật khẩu</h2>
-      </div>
-
-      <div className="p-5 max-w-md">
+    <AccountCard title="Đổi mật khẩu">
+      <div className="max-w-md p-4 sm:p-5">
         {success && (
-          <div className="bg-green-soft border border-green rounded-xl px-4 py-3 mb-4 text-green-dark text-sm font-bold">
-            ✓ Đổi mật khẩu thành công!
-          </div>
+          <Alert kind="success" className="mb-4 flex items-center gap-2 font-bold">
+            <CheckIcon className="size-5" />Đổi mật khẩu thành công!
+          </Alert>
         )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div>
-            <label className="block text-xs font-bold text-muted mb-1.5">Mật khẩu hiện tại</label>
-            <input className="field" type="password" placeholder="Nhập mật khẩu hiện tại"
-              value={form.oldPass} onChange={e => setForm(f => ({ ...f, oldPass: e.target.value }))} required />
-          </div>
-          <div>
-            <label className="block text-xs font-bold text-muted mb-1.5">Mật khẩu mới</label>
-            <input className="field" type="password" placeholder="Ít nhất 6 ký tự"
-              value={form.newPass} onChange={e => setForm(f => ({ ...f, newPass: e.target.value }))} required />
-          </div>
-          <div>
-            <label className="block text-xs font-bold text-muted mb-1.5">Nhắc lại mật khẩu mới</label>
-            <input className="field" type="password" placeholder="Nhập lại mật khẩu mới"
-              value={form.confirmPass} onChange={e => setForm(f => ({ ...f, confirmPass: e.target.value }))} required />
-          </div>
+          <FormField label="Mật khẩu hiện tại">
+            <input className="field" type="password" placeholder="Nhập mật khẩu hiện tại" autoComplete="current-password" value={form.oldPass} onChange={setField('oldPass')} required />
+          </FormField>
+          <FormField label="Mật khẩu mới">
+            <input className="field" type="password" placeholder={`Ít nhất ${MIN_PASSWORD_LENGTH} ký tự`} autoComplete="new-password" value={form.newPass} onChange={setField('newPass')} required />
+          </FormField>
+          <FormField label="Nhắc lại mật khẩu mới">
+            <input className="field" type="password" placeholder="Nhập lại mật khẩu mới" autoComplete="new-password" value={form.confirmPass} onChange={setField('confirmPass')} required />
+          </FormField>
 
-          {error && <div className="bg-red-soft border border-[#ffc9c9] rounded-xl px-3.5 py-2.5 text-red text-sm">{error}</div>}
+          {error && <Alert kind="error">{error}</Alert>}
 
-          <button type="submit" className="btn btn--green py-3 px-8 w-fit" disabled={loading}>
+          <button type="submit" className="btn btn--green w-fit px-8 py-3" disabled={loading}>
             {loading ? 'Đang xử lý...' : 'Đổi mật khẩu'}
           </button>
         </form>
       </div>
-    </div>
+    </AccountCard>
   )
 }

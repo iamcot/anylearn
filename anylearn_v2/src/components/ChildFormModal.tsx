@@ -12,14 +12,15 @@ export interface ChildDraft {
 interface Props {
   initial: ChildDraft
   saving: boolean
+  dobRequired?: boolean
   onSave: (draft: ChildDraft) => void
   onClose: () => void
 }
 
-export default function ChildFormModal({ initial, saving, onSave, onClose }: Props) {
+export default function ChildFormModal({ initial, saving, dobRequired = true, onSave, onClose }: Props) {
   const [name, setName] = useState(initial.name)
   const [dob, setDob] = useState(initial.dob)
-  const canSave = !saving && name.trim() !== '' && dob !== ''
+  const canSave = !saving && name.trim() !== '' && (!dobRequired || dob !== '')
 
   return (
     <Modal title={initial.id ? 'Sửa tài khoản con' : 'Thêm tài khoản con'} onClose={onClose} maxWidth="max-w-[360px]">

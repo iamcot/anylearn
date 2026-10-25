@@ -15,7 +15,7 @@ import { FormPageSkeleton, ListSkeleton } from '@/components/PageSkeleton'
 import SectionCard from '@/components/SectionCard'
 import RadioOption from '@/components/RadioOption'
 import ActivityFields from '@/components/ActivityFields'
-import ChildFormModal, { type ChildDraft } from '@/components/cart/ChildFormModal'
+import ChildFormModal, { type ChildDraft } from '@/components/ChildFormModal'
 import { useToast } from '@/components/ToastProvider'
 import { BookIcon, CalendarIcon, GiftIcon, UserIcon } from '@/components/icons'
 

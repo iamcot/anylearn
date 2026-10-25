@@ -124,6 +124,11 @@ getOrder(orderId, token)       // GET /order/:orderId     [auth]
 - Schedule text comes from `lib/format/schedule.ts`; labels (cycle, weekday, activity) from `config/itemLabels.ts`.
 - Tailwind resets `ol`/`ul`: add `list-decimal` / `list-disc` yourself.
 
+## /account
+
+- Every page wraps its content in `components/account/AccountCard`; forms use `FormField`, `Alert`; status labels use `Badge`. The menu (`app/account/layout.tsx`) is a scrollable chip bar below `lg` and a sidebar from `lg`.
+- `/account/schedule`: date logic is pure and tested in `lib/schedule/calendar.ts` (`eventsOnDate`, `computeEffectiveEnd`, ...). Views are in `components/schedule/*`. Below `md` the month view shows dots plus the selected day's list, the week view stacks days, and event details open as a bottom sheet. Event colors are the `event-1..7` / `activity` tokens in `globals.css`.
+
 ## /search
 
 - The URL is the only state: `lib/search/query.ts` parses it (`parseSearchParams`) and writes it (`buildSearchUrl`); every control calls `apply()` in `app/search/page.tsx`, which rewrites the URL with `history.replaceState`, and one effect fetches for the current URL (`lib/search/fetchResults.ts`). Page number is the `page` param (1-based). Do not add parallel `useState` copies of filters.

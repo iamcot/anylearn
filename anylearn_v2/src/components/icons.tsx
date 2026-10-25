@@ -173,3 +173,31 @@ export const ChevronDownIcon = (props: IconProps) => (
 export const FilterIcon = (props: IconProps) => (
   <Icon strokeWidth="2.2" {...props}><path d="M4 6h16M8 12h12M12 18h8" /></Icon>
 )
+
+export const ListIcon = (props: IconProps) => (
+  <Icon {...props}><path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01" /></Icon>
+)
+
+export const KeyIcon = (props: IconProps) => (
+  <Icon {...props}><circle cx="8" cy="15" r="4" /><path d="m11 12 9-9M16 7l3 3M14 9l2 2" /></Icon>
+)
+
+export const LockIcon = (props: IconProps) => (
+  <Icon {...props}><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></Icon>
+)
+
+export const LogoutIcon = (props: IconProps) => (
+  <Icon {...props}><path d="M14 4h5v16h-5M10 8l-4 4 4 4M6 12h10" /></Icon>
+)
+
+export const UsersIcon = (props: IconProps) => (
+  <Icon {...props}><circle cx="9" cy="8" r="3.5" /><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14.5a6.5 6.5 0 0 1 3.5 5.5" /></Icon>
+)
+
+export const PackageIcon = (props: IconProps) => (
+  <Icon {...props}><path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5zM3 7.5l9 4.5 9-4.5M12 12v9" /></Icon>
+)
+
+export const AlertIcon = (props: IconProps) => (
+  <Icon {...props}><path d="M12 4 2.5 20h19zM12 10v4M12 17h.01" /></Icon>
+)
