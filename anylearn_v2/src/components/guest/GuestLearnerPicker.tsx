@@ -3,7 +3,9 @@
 import { useAuth } from '@/context/AuthContext'
 import { useIsClient } from '@/components/useIsClient'
 import { guestPeople, selectedGuestPerson, withSelected } from '@/lib/guest/guestLearners'
-import { getGuestStore, openGuestSheet, saveGuestStore } from './guestLearnerStore'
+import { GUEST_CHIP_OFF, GUEST_CHIP_ON } from './chipStyles'
+import GuestChangeButton from './GuestChangeButton'
+import { getGuestStore, saveGuestStore } from './guestLearnerStore'
 import { useGuestLearners } from './useGuestLearners'
 
 // Course page, above "Đăng ký ngay": which child the visitor registers for, before they have an account. The choice
@@ -18,11 +20,8 @@ export default function GuestLearnerPicker() {
   const selected = selectedGuestPerson(store)
   return (
     <div className="mb-3 text-left">
-      <div className="mb-1.5 flex items-center justify-between gap-3 text-sm">
-        <span className="font-medium text-ink">Đăng ký cho</span>
-        <button type="button" onClick={openGuestSheet} className="min-h-11 cursor-pointer border-0 bg-transparent px-1 text-xs font-medium text-blue">Sửa</button>
-      </div>
-      <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Đăng ký cho">
+      <div className="mb-1.5 text-sm font-medium text-ink">Đăng ký cho</div>
+      <div className="flex flex-wrap items-center gap-2" role="radiogroup" aria-label="Đăng ký cho">
         {people.map(person => {
           const active = selected?.key === person.key
           return (
@@ -32,12 +31,13 @@ export default function GuestLearnerPicker() {
               role="radio"
               aria-checked={active}
               onClick={() => person.localId && saveGuestStore(withSelected(getGuestStore(), person.localId))}
-              className={`min-h-11 cursor-pointer rounded-full border px-4 text-sm font-medium ${active ? 'border-green bg-green-soft text-green-dark' : 'border-line bg-white text-text'}`}
+              className={active ? GUEST_CHIP_ON : GUEST_CHIP_OFF}
             >
               {person.label}
             </button>
           )
         })}
+        <GuestChangeButton />
       </div>
     </div>
   )

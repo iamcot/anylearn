@@ -17,7 +17,7 @@ interface Row {
 }
 
 const FIELD_CLASS = 'field min-h-11 w-full'
-const CHOICE_CLASS = 'min-h-12 w-full cursor-pointer rounded-full border border-blue bg-white px-4 text-[15px] font-medium text-blue hover:bg-blue-soft'
+const CHOICE_CLASS = 'min-h-12 w-full cursor-pointer rounded-full border border-green bg-green-soft px-4 text-[15px] font-medium text-green-dark hover:bg-green-line'
 
 function newLocalId(): string {
   return `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`
@@ -99,7 +99,7 @@ function ChildStep({ store, onSaved }: { store: GuestLearnerStore; onSaved: () =
         <button
           type="button"
           onClick={() => setRows(prev => [...prev, blankRow()])}
-          className="min-h-11 cursor-pointer self-start rounded-full border-0 bg-transparent px-1 text-sm font-medium text-blue"
+          className="min-h-11 cursor-pointer self-start rounded-full border-0 bg-transparent px-1 text-sm font-medium text-green-dark"
         >
           + Thêm bé
         </button>

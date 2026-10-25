@@ -220,3 +220,9 @@ export const DownloadIcon = (props: IconProps) => (
     <path d="M12 4v11M7 10l5 5 5-5M5 20h14" />
   </Icon>
 )
+
+export const RefreshIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M20 11a8 8 0 0 0-14.9-3M4 5v4h4M4 13a8 8 0 0 0 14.9 3M20 19v-4h-4" />
+  </Icon>
+)

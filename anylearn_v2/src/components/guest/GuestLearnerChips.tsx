@@ -4,16 +4,12 @@ import { useEffect, useRef } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { useIsClient } from '@/components/useIsClient'
 import { guestPeople, selectedGuestPerson, withSelected, type GuestPerson } from '@/lib/guest/guestLearners'
+import { GUEST_CHIP_OFF, GUEST_CHIP_ON } from './chipStyles'
+import GuestChangeButton from './GuestChangeButton'
 import { getGuestStore, openGuestSheet, saveGuestStore } from './guestLearnerStore'
 import { useGuestLearners } from './useGuestLearners'
 
 const AGE_APPLIED_KEY = 'anylearn.guestAgeApplied'
-
-const CHIP_BASE = 'min-h-11 shrink-0 cursor-pointer whitespace-nowrap rounded-full border px-4 text-sm font-medium'
-
-function chipClass(active: boolean) {
-  return `${CHIP_BASE} ${active ? 'border-blue bg-blue text-white' : 'border-line bg-white text-text hover:bg-blue-soft'}`
-}
 
 function alreadyApplied(): boolean {
   try {
@@ -66,14 +62,14 @@ export default function GuestLearnerChips({ activeAge, onPickAge }: Props) {
       {people.map(person => {
         const active = activeAge === person.ageFilter && selectedGuestPerson(store)?.key === person.key
         return (
-          <button key={person.key} type="button" aria-pressed={active} onClick={() => pick(person)} className={chipClass(active)}>
+          <button key={person.key} type="button" aria-pressed={active} onClick={() => pick(person)} className={active ? GUEST_CHIP_ON : GUEST_CHIP_OFF}>
             {person.label}
           </button>
         )
       })}
-      <button type="button" onClick={openGuestSheet} className={chipClass(false)}>
-        {store.audience ? 'Sửa' : 'Tìm cho ai?'}
-      </button>
+      {store.audience
+        ? <GuestChangeButton />
+        : <button type="button" onClick={openGuestSheet} className={GUEST_CHIP_ON}>Tìm cho ai?</button>}
     </div>
   )
 }
