@@ -2,7 +2,7 @@ export default function TermsPage() {
   return (
     <section className="section">
       <div className="container" style={{ maxWidth: 780 }}>
-        <h1 style={{ fontSize: 'clamp(28px,4vw,44px)', fontWeight: 900, color: '#17212f', marginBottom: 8 }}>Điều khoản sử dụng</h1>
+        <h1 style={{ fontSize: 'clamp(28px,4vw,44px)', fontWeight: 500, color: '#17212f', marginBottom: 8 }}>Điều khoản sử dụng</h1>
         <p style={{ color: '#6d7a8a', marginBottom: 40 }}>Cập nhật lần cuối: 01/07/2026</p>
 
         {[
@@ -14,7 +14,7 @@ export default function TermsPage() {
           { title: '6. Liên hệ', content: 'Mọi thắc mắc về điều khoản sử dụng, vui lòng liên hệ: support@anylearn.vn hoặc hotline 1900-xxxx.' },
         ].map(s => (
           <div key={s.title} style={{ marginBottom: 32 }}>
-            <h2 style={{ fontSize: 20, fontWeight: 900, color: '#17212f', marginBottom: 12 }}>{s.title}</h2>
+            <h2 style={{ fontSize: 20, fontWeight: 500, color: '#17212f', marginBottom: 12 }}>{s.title}</h2>
             <p style={{ color: '#2f3b4a', lineHeight: 1.8, margin: 0 }}>{s.content}</p>
           </div>
         ))}

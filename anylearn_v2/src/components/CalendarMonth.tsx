@@ -43,7 +43,7 @@ export default function CalendarMonth({ year, month, markedDays, selectedDay, on
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
         <button onClick={onPrevMonth} style={{ background: 'none', border: '1px solid #e5e7eb', borderRadius: 8, padding: '4px 10px', cursor: 'pointer', fontSize: 16 }}>‹</button>
-        <span style={{ fontWeight: 800, fontSize: 15, color: '#1e2047', textTransform: 'capitalize' }}>
+        <span style={{ fontWeight: 500, fontSize: 15, color: '#1e2047', textTransform: 'capitalize' }}>
           {monthName.charAt(0).toUpperCase() + monthName.slice(1)}
         </span>
         <button onClick={onNextMonth} style={{ background: 'none', border: '1px solid #e5e7eb', borderRadius: 8, padding: '4px 10px', cursor: 'pointer', fontSize: 16 }}>›</button>
@@ -52,7 +52,7 @@ export default function CalendarMonth({ year, month, markedDays, selectedDay, on
       {/* Day headers */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 2, marginBottom: 4 }}>
         {DAYS.map(d => (
-          <div key={d} style={{ textAlign: 'center', fontSize: 11, fontWeight: 700, color: '#9ca3af', padding: '4px 0' }}>{d}</div>
+          <div key={d} style={{ textAlign: 'center', fontSize: 11, fontWeight: 500, color: '#9ca3af', padding: '4px 0' }}>{d}</div>
         ))}
       </div>
 
@@ -80,7 +80,7 @@ export default function CalendarMonth({ year, month, markedDays, selectedDay, on
                 border: isToday ? '2px solid #00539b' : '2px solid transparent',
                 background: isSelected ? '#e7f3ff' : 'transparent',
                 cursor: 'pointer',
-                fontWeight: isSelected ? 700 : 400,
+                fontWeight: isSelected ? 500 : 400,
                 color: isSelected ? '#00539b' : '#374151',
                 fontSize: 13,
               }}

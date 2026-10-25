@@ -95,7 +95,7 @@ export default function ActivityButton({ itemId, activiyTrial, activiyTest, acti
           <div className="text-xs font-bold text-muted mb-1">Đã đăng ký trải nghiệm</div>
           {myActivities.filter(a => !a.date || a.date >= today).map(a => (
             <div key={a.id} className="text-[#008244] flex items-center gap-1">
-              <span style={{ color: '#00a651', fontWeight: 900 }}>✓</span>
+              <span style={{ color: '#00a651', fontWeight: 500 }}>✓</span>
               <span className="font-medium">{TYPE_LABEL[a.type] ?? a.type}</span>
               {a.date && <span className="text-muted font-normal">· ngày {a.date}</span>}
             </div>

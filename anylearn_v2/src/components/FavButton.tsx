@@ -79,7 +79,7 @@ export default function FavButton({ itemId, initialFaved, initialCount }: Props)
         background: 'transparent', border: 'none',
         padding: '4px 2px',
         cursor: loading ? 'default' : 'pointer',
-        fontSize: 13, fontWeight: 700,
+        fontSize: 13, fontWeight: 500,
         color: '#e73348',
         opacity: loading ? 0.6 : 1,
         transition: 'opacity 0.15s',

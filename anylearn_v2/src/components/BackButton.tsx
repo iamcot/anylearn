@@ -19,7 +19,7 @@ export default function BackButton() {
       style={{
         display: 'inline-flex', alignItems: 'center', gap: 6,
         border: 0, background: 'transparent',
-        color: '#6d7a8a', fontWeight: 700, fontSize: 14,
+        color: '#6d7a8a', fontWeight: 500, fontSize: 14,
         cursor: 'pointer', fontFamily: 'inherit', padding: '0 0 20px',
       }}
     >

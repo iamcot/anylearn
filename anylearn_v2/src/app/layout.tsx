@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Be_Vietnam_Pro } from 'next/font/google'
 import Script from 'next/script'
 import './globals.css'
 import SiteChrome from '@/components/SiteChrome'
@@ -7,6 +8,12 @@ import Footer from '@/components/Footer'
 import FloatContact from '@/components/FloatContact'
 import { AuthProvider } from '@/context/AuthContext'
 import AuthModal from '@/components/AuthModal'
+
+const beVietnamPro = Be_Vietnam_Pro({
+  subsets: ['vietnamese', 'latin'],
+  weight: ['400', '500', '600'],
+  variable: '--font-be-vietnam-pro',
+})
 
 export const metadata: Metadata = {
   title: 'anyLEARN - Học không giới hạn',
@@ -18,8 +25,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="vi">
-      <body style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <html lang="vi" className={beVietnamPro.variable}>
+      <body>
         <AuthProvider>
           <SiteChrome
             header={<Header />}

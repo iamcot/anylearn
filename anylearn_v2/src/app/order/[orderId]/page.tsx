@@ -169,7 +169,7 @@ export default function OrderPage() {
                       <div className="text-xs text-[#008244] mt-[3px] flex gap-2 flex-wrap">
                         {item.activities.map((a, i) => (
                           <span key={i} className="flex items-center gap-1">
-                            <span style={{color:'#00a651',fontWeight:900}}>✓</span>
+                            <span style={{color:'#00a651',fontWeight: 500}}>✓</span>
                             {{ trial:'Học thử', test:'Test đầu vào', visit:'Tham quan' }[a.type] ?? a.type}
                             {a.date ? ` · ${a.date}` : ''}
                           </span>

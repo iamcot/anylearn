@@ -117,7 +117,7 @@ export default async function PdpPage({ params }: Props) {
                       <span style={{ fontSize: 14, color: '#f5a623', letterSpacing: 1 }}>
                         {'★'.repeat(Math.round(rating))}{'☆'.repeat(5 - Math.round(rating))}
                       </span>
-                      <span style={{ fontSize: 13, fontWeight: 700, color: '#333' }}>{rating.toFixed(1)}</span>
+                      <span style={{ fontSize: 13, fontWeight: 500, color: '#333' }}>{rating.toFixed(1)}</span>
                       <span style={{ fontSize: 12, color: '#9aa5b1' }}>({reviews.length})</span>
                     </>
                   ) : (
@@ -168,7 +168,7 @@ export default async function PdpPage({ params }: Props) {
                         
                         <div>
                           {s.title && <div className="font-bold text-ink">{s.title} <span style={{
-                          fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 20, flexShrink: 0, marginTop: 2,
+                          fontSize: 10, fontWeight: 500, padding: '2px 7px', borderRadius: 20, flexShrink: 0, marginTop: 2,
                           background: s.scheduleType === 'event' ? '#f3e8ff' : s.scheduleType === 'open' ? '#dcfce7' : '#e7f3ff',
                           color: s.scheduleType === 'event' ? '#7c3aed' : s.scheduleType === 'open' ? '#15803d' : '#00539b',
                         }}>
@@ -188,13 +188,13 @@ export default async function PdpPage({ params }: Props) {
               {(item.allowReRegister === 1 || item.activiyTrial === 1 || item.activiyTest === 1 || item.activiyVisit === 1) && (
                 <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3">
                   {item.activiyTrial === 1 && (
-                    <span className="text-xs text-[#008244] flex items-center gap-1"><span style={{color:'#00a651',fontWeight:900}}>✓</span> Có học thử</span>
+                    <span className="text-xs text-[#008244] flex items-center gap-1"><span style={{color:'#00a651',fontWeight: 500}}>✓</span> Có học thử</span>
                   )}
                   {item.activiyTest === 1 && (
-                    <span className="text-xs text-[#008244] flex items-center gap-1"><span style={{color:'#00a651',fontWeight:900}}>✓</span> Có test đầu vào</span>
+                    <span className="text-xs text-[#008244] flex items-center gap-1"><span style={{color:'#00a651',fontWeight: 500}}>✓</span> Có test đầu vào</span>
                   )}
                   {item.activiyVisit === 1 && (
-                    <span className="text-xs text-[#008244] flex items-center gap-1"><span style={{color:'#00a651',fontWeight:900}}>✓</span> Có tham quan</span>
+                    <span className="text-xs text-[#008244] flex items-center gap-1"><span style={{color:'#00a651',fontWeight: 500}}>✓</span> Có tham quan</span>
                   )}
                 </div>
               )}

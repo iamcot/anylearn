@@ -40,9 +40,9 @@ export default function PromoSlider({ promos }: { promos: Promo[] }) {
                 <div style={{ padding: 38 }}>
                   <span style={{
                     display: 'inline-flex', padding: '7px 11px', borderRadius: 999,
-                    background: 'rgba(255,255,255,0.16)', fontWeight: 900, marginBottom: 16, fontSize: 14,
+                    background: 'rgba(255,255,255,0.16)', fontWeight: 500, marginBottom: 16, fontSize: 14,
                   }}>Chương trình nổi bật</span>
-                  <h2 style={{ margin: '0 0 12px', fontSize: 'clamp(28px,4vw,44px)', fontWeight: 900, lineHeight: 1.08 }}>
+                  <h2 style={{ margin: '0 0 12px', fontSize: 'clamp(28px,4vw,44px)', fontWeight: 500, lineHeight: 1.08 }}>
                     {promo.title}
                   </h2>
                   {promo.short_content && (
@@ -63,7 +63,7 @@ export default function PromoSlider({ promos }: { promos: Promo[] }) {
                       border: '2px solid rgba(255,255,255,0.35)',
                       background: 'rgba(255,255,255,0.12)',
                       display: 'grid', placeItems: 'center',
-                      textAlign: 'center', fontSize: 48, fontWeight: 900, color: '#ffca05', lineHeight: 1.1,
+                      textAlign: 'center', fontSize: 48, fontWeight: 500, color: '#ffca05', lineHeight: 1.1,
                     }}>🎁</div>
                   )}
                 </div>

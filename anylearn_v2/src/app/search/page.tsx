@@ -81,9 +81,9 @@ function FilterContent({ mode, activeCategory, filters, categorySearch, categori
     <>
       {!hideTitle && (
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <h2 style={{ margin: 0, color: '#17212f', fontSize: 20, fontWeight: 900 }}>Bộ lọc</h2>
+          <h2 style={{ margin: 0, color: '#17212f', fontSize: 20, fontWeight: 500 }}>Bộ lọc</h2>
           {(activeCategory || Object.values(filters).some(v => v !== 'all')) && (
-            <button onClick={clearAll} style={{ border: 0, background: 'transparent', color: '#e73348', fontWeight: 900, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
+            <button onClick={clearAll} style={{ border: 0, background: 'transparent', color: '#e73348', fontWeight: 500, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
               Xóa tất cả
             </button>
           )}
@@ -92,7 +92,7 @@ function FilterContent({ mode, activeCategory, filters, categorySearch, categori
 
       {mode === 'class' && (
         <div style={{ padding: '16px 0', borderTop: '1px solid #e6edf4' }}>
-          <label style={{ display: 'block', fontWeight: 900, color: activeCategory ? '#e73348' : '#17212f', marginBottom: 9 }}>Lĩnh vực</label>
+          <label style={{ display: 'block', fontWeight: 500, color: activeCategory ? '#e73348' : '#17212f', marginBottom: 9 }}>Lĩnh vực</label>
           <input type="search" placeholder="Tìm lĩnh vực..." value={categorySearch}
             onChange={e => setCategorySearch(e.target.value)}
             style={{ width: '100%', minHeight: 38, borderRadius: 10, border: '1px solid #e6edf4', background: '#f7fafc', padding: '0 10px', fontSize: 13, outline: 'none', fontFamily: 'inherit', marginBottom: 8, boxSizing: 'border-box' }}
@@ -100,13 +100,13 @@ function FilterContent({ mode, activeCategory, filters, categorySearch, categori
           <div style={{ maxHeight: 180, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 2 }}>
             <button type="button"
               onClick={() => { setActiveCategory(undefined); pushSearch(query, undefined, mode, undefined, filters.age, filters.price, sort); doSearch(query, undefined, 0, sort, mode); onClose?.() }}
-              style={{ textAlign: 'left', padding: '7px 10px', borderRadius: 8, border: 0, cursor: 'pointer', background: !activeCategory ? '#eef7ff' : 'transparent', color: !activeCategory ? '#00539b' : '#2f3b4a', fontWeight: !activeCategory ? 900 : 400, fontSize: 13, fontFamily: 'inherit' }}>
+              style={{ textAlign: 'left', padding: '7px 10px', borderRadius: 8, border: 0, cursor: 'pointer', background: !activeCategory ? '#eef7ff' : 'transparent', color: !activeCategory ? '#00539b' : '#2f3b4a', fontWeight: !activeCategory ? 500 : 400, fontSize: 13, fontFamily: 'inherit' }}>
               Tất cả lĩnh vực
             </button>
             {categories.filter(c => !categorySearch || c.title.toLowerCase().includes(categorySearch.toLowerCase())).map(c => (
               <button key={c.url} type="button"
                 onClick={() => { setActiveCategory(c.url); pushSearch(query, c.url, mode, undefined, filters.age, filters.price, sort); doSearch(query, c.url, 0, sort, mode); onClose?.() }}
-                style={{ textAlign: 'left', padding: '7px 10px', borderRadius: 8, border: 0, cursor: 'pointer', background: activeCategory === c.url ? '#eef7ff' : 'transparent', color: activeCategory === c.url ? '#00539b' : '#2f3b4a', fontWeight: activeCategory === c.url ? 900 : 400, fontSize: 13, fontFamily: 'inherit' }}>
+                style={{ textAlign: 'left', padding: '7px 10px', borderRadius: 8, border: 0, cursor: 'pointer', background: activeCategory === c.url ? '#eef7ff' : 'transparent', color: activeCategory === c.url ? '#00539b' : '#2f3b4a', fontWeight: activeCategory === c.url ? 500 : 400, fontSize: 13, fontFamily: 'inherit' }}>
                 {c.title}
               </button>
             ))}
@@ -116,7 +116,7 @@ function FilterContent({ mode, activeCategory, filters, categorySearch, categori
 
       {FILTER_GROUPS.map(f => (
         <div key={f.id} style={{ padding: '16px 0', borderTop: '1px solid #e6edf4' }}>
-          <label htmlFor={f.id} style={{ display: 'block', fontWeight: 900, color: filters[f.id] !== 'all' ? '#e73348' : '#17212f', marginBottom: 9 }}>{f.label}</label>
+          <label htmlFor={f.id} style={{ display: 'block', fontWeight: 500, color: filters[f.id] !== 'all' ? '#e73348' : '#17212f', marginBottom: 9 }}>{f.label}</label>
           <select id={f.id} value={filters[f.id]}
             onChange={e => {
               const newFilters = { ...filters, [f.id]: e.target.value }
@@ -128,7 +128,7 @@ function FilterContent({ mode, activeCategory, filters, categorySearch, categori
               pushSearch(query, activeCategory, mode, activeAuthorId, age, price, sort, loc, ht)
               doSearch(query, activeCategory, 0, sort, mode, activeAuthorId, age, price, loc, ht)
             }}
-            style={{ width: '100%', minHeight: 44, borderRadius: 14, border: `1px solid ${filters[f.id] !== 'all' ? '#e73348' : '#e6edf4'}`, background: filters[f.id] !== 'all' ? '#fff5f5' : '#f7fafc', padding: '0 12px', color: filters[f.id] !== 'all' ? '#e73348' : '#2f3b4a', fontWeight: filters[f.id] !== 'all' ? 900 : 400, outline: 'none', fontFamily: 'inherit' }}>
+            style={{ width: '100%', minHeight: 44, borderRadius: 14, border: `1px solid ${filters[f.id] !== 'all' ? '#e73348' : '#e6edf4'}`, background: filters[f.id] !== 'all' ? '#fff5f5' : '#f7fafc', padding: '0 12px', color: filters[f.id] !== 'all' ? '#e73348' : '#2f3b4a', fontWeight: filters[f.id] !== 'all' ? 500 : 400, outline: 'none', fontFamily: 'inherit' }}>
             {f.options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
         </div>
@@ -320,7 +320,7 @@ function SearchPageInner() {
                   borderTopLeftRadius: 10, borderTopRightRadius: 10,
                   background: mode === m.key ? 'linear-gradient(135deg, #00539b, #00a651)' : 'white',
                   color: mode === m.key ? 'white' : '#6d7a8a',
-                  fontWeight: mode === m.key ? 900 : 700,
+                  fontWeight: mode === m.key ? 500 : 500,
                   fontSize: 13, cursor: 'pointer', fontFamily: 'inherit',
                   transition: 'all 0.15s',
                   marginBottom: mode === m.key ? -1 : 0,
@@ -338,7 +338,7 @@ function SearchPageInner() {
         borderBottom: '1px solid #e6edf4',
       }}>
         <div className="container">
-          <h1 style={{ margin: '0 0 8px', fontSize: 'clamp(20px,2.4vw,30px)', fontWeight: 900, lineHeight: 1.12, letterSpacing: -0.5, color: 'white' }}>
+          <h1 style={{ margin: '0 0 8px', fontSize: 'clamp(20px,2.4vw,30px)', fontWeight: 500, lineHeight: 1.12, letterSpacing: -0.5, color: 'white' }}>
             {mode === 'class' ? 'Tìm khóa học phù hợp cho con' : mode === 'school' ? 'Tìm trường học chất lượng' : 'Tìm chuyên gia giảng dạy'}
           </h1>
           <p style={{ margin: '0 0 18px', maxWidth: 760, color: 'rgba(255,255,255,0.88)', fontSize: 15 }}>
@@ -370,7 +370,7 @@ function SearchPageInner() {
             {/* Recent searches */}
             {searchHistory.length > 0 && (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 14, alignItems: 'center' }}>
-                <span style={{ fontSize: 12, fontWeight: 900, color: '#6d7a8a', whiteSpace: 'nowrap' }}>Đã tìm:</span>
+                <span style={{ fontSize: 12, fontWeight: 500, color: '#6d7a8a', whiteSpace: 'nowrap' }}>Đã tìm:</span>
                 {searchHistory.slice(0, 5).map(h => (
                   <button key={h} type="button"
                     onClick={() => { setQuery(h); router.push(`/search?q=${encodeURIComponent(h)}`); doSearch(h, undefined, 0, sort, mode) }}
@@ -378,7 +378,7 @@ function SearchPageInner() {
                       display: 'inline-flex', alignItems: 'center',
                       borderRadius: 999, padding: '7px 12px',
                       background: 'white', border: '1px solid #d8e9f8',
-                      color: '#00539b', fontWeight: 900, fontSize: 13,
+                      color: '#00539b', fontWeight: 500, fontSize: 13,
                       cursor: 'pointer', fontFamily: 'inherit',
                     }}>
                     🕐 {h}
@@ -495,16 +495,16 @@ function SearchPageInner() {
                 </div>
                 {/* Info */}
                 <div style={{ flex: 1, padding: '20px 24px' }}>
-                  <div style={{ fontSize: 11, fontWeight: 900, color: '#00539b', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>
+                  <div style={{ fontSize: 11, fontWeight: 500, color: '#00539b', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>
                     {authorProfile.role === 'teacher' ? 'Chuyên gia' : 'Trường học'}
                   </div>
-                  <h3 style={{ margin: '0 0 8px', fontSize: 22, fontWeight: 900, color: '#17212f' }}>{authorProfile.name}</h3>
+                  <h3 style={{ margin: '0 0 8px', fontSize: 22, fontWeight: 500, color: '#17212f' }}>{authorProfile.name}</h3>
                   {authorProfile.introduce && (
                     <p style={{ margin: '0 0 12px', color: '#2f3b4a', fontSize: 14, lineHeight: 1.6 }}>{authorProfile.introduce}</p>
                   )}
                   {authorProfile.full_content && (
                     <button onClick={() => setShowFullContent(true)}
-                      style={{ border: 0, background: 'transparent', color: '#00539b', fontWeight: 900, fontSize: 13, cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}>
+                      style={{ border: 0, background: 'transparent', color: '#00539b', fontWeight: 500, fontSize: 13, cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}>
                       Xem giới thiệu đầy đủ →
                     </button>
                   )}
@@ -523,7 +523,7 @@ function SearchPageInner() {
                 <select value={sort} onChange={e => { setSort(e.target.value); if (searched) { pushSearch(query, activeCategory, mode, activeAuthorId, filters.age !== 'all' ? filters.age : undefined, filters.price !== 'all' ? filters.price : undefined, e.target.value, filters.location !== 'all' ? filters.location : undefined, filters.hinhthuc !== 'all' ? filters.hinhthuc : undefined); doSearch(query, activeCategory, 0, e.target.value, mode, activeAuthorId, filters.age !== 'all' ? filters.age : undefined, filters.price !== 'all' ? filters.price : undefined) } }}
                   style={{
                     minHeight: 42, borderRadius: 999, border: '1px solid #e6edf4',
-                    background: 'white', padding: '0 14px', fontWeight: 800, color: '#2f3b4a',
+                    background: 'white', padding: '0 14px', fontWeight: 500, color: '#2f3b4a',
                     fontFamily: 'inherit', outline: 'none',
                   }}>
                   <option value="popular">Phổ biến nhất</option>
@@ -555,7 +555,7 @@ function SearchPageInner() {
                       border: '1px solid #e6edf4', background: 'white',
                       cursor: 'pointer', fontSize: 18, display: 'grid', placeItems: 'center',
                     }}>✕</button>
-                  <h3 style={{ margin: '0 0 16px', fontSize: 22, fontWeight: 900, color: '#17212f' }}>{authorProfile.name}</h3>
+                  <h3 style={{ margin: '0 0 16px', fontSize: 22, fontWeight: 500, color: '#17212f' }}>{authorProfile.name}</h3>
                   <div style={{ color: '#2f3b4a', lineHeight: 1.8, fontSize: 15 }}
                     dangerouslySetInnerHTML={{ __html: authorProfile.full_content }} />
                 </div>
@@ -690,7 +690,7 @@ function SearchPageInner() {
                             border: `1px solid ${currentPage === i ? '#00539b' : '#e6edf4'}`,
                             background: currentPage === i ? '#00539b' : 'white',
                             color: currentPage === i ? 'white' : '#2f3b4a',
-                            fontWeight: 900, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit',
+                            fontWeight: 500, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit',
                           }}>{(i as number) + 1}</button>
                     )
                   }
@@ -710,7 +710,7 @@ function SearchPageInner() {
                 borderRadius: 26, padding: 34, textAlign: 'center',
               }}>
                 <div style={{ fontSize: 48, marginBottom: 16 }}>🔍</div>
-                <h2 style={{ margin: '0 0 10px', color: '#17212f', fontWeight: 900 }}>Chưa tìm thấy khóa học phù hợp</h2>
+                <h2 style={{ margin: '0 0 10px', color: '#17212f', fontWeight: 500 }}>Chưa tìm thấy khóa học phù hợp</h2>
                 <p style={{ margin: '0 auto 18px', color: '#6d7a8a', maxWidth: 520 }}>
                   Thử đổi keyword, mở rộng khu vực hoặc để anyLEARN tư vấn miễn phí chương trình phù hợp cho con
                 </p>
@@ -726,7 +726,7 @@ function SearchPageInner() {
                 borderRadius: 26, padding: 34, textAlign: 'center',
               }}>
                 <div style={{ fontSize: 48, marginBottom: 16 }}>✨</div>
-                <h2 style={{ margin: '0 0 10px', color: '#17212f', fontWeight: 900 }}>Bắt đầu tìm kiếm</h2>
+                <h2 style={{ margin: '0 0 10px', color: '#17212f', fontWeight: 500 }}>Bắt đầu tìm kiếm</h2>
                 <p style={{ margin: 0, color: '#6d7a8a' }}>Nhập từ khóa phía trên để tìm khóa học, trường học và chuyên gia phù hợp cho con</p>
               </div>
             )}

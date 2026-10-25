@@ -92,7 +92,7 @@ export default function OrderItemRating({ itemId, itemTitle }: Props) {
           </span>
           <button
             onClick={() => setOpen(true)}
-            style={{ fontSize: 11, color: '#00539b', fontWeight: 700, background: 'none', border: 'none', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
+            style={{ fontSize: 11, color: '#00539b', fontWeight: 500, background: 'none', border: 'none', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
             Sửa
           </button>
         </div>

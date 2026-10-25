@@ -64,7 +64,7 @@ export default function SearchCard({ variant = 'home', initialTags = [] }: Props
           value={searchMode}
           onChange={e => setSearchMode(e.target.value)}
           className="field"
-          style={{ borderRadius: 18, fontWeight: 700 }}
+          style={{ borderRadius: 18, fontWeight: 500 }}
         >
           {SEARCH_MODES.map(m => (
             <option key={m.key} value={m.key}>{m.label}</option>

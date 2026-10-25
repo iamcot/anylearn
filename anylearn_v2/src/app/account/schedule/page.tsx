@@ -183,11 +183,11 @@ function EventPopup({ anchored, onClose, onCancelActivity }: {
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 }}>
           <div>
             {sel.kind === 'activity' && (
-              <span style={{ fontSize: 11, fontWeight: 700, color: '#fff', background: ACT_COLOR, borderRadius: 20, padding: '2px 8px', marginBottom: 5, display: 'inline-block' }}>
+              <span style={{ fontSize: 11, fontWeight: 500, color: '#fff', background: ACT_COLOR, borderRadius: 20, padding: '2px 8px', marginBottom: 5, display: 'inline-block' }}>
                 {ACT_LABEL[a!.type] ?? a!.type}
               </span>
             )}
-            <div style={{ fontWeight: 800, fontSize: 15, color: '#111827', lineHeight: 1.3 }}>
+            <div style={{ fontWeight: 500, fontSize: 15, color: '#111827', lineHeight: 1.3 }}>
               {e?.itemTitle ?? a?.itemTitle}
             </div>
           </div>
@@ -242,7 +242,7 @@ function EventPopup({ anchored, onClose, onCancelActivity }: {
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <span style={{ fontSize: 12, color: '#6b7280' }}>Xác nhận hủy?</span>
                 <button onClick={() => { setCancelling(true); onCancelActivity(a.id) }} disabled={cancelling}
-                  style={{ fontSize: 12, fontWeight: 700, color: '#fff', background: '#e73348', border: 'none', padding: '3px 10px', borderRadius: 20, cursor: 'pointer' }}>
+                  style={{ fontSize: 12, fontWeight: 500, color: '#fff', background: '#e73348', border: 'none', padding: '3px 10px', borderRadius: 20, cursor: 'pointer' }}>
                   {cancelling ? '...' : 'Hủy'}
                 </button>
                 <button onClick={() => setConfirming(false)}
@@ -256,7 +256,7 @@ function EventPopup({ anchored, onClose, onCancelActivity }: {
             )
           ) : <div />}
           <Link href={courseUrl} target="_blank" rel="noopener noreferrer"
-            style={{ fontSize: 13, fontWeight: 700, color: '#00539b', textDecoration: 'none' }}>
+            style={{ fontSize: 13, fontWeight: 500, color: '#00539b', textDecoration: 'none' }}>
             Xem khóa học →
           </Link>
         </div>
@@ -272,7 +272,7 @@ function Chip({ label, bg, onClick, size = 'sm', wrap = false }: { label: string
   return (
     <button onClick={onClick} style={{
       display: 'block', width: '100%', textAlign: 'left', background: bg, color: '#fff',
-      borderRadius: 4, padding: '2px 6px', fontSize: fs, fontWeight: 600,
+      borderRadius: 4, padding: '2px 6px', fontSize: fs, fontWeight: 500,
       whiteSpace: wrap ? 'normal' : 'nowrap',
       overflow: wrap ? 'visible' : 'hidden',
       textOverflow: wrap ? 'unset' : 'ellipsis',
@@ -296,7 +296,7 @@ function MonthView({ enrollments, activities, year, month, today, onSelect }: {
     <div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 1 }}>
         {['T2','T3','T4','T5','T6','T7','CN'].map(d => (
-          <div key={d} style={{ textAlign: 'center', fontSize: 11, fontWeight: 700, color: '#9ca3af', padding: '4px 0', borderBottom: '1px solid #e5e7eb' }}>{d}</div>
+          <div key={d} style={{ textAlign: 'center', fontSize: 11, fontWeight: 500, color: '#9ca3af', padding: '4px 0', borderBottom: '1px solid #e5e7eb' }}>{d}</div>
         ))}
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 1, background: '#e5e7eb', border: '1px solid #e5e7eb', borderTop: 'none' }}>
@@ -310,7 +310,7 @@ function MonthView({ enrollments, activities, year, month, today, onSelect }: {
           const total = cls.length + acts.length
           return (
             <div key={iso} style={{ background: '#fff', minHeight: 80, padding: '4px 3px 3px' }}>
-              <div style={{ fontSize: 12, fontWeight: isToday ? 800 : 400, color: isToday ? '#fff' : '#374151',
+              <div style={{ fontSize: 12, fontWeight: isToday ? 500 : 400, color: isToday ? '#fff' : '#374151',
                 background: isToday ? '#0078d4' : 'transparent', width: 22, height: 22, borderRadius: '50%',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 2 }}>{dayNum}</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
@@ -347,8 +347,8 @@ function WeekView({ enrollments, activities, weekStart, today, onSelect }: {
         return (
           <div key={iso} style={{ background: '#fff', display: 'flex', flexDirection: 'column', minHeight: 300 }}>
             <div style={{ padding: '6px 6px 4px', borderBottom: '1px solid #e5e7eb', background: isToday ? '#eff6ff' : '#fafafa', textAlign: 'center' }}>
-              <div style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600 }}>{VN_SHORT[d.getDay()]}</div>
-              <div style={{ fontSize: 16, fontWeight: isToday ? 800 : 600, color: isToday ? '#0078d4' : '#374151' }}>{d.getDate()}</div>
+              <div style={{ fontSize: 11, color: '#9ca3af', fontWeight: 500 }}>{VN_SHORT[d.getDay()]}</div>
+              <div style={{ fontSize: 16, fontWeight: isToday ? 500 : 500, color: isToday ? '#0078d4' : '#374151' }}>{d.getDate()}</div>
             </div>
             <div style={{ padding: '4px 3px', display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
               {cls.map(e => (
@@ -396,14 +396,14 @@ function ListView({ enrollments, activities, from, to, onSelect }: {
         const label = d.toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: 'long' })
         return (
           <div key={iso} style={{ borderBottom: '1px solid #f3f4f6', paddingBottom: 4 }}>
-            <div style={{ padding: '10px 0 6px', fontSize: 12, fontWeight: 700, color: '#6b7280', textTransform: 'capitalize' }}>
+            <div style={{ padding: '10px 0 6px', fontSize: 12, fontWeight: 500, color: '#6b7280', textTransform: 'capitalize' }}>
               {label.charAt(0).toUpperCase() + label.slice(1)}
             </div>
             {classes.map((e: Enrollment) => (
               <button key={e.id} onClick={ev => onSelect({ kind: 'enrollment', data: e }, ev)}
                 style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0 6px 4px', width: '100%', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
                 <span style={{ width: 10, height: 10, borderRadius: '50%', background: color(e.id), flexShrink: 0 }} />
-                <span style={{ flex: 1, fontSize: 14, fontWeight: 600, color: '#111827' }}>{e.itemTitle}</span>
+                <span style={{ flex: 1, fontSize: 14, fontWeight: 500, color: '#111827' }}>{e.itemTitle}</span>
                 {(e.timeStart || e.timeEnd) && <span style={{ fontSize: 12, color: '#9ca3af' }}>{e.timeStart}{e.timeEnd?`–${e.timeEnd}`:''}</span>}
               </button>
             ))}
@@ -411,7 +411,7 @@ function ListView({ enrollments, activities, from, to, onSelect }: {
               <button key={`a${a.id}`} onClick={ev => onSelect({ kind: 'activity', data: a }, ev)}
                 style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0 6px 4px', width: '100%', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
                 <span style={{ width: 10, height: 10, borderRadius: '50%', background: ACT_COLOR, flexShrink: 0 }} />
-                <span style={{ fontSize: 12, fontWeight: 600, color: ACT_COLOR, flexShrink: 0 }}>{ACT_LABEL[a.type]??a.type}</span>
+                <span style={{ fontSize: 12, fontWeight: 500, color: ACT_COLOR, flexShrink: 0 }}>{ACT_LABEL[a.type]??a.type}</span>
                 <span style={{ flex: 1, fontSize: 14, fontWeight: 500, color: '#111827' }}>{a.itemTitle}</span>
               </button>
             ))}
@@ -517,7 +517,7 @@ export default function SchedulePage() {
           <div style={{ display: 'flex', border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden' }}>
             {(['month', 'week'] as Period[]).map(p => (
               <button key={p} onClick={() => setPeriod(p)} style={{
-                padding: '5px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer', border: 'none',
+                padding: '5px 12px', fontSize: 12, fontWeight: 500, cursor: 'pointer', border: 'none',
                 background: period === p ? '#1e2047' : '#fff', color: period === p ? '#fff' : '#6b7280',
                 borderRight: p === 'month' ? '1px solid #e5e7eb' : 'none',
               }}>{p === 'month' ? 'Tháng' : 'Tuần'}</button>
@@ -526,7 +526,7 @@ export default function SchedulePage() {
           {/* Navigator */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             <button onClick={() => navigate(-1)} style={{ background: 'none', border: '1px solid #e5e7eb', borderRadius: 6, padding: '3px 9px', cursor: 'pointer', fontSize: 15 }}>‹</button>
-            <span style={{ fontSize: 13, fontWeight: 700, color: '#374151', minWidth: 160, textAlign: 'center' }}>{navLabel}</span>
+            <span style={{ fontSize: 13, fontWeight: 500, color: '#374151', minWidth: 160, textAlign: 'center' }}>{navLabel}</span>
             <button onClick={() => navigate(1)} style={{ background: 'none', border: '1px solid #e5e7eb', borderRadius: 6, padding: '3px 9px', cursor: 'pointer', fontSize: 15 }}>›</button>
           </div>
           {/* ViewMode icons */}
@@ -550,7 +550,7 @@ export default function SchedulePage() {
           {/* Pending — choose start date for open-type */}
           {pending.length > 0 && (
             <div style={{ background: '#fffbe6', border: '1px solid #ffe58f', borderRadius: 10, padding: '10px 14px' }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#92400e', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Cần xử lý</div>
+              <div style={{ fontSize: 11, fontWeight: 500, color: '#92400e', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Cần xử lý</div>
               {pending.map(e => (
                 <div key={e.id} style={{ marginBottom: 6 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, marginBottom: 4 }}>
@@ -562,7 +562,7 @@ export default function SchedulePage() {
                       onChange={ev => setStartDateInputs(p => ({ ...p, [e.id]: ev.target.value }))}
                       style={{ border: '1px solid #e5e7eb', borderRadius: 8, padding: '4px 8px', fontSize: 12 }} />
                     <button onClick={() => handleSetStartDate(e.id)} disabled={!startDateInputs[e.id] || savingStart === e.id}
-                      style={{ fontSize: 12, fontWeight: 700, color: '#fff', background: '#00539b', border: 'none', padding: '4px 12px', borderRadius: 20, cursor: 'pointer', opacity: !startDateInputs[e.id] ? 0.5 : 1 }}>
+                      style={{ fontSize: 12, fontWeight: 500, color: '#fff', background: '#00539b', border: 'none', padding: '4px 12px', borderRadius: 20, cursor: 'pointer', opacity: !startDateInputs[e.id] ? 0.5 : 1 }}>
                       {savingStart === e.id ? '...' : 'Xác nhận'}
                     </button>
                   </div>
@@ -574,19 +574,19 @@ export default function SchedulePage() {
           {/* Sắp diễn ra (today + tomorrow) */}
           {(todayEvents.length > 0 || tomorrowEvents.length > 0) && (
             <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: 10, padding: '10px 14px' }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#0369a1', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>
+              <div style={{ fontSize: 11, fontWeight: 500, color: '#0369a1', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>
                 Sắp diễn ra
               </div>
               {todayEvents.length > 0 && (
                 <div style={{ marginBottom: tomorrowEvents.length > 0 ? 6 : 0 }}>
-                  <div style={{ fontSize: 11, fontWeight: 600, color: '#0369a1', marginBottom: 3 }}>Hôm nay</div>
+                  <div style={{ fontSize: 11, fontWeight: 500, color: '#0369a1', marginBottom: 3 }}>Hôm nay</div>
                   {todayEvents.map((ev, i) => {
                     const isEnrollment = 'scheduleType' in ev
                     return (
                       <button key={i} onClick={e => select(isEnrollment ? { kind: 'enrollment', data: ev as Enrollment } : { kind: 'activity', data: ev as Activity }, e)}
                         style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0', textAlign: 'left' }}>
                         <span style={{ width: 8, height: 8, borderRadius: '50%', background: isEnrollment ? color((ev as Enrollment).id) : ACT_COLOR, flexShrink: 0 }} />
-                        {!isEnrollment && <span style={{ fontSize: 11, color: ACT_COLOR, fontWeight: 700 }}>{ACT_LABEL[(ev as Activity).type]}</span>}
+                        {!isEnrollment && <span style={{ fontSize: 11, color: ACT_COLOR, fontWeight: 500 }}>{ACT_LABEL[(ev as Activity).type]}</span>}
                         <span style={{ color: '#111827', fontWeight: 500 }}>{isEnrollment ? (ev as Enrollment).itemTitle : (ev as Activity).itemTitle}</span>
                         {isEnrollment && (ev as Enrollment).timeStart && <span style={{ fontSize: 11, color: '#6b7280' }}>{(ev as Enrollment).timeStart}</span>}
                       </button>
@@ -596,14 +596,14 @@ export default function SchedulePage() {
               )}
               {tomorrowEvents.length > 0 && (
                 <div>
-                  <div style={{ fontSize: 11, fontWeight: 600, color: '#0369a1', marginBottom: 3 }}>Ngày mai</div>
+                  <div style={{ fontSize: 11, fontWeight: 500, color: '#0369a1', marginBottom: 3 }}>Ngày mai</div>
                   {tomorrowEvents.map((ev, i) => {
                     const isEnrollment = 'scheduleType' in ev
                     return (
                       <button key={i} onClick={e => select(isEnrollment ? { kind: 'enrollment', data: ev as Enrollment } : { kind: 'activity', data: ev as Activity }, e)}
                         style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0', textAlign: 'left' }}>
                         <span style={{ width: 8, height: 8, borderRadius: '50%', background: isEnrollment ? color((ev as Enrollment).id) : ACT_COLOR, flexShrink: 0 }} />
-                        {!isEnrollment && <span style={{ fontSize: 11, color: ACT_COLOR, fontWeight: 700 }}>{ACT_LABEL[(ev as Activity).type]}</span>}
+                        {!isEnrollment && <span style={{ fontSize: 11, color: ACT_COLOR, fontWeight: 500 }}>{ACT_LABEL[(ev as Activity).type]}</span>}
                         <span style={{ color: '#111827', fontWeight: 500 }}>{isEnrollment ? (ev as Enrollment).itemTitle : (ev as Activity).itemTitle}</span>
                         {isEnrollment && (ev as Enrollment).timeStart && <span style={{ fontSize: 11, color: '#6b7280' }}>{(ev as Enrollment).timeStart}</span>}
                       </button>
