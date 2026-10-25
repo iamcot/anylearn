@@ -20,6 +20,7 @@ export async function cancelOrder(orderId: string, token: string): Promise<{ err
 
 export interface BankInfo {
   bankName: string
+  bankBin?: string
   accountNumber: string
   accountName: string
   transferContent: string

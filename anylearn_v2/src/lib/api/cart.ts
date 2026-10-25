@@ -40,6 +40,8 @@ export interface OrderData {
   orderId: string
   items: { itemId: number; title: string; price: number; image?: string; seoUrl?: string; studentName?: string; scheduleTitle?: string; scheduleTime?: string; activities?: { type: string; date?: string; note?: string }[] }[]
   paymentMethod: string
+  status?: string
+  amount?: number
 }
 
 export async function getCartInfo(itemId: number, token: string): Promise<CartInfoData | null> {

@@ -142,6 +142,10 @@ getOrder(orderId, token)       // GET /order/:orderId     [auth]
 - `/login?redirect=` goes through `safeRedirect` (same-site paths only). `/login?reset=success` shows the "password reset" message.
 - `AuthModal` mounts its body only while open, so each opening starts on the requested tab with empty forms.
 
+## Bank transfer QR (order page)
+
+- `lib/vietqr/payload.ts` builds the VietQR (EMVCo, Napas 247) string, tested; the QR is drawn in the browser with the `qrcode` package (`components/payment/useQrImage.ts`). The note `ALQRPAY{orderId}` must match `TransferNote.java` in the backend. `BankTransferPanel` shows only while the order is `new`/`pay_pending`; `useOrderStatus` polls every `ORDER_STATUS_POLL_MS`.
+
 ## Static and content pages
 
 - API HTML (policies, guides, articles, help center) is rendered with the `rich-content` class (list, heading, link, image styles in `globals.css`; there is no typography plugin, `prose` does nothing). Policy and guide pages share `components/DocPage.tsx` + `lib/docs/fetchDoc.ts`.

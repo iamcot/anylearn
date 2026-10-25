@@ -1,0 +1,42 @@
+@host = {{$dotenv BE_BASE_URL}}
+@sepayKey = {{$dotenv SEPAY_API_KEY}}
+
+### SePay webhook: exact amount for order 42 (approves the order)
+POST {{host}}/payment-notify/sepay
+Authorization: Apikey {{sepayKey}}
+Content-Type: application/json
+
+{
+  "id": 900001,
+  "gateway": "MBBank",
+  "transactionDate": "2026-10-25 14:02:37",
+  "accountNumber": "0123456789",
+  "code": null,
+  "content": "MBVCB.123456.ALQRPAY42.CT tu NGUYEN VAN A",
+  "transferType": "in",
+  "transferAmount": 1500000,
+  "accumulated": 0,
+  "referenceCode": "FT26298000001",
+  "description": "BankAPINotify MBVCB.123456.ALQRPAY42"
+}
+
+### SePay webhook: short amount (order stays pending, admins notified)
+POST {{host}}/payment-notify/sepay
+Authorization: Apikey {{sepayKey}}
+Content-Type: application/json
+
+{
+  "id": 900002,
+  "transactionDate": "2026-10-25 14:05:00",
+  "accountNumber": "0123456789",
+  "content": "ALQRPAY42",
+  "transferType": "in",
+  "transferAmount": 1000
+}
+
+### SePay webhook: wrong key (401, nothing recorded)
+POST {{host}}/payment-notify/sepay
+Authorization: Apikey wrong
+Content-Type: application/json
+
+{ "id": 900003, "transactionDate": "2026-10-25 14:06:00", "content": "ALQRPAY42", "transferType": "in", "transferAmount": 1500000 }

@@ -86,6 +86,8 @@ Testing on a phone: `ngrok http 3000` and open the ngrok URL. One tunnel is enou
 JWT_SECRET          # default: change-me-in-production-use-at-least-32-chars
 MEILI_HOST          # default: http://localhost:7700
 MEILI_MASTER_KEY    # default: local_dev_key
+BANK_NAME / BANK_BIN / BANK_ACCOUNT_NUMBER / BANK_ACCOUNT_NAME   # account that receives bank transfers (BIN 970422 = MB Bank)
+SEPAY_API_KEY       # key of the SePay webhook, see "Bank transfer by QR"
 ```
 
 ## HTTP Test Files
@@ -129,6 +131,12 @@ Course structure: `class_plans`, `schedules`, `item_schedule_plans`, `item_video
 User relations: `user_locations`, `user_banks`, `user_documents`, `user_spec_links`
 
 Full schema in memory: `db_schema_anylearn.md`
+
+## Bank transfer by QR (SePay)
+
+- Order page `/order/[orderId]` shows a VietQR code next to the bank details for `bank_transfer` orders. Transfer note = `ALQRPAY{orderId}` (prefix lets you filter these transfers on SePay). FE: `components/payment/BankTransferPanel.tsx`, `lib/vietqr/payload.ts`; the page polls the order every 3 seconds and moves to `?status=success` when it is `delivered`.
+- SePay (my.sepay.vn) webhook: `POST https://<domain>/v2/payment-notify/sepay`, authentication "API Key" (header `Authorization: Apikey <SEPAY_API_KEY>`), `SepayWebhookService` in the backend. Money in with `ALQRPAY{id}` and amount >= order amount approves the order through `PaymentApprovalService.approveOrder` (buyer gets the in-app notification and email, admins too). Short amount, unknown order and an order that is no longer waiting are saved in `bank_webhook_events` (`mismatch`, `unmatched`, `needs_review`) and admins are notified; extra money approves and notifies admins. A transfer id is processed once.
+- Set `BANK_ACCOUNT_NUMBER`, `BANK_BIN`, `BANK_ACCOUNT_NAME` and `SEPAY_API_KEY` on the server. Sample calls: `http/payment.http`.
 
 ## /today page (learner dashboard)
 

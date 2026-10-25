@@ -10,6 +10,8 @@ import CheckCircle from '@/components/CheckCircle'
 import OrderLine from '@/components/cart/OrderLine'
 import { FormPageSkeleton, ListSkeleton } from '@/components/PageSkeleton'
 import { ClockIcon, CloseIcon } from '@/components/icons'
+import BankTransferPanel from '@/components/payment/BankTransferPanel'
+import { useOrderStatus } from '@/components/payment/useOrderStatus'
 
 const GATEWAY_WAIT_STEPS = ['Giao dịch đang được xử lý. Vui lòng kiểm tra email xác nhận.']
 
@@ -36,6 +38,8 @@ function InstructionBox({ title, children }: { title: string; children: React.Re
     </div>
   )
 }
+
+const AWAITING_PAYMENT_STATUSES = ['new', 'pay_pending']
 
 const STEP_CLASS = 'mb-1 text-sm leading-[1.7] text-text'
 
@@ -83,6 +87,15 @@ export default function OrderPage() {
       setLoading(false)
     })
   }, [token, orderId])
+
+  const isAwaitingBankTransfer = order?.paymentMethod === 'bank_transfer'
+    && paymentStatus !== 'success'
+    && AWAITING_PAYMENT_STATUSES.includes(order.status ?? '')
+  const orderStatus = useOrderStatus(orderId, token, order?.status, isAwaitingBankTransfer)
+
+  useEffect(() => {
+    if (orderStatus === 'delivered' && isAwaitingBankTransfer) router.replace(`/order/${orderId}?status=success`)
+  }, [orderStatus, isAwaitingBankTransfer, orderId, router])
 
   if (isAuthLoading) return <FormPageSkeleton />
   if (!user) return null
@@ -159,12 +172,8 @@ export default function OrderPage() {
               </ul>
             </section>
 
-            {order.paymentMethod === 'bank_transfer' && bankInfo && (
-              <InstructionBox title="Hướng dẫn chuyển khoản">
-                <li className={STEP_CLASS}>Chuyển khoản đến tài khoản: <strong>{bankInfo.bankName} - {bankInfo.accountNumber} - {bankInfo.accountName}</strong></li>
-                <li className={STEP_CLASS}>Nội dung chuyển khoản: <strong>{bankInfo.transferContent}</strong></li>
-                <li className={STEP_CLASS}>Sau khi chuyển khoản, vui lòng gửi ảnh xác nhận qua Zalo: <strong>{bankInfo.zaloPhone}</strong></li>
-              </InstructionBox>
+            {isAwaitingBankTransfer && bankInfo && (
+              <BankTransferPanel orderId={orderId} amount={order.amount ?? 0} bank={bankInfo} />
             )}
 
             {order.paymentMethod !== 'bank_transfer' && instructions && (
