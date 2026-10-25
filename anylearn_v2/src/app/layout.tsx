@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
+import { Be_Vietnam_Pro } from 'next/font/google'
 import Script from 'next/script'
+import { Suspense } from 'react'
 import './globals.css'
 import SiteChrome from '@/components/SiteChrome'
 import Header from '@/components/Header'
@@ -7,6 +9,14 @@ import Footer from '@/components/Footer'
 import FloatContact from '@/components/FloatContact'
 import { AuthProvider } from '@/context/AuthContext'
 import AuthModal from '@/components/AuthModal'
+import NavigationProgress from '@/components/NavigationProgress'
+import ToastProvider from '@/components/ToastProvider'
+
+const beVietnamPro = Be_Vietnam_Pro({
+  subsets: ['vietnamese', 'latin'],
+  weight: ['400', '500', '600'],
+  variable: '--font-be-vietnam-pro',
+})
 
 export const metadata: Metadata = {
   title: 'anyLEARN - Học không giới hạn',
@@ -18,16 +28,21 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="vi">
-      <body style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <html lang="vi" className={beVietnamPro.variable}>
+      <body>
         <AuthProvider>
-          <SiteChrome
-            header={<Header />}
-            footer={<><Footer /><FloatContact /></>}
-          >
-            {children}
-          </SiteChrome>
-          <AuthModal />
+          <ToastProvider>
+            <Suspense fallback={null}>
+              <NavigationProgress />
+            </Suspense>
+            <SiteChrome
+              header={<Header />}
+              footer={<><Footer /><FloatContact /></>}
+            >
+              {children}
+            </SiteChrome>
+            <AuthModal />
+          </ToastProvider>
         </AuthProvider>
         <Script src="https://sp.zalo.me/plugins/sdk.js" strategy="lazyOnload" />
       </body>

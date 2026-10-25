@@ -1,8 +1,9 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { getArticleUrl } from '@/lib/api'
+import { ChevronLeftIcon, ChevronRightIcon, GiftIcon } from '@/components/icons'
 
 interface Promo {
   id: number
@@ -11,102 +12,97 @@ interface Promo {
   image?: string
 }
 
+const SWIPE_THRESHOLD_PX = 40
+const NAV_BUTTON_CLASS = 'grid size-11 cursor-pointer place-items-center rounded-full border-0 bg-transparent p-0 text-muted hover:text-ink md:hidden'
+const ARROW_CLASS = 'absolute top-1/2 hidden size-11 md:grid -translate-y-1/2 cursor-pointer place-items-center rounded-full border border-white/40 bg-white/25 p-0 text-white'
+
 export default function PromoSlider({ promos }: { promos: Promo[] }) {
   const [current, setCurrent] = useState(0)
+  const touchStartX = useRef<number | null>(null)
 
   if (!promos.length) return null
+
+  const showPrevious = () => setCurrent(c => (c - 1 + promos.length) % promos.length)
+  const showNext = () => setCurrent(c => (c + 1) % promos.length)
+
+  const handleTouchEnd = (endX: number) => {
+    if (touchStartX.current === null) return
+    const distance = endX - touchStartX.current
+    touchStartX.current = null
+    if (Math.abs(distance) < SWIPE_THRESHOLD_PX) return
+    if (distance < 0) showNext()
+    else showPrevious()
+  }
 
   return (
     <section className="section">
       <div className="container">
-        <div style={{ position: 'relative', overflow: 'hidden', borderRadius: 32 }}>
-          {/* Slides */}
-          <div style={{
-            display: 'flex',
-            width: '100%',
-            transform: `translateX(-${current * 100}%)`,
-            transition: 'transform 0.4s ease',
-          }}>
+        <div
+          className="relative overflow-hidden rounded-[32px]"
+          onTouchStart={e => { touchStartX.current = e.touches[0]?.clientX ?? null }}
+          onTouchEnd={e => handleTouchEnd(e.changedTouches[0]?.clientX ?? 0)}
+        >
+          <div
+            className="flex w-full transition-transform duration-[400ms] ease-out"
+            style={{ transform: `translateX(-${current * 100}%)` }}
+          >
             {promos.map(promo => (
-              <div key={promo.id} style={{
-                minWidth: '100%',
-                background: 'linear-gradient(100deg, rgba(0,65,120,0.96), rgba(0,166,81,0.82))',
-                color: 'white',
-                display: 'grid', gridTemplateColumns: '1.2fr 0.8fr',
-                minHeight: 300,
-                boxShadow: '0 10px 26px rgba(15,23,42,0.08)',
-                overflow: 'hidden',
-              }} className="promo-slide">
-                <div style={{ padding: 38 }}>
-                  <span style={{
-                    display: 'inline-flex', padding: '7px 11px', borderRadius: 999,
-                    background: 'rgba(255,255,255,0.16)', fontWeight: 900, marginBottom: 16, fontSize: 14,
-                  }}>Chương trình nổi bật</span>
-                  <h2 style={{ margin: '0 0 12px', fontSize: 'clamp(28px,4vw,44px)', fontWeight: 900, lineHeight: 1.08 }}>
-                    {promo.title}
-                  </h2>
-                  {promo.short_content && (
-                    <p style={{ margin: '0 0 20px', maxWidth: 630, color: 'rgba(255,255,255,0.9)' }}>
-                      {promo.short_content}
-                    </p>
-                  )}
+              <div
+                key={promo.id}
+                className="grid min-h-[300px] shrink-0 basis-full grid-cols-1 overflow-hidden bg-linear-[100deg] from-blue-dark/95 to-green/80 text-white shadow-card md:grid-cols-[1.2fr_0.8fr]"
+              >
+                <div className="p-6 md:p-10">
+                  <span className="mb-4 inline-flex rounded-full bg-white/15 px-3 py-1.5 text-sm font-medium">Chương trình nổi bật</span>
+                  <h2 className="m-0 mb-3 text-[clamp(26px,4vw,44px)] font-medium leading-[1.1]">{promo.title}</h2>
+                  {promo.short_content && <p className="mb-5 max-w-[630px] text-white/90">{promo.short_content}</p>}
                   <Link href={getArticleUrl(promo)} className="btn btn--yellow">Tìm hiểu chương trình</Link>
                 </div>
-                <div style={{ display: 'grid', placeItems: 'center', padding: 28, overflow: 'hidden' }} className="promo-image-col">
+                <div className="hidden place-items-center overflow-hidden p-7 md:grid">
                   {promo.image ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={promo.image} alt={promo.title}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 24 }} />
+                    <img src={promo.image} alt={promo.title} className="size-full rounded-3xl object-cover" />
                   ) : (
-                    <div style={{
-                      width: 'min(240px,100%)', aspectRatio: '1/1', borderRadius: 36,
-                      border: '2px solid rgba(255,255,255,0.35)',
-                      background: 'rgba(255,255,255,0.12)',
-                      display: 'grid', placeItems: 'center',
-                      textAlign: 'center', fontSize: 48, fontWeight: 900, color: '#ffca05', lineHeight: 1.1,
-                    }}>🎁</div>
+                    <div className="grid aspect-square w-[min(240px,100%)] place-items-center rounded-[36px] border-2 border-white/35 bg-white/10 text-yellow">
+                      <GiftIcon className="size-16" />
+                    </div>
                   )}
                 </div>
               </div>
             ))}
           </div>
 
-          {/* Prev / Next arrows */}
           {promos.length > 1 && (
             <>
-              <button onClick={() => setCurrent(c => (c - 1 + promos.length) % promos.length)}
-                style={{
-                  position: 'absolute', top: '50%', left: 16, transform: 'translateY(-50%)',
-                  width: 40, height: 40, borderRadius: '50%',
-                  background: 'rgba(255,255,255,0.25)', border: '1px solid rgba(255,255,255,0.4)',
-                  color: 'white', fontSize: 20, cursor: 'pointer',
-                  display: 'grid', placeItems: 'center',
-                }}>‹</button>
-              <button onClick={() => setCurrent(c => (c + 1) % promos.length)}
-                style={{
-                  position: 'absolute', top: '50%', right: 16, transform: 'translateY(-50%)',
-                  width: 40, height: 40, borderRadius: '50%',
-                  background: 'rgba(255,255,255,0.25)', border: '1px solid rgba(255,255,255,0.4)',
-                  color: 'white', fontSize: 20, cursor: 'pointer',
-                  display: 'grid', placeItems: 'center',
-                }}>›</button>
+              <button type="button" aria-label="Chương trình trước" onClick={showPrevious} className={`${ARROW_CLASS} left-3`}>
+                <ChevronLeftIcon />
+              </button>
+              <button type="button" aria-label="Chương trình sau" onClick={showNext} className={`${ARROW_CLASS} right-3`}>
+                <ChevronRightIcon />
+              </button>
             </>
           )}
         </div>
 
-        {/* Dot indicators */}
         {promos.length > 1 && (
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 16 }}>
-            {promos.map((_, i) => (
-              <button key={i} onClick={() => setCurrent(i)}
-                style={{
-                  width: i === current ? 24 : 8, height: 8,
-                  borderRadius: 999, border: 0, cursor: 'pointer',
-                  background: i === current ? '#00539b' : '#e6edf4',
-                  transition: 'all 0.3s',
-                  padding: 0,
-                }} />
+          <div className="mt-2 flex items-center justify-center gap-1">
+            <button type="button" aria-label="Chương trình trước" onClick={showPrevious} className={NAV_BUTTON_CLASS}>
+              <ChevronLeftIcon />
+            </button>
+            {promos.map((promo, index) => (
+              <button
+                key={promo.id}
+                type="button"
+                aria-label={`Chương trình ${index + 1}`}
+                aria-current={index === current}
+                onClick={() => setCurrent(index)}
+                className="grid h-11 min-w-8 cursor-pointer place-items-center border-0 bg-transparent p-0"
+              >
+                <span className={`h-2 rounded-full transition-all duration-300 ${index === current ? 'w-6 bg-blue' : 'w-2 bg-line'}`} />
+              </button>
             ))}
+            <button type="button" aria-label="Chương trình sau" onClick={showNext} className={NAV_BUTTON_CLASS}>
+              <ChevronRightIcon />
+            </button>
           </div>
         )}
       </div>

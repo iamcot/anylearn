@@ -24,7 +24,7 @@ function UserAvatar({ active }: { active: boolean }) {
     return <img src={user.image} alt="" className={`h-6 w-6 rounded-full object-cover ${ring}`} />
   }
   return (
-    <span className={`grid h-6 w-6 place-items-center rounded-full bg-gradient-to-br from-blue to-green text-xs font-black text-white ${ring}`} aria-hidden="true">
+    <span className={`grid h-6 w-6 place-items-center rounded-full bg-gradient-to-br from-blue to-green text-xs font-extrabold text-white ${ring}`} aria-hidden="true">
       {(user?.name ?? '?').trim().charAt(0).toUpperCase()}
     </span>
   )
@@ -43,12 +43,11 @@ function Tab({ item, active }: { item: TodayNavItem; active: boolean }) {
   )
 }
 
-export default function AppTabs({ wide }: { wide: boolean }) {
+export default function AppTabs() {
   const pathname = usePathname()
   return (
     <nav
-      className="app-tabs fixed inset-x-0 bottom-0 z-40 grid-cols-5 border-t border-line bg-white pb-[env(safe-area-inset-bottom)]"
-      data-wide={wide}
+      className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-line bg-white pb-[env(safe-area-inset-bottom)] lg:hidden"
       aria-label="Menu chính"
     >
       {TODAY_NAV.map(item => <Tab key={item.href} item={item} active={isNavActive(pathname, item.href)} />)}

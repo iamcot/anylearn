@@ -1,48 +1,37 @@
 import Link from 'next/link'
 import { Item, getCourseUrl } from '@/lib/api'
+import { formatPrice } from '@/lib/format/price'
+import { SUBTYPE_LABELS } from '@/config/itemLabels'
+import { BookIcon, HeartIcon, StarIcon, UserIcon } from './icons'
+import ChevronLabel from '@/components/ChevronLabel'
 
 interface Props {
   item: Item
 }
 
-function formatPrice(price: number) {
-  if (!price) return 'Liên hệ'
-  if (price >= 1_000_000) return `${(price / 1_000_000).toFixed(1).replace('.0', '')} triệu`
-  return price.toLocaleString('vi-VN') + ' đ'
-}
-
-const SUBTYPE_LABELS: Record<string, string> = {
-  extra:      'Ngoại khóa',
-  offline:    'Học trực tiếp',
-  online:     'Học online',
-  digital:    'Kỹ thuật số',
-  video:      'Video',
-  preschool:  'Mầm non',
-}
-
 export default function CourseCard({ item }: Props) {
   const courseUrl = getCourseUrl(item)
   return (
-    <article className="bg-white border border-line rounded-card overflow-hidden shadow-[0_8px_24px_rgba(15,23,42,0.06)] flex flex-col relative">
+    <article className="bg-white border border-line rounded-card overflow-hidden shadow-card flex flex-col relative">
       {/* Full-card clickable overlay */}
       <Link href={courseUrl} className="absolute inset-0 z-10" aria-label={item.title} />
 
       {/* Image area */}
-      <div className="aspect-square bg-gradient-to-br from-green-soft to-blue-soft grid place-items-center relative overflow-hidden">
+      <div className="aspect-[16/10] bg-gradient-to-br from-green-soft to-blue-soft grid place-items-center relative overflow-hidden sm:aspect-square">
         {item.image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={item.image} alt={item.title} className="w-full h-full object-cover absolute inset-0" />
         ) : (
-          <span className="text-5xl">📚</span>
+          <BookIcon className="size-14 text-blue/40" />
         )}
         {item.isHot ? (
-          <span className="absolute top-3 left-3 bg-yellow text-ink rounded-full px-2.5 py-1.5 font-black text-xs z-10">HOT</span>
+          <span className="absolute top-3 left-3 bg-yellow text-ink rounded-full px-2.5 py-1.5 font-extrabold text-xs z-10">HOT</span>
         ) : null}
       </div>
 
       {/* Body */}
       <div className="p-[18px] flex flex-col flex-1">
-        <h3 className="m-0 mb-1.5 text-green-dark leading-[1.35] text-lg font-black">
+        <h3 className="m-0 mb-1.5 text-green-dark leading-[1.35] text-lg font-extrabold">
           {item.title}
         </h3>
 
@@ -52,7 +41,7 @@ export default function CourseCard({ item }: Props) {
             {item.authorImage
               // eslint-disable-next-line @next/next/no-img-element
               ? <img src={item.authorImage} alt={item.authorName} className="w-[18px] h-[18px] rounded-full object-cover shrink-0" />
-              : <span className="w-[18px] h-[18px] rounded-full bg-blue-soft grid place-items-center text-[9px] shrink-0">👤</span>
+              : <span className="w-[18px] h-[18px] rounded-full bg-blue-soft grid place-items-center text-blue shrink-0"><UserIcon className="size-3" /></span>
             }
             <span className="text-xs text-muted font-bold overflow-hidden text-ellipsis whitespace-nowrap">
               {item.authorName}
@@ -62,7 +51,7 @@ export default function CourseCard({ item }: Props) {
 
         <div className="flex flex-wrap gap-1.5 mb-2.5">
           {item.subtype && (
-            <span className="rounded-full px-2 py-1 bg-green-soft text-green-dark text-xs font-black">
+            <span className="rounded-full px-2 py-1 bg-green-soft text-green-dark text-xs font-extrabold">
               {SUBTYPE_LABELS[item.subtype] ?? item.subtype}
             </span>
           )}
@@ -75,17 +64,19 @@ export default function CourseCard({ item }: Props) {
         )}
 
         <div className="mt-auto">
-          <div className="text-red font-black text-lg mb-1.5">
+          <div className="text-red font-extrabold text-lg mb-1.5">
             {formatPrice(item.price)}
           </div>
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 text-xs text-muted">
-              {item.rating != null && item.rating > 0 && <span>⭐ {item.rating.toFixed(1)}</span>}
-              {item.num_favorite != null && item.num_favorite > 0 && <span>❤️ {item.num_favorite}</span>}
+              {item.rating != null && item.rating > 0 && (
+                <span className="inline-flex items-center gap-1"><StarIcon filled className="size-3.5 text-star" />{item.rating.toFixed(1)}</span>
+              )}
+              {item.num_favorite != null && item.num_favorite > 0 && (
+                <span className="inline-flex items-center gap-1"><HeartIcon filled className="size-3.5 text-red" />{item.num_favorite}</span>
+              )}
             </div>
-            <span className="text-[#008244] font-black text-sm no-underline shrink-0">
-              Tìm hiểu thêm →
-            </span>
+            <ChevronLabel className="shrink-0 text-sm font-extrabold text-green-dark">Tìm hiểu thêm</ChevronLabel>
           </div>
         </div>
       </div>

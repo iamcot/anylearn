@@ -1,12 +1,22 @@
 import Link from 'next/link'
+import { API_BASE } from '@/lib/apiBase'
+import { ClockIcon, MailIcon, PhoneIcon } from '@/components/icons'
 
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080/v2/api'
+const HEADING_CLASS = 'mb-3.5 mt-0 text-base font-extrabold text-white'
+const LINK_CLASS = 'mb-2.5 block text-sm text-white/70 no-underline hover:text-white'
+const TEXT_CLASS = 'mb-2.5 mt-0 text-sm text-white/70'
+
+const SOCIAL_LINKS = [
+  { href: 'https://www.youtube.com/channel/UCam71id1lM8tZuMfjy2DDRw', src: '/cdn/img/youtube.png', title: 'YouTube' },
+  { href: 'https://www.facebook.com/anylearnhockhonggioihan', src: '/cdn/img/facebook.png', title: 'Facebook' },
+  { href: 'https://zalo.me/0374900344', src: '/cdn/img/zalo.png', title: 'Zalo' },
+]
 
 interface KnowledgeItem { id: number; title: string; url: string }
 
 async function fetchTopKnowledge(): Promise<KnowledgeItem[]> {
   try {
-    const res = await fetch(`${BASE}/helpcenter/top?limit=4`, { next: { revalidate: 3600 } })
+    const res = await fetch(`${API_BASE}/helpcenter/top?limit=4`, { next: { revalidate: 3600 } })
     const json = await res.json()
     if (json?.resultCode === 1 && Array.isArray(json?.data)) return json.data
   } catch {}
@@ -17,54 +27,50 @@ export default async function Footer() {
   const topKnowledge = await fetchTopKnowledge()
 
   return (
-    <footer className="footer">
+    <footer className="bg-navy pt-14 text-white">
       <div className="container">
-        <div className="footer-grid">
+        <div className="mb-11 grid grid-cols-1 gap-7 sm:grid-cols-2 lg:grid-cols-[1.2fr_1fr_1fr_1.2fr]">
           <div>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/cdn/anylearn/img/logo-white.svg" alt="anyLEARN" className="h-10 mb-4" />
-            <p>Nền tảng giúp phụ huynh tìm kiếm, so sánh và đăng ký trường học, khóa học, chuyên gia phù hợp cho con.</p>
+            <img src="/cdn/anylearn/img/logo-white.svg" alt="anyLEARN" className="mb-4 h-10" />
+            <p className={TEXT_CLASS}>Nền tảng giúp phụ huynh tìm kiếm, so sánh và đăng ký trường học, khóa học, chuyên gia phù hợp cho con.</p>
           </div>
 
           <div>
-            <h4>Dành cho phụ huynh</h4>
-            <Link href="/helpcenter">Trung Tâm Hỗ trợ</Link>
+            <h4 className={HEADING_CLASS}>Dành cho phụ huynh</h4>
+            <Link href="/helpcenter" className={LINK_CLASS}>Trung Tâm Hỗ trợ</Link>
             {topKnowledge.map(k => (
-              <Link key={k.id} href={`/helpcenter/${k.id}/${k.url}`}>{k.title}</Link>
+              <Link key={k.id} href={`/helpcenter/${k.id}/${k.url}`} className={LINK_CLASS}>{k.title}</Link>
             ))}
           </div>
 
           <div>
-            <h4>Điều khoản &amp; Chính sách</h4>
-            <Link href="/privacy">Chính sách bảo mật thông tin</Link>
-            <Link href="/guide?p=guide_toc">Điều khoản sử dụng</Link>
-            <Link href="/guide?p=guide_payment_term">Chính sách thanh toán</Link>
-            <Link href="/guide?p=guide_return_term">Chính sách đổi - trả và hoàn tiền</Link>
+            <h4 className={HEADING_CLASS}>Điều khoản &amp; Chính sách</h4>
+            <Link href="/privacy" className={LINK_CLASS}>Chính sách bảo mật thông tin</Link>
+            <Link href="/guide?p=guide_toc" className={LINK_CLASS}>Điều khoản sử dụng</Link>
+            <Link href="/guide?p=guide_payment_term" className={LINK_CLASS}>Chính sách thanh toán</Link>
+            <Link href="/guide?p=guide_return_term" className={LINK_CLASS}>Chính sách đổi - trả và hoàn tiền</Link>
           </div>
 
           <div>
-            <h4>Liên hệ anyLEARN</h4>
-            <a href="tel:0374900344">📞 0374 900 344</a>
-            <a href="mailto:info@anylearn.vn">✉️ info@anylearn.vn</a>
-            <p className="mt-2.5">⏰ 8:30 - 18:00, Thứ 2 - Thứ 7</p>
-            <div className="flex gap-2.5 mt-3.5">
-              {[
-                { href: 'https://www.youtube.com/channel/UCam71id1lM8tZuMfjy2DDRw', src: '/cdn/img/youtube.png', title: 'YouTube' },
-                { href: 'https://www.facebook.com/anylearnhockhonggioihan', src: '/cdn/img/facebook.png', title: 'Facebook' },
-                { href: 'https://zalo.me/0374900344', src: '/cdn/img/zalo.png', title: 'Zalo' },
-              ].map(s => (
-                <a key={s.title} href={s.href} title={s.title} target="_blank" rel="noopener noreferrer"
-                  className="w-9 h-9 rounded-full overflow-hidden">
+            <h4 className={HEADING_CLASS}>Liên hệ anyLEARN</h4>
+            <a href="tel:0374900344" className={`${LINK_CLASS} flex items-center gap-2`}><PhoneIcon className="size-4 shrink-0" />0374 900 344</a>
+            <a href="mailto:info@anylearn.vn" className={`${LINK_CLASS} flex items-center gap-2`}><MailIcon className="size-4 shrink-0" />info@anylearn.vn</a>
+            <p className={`${TEXT_CLASS} flex items-center gap-2`}><ClockIcon className="size-4 shrink-0" />8:30 - 18:00, Thứ 2 - Thứ 7</p>
+            <div className="mt-3.5 flex gap-2.5">
+              {SOCIAL_LINKS.map(link => (
+                <a key={link.title} href={link.href} title={link.title} target="_blank" rel="noopener noreferrer"
+                  className="size-10 overflow-hidden rounded-full">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={s.src} alt={s.title} className="w-full h-full object-cover" />
+                  <img src={link.src} alt={link.title} className="size-full object-cover" />
                 </a>
               ))}
             </div>
           </div>
         </div>
       </div>
-      <div className="footer-bottom">
-        <p>© 2024 Công ty Cổ phần Đầu tư và Giáo dục anyLEARN. All rights reserved.</p>
+      <div className="border-t border-white/15 py-5 text-center text-[13px] text-white/75">
+        <p className="m-0">© 2024 Công ty Cổ phần Đầu tư và Giáo dục anyLEARN. All rights reserved.</p>
       </div>
     </footer>
   )

@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
-
-const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080/v2/api'
+import { API_BASE } from '@/lib/apiBase'
+import { StarIcon } from './icons'
 
 interface Props {
   itemId: number
@@ -26,7 +26,7 @@ export default function RatingForm({ itemId, existingRating, existingComment, on
     if (rating === 0) { setError('Vui lòng chọn số sao'); return }
     setSaving(true); setError('')
     try {
-      const res = await fetch(`${API}/item/${itemId}/save-rating`, {
+      const res = await fetch(`${API_BASE}/item/${itemId}/save-rating`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${user!.jwtToken}` },
         body: JSON.stringify({ rating, comment }),
@@ -48,7 +48,7 @@ export default function RatingForm({ itemId, existingRating, existingComment, on
 
   return (
     <div className="rounded-[18px] border border-line bg-white p-5">
-      <div className="font-black text-ink mb-3">
+      <div className="mb-3 font-extrabold text-ink">
         {existingRating ? 'Cập nhật đánh giá của bạn' : 'Viết đánh giá'}
       </div>
 
@@ -58,11 +58,13 @@ export default function RatingForm({ itemId, existingRating, existingComment, on
           <button
             key={n}
             type="button"
-            className="text-[28px] leading-none transition-transform hover:scale-110"
-            style={{ color: n <= display ? '#f5a623' : '#ddd', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+            aria-label={`${n} sao`}
+            className={`grid size-11 cursor-pointer place-items-center border-0 bg-transparent p-0 transition-transform hover:scale-110 ${n <= display ? 'text-star' : 'text-line'}`}
             onMouseEnter={() => setHovered(n)}
             onClick={() => setRating(n)}
-          >★</button>
+          >
+            <StarIcon filled className="size-7" />
+          </button>
         ))}
         {display > 0 && (
           <span className="ml-2 text-sm text-muted self-center">
@@ -77,20 +79,15 @@ export default function RatingForm({ itemId, existingRating, existingComment, on
         onChange={e => setComment(e.target.value)}
         placeholder="Chia sẻ trải nghiệm của bạn với khóa học này..."
         rows={3}
-        style={{
-          width: '100%', borderRadius: 10, border: '1.5px solid var(--color-line)',
-          padding: '10px 12px', fontSize: 14, resize: 'vertical',
-          fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box',
-        }}
+        className="w-full resize-y rounded-xl border border-line px-3 py-2.5 font-[inherit] text-sm outline-none focus:border-green"
       />
 
-      {error && <p className="text-[#e73348] text-xs mt-1 mb-0">{error}</p>}
+      {error && <p className="mb-0 mt-1 text-xs text-red">{error}</p>}
 
       <button
         onClick={submit}
         disabled={saving}
-        className="btn btn--green mt-3"
-        style={{ opacity: saving ? 0.7 : 1 }}
+        className={`btn btn--green mt-3 ${saving ? 'opacity-70' : ''}`}
       >
         {saving ? 'Đang gửi...' : existingRating ? 'Cập nhật' : 'Gửi đánh giá'}
       </button>

@@ -2,6 +2,8 @@
 
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
+import { API_BASE } from '@/lib/apiBase'
+import { LightbulbIcon } from '@/components/icons'
 
 interface TagItem {
   label: string
@@ -27,7 +29,7 @@ export default function SearchCard({ variant = 'home', initialTags = [] }: Props
 
   useEffect(() => {
     if (initialTags.length > 0 || tags.length > 0) return
-    fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080/v2/api'}/search-tags`)
+    fetch(`${API_BASE}/search-tags`)
       .then(r => r.json())
       .then(d => {
         const list: string[] = d?.data ?? d ?? []
@@ -63,8 +65,7 @@ export default function SearchCard({ variant = 'home', initialTags = [] }: Props
         <select
           value={searchMode}
           onChange={e => setSearchMode(e.target.value)}
-          className="field"
-          style={{ borderRadius: 18, fontWeight: 700 }}
+          className="field font-medium"
         >
           {SEARCH_MODES.map(m => (
             <option key={m.key} value={m.key}>{m.label}</option>
@@ -85,16 +86,16 @@ export default function SearchCard({ variant = 'home', initialTags = [] }: Props
       {searchMode === 'class' && tags.length > 0 && (
         <div className="quick-tags">
           {tags.map(tag => (
-            <span key={tag.label} className="tag" style={{ cursor: 'pointer' }}
-              onClick={() => handleTagClick(tag)}>
+            <button key={tag.label} type="button" className="tag" onClick={() => handleTagClick(tag)}>
               {tag.label}
-            </span>
+            </button>
           ))}
         </div>
       )}
 
-      <div className="search-hint">
-        💡 Gõ keyword để xem gợi ý, sau đó chuyển sang trang kết quả có filter đầy đủ
+      <div className="search-hint flex items-start gap-1.5">
+        <LightbulbIcon className="mt-0.5 size-4 shrink-0 text-yellow" />
+        Gõ keyword để xem gợi ý, sau đó chuyển sang trang kết quả có filter đầy đủ
       </div>
     </form>
   )

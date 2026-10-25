@@ -159,13 +159,12 @@ public class UserService {
             User child = new User();
             child.setName(body.get("name") != null ? body.get("name").toString() : "Con " + (user.getName()));
             child.setPhone(user.getPhone() + System.currentTimeMillis() % 10000);
+            child.setRefcode(child.getPhone());
             child.setPassword(passwordEncoder.encode(user.getPhone()));
             child.setRole("member");
+            NewUserDefaults.apply(child);
             child.setIsChild((byte) 1);
             child.setUserId(user.getId());
-            child.setWalletM(0L);
-            child.setWalletC(0L);
-            child.setStatus((byte) 1);
             child.setApiToken(UUID.randomUUID().toString().replace("-", ""));
             if (body.containsKey("dob") && body.get("dob") != null) {
                 try { child.setDob(LocalDate.parse(body.get("dob").toString())); } catch (Exception ignored) {}

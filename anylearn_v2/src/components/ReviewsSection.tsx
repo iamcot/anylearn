@@ -4,11 +4,9 @@ import { useState, useEffect } from 'react'
 import type { PdpReview } from '@/lib/api'
 import ReviewsList from './ReviewsList'
 import RatingForm from './RatingForm'
-import { useAuth } from '@/context/AuthContext'
-
-const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080/v2/api'
-
-interface MyRating { value: number; comment: string }
+import { API_BASE } from '@/lib/apiBase'
+import StarRating from './StarRating'
+import { useItemRatingStatus, type MyRating } from './useItemRatingStatus'
 
 interface Props {
   itemId: number
@@ -17,38 +15,15 @@ interface Props {
 }
 
 export default function ReviewsSection({ itemId, initialReviews, initialRating }: Props) {
-  const { user } = useAuth()
   const [reviews, setReviews] = useState(initialReviews)
   const [rating, setRating] = useState(initialRating)
 
-  // User purchase/rating status (fetched client-side — server has no auth token)
-  const [checked, setChecked] = useState(false)
-  const [hasPurchased, setHasPurchased] = useState(false)
-  const [myRating, setMyRating] = useState<MyRating | null>(null)
-
+  const { checked, hasPurchased, myRating, saveRating } = useItemRatingStatus(itemId)
   const [editing, setEditing] = useState(false)
-
-  // Fetch user status
-  useEffect(() => {
-    if (!user) { setChecked(true); return }
-    fetch(`${API}/item/${itemId}/is-fav`, {
-      headers: { Authorization: `Bearer ${user.jwtToken}` },
-    })
-      .then(r => r.json())
-      .then(json => {
-        if (json.resultCode === 1) {
-          setHasPurchased(json.data.has_purchased)
-          const mr = json.data.my_rating
-          setMyRating(mr ? { value: Number(mr.value), comment: mr.comment ?? '' } : null)
-        }
-      })
-      .catch(() => {})
-      .finally(() => setChecked(true))
-  }, [itemId, user]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Always fetch fresh reviews on mount
   useEffect(() => {
-    fetch(`${API}/item/${itemId}/reviews`)
+    fetch(`${API_BASE}/item/${itemId}/reviews`)
       .then(r => r.json())
       .then(json => {
         if (json.resultCode === 1 && Array.isArray(json.data)) {
@@ -59,10 +34,10 @@ export default function ReviewsSection({ itemId, initialReviews, initialRating }
         }
       })
       .catch(() => {})
-  }, [itemId]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [itemId])
 
   async function refreshReviews() {
-    const res = await fetch(`${API}/item/${itemId}/reviews`).catch(() => null)
+    const res = await fetch(`${API_BASE}/item/${itemId}/reviews`).catch(() => null)
     if (!res) return
     const json = await res.json()
     if (json.resultCode === 1 && Array.isArray(json.data)) {
@@ -74,7 +49,7 @@ export default function ReviewsSection({ itemId, initialReviews, initialRating }
   }
 
   function handleSaved(saved: MyRating) {
-    setMyRating(saved)
+    saveRating(saved)
     setEditing(false)
     refreshReviews()
   }
@@ -104,8 +79,9 @@ export default function ReviewsSection({ itemId, initialReviews, initialRating }
               onSaved={handleSaved}
             />
             <button
+              type="button"
               onClick={() => setEditing(false)}
-              style={{ fontSize: 12, color: '#9aa5b1', background: 'none', border: 'none', cursor: 'pointer', marginTop: 6, padding: 0 }}
+              className="mt-1.5 min-h-11 cursor-pointer border-0 bg-transparent p-0 text-xs text-subtle hover:text-ink"
             >
               Hủy
             </button>
@@ -114,14 +90,13 @@ export default function ReviewsSection({ itemId, initialReviews, initialRating }
 
         {/* Already rated — show summary + edit button */}
         {checked && hasPurchased && myRating && !editing && (
-          <div className="flex items-center gap-3 rounded-[12px] bg-[#f0fff8] border border-[#c3f0d8] px-4 py-3">
-            <span style={{ fontSize: 14, color: '#f5a623' }}>
-              {'★'.repeat(myRating.value)}{'☆'.repeat(5 - myRating.value)}
-            </span>
-            <span className="text-sm text-[#008244] font-bold flex-1">Đánh giá của bạn</span>
+          <div className="flex items-center gap-3 rounded-xl border border-green-line bg-green-soft px-4 py-3">
+            <StarRating value={myRating.value} />
+            <span className="flex-1 text-sm font-bold text-green-dark">Đánh giá của bạn</span>
             <button
+              type="button"
               onClick={startEdit}
-              style={{ fontSize: 12, color: '#00539b', fontWeight: 700, background: 'none', cursor: 'pointer', padding: '4px 10px', borderRadius: 8, border: '1px solid #00539b' } as React.CSSProperties}
+              className="min-h-11 cursor-pointer rounded-lg border border-blue bg-transparent px-3 text-xs font-medium text-blue"
             >
               Sửa
             </button>
