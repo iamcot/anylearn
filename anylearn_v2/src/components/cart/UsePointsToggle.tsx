@@ -7,6 +7,7 @@ import { CoinIcon } from '@/components/icons'
 import { POINT_VALUE_VND } from '@/config/points'
 import { formatExactPrice } from '@/lib/format/price'
 import { formatPoints } from '@/lib/points/reward'
+import { APPLY_BUTTON_CLASS } from './applyButton'
 
 interface Props {
   balance: number
@@ -63,7 +64,7 @@ function CustomPointsInput({ maxPoints, onSubmit }: { maxPoints: number; onSubmi
         onKeyDown={event => { if (event.key === 'Enter') submit() }}
         className="field min-h-11 flex-1 text-sm"
       />
-      <button type="button" onClick={submit} className="min-h-11 shrink-0 cursor-pointer rounded-full border border-line bg-white px-5 text-sm font-medium text-ink">
+      <button type="button" onClick={submit} className={APPLY_BUTTON_CLASS}>
         Áp dụng
       </button>
     </div>

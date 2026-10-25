@@ -1,3 +1,5 @@
+import { APPLY_BUTTON_CLASS } from './applyButton'
+
 interface Props {
   label: string
   hint?: React.ReactNode
@@ -21,7 +23,7 @@ export default function ApplyRow({ label, hint, inputProps, buttonLabel, onApply
           type="button"
           onClick={onApply}
           disabled={disabled}
-          className="min-h-11 w-28 shrink-0 cursor-pointer rounded-full border border-line bg-white text-xs font-bold text-ink transition-colors hover:bg-bg disabled:cursor-default disabled:opacity-60"
+          className={APPLY_BUTTON_CLASS}
         >
           {buttonLabel}
         </button>
