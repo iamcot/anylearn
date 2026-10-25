@@ -308,9 +308,12 @@ public class PaymentApprovalService {
         return "OK";
     }
 
+    /** cancelledBy value for an order nobody paid in time: cancelled by the system, with its own wording. */
+    public static final String CANCELLED_BY_EXPIRY = "expired";
+
     /**
      * Cancel an order: sync orders, order_details, transactions, pending_reg, wallet_c refund, notifications.
-     * cancelledBy: "admin" | "buyer" | "system"
+     * cancelledBy: "admin" | "buyer" | "seller" | "system" | "expired"
      */
     @Transactional
     public String cancelOrder(Long orderId, String cancelledBy) {
@@ -321,6 +324,7 @@ public class PaymentApprovalService {
         String newStatus = "buyer".equals(cancelledBy) ? OrderStatus.CANCEL_BUYER
                          : "seller".equals(cancelledBy) ? OrderStatus.CANCEL_SELLER
                          : OrderStatus.CANCEL_SYSTEM;
+        boolean expired = CANCELLED_BY_EXPIRY.equals(cancelledBy);
 
         // 1. Update order status
         order.setStatus(newStatus);
@@ -357,14 +361,16 @@ public class PaymentApprovalService {
         try {
             notificationService.createNotification(order.getUserId(), "system_notif",
                     "Đơn hàng đã bị hủy",
-                    "Đơn hàng #" + orderId + " đã bị hủy. Nếu bạn đã thanh toán, vui lòng liên hệ hỗ trợ.",
+                    expired
+                            ? "Đơn hàng #" + orderId + " đã hết hạn thanh toán nên được hủy. Nếu bạn đã chuyển khoản, đơn sẽ được khôi phục sau khi anyLEARN kiểm tra."
+                            : "Đơn hàng #" + orderId + " đã bị hủy. Nếu bạn đã thanh toán, vui lòng liên hệ hỗ trợ.",
                     "/orders", null);
         } catch (Exception e) {
             log.warn("[cancelOrder] failed to notify buyer {}: {}", order.getUserId(), e.getMessage());
         }
 
-        // 7. Notify admins
-        try {
+        // 7. Notify admins (an expiry is routine, the daily numbers are on the dashboard)
+        if (!expired) try {
             userRepository.findAdminNotificationRecipients().forEach(admin ->
                 notificationService.createNotification(admin.getId(), "system_notif",
                         "Đơn hàng đã hủy",

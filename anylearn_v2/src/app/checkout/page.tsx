@@ -11,6 +11,9 @@ import {
 import { formatExactPrice } from '@/lib/format/price'
 import { calcCheckoutTotals, maxUsablePoints, pointsToApply, type PointsChoice } from '@/lib/checkout/totals'
 import UsePointsToggle from '@/components/cart/UsePointsToggle'
+import DuplicateOrderModal from '@/components/orders/DuplicateOrderModal'
+import { findDuplicateForCart } from '@/lib/orders/pendingOrders'
+import { refreshPendingOrders } from '@/components/orders/pendingOrdersStore'
 import PaymentMethodSelector from '@/components/PaymentMethodSelector'
 import SectionCard from '@/components/SectionCard'
 import OrderLine from '@/components/cart/OrderLine'
@@ -73,6 +76,7 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState('bank_transfer')
   const [coupon, setCoupon] = useState('')
   const [showCoupon, setShowCoupon] = useState(false)
+  const [duplicateOrder, setDuplicateOrder] = useState<PendingOrder | null>(null)
   const [agreedTerms, setAgreedTerms] = useState(true)
 
   const [pointsChoice, setPointsChoice] = useState<PointsChoice>({ on: false, custom: null })
@@ -128,6 +132,7 @@ export default function CheckoutPage() {
     if (!token) return
     await cancelOrder(orderId, token)
     setPendingOrders(prev => prev.filter(order => order.orderId !== orderId))
+    refreshPendingOrders(token, true)
     toast({ kind: 'success', text: 'Đã hủy đơn hàng' })
   }
 
@@ -147,10 +152,13 @@ export default function CheckoutPage() {
     toast({ kind: 'success', text: `Đã lưu ngày sinh của ${learner.name}` })
   }
 
-  const handleCheckout = async () => {
+  const handleCheckout = async (ignoreDuplicate = false) => {
     if (!agreedTerms) { setError('Vui lòng đồng ý với điều khoản thanh toán'); return }
     if (!token) return
     if (learnersMissingDob.length > 0) { setError(nextLearnerMessage(learnersMissingDob)); return }
+    const duplicate = findDuplicateForCart(pendingOrders, items)
+    if (duplicate && !ignoreDuplicate) { setDuplicateOrder(duplicate); return }
+    setDuplicateOrder(null)
     setSubmitting(true)
     setError('')
     const { data, error: err } = await checkout({ paymentMethod, couponCode: coupon || undefined, pointsUsed: pointsApplied > 0 ? pointsApplied : undefined }, token)
@@ -170,6 +178,7 @@ export default function CheckoutPage() {
     setSubmitting(false)
     if (payErr) { setError(payErr || 'Không thể khởi tạo thanh toán'); return }
     await refreshCartCount()
+    refreshPendingOrders(token, true)
 
     if (payData?.redirectUrl) {
       window.location.assign(payData.redirectUrl)
@@ -308,9 +317,12 @@ export default function CheckoutPage() {
                     {' '}của Công ty
                   </span>
                 </label>
-                <button type="button" onClick={handleCheckout} className="btn btn--green w-full p-4 text-[17px]" disabled={submitting || learnersMissingDob.length > 0}>
+                <button type="button" onClick={() => handleCheckout()} className="btn btn--green w-full p-4 text-[17px]" disabled={submitting || learnersMissingDob.length > 0}>
                   {submitting ? 'Đang xử lý...' : 'THANH TOÁN'}
                 </button>
+                {duplicateOrder && (
+                  <DuplicateOrderModal order={duplicateOrder} onCreateNew={() => handleCheckout(true)} onClose={() => setDuplicateOrder(null)} />
+                )}
               </div>
             </div>
           </SectionCard>

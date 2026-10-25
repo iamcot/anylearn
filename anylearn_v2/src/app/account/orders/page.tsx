@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { Suspense, useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/context/AuthContext'
 import { getUserOrders, cancelOrder, getCourseUrl, type UserOrder } from '@/lib/api'
@@ -11,6 +12,9 @@ import { formatPrice } from '@/lib/format/price'
 import { formatDate } from '@/lib/format/date'
 import { ListSkeleton } from '@/components/PageSkeleton'
 import { useToast } from '@/components/ToastProvider'
+import { refreshPendingOrders } from '@/components/orders/pendingOrdersStore'
+import { ORDER_TABS, defaultOrderTab, orderTab, type OrderTab } from '@/lib/orders/tabs'
+import { GUEST_CHIP_OFF, GUEST_CHIP_ON } from '@/components/guest/chipStyles'
 
 const UNPAID_STATUSES = new Set(['new', 'pay_pending'])
 
@@ -20,6 +24,8 @@ const STATUS_LABELS: Record<string, { label: string; tone: BadgeTone }> = {
   delivered:     { label: 'Hoàn thành',     tone: 'success' },
   cancel_buyer:  { label: 'Đã hủy',         tone: 'danger' },
   cancel_system: { label: 'Đã hủy',         tone: 'danger' },
+  cancel_seller: { label: 'Đã hủy',         tone: 'danger' },
+  paid:          { label: 'Đã thanh toán',  tone: 'success' },
   refund:        { label: 'Hoàn tiền',      tone: 'info' },
 }
 
@@ -31,13 +37,15 @@ const PAYMENT_LABELS: Record<string, string> = {
   installment:   'Trả góp',
 }
 
-export default function OrdersPage() {
+function OrdersContent() {
   const { token } = useAuth()
+  const searchParams = useSearchParams()
   const toast = useToast()
   const [orders, setOrders] = useState<UserOrder[]>([])
   const [loading, setLoading] = useState(true)
   const [cancellingId, setCancellingId] = useState<string | null>(null)
   const [confirmId, setConfirmId] = useState<string | null>(null)
+  const [pickedTab, setPickedTab] = useState<OrderTab | null>(null)
 
   useEffect(() => {
     if (!token) return
@@ -49,20 +57,42 @@ export default function OrdersPage() {
     setCancellingId(orderId)
     const { error } = await cancelOrder(orderId, token)
     if (error) toast({ kind: 'error', text: error })
-    else setOrders(prev => prev.map(order => (order.orderId === orderId ? { ...order, status: 'cancel_buyer' } : order)))
+    else {
+      setOrders(prev => prev.map(order => (order.orderId === orderId ? { ...order, status: 'cancel_buyer' } : order)))
+      refreshPendingOrders(token, true)
+    }
     setCancellingId(null)
     setConfirmId(null)
   }
 
+  const activeTab = pickedTab ?? defaultOrderTab(searchParams.get('tab'), orders.map(order => order.status))
+  const countByTab = (tab: OrderTab) => orders.filter(order => orderTab(order.status) === tab).length
+  const shownOrders = orders.filter(order => orderTab(order.status) === activeTab)
+
   return (
     <AccountCard title="Đơn hàng của tôi">
+      {!loading && orders.length > 0 && (
+        <div className="flex gap-2 overflow-x-auto border-b border-line px-4 py-3 sm:px-5" role="tablist">
+          {ORDER_TABS.map(tab => (
+            <button
+              key={tab.key} type="button" role="tab" aria-selected={activeTab === tab.key}
+              onClick={() => setPickedTab(tab.key)}
+              className={activeTab === tab.key ? GUEST_CHIP_ON : GUEST_CHIP_OFF}
+            >
+              {tab.label} ({countByTab(tab.key)})
+            </button>
+          ))}
+        </div>
+      )}
       {loading ? (
         <div className="p-5"><ListSkeleton showTitle={false} /></div>
       ) : orders.length === 0 ? (
         <div className="p-10 text-center text-sm text-muted">Chưa có đơn hàng nào.</div>
+      ) : shownOrders.length === 0 ? (
+        <div className="p-10 text-center text-sm text-muted">Không có đơn nào trong mục này.</div>
       ) : (
         <div className="divide-y divide-line">
-          {orders.map(order => {
+          {shownOrders.map(order => {
             const status = STATUS_LABELS[order.status] ?? { label: order.status, tone: 'neutral' as BadgeTone }
             const paymentLabel = PAYMENT_LABELS[order.payment] ?? order.payment
 
@@ -134,5 +164,13 @@ export default function OrdersPage() {
         </div>
       )}
     </AccountCard>
+  )
+}
+
+export default function OrdersPage() {
+  return (
+    <Suspense fallback={<div className="p-5"><ListSkeleton /></div>}>
+      <OrdersContent />
+    </Suspense>
   )
 }

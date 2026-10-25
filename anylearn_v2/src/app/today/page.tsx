@@ -1,5 +1,6 @@
 'use client'
 
+import PendingOrdersCard from '@/components/orders/PendingOrdersCard'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
@@ -98,6 +99,7 @@ function TodayContent() {
 
   return (
     <PageFrame>
+      <div className="mb-4 empty:hidden"><PendingOrdersCard /></div>
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <h1 className="text-2xl font-black lg:text-3xl">{titleFor(selected.self)}</h1>
         <LearnerChips

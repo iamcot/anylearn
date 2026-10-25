@@ -56,7 +56,7 @@ export default function SearchForm({ mode, initialQuery, history, onSubmit, onPi
                   key={term}
                   type="button"
                   onClick={() => onPickHistory(term)}
-                  className="inline-flex min-h-9 cursor-pointer items-center gap-1.5 rounded-full border border-blue-line bg-white px-3 text-[13px] font-medium text-blue"
+                  className="inline-flex min-h-9 cursor-pointer items-center gap-1.5 rounded-full border border-line bg-white px-3 text-[13px] font-medium text-ink hover:bg-green-soft"
                 >
                   <ClockIcon className="size-3.5" />
                   {term}

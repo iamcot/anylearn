@@ -15,6 +15,8 @@ import { orderTransferNote } from '@/lib/vietqr/payload'
 import { useOrderStatus } from '@/components/payment/useOrderStatus'
 import AppPromptCard from '@/components/pwa/AppPromptCard'
 import { earnedLabel } from '@/lib/points/reward'
+import { formatHoldUntil } from '@/lib/orders/deadline'
+import { refreshPendingOrders } from '@/components/orders/pendingOrdersStore'
 
 const GATEWAY_WAIT_STEPS = ['Giao dịch đang được xử lý. Vui lòng kiểm tra email xác nhận.']
 
@@ -42,7 +44,7 @@ function InstructionBox({ title, children }: { title: string; children: React.Re
   )
 }
 
-function OrderHeading({ awaitingPayment, paid }: { awaitingPayment: boolean; paid: boolean }) {
+function OrderHeading({ awaitingPayment, paid, holdUntil }: { awaitingPayment: boolean; paid: boolean; holdUntil: string | null }) {
   if (awaitingPayment) {
     return (
       <>
@@ -50,6 +52,7 @@ function OrderHeading({ awaitingPayment, paid }: { awaitingPayment: boolean; pai
         <h1 className="mb-2 text-[28px] font-extrabold text-ink">Vui lòng thanh toán để hoàn tất đăng ký</h1>
         <p className="mb-8 mt-0 text-muted">
           Đơn hàng đã được ghi nhận. Quét mã QR hoặc chuyển khoản theo thông tin bên dưới để hoàn tất đăng ký.
+          {holdUntil && ` anyLEARN giữ chỗ đến ${holdUntil}.`}
         </p>
       </>
     )
@@ -140,6 +143,7 @@ export default function OrderPage() {
     // The points are credited when the order is approved: read the order and the balance again
     getOrder(orderId, token).then(fresh => fresh && setOrder(fresh))
     refreshUser()
+    refreshPendingOrders(token, true)
   }, [token, isApproved, orderId, refreshUser])
 
   if (isAuthLoading) return <FormPageSkeleton />
@@ -198,7 +202,7 @@ export default function OrderPage() {
           </>
         ) : (
           <>
-            <OrderHeading awaitingPayment={isAwaitingBankTransfer} paid={paymentStatus === 'success'} />
+            <OrderHeading awaitingPayment={isAwaitingBankTransfer} paid={paymentStatus === 'success'} holdUntil={formatHoldUntil(order.expiresAt)} />
 
             <section className="mb-5 overflow-hidden rounded-card border border-line bg-white text-left">
               <h2 className="m-0 border-b border-line bg-bg px-5 py-3 text-base font-extrabold text-ink">Khóa học đã đặt</h2>

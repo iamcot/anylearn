@@ -13,6 +13,8 @@ import com.anylearn.backend.entity.Transaction;
 import com.anylearn.backend.entity.User;
 import com.anylearn.backend.repository.*;
 import com.anylearn.backend.service.points.CommissionConfig;
+import com.anylearn.backend.service.order.OrderFollowUpSettings;
+import com.anylearn.backend.service.order.PendingOrderRules;
 import com.anylearn.backend.service.points.ItemPointsResolver;
 import com.anylearn.backend.service.points.PointsBreakdown;
 import com.anylearn.backend.service.points.PointsEngine;
@@ -45,6 +47,7 @@ public class CartService {
     private final ConfigService configService;
     private final PointsEngine pointsEngine;
     private final ItemPointsResolver itemPointsResolver;
+    private final OrderFollowUpSettings orderFollowUpSettings;
     private final NotificationService notificationService;
     private final ObjectMapper objectMapper;
     private final ItemTrackingService itemTrackingService;
@@ -563,15 +566,18 @@ public class CartService {
         List<Long> detailIds = details.stream().map(OrderDetail::getId).toList();
         long pointsEarned = detailIds.isEmpty() ? 0L
                 : transactionRepository.sumBuyerPointsForDetails(detailIds, currentUser.getId());
-        return Map.of(
-                "orderId", orderId,
-                "items", items,
-                "paymentMethod", order.getPayment() != null ? order.getPayment() : "",
-                "status", order.getStatus(),
-                "amount", order.getAmount(),
-                "transferNote", TransferNote.forOrder(order.getId()),
-                "pointsEarned", pointsEarned
-        );
+        Map<String, Object> view = new LinkedHashMap<>();
+        view.put("orderId", orderId);
+        view.put("items", items);
+        view.put("paymentMethod", order.getPayment() != null ? order.getPayment() : "");
+        view.put("status", order.getStatus());
+        view.put("amount", order.getAmount());
+        view.put("transferNote", TransferNote.forOrder(order.getId()));
+        view.put("pointsEarned", pointsEarned);
+        if (order.getCreatedAt() != null) {
+            view.put("expiresAt", PendingOrderRules.expiresAt(order.getCreatedAt(), orderFollowUpSettings.autoCancelHours()).toString());
+        }
+        return view;
     }
 
     private void createPendingCommissions(Order order, OrderDetail detail, Item item, User buyer) {

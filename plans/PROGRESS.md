@@ -51,11 +51,11 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 02.2 | "+X điểm" ở PDP/giỏ/đơn | done | thẻ khóa trong danh sách chưa làm |
 | 02.3 | Công tắc dùng điểm ở checkout | done | `UsePointsToggle`, `maxUsablePoints` |
 | 02.4 | Trang anyPoint timeline + `/info/anypoint` | done | chưa có dòng hết hạn (02.5) |
-| 05.1 | Chống đơn trùng | todo | |
-| 05.2 | Lối vào đơn chờ | todo | |
-| 05.3 | Nhắc thanh toán | todo | |
-| 05.4 | Tự huỷ đơn quá hạn | todo | |
-| 05.5 | Đo đơn chờ | todo | |
+| 05.1 | Chống đơn trùng | done | |
+| 05.2 | Lối vào đơn chờ | done | |
+| 05.3 | Nhắc thanh toán | done | |
+| 05.4 | Tự huỷ đơn quá hạn | done | |
+| 05.5 | Đo đơn chờ | done | |
 | 10.1 | Lời hứa anyLEARN | todo | |
 
 ### Giai đoạn 2 – khám phá
@@ -120,6 +120,13 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 
 ## Nhật ký
 
+### 25/10/2026 – 05 đơn chờ thanh toán (05.1–05.5)
+- 05.1: thêm giỏ (`/add2cart`) và thanh toán (`/checkout`) hỏi "Bạn đã có đơn #N cho khóa này" khi có đơn chờ cùng khóa + cùng người học + cùng ca (`findDuplicatePendingOrder`, có test); chọn "Tiếp tục thanh toán" hoặc "Tạo đơn mới". API `pending-orders` thêm `learnerId`, `scheduleId`, `createdAt`, `expiresAt`.
+- 05.2: chấm đỏ số đơn chờ trên tab "Tài khoản" và ở menu "Đơn hàng của tôi"; thẻ "Bạn có N đơn chờ thanh toán" (kèm "giữ chỗ đến …") ở `/today` và đầu các trang Tài khoản, nút "Thanh toán ngay" vào thẳng `/order/{id}`; trang đơn có tab Đang chờ / Hoàn thành / Đã hủy; trang đơn hiện "anyLEARN giữ chỗ đến …".
+- 05.3/05.4: job 15 phút (`PendingOrderFollowUpService`): nhắc ở `order/remind_hours` (mặc định 2h: thông báo + push; 24h: thêm email), tự hủy sau `order/auto_cancel_hours` (mặc định 72h), hoàn anyPoint đã dùng, báo khách (có câu "nếu đã chuyển khoản, đơn sẽ được khôi phục"). Dedupe bằng bảng `order_followups` (V20). Có cờ `order/auto_cancel_enabled` (đặt `0` để tắt hủy), tối đa 50 đơn hủy mỗi lượt. Bỏ qua nhắc nếu đã có đơn khác thanh toán cùng khóa + người học.
+- 05.5: dashboard admin có mục "Đơn chờ thanh toán" (đang chờ, đã nhắc, % thanh toán sau nhắc, % tự hủy).
+- Đã chạy thật trên MariaDB: 3 đơn mẫu (3h, 30h, 80h) → nhắc bước 1, nhắc bước 2 (chỉ bước mới nhất), hủy; số liệu dashboard đúng. Sửa luôn các nút xanh dương còn sót ("+ Thêm con", "Đánh giá", phân trang bài viết, chip lịch sử tìm kiếm).
+- Chưa làm / cần chủ sản phẩm quyết: ZNS cho nhắc 24h (cần template ZNS đã duyệt); voucher hiện không bị đánh dấu đã dùng khi checkout nên chưa có gì để hoàn; lần chạy đầu trên production sẽ hủy hàng loạt đơn chờ cũ hơn 72h (tối đa 50 mỗi 15 phút).
 ### 25/10/2026 – ô mã giảm giá gọn lại
 - Checkout chỉ hiện nút chữ "Bạn có mã giảm giá" (cùng kiểu với "Dùng số anyPoint khác"); bấm mới mở ô nhập mã, bấm lại thì ẩn. Đã áp mã thì ô luôn hiện để thấy mã đang dùng.
 ### 25/10/2026 – rà lại màu nút (chính/phụ/đã chọn)

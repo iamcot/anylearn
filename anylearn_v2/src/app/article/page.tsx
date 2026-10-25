@@ -99,7 +99,7 @@ export default async function ArticlesPage({
           {totalPages > 1 && (
             <div className="flex gap-2 justify-center mt-10 flex-wrap">
               {page > 0 && (
-                <Link href={buildUrl(page - 1, type)} className="inline-flex min-h-11 items-center gap-1 rounded-lg border border-blue-line px-4 text-sm font-semibold text-blue no-underline hover:bg-blue-soft">
+                <Link href={buildUrl(page - 1, type)} className="inline-flex min-h-11 items-center gap-1 rounded-lg border border-line bg-white px-4 text-sm font-medium text-ink no-underline hover:bg-bg">
                   <ChevronLeftIcon className="size-4" /> Trước
                 </Link>
               )}
@@ -117,7 +117,7 @@ export default async function ArticlesPage({
                 </Link>
               ))}
               {page < totalPages - 1 && (
-                <Link href={buildUrl(page + 1, type)} className="inline-flex min-h-11 items-center gap-1 rounded-lg border border-blue-line px-4 text-sm font-semibold text-blue no-underline hover:bg-blue-soft">
+                <Link href={buildUrl(page + 1, type)} className="inline-flex min-h-11 items-center gap-1 rounded-lg border border-line bg-white px-4 text-sm font-medium text-ink no-underline hover:bg-bg">
                   Tiếp <ChevronRightIcon className="size-4" />
                 </Link>
               )}

@@ -10,7 +10,7 @@ interface Props {
   message?: { kind: 'success' | 'error'; text: string } | null
 }
 
-export default function ApplyRow({ label, hint, inputProps, buttonLabel, onApply, disabled, message }: Props) {
+export default function ApplyRow({ inputProps, buttonLabel, onApply, disabled, message }: Props) {
   return (
     <div>
       {/* <div className="mb-1 flex flex-wrap items-baseline justify-between gap-x-3">

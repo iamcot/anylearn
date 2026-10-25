@@ -53,6 +53,8 @@ export interface OrderData {
   transferNote?: string
   // anyPoints credited to the buyer for this order
   pointsEarned?: number
+  // When the order is cancelled if it is still unpaid (only while it waits for payment)
+  expiresAt?: string
 }
 
 export async function getCartInfo(itemId: number, token: string): Promise<CartInfoData | null> {

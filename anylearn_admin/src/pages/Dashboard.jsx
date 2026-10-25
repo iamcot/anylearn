@@ -1,4 +1,4 @@
-import { Badge, Card, Col, Row, Segmented, Table, Tooltip, Typography } from 'antd'
+import { Badge, Card, Col, Row, Segmented, Statistic, Table, Tooltip, Typography } from 'antd'
 import { InfoCircleOutlined, BookOutlined, DollarOutlined, OrderedListOutlined, TeamOutlined, UserAddOutlined, RiseOutlined } from '@ant-design/icons'
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
@@ -150,6 +150,7 @@ export default function Dashboard() {
   const chart  = (path, g = gran) => client.get(`/admin/dashboard/${path}?from=${from}&to=${to}&granularity=${g}`).then(r => r.data?.data ?? [])
 
   const { data: stats }       = useQuery({ ...q('stats'), queryFn: () => client.get(`/admin/dashboard/stats?from=${from}&to=${to}`).then(r => r.data?.data) })
+  const { data: pending }     = useQuery({ ...q('po'),    queryFn: () => client.get(`/admin/dashboard/pending-orders?from=${from}&to=${to}`).then(r => r.data?.data) })
   const { data: finance }     = useQuery({ ...q('fin'),   queryFn: () => client.get('/admin/finance/summary').then(r => r.data?.data), staleTime: 60_000 })
   // Main charts (use gran)
   const { data: userChart }   = useQuery({ ...q('uc'),    queryFn: () => chart('chart/users') })
@@ -240,6 +241,15 @@ export default function Dashboard() {
       <SectionLabel>Kinh doanh</SectionLabel>
       <Row gutter={[16, 16]} align="stretch" style={{ marginBottom: 24 }}>
         {row2.map(kpi => <Col key={kpi.title} xs={24} sm={8}><KpiCard {...kpi} /></Col>)}
+      </Row>
+
+      {/* ── Orders waiting for payment ─────────── */}
+      <SectionLabel>Đơn chờ thanh toán</SectionLabel>
+      <Row gutter={[16, 16]} align="stretch" style={{ marginBottom: 24 }}>
+        <Col xs={12} sm={6}><Card><Statistic title="Đang chờ lúc này" value={pending?.pendingNow ?? 0} /></Card></Col>
+        <Col xs={12} sm={6}><Card><Statistic title="Đã được nhắc" value={pending?.reminded ?? 0} suffix={`/ ${fmtN(pending?.created)} đơn`} /></Card></Col>
+        <Col xs={12} sm={6}><Card><Statistic title="Thanh toán sau nhắc" value={pending?.paidAfterRemindRate ?? 0} suffix="%" /></Card></Col>
+        <Col xs={12} sm={6}><Card><Statistic title="Tự hủy do quá hạn" value={pending?.expiredRate ?? 0} suffix={`% (${fmtN(pending?.expired)} đơn)`} /></Card></Col>
       </Row>
 
       {/* ── Charts ────────────────────────────── */}

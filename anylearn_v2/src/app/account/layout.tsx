@@ -6,6 +6,8 @@ import { useEffect, useRef, type ComponentType, type SVGProps } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { useScrollEdges } from '@/lib/scrollEdges'
 import { ListSkeleton } from '@/components/PageSkeleton'
+import PendingOrdersCard from '@/components/orders/PendingOrdersCard'
+import { usePendingOrders } from '@/components/orders/usePendingOrders'
 import {
   BellIcon, CalendarIcon, ChevronLeftIcon, ChevronRightIcon, CoinIcon, HeartIcon, KeyIcon, LockIcon, LogoutIcon, PackageIcon, UserIcon, UsersIcon,
 } from '@/components/icons'
@@ -24,6 +26,15 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/account/notifications', label: 'Thông báo', Icon: BellIcon },
   { href: '/account/change-password', label: 'Đổi mật khẩu', Icon: LockIcon },
 ]
+
+const ORDERS_HREF = '/account/orders'
+
+// Red number next to "Đơn hàng của tôi" while orders wait for payment.
+function PendingOrdersPill() {
+  const count = usePendingOrders().length
+  if (count === 0) return null
+  return <span className="rounded-full bg-red px-2 py-0.5 text-xs font-extrabold text-white">{count}</span>
+}
 
 function PointBadge({ points, active }: { points: number; active: boolean }) {
   return (
@@ -71,6 +82,7 @@ function MobileNav({ pathname, points, onLogout }: { pathname: string; points: n
                 <Icon className="size-4" />
                 {label}
                 {isPoint && <PointBadge points={points} active={active} />}
+                {href === ORDERS_HREF && <PendingOrdersPill />}
               </Link>
             )
           })}
@@ -118,6 +130,7 @@ function DesktopSidebar({ pathname, user, onLogout }: {
                 <Icon className="size-[18px] shrink-0" />
                 <span className="flex-1">{label}</span>
                 {isPoint && <PointBadge points={user.walletC ?? 0} active={active} />}
+                {href === ORDERS_HREF && <PendingOrdersPill />}
               </Link>
             )
           })}
@@ -162,7 +175,10 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
         <div className="grid grid-cols-1 gap-3 lg:grid-cols-[260px_1fr] lg:gap-6">
           <MobileNav pathname={pathname} points={user.walletC ?? 0} onLogout={handleLogout} />
           <DesktopSidebar pathname={pathname} user={user} onLogout={handleLogout} />
-          <main className="min-w-0">{children}</main>
+          <main className="min-w-0">
+            {pathname !== ORDERS_HREF && <div className="mb-3 empty:hidden"><PendingOrdersCard /></div>}
+            {children}
+          </main>
         </div>
       </div>
     </div>
