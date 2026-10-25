@@ -16,6 +16,7 @@ import { ExtraCard, LaterTodayCard, NextSessionCard } from '@/components/today/S
 import type { ActionContext } from '@/components/today/SessionButtons'
 import SlotCard from '@/components/today/SlotCard'
 import WeekStrip from '@/components/today/WeekStrip'
+import InstallAppCard from '@/components/pwa/InstallAppCard'
 
 const ORDER = ['order-1', 'order-2', 'order-3', 'order-4', 'order-5', 'order-6', 'order-7', 'order-8']
 
@@ -126,6 +127,7 @@ function TodayContent() {
               </div>
             </Area>
             <Area order={7}><SlotCard now={now} /></Area>
+            <Area order={8}><InstallAppCard context="today" /></Area>
           </div>
         </div>
       ) : (

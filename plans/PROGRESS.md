@@ -13,6 +13,7 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 25/10/2026 | Thử hạn anyPoint, chỉ cho thành viên mua hàng (`role = 'member'`); điểm của đối tác không hết hạn vì là tiền trả đối tác (plan 02.5). |
 | 25/10/2026 | Làm thêm cộng đồng: review (plan 09) và nhóm chat người cùng lớp (plan 11). |
 | 25/10/2026 | Khách chưa đăng nhập: hỏi tìm cho con hay bản thân, lưu tên/biệt danh + năm sinh vào `localStorage`, khi đăng ký tự tạo tài khoản con và chọn bé (plan 04.7). |
+| 25/10/2026 | App cũ trên store đã bị xoá, lượt tải không đáng kể → **chỉ làm PWA**, làm trước (plan 13). Push dùng Web Push thuần, không FCM. |
 | 25/10/2026 | 04.7 làm ở **giai đoạn 1**. Lúc đầu chỉ cần năm sinh; checkout bắt buộc nhập ngày sinh đầy đủ của người học trước khi thanh toán (FE khoá nút + backend chặn tạo đơn). |
 
 ## Câu hỏi đang chờ chủ sản phẩm
@@ -23,7 +24,6 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 - [ ] Hệ số điểm theo hạng thành viên có chấp nhận chi phí không (plan 10.2).
 - [ ] Trả góp: cách đối tác nhận tiền theo kỳ (plan 10.4).
 - [ ] Đồng ý thêm thư viện Java gửi Web Push (plan 13.4)?
-- [ ] App cũ trên store: còn hoạt động không, công nghệ gì, còn khóa ký / tài khoản store / Firebase không; chọn gỡ, thay bằng bản bọc web, hay giữ (plan 13.0, 13.8).
 - [ ] Chat lớp: giáo viên có được vào nhóm không; nội quy và điều khoản cộng đồng (plan 11).
 
 ## Bảng task
@@ -38,10 +38,10 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 01.2 | Form "Tìm giúp tôi" (`course_requests`) | todo | |
 | 01.3 | Admin xử lý yêu cầu | todo | |
 | 01.4 | Dashboard xu hướng | todo | |
-| 13.0 | Kiểm kê app cũ trên store + `users.notif_token` | todo | Cần chủ sản phẩm cung cấp thông tin |
-| 13.1 | Manifest + icon | todo | Tham khảo CLR `src/app/manifest.ts` |
-| 13.2 | Service worker (cache tĩnh, offline, cập nhật) | todo | |
-| 13.3 | Mời cài app đúng lúc (Android + hướng dẫn iOS) | todo | |
+| 13.0 | Kiểm kê app cũ trên store | done | App cũ đã xoá → chỉ PWA |
+| 13.1 | Manifest + icon | done | `app/manifest.ts`, `public/icons/*` vẽ từ logo |
+| 13.2 | Service worker (cache tĩnh, offline, cập nhật) | done | Không cache trang/API; banner "Tải lại" |
+| 13.3 | Mời cài app đúng lúc (Android + hướng dẫn iOS) | done | `/today` từ lần 2, đơn thanh toán xong; chưa ghi sự kiện đo (để 13.7) |
 | 13.4 | Backend Web Push (VAPID, `push_subscriptions`, `PushService`) | todo | Chờ đồng ý thư viện |
 | 13.5 | FE xin quyền đúng cách + đăng ký push | todo | Bỏ xin quyền tự động lúc đăng nhập |
 | 13.6 | SW nhận push, chống trùng với SSE, badge | todo | |
@@ -118,6 +118,17 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 13.8 | Thay app cũ trên store bằng bản bọc web (TWA / Capacitor), cùng package/bundle id | todo | Theo kết quả 13.0; có thể kéo lên sớm |
 
 ## Nhật ký
+
+### 25/10/2026 – PWA 13.1–13.3 xong
+- Chủ sản phẩm: app cũ trên store đã xoá → chỉ PWA, làm trước. Thứ tự giai đoạn 1 giờ là 13 trước.
+- Làm: manifest + icon, `public/sw.js` viết lại (cache file tĩnh, trang `offline.html`, cập nhật bằng nút "Tải lại"),
+  `ServiceWorkerRegister` (gom đăng ký SW, bỏ khỏi `useNotifications`), `InstallAppCard` (Android: hộp thoại cài của
+  Chrome; iOS: hướng dẫn Safari; Zalo/FB: hướng dẫn mở trình duyệt + sao chép link; "Để sau" ẩn 14 ngày).
+- Sửa lỗi phát hiện khi test: lần đầu SW kích hoạt (`clients.claim`) làm trang tự tải lại → chỉ tải lại sau khi bấm "Tải lại".
+- Kiểm tra: typecheck, lint, 19 file test pass; `next build` ok; Playwright trên bản build: manifest + header `sw.js`
+  no-store, SW điều khiển trang, mất mạng hiện "Mất kết nối", thẻ cài hiện đúng trên iPhone và Zalo, "Để sau" ẩn thẻ.
+- Chưa làm: 13.4–13.6 (Web Push) chờ đồng ý thư viện Java; vẫn còn xin quyền thông báo tự động lúc đăng nhập
+  (bỏ cùng 13.5 để không mất thông báo khi tab đang mở); splash screen iOS chưa có; đo cài app (13.7).
 
 ### 25/10/2026 – app cũ trên store
 - Chủ sản phẩm cho biết đã từng có app trên store. DB có `users.notif_token` (từ portal), backend v2 không dùng.

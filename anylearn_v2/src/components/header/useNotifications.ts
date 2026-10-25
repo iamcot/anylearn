@@ -9,13 +9,6 @@ export function useNotifications() {
   const { user, refreshUser } = useAuth()
   const [unreadCount, setUnreadCount] = useState(0)
 
-  // Register service worker for reliable browser notifications (Chrome requires this)
-  useEffect(() => {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(() => {})
-    }
-  }, [])
-
   // Request browser notification permission when user logs in
   useEffect(() => {
     if (!user) return
@@ -53,7 +46,8 @@ export function useNotifications() {
       if (!latest) return
       const opts = {
         body: latest.content,
-        icon: `${window.location.origin}/favicon-16x16.png`,
+        icon: `${window.location.origin}/icons/icon-192.png`,
+        badge: `${window.location.origin}/icons/badge-96.png`,
         tag: `notif-${latest.id}`,
         requireInteraction: true,
         data: { url: `${window.location.origin}/` },

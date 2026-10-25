@@ -13,6 +13,7 @@ import { ClockIcon, CloseIcon } from '@/components/icons'
 import BankTransferPanel from '@/components/payment/BankTransferPanel'
 import { orderTransferNote } from '@/lib/vietqr/payload'
 import { useOrderStatus } from '@/components/payment/useOrderStatus'
+import InstallAppCard from '@/components/pwa/InstallAppCard'
 
 const GATEWAY_WAIT_STEPS = ['Giao dịch đang được xử lý. Vui lòng kiểm tra email xác nhận.']
 
@@ -199,6 +200,8 @@ export default function OrderPage() {
                 {instructions.steps.map((step, index) => <li key={index} className={STEP_CLASS}>{step}</li>)}
               </InstructionBox>
             )}
+
+            {paymentStatus === 'success' && <div className="mb-5"><InstallAppCard context="order" /></div>}
 
             <div className="flex flex-wrap justify-center gap-3">
               <Link href="/" className="btn btn--outline no-underline">Về trang chủ</Link>

@@ -15,7 +15,13 @@ email ít người đọc; push là kênh rẻ nhất cho nhắc việc hằng n
 - Không có `manifest` → không cài được lên màn hình chính đúng cách; iOS không cho push nếu chưa cài.
 - Tham khảo: dự án CLR đã có `src/app/manifest.ts` + `public/sw.js` viết tay (cache tĩnh, "Có bản mới") – dùng lại cách làm.
 
-## App cũ trên store (chủ sản phẩm cho biết 25/10/2026)
+## App cũ trên store – ĐÃ CHỐT (25/10/2026)
+
+App cũ **đã bị xoá khỏi store**, lượt tải không đáng kể → chọn phương án (a): **chỉ làm PWA**. Không dùng `users.notif_token`,
+không FCM; 13.4 dùng Web Push thuần. 13.8 chỉ xem lại ở giai đoạn 4 nếu số liệu cài PWA trên iPhone quá thấp (khi đó là app
+mới trên store, không còn ràng buộc package/bundle id cũ).
+
+### Phân tích trước khi chốt (giữ lại để tham khảo)
 
 - anyLEARN **đã từng có app trên store**. Dấu vết trong DB: cột `users.notif_token` (varchar 255, có từ schema portal) –
   nhiều khả năng là token Firebase Cloud Messaging (FCM) của app cũ. Backend v2 **không đọc/ghi** cột này.

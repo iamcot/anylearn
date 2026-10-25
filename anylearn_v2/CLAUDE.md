@@ -146,6 +146,13 @@ getOrder(orderId, token)       // GET /order/:orderId     [auth]
 
 - `lib/vietqr/payload.ts` builds the VietQR (EMVCo, Napas 247) string, tested; the QR is drawn in the browser with the `qrcode` package (`components/payment/useQrImage.ts`). The transfer note (`ALQR{orderId}`) comes from the order API (`transferNote`, built by `TransferNote.java`). `orderTransferNote` is only the fallback for an older backend (FE and Java deploy separately), so the QR never depends on the new field; keep both in the same format. Never hide the whole panel because an API field is missing. `BankTransferPanel` shows only while the order is `new`/`pay_pending`; `useOrderStatus` polls every `ORDER_STATUS_POLL_MS`.
 
+## PWA (install as an app)
+
+- Manifest: `app/manifest.ts` (served at `/manifest.webmanifest`, starts at `/?source=pwa`). Icons in `public/icons/` (192, 512, 512 maskable, apple-touch, monochrome `badge-96` for notifications), drawn from the "a" mark of `LogoanyLEARN.svg`. `appleWebApp` metadata and `viewport.themeColor` live in `app/layout.tsx`.
+- Service worker: hand-written `public/sw.js`, registered only by `components/pwa/ServiceWorkerRegister.tsx` as `/sw.js?v=<NEXT_PUBLIC_BUILD_ID>` (`next.config.ts` sets the id from `GITHUB_SHA` or the build time, and serves `/sw.js` with `no-store`). It caches only static files (`/_next/static/`, `/icons/`, `/cdn/`) and shows `public/offline.html` when a page cannot load; pages and `/v2/api` are never cached (personal data). In `next dev` it registers with `cache=0`, so nothing is cached. A new build waits until the person taps "Tải lại" in the banner; the page reloads only after that tap.
+- Install card: `components/pwa/InstallAppCard.tsx`, shown on `/today` from the 2nd visit and on `/order/[id]?status=success`. Mode logic is pure and tested in `lib/pwa/installPrompt.ts`: Chrome install dialog (`beforeinstallprompt`, kept in `installPromptStore.ts`), Safari steps on iOS, "open in a browser" for Zalo/Facebook in-app browsers, hidden when already installed or after "Để sau" (`config/pwa.ts`).
+- Web Push (notifications while the app is closed) is not built yet: see `plans/13-pwa-push.md` (13.4–13.6).
+
 ## Static and content pages
 
 - API HTML (policies, guides, articles, help center) is rendered with the `rich-content` class (list, heading, link, image styles in `globals.css`; there is no typography plugin, `prose` does nothing). Policy and guide pages share `components/DocPage.tsx` + `lib/docs/fetchDoc.ts`.

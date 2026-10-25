@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Be_Vietnam_Pro } from 'next/font/google'
 import Script from 'next/script'
 import { Suspense } from 'react'
@@ -11,6 +11,7 @@ import { AuthProvider } from '@/context/AuthContext'
 import AuthModal from '@/components/AuthModal'
 import NavigationProgress from '@/components/NavigationProgress'
 import ToastProvider from '@/components/ToastProvider'
+import ServiceWorkerRegister from '@/components/pwa/ServiceWorkerRegister'
 
 const beVietnamPro = Be_Vietnam_Pro({
   subsets: ['vietnamese', 'latin'],
@@ -23,7 +24,17 @@ export const metadata: Metadata = {
   description: 'Nền tảng giúp phụ huynh tìm kiếm, so sánh và đăng ký trường học, khóa học, chuyên gia phù hợp cho con.',
   icons: {
     icon: '/favicon-16x16.png',
+    apple: '/icons/apple-touch-icon.png',
   },
+  appleWebApp: {
+    capable: true,
+    title: 'anyLEARN',
+    statusBarStyle: 'default',
+  },
+}
+
+export const viewport: Viewport = {
+  themeColor: '#ffffff',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -42,6 +53,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               {children}
             </SiteChrome>
             <AuthModal />
+            <ServiceWorkerRegister />
           </ToastProvider>
         </AuthProvider>
         <Script src="https://sp.zalo.me/plugins/sdk.js" strategy="lazyOnload" />
