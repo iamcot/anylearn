@@ -120,6 +120,8 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 
 ## Nhật ký
 
+### 25/10/2026 – ô mã giảm giá gọn lại
+- Checkout chỉ hiện nút chữ "Bạn có mã giảm giá" (cùng kiểu với "Dùng số anyPoint khác"); bấm mới mở ô nhập mã, bấm lại thì ẩn. Đã áp mã thì ô luôn hiện để thấy mã đang dùng.
 ### 25/10/2026 – rà lại màu nút (chính/phụ/đã chọn)
 - Nút "Áp dụng" mã giảm giá thành nút phụ (nền trắng, viền mảnh). `btn--blue`/`btn--yellow` thành xanh lá, `btn--outline`/`btn--white` thành nền trắng viền `line`, chữ `ink` (sửa tại `globals.css`, các trang cũ tự theo).
 - Đổi nút xanh dương lẻ thành xanh lá (bật thông báo, xem đơn, Về Hôm nay, Đóng/Gửi ở /today, ...), nút phụ viền xanh dương thành trắng viền `line` (Sao chép, xem thêm đánh giá), mục đã chọn (phân trang, tab lọc bài viết, chip tài khoản, chip bé /today, tuần, đổi chế độ lịch) thành `border-green bg-green-soft text-green-dark`.

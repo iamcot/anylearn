@@ -72,6 +72,7 @@ export default function CheckoutPage() {
   const [error, setError] = useState('')
   const [paymentMethod, setPaymentMethod] = useState('bank_transfer')
   const [coupon, setCoupon] = useState('')
+  const [showCoupon, setShowCoupon] = useState(false)
   const [agreedTerms, setAgreedTerms] = useState(true)
 
   const [pointsChoice, setPointsChoice] = useState<PointsChoice>({ on: false, custom: null })
@@ -219,16 +220,30 @@ export default function CheckoutPage() {
                   onToggle={on => setPointsChoice({ on, custom: null })}
                   onCustomPoints={custom => setPointsChoice({ on: true, custom })}
                 />
-                <ApplyRow
-                  label="Mã giảm giá"
-                  inputProps={{ type: 'text', placeholder: 'Nhập mã giảm giá', value: coupon, onChange: event => { setCoupon(event.target.value); setVoucherResult(null); setVoucherError('') } }}
-                  buttonLabel={voucherLoading ? '...' : voucherResult ? 'Đã dùng' : 'Áp dụng'}
-                  onApply={handleApplyCoupon}
-                  disabled={voucherLoading}
-                  message={voucherResult
-                    ? { kind: 'success', text: `Giảm ${formatExactPrice(voucherDiscount)} từ mã ${voucherResult.code}` }
-                    : voucherError ? { kind: 'error', text: voucherError } : null}
-                />
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => setShowCoupon(open => !open)}
+                    aria-expanded={showCoupon || !!voucherResult}
+                    className="cursor-pointer border-0 bg-transparent p-0 font-[inherit] text-xs font-medium text-green-dark underline"
+                  >
+                    Bạn có mã giảm giá
+                  </button>
+                  {(showCoupon || voucherResult) && (
+                    <div className="mt-2">
+                      <ApplyRow
+                        label="Mã giảm giá"
+                        inputProps={{ type: 'text', placeholder: 'Nhập mã giảm giá', value: coupon, onChange: event => { setCoupon(event.target.value); setVoucherResult(null); setVoucherError('') } }}
+                        buttonLabel={voucherLoading ? '...' : voucherResult ? 'Đã dùng' : 'Áp dụng'}
+                        onApply={handleApplyCoupon}
+                        disabled={voucherLoading}
+                        message={voucherResult
+                          ? { kind: 'success', text: `Giảm ${formatExactPrice(voucherDiscount)} từ mã ${voucherResult.code}` }
+                          : voucherError ? { kind: 'error', text: voucherError } : null}
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
 
               <TotalsSummary
