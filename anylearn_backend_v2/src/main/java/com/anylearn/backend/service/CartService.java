@@ -470,7 +470,7 @@ public class CartService {
                 .orElse("") + (orderedItems.size() > 2 ? " +" + (orderedItems.size() - 2) + " khác" : "");
         String content = "Đơn #" + order.getId() + " · " + (buyer.getName() != null ? buyer.getName() : buyer.getPhone())
                 + " · " + itemNames;
-        userRepository.findByRole("admin").forEach(admin -> {
+        userRepository.findAdminNotificationRecipients().forEach(admin -> {
             try {
                 notificationService.createNotification(admin.getId(), "system_notif",
                         "Đơn hàng mới cần duyệt", content, "/admin/orders", null);
@@ -501,7 +501,7 @@ public class CartService {
                     };
                     String content = buyerName + " đăng ký " + typeLabel + " · " + itemTitle
                             + (date != null ? " · " + date : "");
-                    userRepository.findByRole("admin").forEach(admin -> {
+                    userRepository.findAdminNotificationRecipients().forEach(admin -> {
                         try {
                             notificationService.createNotification(admin.getId(), "activity_registration",
                                     "Đăng ký hoạt động mới", content, "/admin/activities", null);

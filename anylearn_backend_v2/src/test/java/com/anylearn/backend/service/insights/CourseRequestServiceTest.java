@@ -41,7 +41,7 @@ class CourseRequestServiceTest {
         admin.setId(1L);
         User otherAdmin = new User();
         otherAdmin.setId(2L);
-        when(users.findByRole("admin")).thenReturn(List.of(admin, otherAdmin));
+        when(users.findAdminNotificationRecipients()).thenReturn(List.of(admin, otherAdmin));
     }
 
     private static CourseRequestInput input() {

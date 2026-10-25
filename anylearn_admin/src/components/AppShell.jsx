@@ -127,6 +127,7 @@ export default function AppShell() {
       item.key === 'email-settings' ? { ...item, onClick: () => navigate('/settings') } : item
     ),
     { key: 'bank-account', icon: <BankOutlined />, label: 'Tài khoản ngân hàng', onClick: () => navigate('/bank-account') },
+    { key: 'notification-recipients', icon: <BellOutlined />, label: 'Người nhận thông báo admin', onClick: () => navigate('/notification-recipients') },
     { type: 'divider' },
     { key: 'audit', icon: <AuditOutlined />, label: 'Kiểm toán anyPoint', onClick: () => navigate('/audit') },
   ]

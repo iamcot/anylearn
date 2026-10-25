@@ -44,7 +44,7 @@ public class CourseRequestService {
     private void notifyAdmins(CourseRequest request) {
         String content = "%s · %s%s".formatted(request.getSubject(), request.getContactPhone(),
                 request.getLearnerAge() != null ? " · " + request.getLearnerAge() + " tuổi" : "");
-        for (User admin : users.findByRole("admin")) {
+        for (User admin : users.findAdminNotificationRecipients()) {
             try {
                 notifications.createNotification(admin.getId(), "system_notif", "Yêu cầu tìm khóa học mới", content,
                         "/admin/course-requests", null);

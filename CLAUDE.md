@@ -136,6 +136,11 @@ Thư mục `http/` chứa VS Code REST Client files cho mọi endpoint:
 - A parent cannot have two children with the same name (accents, case and spacing ignored, `PersonNames`): `POST /user/children` answers 400 "Đã có bé tên …" for a new or renamed child (editing other fields of an old duplicate still works).
 - `POST /user/children` and `POST /user/edit` accept `dob` (+ `dobYearOnly: true` for a birth year); a full `dob` clears the flag. Samples: `http/user.http`.
 
+## Who the back office notifies
+
+- Notifications for the team (new orders, bank transfers, course requests, leave requests, audit alerts) go to `UserRepository.findAdminNotificationRecipients()`: every user with role `admin` plus the members an admin added in the back office (user menu "Cài đặt" > "Người nhận thông báo admin", `/admin/notification-recipients`; table `admin_notification_recipients`, V19; API `/admin/notification-recipients` GET / PUT `{userIds}` / POST `/test`; `AdminRecipientsService`). Use that method, never `findByRole("admin")`, for a new back-office notification.
+- An added member signs in to the app as usual and turns notifications on at "Tài khoản > Thông báo"; Web Push then reaches their phone like any other notification. They cannot open the admin site (admin login needs role `admin`), and the `/admin/...` route of a notification is not a link for them.
+
 ## Search insights and course requests
 
 - Every search with a keyword or a filter (first page only) is logged in `search_logs` (V18) by `SearchLogService`, asynchronously on a single thread (`searchLogExecutor`, so order is kept): normalized keyword (`PersonNames.normalize`), the filters as columns, result count, and who the courses are for (`aud`, `lage` params from the visitor's guest answer). The browser sends `ref` (random per search), `sk` (random id of the browser) on `/api/search` and `/api/search/users`; `POST /api/search/click {ref, itemId}` keeps the first click. Searching the same words again within 10 seconds by the same browser **refines** the earlier row instead of adding one. Pure rules: `SearchLogPolicy`.

@@ -9,6 +9,7 @@ import Activities from './pages/Activities'
 import Audit from './pages/Audit'
 import CourseRequests from './pages/CourseRequests'
 import SearchInsights from './pages/SearchInsights'
+import NotificationRecipients from './pages/NotificationRecipients'
 import BankAccount from './pages/BankAccount'
 import Dashboard from './pages/Dashboard'
 import Finance from './pages/Finance'
@@ -92,6 +93,7 @@ export default function App() {
                   <Route path="articles" element={<Articles />} />
                   <Route path="audit" element={<Audit />} />
                   <Route path="bank-account" element={<BankAccount />} />
+                  <Route path="notification-recipients" element={<NotificationRecipients />} />
                   <Route path="finance" element={<Finance />} />
                 </Route>
                 <Route path="*" element={<Navigate to="/dashboard" replace />} />

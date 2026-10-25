@@ -102,7 +102,7 @@ public class PaymentApprovalService {
 
         // Notify admins
         try {
-            userRepository.findByRole("admin").forEach(admin ->
+            userRepository.findAdminNotificationRecipients().forEach(admin ->
                 notificationService.createNotification(admin.getId(), "system_notif",
                         "Đơn hàng thanh toán thành công",
                         "Đơn hàng #" + orderId + " đã được thanh toán qua " + paymentMethod,
@@ -365,7 +365,7 @@ public class PaymentApprovalService {
 
         // 7. Notify admins
         try {
-            userRepository.findByRole("admin").forEach(admin ->
+            userRepository.findAdminNotificationRecipients().forEach(admin ->
                 notificationService.createNotification(admin.getId(), "system_notif",
                         "Đơn hàng đã hủy",
                         "Đơn #" + orderId + " đã hủy bởi " + cancelledBy,

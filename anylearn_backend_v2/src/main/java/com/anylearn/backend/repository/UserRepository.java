@@ -35,4 +35,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByIdWithLock(@Param("id") Long id);
 
     List<User> findByRole(String role);
+
+    // Everyone the back office notifies: role admin, plus the active members an admin added in "Người nhận thông báo".
+    @Query(value = """
+            SELECT * FROM users
+            WHERE role = 'admin' OR (status = 1 AND id IN (SELECT user_id FROM admin_notification_recipients))
+            ORDER BY id
+            """, nativeQuery = true)
+    List<User> findAdminNotificationRecipients();
 }

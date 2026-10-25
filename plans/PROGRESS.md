@@ -120,6 +120,16 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 
 ## Nhật ký
 
+### 25/10/2026 – người nhận thông báo admin (việc chen ngang, trước plan 02)
+- Trước đây thông báo cho quản trị chỉ gửi tới user có role `admin`. Giờ trong admin (Cài đặt > "Người nhận thông báo admin") thêm
+  được thành viên khác (tối đa 50, không phải admin/bé/tài khoản khoá); mọi nơi gửi thông báo admin (đơn mới, chuyển khoản, yêu cầu
+  tìm khóa học, nghỉ/đổi lịch, kiểm toán, đăng ký hoạt động) dùng `findAdminNotificationRecipients()`. V19 `admin_notification_recipients`.
+- Người được thêm đăng nhập app, bật thông báo (Tài khoản > Thông báo) là nhận push như thông báo thường; có nút "Gửi thông báo thử
+  cho mọi người". Họ không vào được trang admin (đăng nhập admin cần role `admin`), bấm thông báo thì về trang chủ.
+- Kiểm tra: 195 test backend; thử thật trên MariaDB + trang admin: thêm "Chị Support" → lưu → thử gửi (cả 2 người nhận) → khách gửi
+  yêu cầu tìm khóa học (cả 2 nhận) → bỏ khỏi danh sách (chỉ admin nhận). Chưa thử push tới điện thoại thật (cần khoá VAPID).
+- Quyết định: quản trị viên luôn nhận, danh sách chỉ thêm người; nếu muốn tắt thông báo cho một admin cụ thể thì làm riêng.
+
 ### 25/10/2026 – plan 01 xong (01.1–01.4)
 - Backend (V18): `search_logs`, `course_requests`; `SearchLogService` ghi bất đồng bộ trên một luồng riêng để giữ thứ tự; tìm lại cùng
   từ khoá trong 10 giây thì **cập nhật dòng cũ** (bộ lọc mới nhất, `ref` mới nhất) thay vì thêm dòng; chỉ giữ lượt bấm đầu tiên.

@@ -44,3 +44,18 @@ Content-Type: application/json
 ### Admin: what visitors look for and cannot find (days = 1..365, default 30)
 GET {{adminUrl}}/insights/search?days=30
 Authorization: Bearer {{adminToken}}
+
+### Admin: who else receives the back-office notifications (besides role admin)
+GET {{adminUrl}}/notification-recipients
+Authorization: Bearer {{adminToken}}
+
+### Admin: replace the added members (max 50; not admins, children or locked accounts)
+PUT {{adminUrl}}/notification-recipients
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "userIds": [123, 456] }
+
+### Admin: send a test notification to everyone on the list
+POST {{adminUrl}}/notification-recipients/test
+Authorization: Bearer {{adminToken}}

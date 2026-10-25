@@ -164,7 +164,7 @@ public class TodayActions {
                 account.getName(), REQUEST_NAMES.get(type), found.learner().name(),
                 found.context().item().getTitle(),
                 found.session().date().getDayOfMonth(), found.session().date().getMonthValue());
-        users.findByRole("admin").forEach(admin -> {
+        users.findAdminNotificationRecipients().forEach(admin -> {
             try {
                 notifications.createNotification(admin.getId(), "system_notif",
                         "Yêu cầu nghỉ / đổi lịch mới", content, "/admin/schedule-requests", null);

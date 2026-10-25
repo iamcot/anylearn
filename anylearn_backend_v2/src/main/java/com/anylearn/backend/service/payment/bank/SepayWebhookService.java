@@ -109,7 +109,7 @@ public class SepayWebhookService {
     private void notifyAdmins(String title, String content, Long orderId) {
         String route = orderId != null ? "/admin/orders/" + orderId : "/admin/orders";
         try {
-            userRepository.findByRole("admin").forEach(admin ->
+            userRepository.findAdminNotificationRecipients().forEach(admin ->
                     notificationService.createNotification(admin.getId(), "system_notif", title, content, route, null));
         } catch (Exception e) {
             log.warn("[SePay] failed to notify admins: {}", e.getMessage());
