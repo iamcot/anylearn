@@ -4,7 +4,7 @@
 - **Next.js 16.2.9** with App Router (`src/app/`)
 - **React 19.2.4**
 - **TypeScript 5**
-- **Tailwind CSS v4** (utility classes + `style={}` props for brand colors)
+- **Tailwind CSS v4** (utility classes with the color tokens in `globals.css`, see UI rules)
 - **No UI library** — all components custom-built
 - **No axios** — native `fetch` API
 - **Port:** 3000 (default)
@@ -15,6 +15,7 @@
 npm run dev    # dev server → http://localhost:3000
 npm run build  # production build
 npm start      # serve production build
+npm run typecheck && npm run lint && npm test   # run after every change
 ```
 
 ## Environment
@@ -96,10 +97,15 @@ getOrder(orderId, token)       // GET /order/:orderId     [auth]
 `AuthUser`, `CartItem`, `CartInfoData`, `OrderData`
 `SearchResult`, `UserResult`, `UserSearchResult`
 
-## Brand Colors
-- Blue: `#00539b`
-- Green: `#00a651`
-- Red/accent: `#e73348`
+## UI rules (same conventions as the CLR project)
+
+- **Colors come from the tokens in `src/app/globals.css`** (`green`, `green-dark`, `green-soft`, `blue`, `blue-dark`, `blue-soft`, `yellow`, `red`, `red-soft`, `ink`, `text`, `muted`, `subtle`, `line`, `bg`, `navy`, `warn-*`, ...). Write `text-blue`, `bg-green-soft`, `border-line`. Do not write hex codes, `[#...]` classes or color values in `style={}` inside components. Missing a color? Add a token first.
+- **Font**: Be Vietnam Pro via `next/font` (`app/layout.tsx`). Weights: normal text 400; `font-medium`/`font-semibold`/`font-bold` all render 500; `font-extrabold`/`font-black` render 600 (big numbers, hero titles only). Do not set `fontWeight` inline.
+- **Mobile and desktop**: design for 360px first, check 360 / 768 / 1280. One breakpoint for the app chrome: below `lg` (1024px) is mobile (compact header, bottom tabs for logged-in people), `lg` and up is desktop (full header, no tabs). Touch targets at least 44px, no horizontal page scroll.
+- **Icons**: inline SVG, not emoji.
+- **New page**: add a `loading.tsx` with a skeleton so the page never shows blank while loading.
+- **Pure logic** (formatting, query building, price/date helpers) lives in `src/lib/**` as plain functions with a vitest `*.test.ts` next to it. Do not copy helpers between files.
+- UI strings in Vietnamese with diacritics.
 
 ## Utility
 
