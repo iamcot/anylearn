@@ -8,8 +8,7 @@ import NotificationDropdown from './NotificationDropdown'
 import UpcomingEventsBar from './UpcomingEventsBar'
 import { BROWSE_HOME_URL, markBrowsing } from '@/lib/today/links'
 import { TODAY_NAV, isNavActive } from '@/lib/today/nav'
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080/v2/api'
+import { API_BASE } from '@/lib/apiBase'
 
 const NAV_LINKS = [
   { href: '/info', label: 'Giới thiệu' },

@@ -5,8 +5,7 @@ import type { PdpReview } from '@/lib/api'
 import ReviewsList from './ReviewsList'
 import RatingForm from './RatingForm'
 import { useAuth } from '@/context/AuthContext'
-
-const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080/v2/api'
+import { API_BASE } from '@/lib/apiBase'
 
 interface MyRating { value: number; comment: string }
 
@@ -31,7 +30,7 @@ export default function ReviewsSection({ itemId, initialReviews, initialRating }
   // Fetch user status
   useEffect(() => {
     if (!user) { setChecked(true); return }
-    fetch(`${API}/item/${itemId}/is-fav`, {
+    fetch(`${API_BASE}/item/${itemId}/is-fav`, {
       headers: { Authorization: `Bearer ${user.jwtToken}` },
     })
       .then(r => r.json())
@@ -48,7 +47,7 @@ export default function ReviewsSection({ itemId, initialReviews, initialRating }
 
   // Always fetch fresh reviews on mount
   useEffect(() => {
-    fetch(`${API}/item/${itemId}/reviews`)
+    fetch(`${API_BASE}/item/${itemId}/reviews`)
       .then(r => r.json())
       .then(json => {
         if (json.resultCode === 1 && Array.isArray(json.data)) {
@@ -62,7 +61,7 @@ export default function ReviewsSection({ itemId, initialReviews, initialRating }
   }, [itemId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function refreshReviews() {
-    const res = await fetch(`${API}/item/${itemId}/reviews`).catch(() => null)
+    const res = await fetch(`${API_BASE}/item/${itemId}/reviews`).catch(() => null)
     if (!res) return
     const json = await res.json()
     if (json.resultCode === 1 && Array.isArray(json.data)) {

@@ -4,8 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/context/AuthContext'
 import { getCourseUrl } from '@/lib/api'
-
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080/v2/api'
+import { API_BASE } from '@/lib/apiBase'
 
 interface FavItem {
   id: number
@@ -27,7 +26,7 @@ export default function FavoritesPage() {
 
   useEffect(() => {
     if (!user) return
-    fetch(`${BASE}/user/favorites`, {
+    fetch(`${API_BASE}/user/favorites`, {
       headers: { Authorization: `Bearer ${user.jwtToken}` },
     })
       .then(r => r.json())

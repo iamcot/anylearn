@@ -3,8 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import RatingForm from './RatingForm'
-
-const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080/v2/api'
+import { API_BASE } from '@/lib/apiBase'
 
 export interface MyRating { value: number; comment: string }
 
@@ -23,7 +22,7 @@ export default function RatingWrapper({ itemId, onSaved, onStatus, initialRating
 
   useEffect(() => {
     if (!user) { setChecked(true); onStatus?.(false, null); return }
-    fetch(`${API}/item/${itemId}/is-fav`, {
+    fetch(`${API_BASE}/item/${itemId}/is-fav`, {
       headers: { Authorization: `Bearer ${user.jwtToken}` },
     })
       .then(r => r.json())

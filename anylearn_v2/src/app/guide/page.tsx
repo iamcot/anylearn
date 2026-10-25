@@ -1,6 +1,5 @@
 import { Metadata } from 'next'
-
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080/v2/api'
+import { API_BASE } from '@/lib/apiBase'
 
 const GUIDE_TITLES: Record<string, string> = {
   guide_toc: 'Điều khoản sử dụng',
@@ -23,7 +22,7 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
 
 async function fetchDoc(key: string): Promise<{ content: string; updatedAt?: string } | null> {
   try {
-    const res = await fetch(`${BASE}/doc/${key}`, { next: { revalidate: 3600 } })
+    const res = await fetch(`${API_BASE}/doc/${key}`, { next: { revalidate: 3600 } })
     const json = await res.json()
     if (json?.resultCode === 1 && json?.data) return json.data
   } catch {}

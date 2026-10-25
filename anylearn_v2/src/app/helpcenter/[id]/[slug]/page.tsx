@@ -1,8 +1,7 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080/v2/api'
+import { API_BASE } from '@/lib/apiBase'
 
 interface ArticleData {
   id: number; title: string; url: string; content: string; updatedAt?: string
@@ -11,7 +10,7 @@ interface ArticleData {
 
 async function fetchArticle(id: string): Promise<ArticleData | null> {
   try {
-    const res = await fetch(`${BASE}/helpcenter/article/${id}`, { next: { revalidate: 3600 } })
+    const res = await fetch(`${API_BASE}/helpcenter/article/${id}`, { next: { revalidate: 3600 } })
     const json = await res.json()
     if (json?.resultCode === 1 && json?.data) return json.data
   } catch {}

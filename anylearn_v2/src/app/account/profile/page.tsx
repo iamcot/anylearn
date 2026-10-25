@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { updateProfile, updateImageUrl, getMyProfile, UserProfile } from '@/lib/api'
+import { API_BASE } from '@/lib/apiBase'
 
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080/v2/api'
 const ROLES_WITH_FULL_CONTENT = ['school', 'teacher']
 
 export default function ProfilePage() {
@@ -55,7 +55,7 @@ export default function ProfilePage() {
       // Upload file to backend (multipart → S3)
       const formData = new FormData()
       formData.append('file', file)
-      const res = await fetch(`${BASE}/user/upload-image/avatar`, {
+      const res = await fetch(`${API_BASE}/user/upload-image/avatar`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: formData,

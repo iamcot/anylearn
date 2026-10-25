@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
-
-const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080/v2/api'
+import { API_BASE } from '@/lib/apiBase'
 
 const TYPE_LABEL: Record<string, string> = {
   trial: 'Học thử', test: 'Test đầu vào', visit: 'Tham quan',
@@ -45,7 +44,7 @@ export default function ActivityButton({ itemId, activiyTrial, activiyTest, acti
   // Fetch my activities on mount
   useEffect(() => {
     if (!user) { setChecked(true); return }
-    fetch(`${API}/item/${itemId}/my-activities`, {
+    fetch(`${API_BASE}/item/${itemId}/my-activities`, {
       headers: { Authorization: `Bearer ${user.jwtToken}` },
     })
       .then(r => r.json())
@@ -68,13 +67,13 @@ export default function ActivityButton({ itemId, activiyTrial, activiyTest, acti
     if (!activities.length) return
     setSaving(true)
     try {
-      await fetch(`${API}/item/${itemId}/register-activity`, {
+      await fetch(`${API_BASE}/item/${itemId}/register-activity`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${user.jwtToken}` },
         body: JSON.stringify({ activities }),
       })
       // Refresh my activities
-      const res = await fetch(`${API}/item/${itemId}/my-activities`, {
+      const res = await fetch(`${API_BASE}/item/${itemId}/my-activities`, {
         headers: { Authorization: `Bearer ${user.jwtToken}` },
       })
       const json = await res.json()

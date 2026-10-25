@@ -1,7 +1,6 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
-
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080/v2/api'
+import { API_BASE } from '@/lib/apiBase'
 
 interface KnowledgeItem { id: number; title: string; url: string }
 interface HelpcenterData {
@@ -13,7 +12,7 @@ export const metadata: Metadata = { title: 'Trung tâm hỗ trợ - anyLEARN' }
 
 async function fetchHelpcenter(): Promise<HelpcenterData | null> {
   try {
-    const res = await fetch(`${BASE}/helpcenter`, { next: { revalidate: 600 } })
+    const res = await fetch(`${API_BASE}/helpcenter`, { next: { revalidate: 600 } })
     const json = await res.json()
     if (json?.resultCode === 1 && json?.data) return json.data
   } catch {}

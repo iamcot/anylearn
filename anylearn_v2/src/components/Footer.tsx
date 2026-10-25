@@ -1,12 +1,11 @@
 import Link from 'next/link'
-
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080/v2/api'
+import { API_BASE } from '@/lib/apiBase'
 
 interface KnowledgeItem { id: number; title: string; url: string }
 
 async function fetchTopKnowledge(): Promise<KnowledgeItem[]> {
   try {
-    const res = await fetch(`${BASE}/helpcenter/top?limit=4`, { next: { revalidate: 3600 } })
+    const res = await fetch(`${API_BASE}/helpcenter/top?limit=4`, { next: { revalidate: 3600 } })
     const json = await res.json()
     if (json?.resultCode === 1 && Array.isArray(json?.data)) return json.data
   } catch {}

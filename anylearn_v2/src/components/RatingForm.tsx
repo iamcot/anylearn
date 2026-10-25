@@ -2,8 +2,7 @@
 
 import { useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
-
-const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080/v2/api'
+import { API_BASE } from '@/lib/apiBase'
 
 interface Props {
   itemId: number
@@ -26,7 +25,7 @@ export default function RatingForm({ itemId, existingRating, existingComment, on
     if (rating === 0) { setError('Vui lòng chọn số sao'); return }
     setSaving(true); setError('')
     try {
-      const res = await fetch(`${API}/item/${itemId}/save-rating`, {
+      const res = await fetch(`${API_BASE}/item/${itemId}/save-rating`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${user!.jwtToken}` },
         body: JSON.stringify({ rating, comment }),

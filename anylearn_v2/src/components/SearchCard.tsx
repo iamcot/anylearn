@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
+import { API_BASE } from '@/lib/apiBase'
 
 interface TagItem {
   label: string
@@ -27,7 +28,7 @@ export default function SearchCard({ variant = 'home', initialTags = [] }: Props
 
   useEffect(() => {
     if (initialTags.length > 0 || tags.length > 0) return
-    fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080/v2/api'}/search-tags`)
+    fetch(`${API_BASE}/search-tags`)
       .then(r => r.json())
       .then(d => {
         const list: string[] = d?.data ?? d ?? []

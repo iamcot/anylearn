@@ -1,8 +1,8 @@
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080/v2/api'
+import { API_BASE } from '@/lib/apiBase'
 
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T | null> {
   try {
-    const res = await fetch(`${BASE}${path}`, { next: { revalidate: 60 }, ...options })
+    const res = await fetch(`${API_BASE}${path}`, { next: { revalidate: 60 }, ...options })
     if (!res.ok) return null
     const json = await res.json()
     return json?.data ?? json
@@ -13,7 +13,7 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T | nul
 
 export async function authFetch<T>(path: string, token: string, options?: RequestInit): Promise<{ data: T | null; error?: string }> {
   try {
-    const res = await fetch(`${BASE}${path}`, {
+    const res = await fetch(`${API_BASE}${path}`, {
       ...options,
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, ...(options?.headers ?? {}) },
     })
@@ -185,7 +185,7 @@ export async function getPdpData(id: number): Promise<PdpData | null> {
   // no-store: PDP has personalized data (is_fav, has_purchased) and engagement counts
   // that must be fresh on every load. ISR would show stale fav counts and ratings.
   try {
-    const res = await fetch(`${BASE}/pdp/${id}`, { cache: 'no-store' })
+    const res = await fetch(`${API_BASE}/pdp/${id}`, { cache: 'no-store' })
     if (!res.ok) return null
     const json = await res.json()
     return json?.data ?? json
@@ -312,7 +312,7 @@ export interface AuthUser {
 
 export async function loginApi(phone: string, password: string): Promise<{ user: AuthUser | null; error?: string }> {
   try {
-    const res = await fetch(`${BASE}/login?phone=${encodeURIComponent(phone)}&password=${encodeURIComponent(password)}`)
+    const res = await fetch(`${API_BASE}/login?phone=${encodeURIComponent(phone)}&password=${encodeURIComponent(password)}`)
     const json = await res.json()
     if (!res.ok || json?.resultCode !== 1) return { user: null, error: json?.message || 'Đăng nhập thất bại' }
     return { user: json.data }
@@ -325,7 +325,7 @@ export async function loginApi(phone: string, password: string): Promise<{ user:
 
 export async function sendPasswordOtp(phone: string): Promise<{ error?: string }> {
   try {
-    const res = await fetch(`${BASE}/password/otp?phone=${encodeURIComponent(phone)}`)
+    const res = await fetch(`${API_BASE}/password/otp?phone=${encodeURIComponent(phone)}`)
     const json = await res.json()
     if (json?.resultCode === 0) return { error: json?.message || 'Không thể gửi OTP' }
     return {}
@@ -336,7 +336,7 @@ export async function sendPasswordOtp(phone: string): Promise<{ error?: string }
 
 export async function verifyPasswordOtp(phone: string, otp: string): Promise<{ resetToken?: string; error?: string }> {
   try {
-    const res = await fetch(`${BASE}/otp/check`, {
+    const res = await fetch(`${API_BASE}/otp/check`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ phone, otp }),
@@ -351,7 +351,7 @@ export async function verifyPasswordOtp(phone: string, otp: string): Promise<{ r
 
 export async function resetPassword(token: string, newPassword: string): Promise<{ error?: string }> {
   try {
-    const res = await fetch(`${BASE}/password/reset`, {
+    const res = await fetch(`${API_BASE}/password/reset`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ token, newPassword }),
@@ -400,7 +400,7 @@ export async function markNotificationRead(id: number, token: string): Promise<v
 
 export async function registerApi(name: string, phone: string, email: string, password: string): Promise<{ user: AuthUser | null; error?: string }> {
   try {
-    const res = await fetch(`${BASE}/register`, {
+    const res = await fetch(`${API_BASE}/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, phone, email, password }),
@@ -685,7 +685,7 @@ export interface VoucherResult {
 
 export async function checkVoucher(code: string, orderAmount: number): Promise<{ data: VoucherResult | null; error?: string }> {
   try {
-    const res = await fetch(`${BASE}/voucher/check?code=${encodeURIComponent(code)}&orderAmount=${orderAmount}`, { cache: 'no-store' })
+    const res = await fetch(`${API_BASE}/voucher/check?code=${encodeURIComponent(code)}&orderAmount=${orderAmount}`, { cache: 'no-store' })
     const json = await res.json()
     if (json?.resultCode === 0) return { data: null, error: json?.message || 'Mã không hợp lệ' }
     return { data: json?.data ?? null }

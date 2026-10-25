@@ -20,10 +20,17 @@ npm run typecheck && npm run lint && npm test   # run after every change
 
 ## Environment
 
-`anylearn_v2/.env.local`:
+`anylearn_v2/.env.local` (optional, these are the defaults):
 ```
-NEXT_PUBLIC_API_URL=http://localhost:8080/v2/api
+NEXT_PUBLIC_API_URL=/v2/api                 # browser calls the API on the same origin
+API_SERVER_ORIGIN=http://localhost:8080     # Java server: target of the /v2/* rewrite and of SSR fetches
+ALLOWED_DEV_ORIGINS=192.168.1.10            # optional, comma-separated LAN IPs allowed to open `next dev`
 ```
+
+- `src/lib/apiBase.ts` is the only place that knows the API address. Import `API_BASE` from it, never read `NEXT_PUBLIC_API_URL` elsewhere.
+- `next.config.ts` rewrites `/v2/*` to `API_SERVER_ORIGIN` (in production nginx answers `/v2/*` first). Rewrites are fixed at build time, so set `API_SERVER_ORIGIN` before `next build` if it is not the default.
+- Phone testing: run `npm run dev`, then `ngrok http 3000` and open the ngrok URL (ngrok domains are already in `allowedDevOrigins`). Over wifi: `ALLOWED_DEV_ORIGINS=<your LAN IP> npm run dev -- -H 0.0.0.0`, open `http://<your LAN IP>:3000`.
+- Payment flows redirect to the Java `FRONTEND_URL` / `PAYMENT_CALLBACK_URL`; set them to the ngrok URL when testing payments on a phone.
 
 ## Pages (App Router)
 
@@ -64,7 +71,7 @@ NEXT_PUBLIC_API_URL=http://localhost:8080/v2/api
 
 ## API Client — `src/lib/api.ts`
 
-Base URL: `process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080/v2/api'`
+Base URL: `API_BASE` from `src/lib/apiBase.ts` (`/v2/api` in the browser, `API_SERVER_ORIGIN` + `/v2/api` during SSR)
 
 ### Helper functions
 - `apiFetch<T>(path)` — public requests, uses `next: { revalidate: 60 }` (ISR)

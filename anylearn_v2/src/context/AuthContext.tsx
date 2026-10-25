@@ -2,8 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react'
 import { AuthUser, loginApi, registerApi, getCart } from '@/lib/api'
-
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080/v2/api'
+import { API_BASE } from '@/lib/apiBase'
 
 interface AuthContextType {
   user: AuthUser | null
@@ -85,7 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const current: AuthUser = JSON.parse(stored)
     if (!current.jwtToken) return
     try {
-      const res = await fetch(`${BASE}/user`, {
+      const res = await fetch(`${API_BASE}/user`, {
         headers: { Authorization: `Bearer ${current.jwtToken}` },
       })
       const json = await res.json()

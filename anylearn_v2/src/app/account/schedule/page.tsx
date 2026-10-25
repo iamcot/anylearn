@@ -4,8 +4,7 @@ import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/context/AuthContext'
 import { getCourseUrl } from '@/lib/api'
-
-const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080/v2/api'
+import { API_BASE } from '@/lib/apiBase'
 
 const PALETTE = ['#0078d4', '#107c10', '#b4009e', '#ff8c00', '#d13438', '#00b294', '#7b69ee']
 const color = (id: number) => PALETTE[id % PALETTE.length]
@@ -441,7 +440,7 @@ export default function SchedulePage() {
 
   useEffect(() => {
     if (!user) { setLoading(false); return } // eslint-disable-line
-    fetch(`${API}/user/schedule`, { headers: { Authorization: `Bearer ${user.jwtToken}` } })
+    fetch(`${API_BASE}/user/schedule`, { headers: { Authorization: `Bearer ${user.jwtToken}` } })
       .then(r => r.json())
       .then(json => {
         const d = json.data ?? {}
@@ -469,7 +468,7 @@ export default function SchedulePage() {
     const date = startDateInputs[enrollmentId]
     if (!date || !user) return
     setSavingStart(enrollmentId)
-    const res = await fetch(`${API}/user/enrollments/${enrollmentId}/start-date`, {
+    const res = await fetch(`${API_BASE}/user/enrollments/${enrollmentId}/start-date`, {
       method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${user.jwtToken}` },
       body: JSON.stringify({ startDate: date }),
     })
@@ -492,7 +491,7 @@ export default function SchedulePage() {
   async function handleCancelActivity(id: number) {
     const act = activities.find(a => a.id === id)
     if (!act || !user) return
-    await fetch(`${API}/item/${act.itemId}/my-activities/${id}/cancel`, {
+    await fetch(`${API_BASE}/item/${act.itemId}/my-activities/${id}/cancel`, {
       method: 'PUT', headers: { Authorization: `Bearer ${user.jwtToken}` },
     })
     setActivities(prev => prev.map(a => a.id === id ? { ...a, status: -1 } : a))

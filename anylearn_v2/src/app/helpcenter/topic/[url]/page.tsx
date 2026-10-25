@@ -1,8 +1,7 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080/v2/api'
+import { API_BASE } from '@/lib/apiBase'
 
 interface TopicData {
   id: number; title: string; url: string
@@ -11,7 +10,7 @@ interface TopicData {
 
 async function fetchTopic(url: string): Promise<TopicData | null> {
   try {
-    const res = await fetch(`${BASE}/helpcenter/topic/${url}`, { next: { revalidate: 600 } })
+    const res = await fetch(`${API_BASE}/helpcenter/topic/${url}`, { next: { revalidate: 600 } })
     const json = await res.json()
     if (json?.resultCode === 1 && json?.data) return json.data
   } catch {}

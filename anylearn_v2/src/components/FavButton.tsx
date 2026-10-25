@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
-
-const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080/v2/api'
+import { API_BASE } from '@/lib/apiBase'
 
 interface Props {
   itemId: number
@@ -29,7 +28,7 @@ export default function FavButton({ itemId, initialFaved, initialCount }: Props)
   // Hydrate real fav state + count from server once user is known (server render can't access auth)
   useEffect(() => {
     if (!user) return
-    fetch(`${API}/item/${itemId}/is-fav`, {
+    fetch(`${API_BASE}/item/${itemId}/is-fav`, {
       headers: { Authorization: `Bearer ${user.jwtToken}` },
     })
       .then(r => r.json())
@@ -50,7 +49,7 @@ export default function FavButton({ itemId, initialFaved, initialCount }: Props)
     setFaved(!wasFaved)
     setCount(c => wasFaved ? Math.max(0, c - 1) : c + 1)
     try {
-      const res = await fetch(`${API}/item/${itemId}/touch-fav`, {
+      const res = await fetch(`${API_BASE}/item/${itemId}/touch-fav`, {
         headers: { Authorization: `Bearer ${user.jwtToken}` },
       })
       const json = await res.json()

@@ -5,8 +5,7 @@ import { useAuth } from '@/context/AuthContext'
 import { useRouter, useParams } from 'next/navigation'
 import { getCartInfo, addToCart, CartInfoData, ItemSchedule, getCourseUrl } from '@/lib/api'
 import Link from 'next/link'
-
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080/v2/api'
+import { API_BASE } from '@/lib/apiBase'
 
 function formatPrice(p: number) {
   if (!p) return 'Liên hệ'
@@ -74,7 +73,7 @@ export default function Add2CartPage() {
     if (!token || !childName.trim() || !childDob) return
     setSavingChild(true)
     try {
-      const res = await fetch(`${BASE}/user/children`, {
+      const res = await fetch(`${API_BASE}/user/children`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({

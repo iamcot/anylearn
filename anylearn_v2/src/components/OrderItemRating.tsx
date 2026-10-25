@@ -3,8 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import RatingForm from './RatingForm'
-
-const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080/v2/api'
+import { API_BASE } from '@/lib/apiBase'
 
 interface MyRating { value: number; comment: string }
 
@@ -21,7 +20,7 @@ export default function OrderItemRating({ itemId, itemTitle }: Props) {
 
   useEffect(() => {
     if (!user) { setStatus('no_purchase'); return }
-    fetch(`${API}/item/${itemId}/is-fav`, {
+    fetch(`${API_BASE}/item/${itemId}/is-fav`, {
       headers: { Authorization: `Bearer ${user.jwtToken}` },
     })
       .then(r => r.json())

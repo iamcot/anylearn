@@ -5,8 +5,7 @@ import Link from 'next/link'
 import { useAuth } from '@/context/AuthContext'
 import { getUserOrders, UserOrder, getCourseUrl } from '@/lib/api'
 import OrderItemRating from '@/components/OrderItemRating'
-
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080/v2/api'
+import { API_BASE } from '@/lib/apiBase'
 
 function formatPrice(p: number) {
   if (!p) return '0 đ'
@@ -48,7 +47,7 @@ export default function OrdersPage() {
   async function handleCancel(orderId: string) {
     setCancellingId(orderId)
     try {
-      await fetch(`${BASE}/order/${orderId}/cancel`, {
+      await fetch(`${API_BASE}/order/${orderId}/cancel`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
       })
