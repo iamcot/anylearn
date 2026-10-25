@@ -126,6 +126,10 @@ Thư mục `http/` chứa VS Code REST Client files cho mọi endpoint:
 | Knowledge base | ✅ | entity only | ❌ |
 | Social feed | ✅ | minimal | ❌ |
 
+## Growth roadmap
+
+Feature plans live in `plans/` (start with `plans/00-overview.md`); progress, owner decisions and open questions in `plans/PROGRESS.md`. Update PROGRESS.md after every task.
+
 ## Shared Database Tables (Key)
 
 Core entities: `users`, `items`, `orders`, `order_details`, `categories`, `item_categories`
