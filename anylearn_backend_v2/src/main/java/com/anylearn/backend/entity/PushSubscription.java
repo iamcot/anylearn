@@ -3,6 +3,8 @@ package com.anylearn.backend.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 
@@ -22,6 +24,7 @@ public class PushSubscription {
     @Column(nullable = false, length = 1000)
     private String endpoint;
 
+    @JdbcTypeCode(SqlTypes.CHAR)
     @Column(name = "endpoint_hash", nullable = false, length = 64)
     private String endpointHash;
 
