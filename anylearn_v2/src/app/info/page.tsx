@@ -185,10 +185,12 @@ export default function InfoPage() {
         </div>
         <div className="container grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           {ECOSYSTEM.map(e => (
-            <article key={e.name} className={`${CARD} flex flex-col justify-between min-h-[200px]`}>
+            <article key={e.name} className={`${CARD} flex flex-col justify-between`}>
               <div>
-                <div className="mb-4 grid size-14 place-items-center rounded-2xl bg-gradient-to-br from-green to-blue text-white"><e.Icon className="size-7" /></div>
-                <h3 className="mb-2 mt-0 text-lg font-semibold text-blue">{e.name}</h3>
+                <div className="mb-3 flex items-center gap-3">
+                  <div className="grid size-11 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-green to-blue text-white"><e.Icon className="size-6" /></div>
+                  <h3 className="m-0 min-w-0 text-lg font-semibold text-blue">{e.name}</h3>
+                </div>
                 <p className="m-0 text-muted text-sm">{e.desc}</p>
               </div>
               <Link href="/search" className="mt-4 inline-flex min-h-11 items-center gap-0.5 text-sm font-semibold text-green-dark no-underline hover:underline">
