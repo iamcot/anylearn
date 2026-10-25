@@ -144,7 +144,7 @@ getOrder(orderId, token)       // GET /order/:orderId     [auth]
 
 ## Bank transfer QR (order page)
 
-- `lib/vietqr/payload.ts` builds the VietQR (EMVCo, Napas 247) string, tested; the QR is drawn in the browser with the `qrcode` package (`components/payment/useQrImage.ts`). The transfer note (`ALQR{orderId}`) comes from the order API (`transferNote`, built by `TransferNote.java`); the FE never builds it. `BankTransferPanel` shows only while the order is `new`/`pay_pending`; `useOrderStatus` polls every `ORDER_STATUS_POLL_MS`.
+- `lib/vietqr/payload.ts` builds the VietQR (EMVCo, Napas 247) string, tested; the QR is drawn in the browser with the `qrcode` package (`components/payment/useQrImage.ts`). The transfer note (`ALQR{orderId}`) comes from the order API (`transferNote`, built by `TransferNote.java`). `orderTransferNote` is only the fallback for an older backend (FE and Java deploy separately), so the QR never depends on the new field; keep both in the same format. Never hide the whole panel because an API field is missing. `BankTransferPanel` shows only while the order is `new`/`pay_pending`; `useOrderStatus` polls every `ORDER_STATUS_POLL_MS`.
 
 ## Static and content pages
 

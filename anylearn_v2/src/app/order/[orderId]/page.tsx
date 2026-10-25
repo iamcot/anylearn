@@ -11,6 +11,7 @@ import OrderLine from '@/components/cart/OrderLine'
 import { FormPageSkeleton, ListSkeleton } from '@/components/PageSkeleton'
 import { ClockIcon, CloseIcon } from '@/components/icons'
 import BankTransferPanel from '@/components/payment/BankTransferPanel'
+import { orderTransferNote } from '@/lib/vietqr/payload'
 import { useOrderStatus } from '@/components/payment/useOrderStatus'
 
 const GATEWAY_WAIT_STEPS = ['Giao dịch đang được xử lý. Vui lòng kiểm tra email xác nhận.']
@@ -189,8 +190,8 @@ export default function OrderPage() {
               </ul>
             </section>
 
-            {isAwaitingBankTransfer && bankInfo && order.transferNote && (
-              <BankTransferPanel note={order.transferNote} amount={order.amount ?? 0} bank={bankInfo} />
+            {isAwaitingBankTransfer && bankInfo && (
+              <BankTransferPanel note={order.transferNote ?? orderTransferNote(orderId)} amount={order.amount ?? 0} bank={bankInfo} />
             )}
 
             {order.paymentMethod !== 'bank_transfer' && instructions && (

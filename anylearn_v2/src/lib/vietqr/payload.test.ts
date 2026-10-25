@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildVietQrPayload, crc16, sanitizeTransferNote } from '@/lib/vietqr/payload'
+import { buildVietQrPayload, crc16, orderTransferNote, sanitizeTransferNote } from '@/lib/vietqr/payload'
 
 interface Field { id: string; value: string }
 
@@ -64,6 +64,11 @@ describe('transfer note', () => {
   it('drops accents and symbols and cuts to the limit', () => {
     expect(sanitizeTransferNote('Nộp phạt – Đạt!')).toBe('Nop phat Dat')
     expect(sanitizeTransferNote('A'.repeat(40))).toHaveLength(25)
+  })
+
+  it('builds the note of an order without padding', () => {
+    expect(orderTransferNote(1234)).toBe('ALQR1234')
+    expect(orderTransferNote('7')).toBe('ALQR7')
   })
 
   it('keeps an order note unchanged', () => {
