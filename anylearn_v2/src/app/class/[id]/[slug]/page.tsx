@@ -1,10 +1,11 @@
-import { getPdpData, getCourseUrl, PdpData, Item, ItemSchedule } from '@/lib/api'
+import { getPdpData, getPointsPreview, getCourseUrl, PdpData, Item, ItemSchedule } from '@/lib/api'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import ScrollRow from '@/components/ScrollRow'
 import BackButton from '@/components/BackButton'
 import RegisterButton from './RegisterButton'
+import PointsRewardBadge from '@/components/points/PointsRewardBadge'
 import FavButton from '@/components/FavButton'
 import ReviewsSection from '@/components/ReviewsSection'
 import ActivityButton from '@/components/ActivityButton'
@@ -55,7 +56,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function PdpPage({ params }: Props) {
   const { id } = await params
-  const data: PdpData | null = await getPdpData(Number(id))
+  const [data, pointsPreview]: [PdpData | null, Awaited<ReturnType<typeof getPointsPreview>>] =
+    await Promise.all([getPdpData(Number(id)), getPointsPreview(Number(id))])
   if (!data) notFound()
 
   const { item, author, categories, reviews, rating, num_favorite, authorItems, hotItems, is_fav } = data
@@ -178,6 +180,12 @@ export default async function PdpPage({ params }: Props) {
                   </>
                 )}
               </div>
+
+              {pointsPreview && pointsPreview.points > 0 && (
+                <div className="-mt-3 mb-4">
+                  <PointsRewardBadge points={pointsPreview.points} vndValue={pointsPreview.vndValue} />
+                </div>
+              )}
 
               <RegisterButton itemId={item.id} />
               <ActivityButton itemId={item.id}

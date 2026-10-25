@@ -48,7 +48,7 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 13.6 | SW nhận push, chống trùng với SSE, badge | done | Cùng tag `notif-<id>`; bấm mở `/notifications/open` |
 | 13.7 | Đo cài app / push | todo | |
 | 02.1 | API điểm dự kiến nhận | done | `ItemPointsResolver`, `GET /points/preview`, `points` trên dòng giỏ |
-| 02.2 | "+X điểm" ở PDP/giỏ/đơn | todo | |
+| 02.2 | "+X điểm" ở PDP/giỏ/đơn | done | thẻ khóa trong danh sách chưa làm |
 | 02.3 | Công tắc dùng điểm ở checkout | todo | |
 | 02.4 | Trang anyPoint timeline + `/info/anypoint` | todo | |
 | 05.1 | Chống đơn trùng | todo | |
@@ -120,6 +120,10 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 
 ## Nhật ký
 
+### 25/10/2026 – 02.2 hiện "+X điểm"
+- PDP: badge "Nhận +120 điểm (= 120.000đ)" dưới giá (gọi `/points/preview` cùng lúc với `/pdp`, ẩn khi 0 điểm). Checkout: dòng "Đơn này bạn sẽ nhận +X điểm (= Y đ)" dưới Tổng thanh toán, cộng từ `points` của từng dòng giỏ. Trang đơn: "Đã cộng X điểm, số dư Y điểm" khi đơn đã duyệt; trang tải lại đơn và số dư khi vừa thanh toán xong.
+- Backend: `GET /order/{id}` thêm `pointsEarned` (tổng điểm thưởng người mua của các dòng trong đơn, giao dịch `commission` không có `ref_user_id`).
+- Chưa làm: badge nhỏ trên thẻ khóa học trong danh sách (để sau, sau cờ tính năng, xem có làm rối không). Hàm thuần + test ở `lib/points/reward.ts`.
 ### 25/10/2026 – 02.1 API điểm dự kiến nhận
 - `ItemPointsResolver` gom phần lấy cấu hình hoa hồng của khóa (config chung, `company_commission` của khóa, tỉ lệ khóa/tác giả); `CartService.createPendingCommissions` và API xem trước cùng dùng nó nên không lệch nhau.
 - `GET /v2/api/points/preview?itemId=` (công khai) → `{points, vndValue}`; mỗi dòng `GET /cart` có thêm `points`. Tổng giỏ do FE cộng (giữ nguyên dạng danh sách của `/cart`).

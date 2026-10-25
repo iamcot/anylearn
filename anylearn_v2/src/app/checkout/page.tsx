@@ -14,12 +14,13 @@ import { calcCheckoutTotals, clampPoints } from '@/lib/checkout/totals'
 import PaymentMethodSelector from '@/components/PaymentMethodSelector'
 import SectionCard from '@/components/SectionCard'
 import OrderLine from '@/components/cart/OrderLine'
+import { cartRewardLabel, sumCartPoints } from '@/lib/points/reward'
 import ApplyRow from '@/components/cart/ApplyRow'
 import LearnerDobForm from '@/components/cart/LearnerDobForm'
 import { learnersMissingFullDob, nextLearnerMessage, type LearnerNeedingDob } from '@/lib/checkout/learnerDob'
 import { useToast } from '@/components/ToastProvider'
 import { FormPageSkeleton, ListSkeleton } from '@/components/PageSkeleton'
-import { CardIcon, CartIcon, ClockIcon, CloseIcon, GiftIcon } from '@/components/icons'
+import { CardIcon, CartIcon, ClockIcon, CloseIcon, CoinIcon, GiftIcon } from '@/components/icons'
 
 const REMOVE_BUTTON_CLASS = 'grid size-11 cursor-pointer place-items-center rounded-full border-0 bg-transparent text-red hover:bg-red-soft'
 
@@ -33,12 +34,13 @@ function TotalRow({ label, value, discount = false }: { label: string; value: nu
 }
 
 // Where the person pays, amounts are exact ("1.500.000 đ"), never rounded to "1.5 triệu".
-function TotalsSummary({ subtotal, pointsDiscount, voucherDiscount, voucherCode, finalTotal }: {
+function TotalsSummary({ subtotal, pointsDiscount, voucherDiscount, voucherCode, finalTotal, pointsToEarn }: {
   subtotal: number
   pointsDiscount: number
   voucherDiscount: number
   voucherCode?: string
   finalTotal: number
+  pointsToEarn: number
 }) {
   return (
     <div className="flex flex-col gap-1.5 border-t border-line px-4 py-4 sm:px-5">
@@ -49,6 +51,12 @@ function TotalsSummary({ subtotal, pointsDiscount, voucherDiscount, voucherCode,
         <span className="text-sm font-bold text-ink">Tổng thanh toán</span>
         <span className="text-xl font-extrabold text-red">{formatExactPrice(finalTotal)}</span>
       </div>
+      {pointsToEarn > 0 && (
+        <div className="mt-1 flex items-center gap-1.5 text-sm text-green-dark">
+          <CoinIcon className="size-4 text-green" />
+          {cartRewardLabel(pointsToEarn)}
+        </div>
+      )}
     </div>
   )
 }
@@ -243,6 +251,7 @@ export default function CheckoutPage() {
                 voucherDiscount={voucherDiscount}
                 voucherCode={voucherResult?.code}
                 finalTotal={finalTotal}
+                pointsToEarn={sumCartPoints(items)}
               />
             </>
           )}

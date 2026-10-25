@@ -9,11 +9,12 @@ import PaymentMethodSelector from '@/components/PaymentMethodSelector'
 import CheckCircle from '@/components/CheckCircle'
 import OrderLine from '@/components/cart/OrderLine'
 import { FormPageSkeleton, ListSkeleton } from '@/components/PageSkeleton'
-import { ClockIcon, CloseIcon } from '@/components/icons'
+import { ClockIcon, CloseIcon, CoinIcon } from '@/components/icons'
 import BankTransferPanel from '@/components/payment/BankTransferPanel'
 import { orderTransferNote } from '@/lib/vietqr/payload'
 import { useOrderStatus } from '@/components/payment/useOrderStatus'
 import AppPromptCard from '@/components/pwa/AppPromptCard'
+import { earnedLabel } from '@/lib/points/reward'
 
 const GATEWAY_WAIT_STEPS = ['Giao dịch đang được xử lý. Vui lòng kiểm tra email xác nhận.']
 
@@ -66,12 +67,21 @@ function OrderHeading({ awaitingPayment, paid }: { awaitingPayment: boolean; pai
   )
 }
 
+function PointsEarnedNote({ pointsEarned, balance }: { pointsEarned: number; balance?: number }) {
+  return (
+    <p className="mb-5 mt-0 flex items-center justify-center gap-1.5 text-sm font-medium text-green-dark">
+      <CoinIcon className="size-4 text-green" />
+      {earnedLabel(pointsEarned, balance)}
+    </p>
+  )
+}
+
 const AWAITING_PAYMENT_STATUSES = ['new', 'pay_pending']
 
 const STEP_CLASS = 'mb-1 text-sm leading-[1.7] text-text'
 
 export default function OrderPage() {
-  const { user, token, isAuthLoading } = useAuth()
+  const { user, token, isAuthLoading, refreshUser } = useAuth()
   const router = useRouter()
   const { orderId } = useParams<{ orderId: string }>()
   const searchParams = useSearchParams()
@@ -123,6 +133,14 @@ export default function OrderPage() {
   useEffect(() => {
     if (orderStatus === 'delivered' && isAwaitingBankTransfer) router.replace(`/order/${orderId}?status=success`)
   }, [orderStatus, isAwaitingBankTransfer, orderId, router])
+
+  const isApproved = paymentStatus === 'success' || order?.status === 'delivered' || orderStatus === 'delivered'
+  useEffect(() => {
+    if (!token || !isApproved) return
+    // The points are credited when the order is approved: read the order and the balance again
+    getOrder(orderId, token).then(fresh => fresh && setOrder(fresh))
+    refreshUser()
+  }, [token, isApproved, orderId, refreshUser])
 
   if (isAuthLoading) return <FormPageSkeleton />
   if (!user) return null
@@ -190,6 +208,10 @@ export default function OrderPage() {
                 ))}
               </ul>
             </section>
+
+            {isApproved && (order.pointsEarned ?? 0) > 0 && (
+              <PointsEarnedNote pointsEarned={order.pointsEarned ?? 0} balance={user.walletC} />
+            )}
 
             {isAwaitingBankTransfer && bankInfo && (
               <BankTransferPanel note={order.transferNote ?? orderTransferNote(orderId)} amount={order.amount ?? 0} bank={bankInfo} />

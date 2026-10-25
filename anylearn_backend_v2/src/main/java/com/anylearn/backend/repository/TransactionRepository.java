@@ -21,6 +21,11 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     @Query("SELECT t FROM Transaction t WHERE t.orderId IN :detailIds AND t.type IN ('partner','commission','foundation','net_revenue') AND t.status = 0")
     List<Transaction> findPendingCommissionsByDetailIds(@Param("detailIds") List<Long> detailIds);
 
+    // anyPoints the buyer gets for the lines of an order (the buyer's own reward, not the referral chain)
+    @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t WHERE t.orderId IN :detailIds AND t.userId = :userId " +
+           "AND t.type = 'commission' AND t.refUserId IS NULL AND t.status IN (0, 1)")
+    long sumBuyerPointsForDetails(@Param("detailIds") List<Long> detailIds, @Param("userId") Long userId);
+
     // Paginated history for a user, all types, newest first
     @Query(value = "SELECT * FROM transactions WHERE user_id = :userId ORDER BY id DESC LIMIT :size OFFSET :offset", nativeQuery = true)
     List<Transaction> findByUserIdOrderedPaged(@Param("userId") Long userId, @Param("size") int size, @Param("offset") long offset);

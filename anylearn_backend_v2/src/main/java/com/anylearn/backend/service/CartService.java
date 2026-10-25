@@ -560,13 +560,17 @@ public class CartService {
                 items.add(row);
             });
         }
+        List<Long> detailIds = details.stream().map(OrderDetail::getId).toList();
+        long pointsEarned = detailIds.isEmpty() ? 0L
+                : transactionRepository.sumBuyerPointsForDetails(detailIds, currentUser.getId());
         return Map.of(
                 "orderId", orderId,
                 "items", items,
                 "paymentMethod", order.getPayment() != null ? order.getPayment() : "",
                 "status", order.getStatus(),
                 "amount", order.getAmount(),
-                "transferNote", TransferNote.forOrder(order.getId())
+                "transferNote", TransferNote.forOrder(order.getId()),
+                "pointsEarned", pointsEarned
         );
     }
 

@@ -27,6 +27,8 @@ export interface CartItem {
   image?: string
   price: number
   orgPrice?: number
+  // anyPoints the buyer earns for this line once the order is approved
+  points?: number
   dateStart?: string
   authorName?: string
   studentName?: string
@@ -49,6 +51,8 @@ export interface OrderData {
   status?: string
   amount?: number
   transferNote?: string
+  // anyPoints credited to the buyer for this order
+  pointsEarned?: number
 }
 
 export async function getCartInfo(itemId: number, token: string): Promise<CartInfoData | null> {

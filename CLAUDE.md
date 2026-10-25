@@ -154,7 +154,7 @@ Thư mục `http/` chứa VS Code REST Client files cho mọi endpoint:
 
 ## anyPoint preview
 
-- `ItemPointsResolver` (`service/points`) resolves an item's commission settings (global config, item `company_commission`, item/author rate) and is the only place that does it: order creation (`CartService.createPendingCommissions`) and the preview both call it. `GET /v2/api/points/preview?itemId=` (public) returns `{itemId, points, vndValue}`; each `GET /cart` line has `points`. Preview = the buyer points written when the order is created (same price, same config); test `ItemPointsResolverTest`.
+- `ItemPointsResolver` (`service/points`) resolves an item's commission settings (global config, item `company_commission`, item/author rate) and is the only place that does it: order creation (`CartService.createPendingCommissions`) and the preview both call it. `GET /v2/api/points/preview?itemId=` (public) returns `{itemId, points, vndValue}`; each `GET /cart` line has `points`. Preview = the buyer points written when the order is created (same price, same config); test `ItemPointsResolverTest`. `GET /order/{id}` also returns `pointsEarned` (the buyer's own reward for the order). FE: PDP badge, checkout line and order note use `lib/points/reward.ts` (`components/points/PointsRewardBadge`).
 
 ## Growth roadmap
 
