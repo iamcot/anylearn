@@ -134,6 +134,12 @@ getOrder(orderId, token)       // GET /order/:orderId     [auth]
 - The URL is the only state: `lib/search/query.ts` parses it (`parseSearchParams`) and writes it (`buildSearchUrl`); every control calls `apply()` in `app/search/page.tsx`, which rewrites the URL with `history.replaceState`, and one effect fetches for the current URL (`lib/search/fetchResults.ts`). Page number is the `page` param (1-based). Do not add parallel `useState` copies of filters.
 - UI pieces live in `components/search/*`; filter options in `config/searchFilters.ts`; recent searches in `localStorage` via `useSearchHistory`.
 
+## /login, /register, /forgot-password, AuthModal
+
+- Forms live in `components/auth/*` (`LoginForm`, `RegisterForm`, `AuthCard`); the pages and `AuthModal` only wrap them, do not copy a form. Validation is pure in `lib/auth/validation.ts` (tested), limits in `config/auth.ts`.
+- `/login?redirect=` goes through `safeRedirect` (same-site paths only). `/login?reset=success` shows the "password reset" message.
+- `AuthModal` mounts its body only while open, so each opening starts on the requested tab with empty forms.
+
 ## Utility
 
 ```typescript

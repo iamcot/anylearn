@@ -1,155 +1,75 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
-import Link from 'next/link'
+import LoginForm from '@/components/auth/LoginForm'
+import RegisterForm from '@/components/auth/RegisterForm'
 import { CloseIcon } from './icons'
 
-export default function AuthModal() {
-  const { isAuthModalOpen, authModalTab, closeAuthModal, login, register, authModalOnSuccess } = useAuth()
-  const [tab, setTab] = useState<'login' | 'register'>(authModalTab)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+type Tab = 'login' | 'register'
 
-  const [phone, setPhone] = useState('')
-  const [password, setPassword] = useState('')
+const TAB_LABELS: Record<Tab, string> = { login: 'Đăng nhập', register: 'Đăng ký' }
 
-  const [name, setName] = useState('')
-  const [regPhone, setRegPhone] = useState('')
-  const [email, setEmail] = useState('')
-  const [regPassword, setRegPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [agreedTerms, setAgreedTerms] = useState(false)
+function AuthModalBody({ initialTab }: { initialTab: Tab }) {
+  const { closeAuthModal, authModalOnSuccess } = useAuth()
+  const [tab, setTab] = useState<Tab>(initialTab)
 
-  // Restore last used phone number when modal opens — must be before early return
   useEffect(() => {
-    if (!isAuthModalOpen) return
-    const saved = localStorage.getItem('anylearn_last_phone')
-    if (saved) setPhone(saved)
-  }, [isAuthModalOpen])
+    const onKeyDown = (event: KeyboardEvent) => { if (event.key === 'Escape') closeAuthModal() }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [closeAuthModal])
 
-  if (!isAuthModalOpen) return null
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
-    const { error: err } = await login(phone, password)
-    setLoading(false)
-    if (err) { setError(err); return }
-    localStorage.setItem('anylearn_last_phone', phone)
+  const finish = () => {
     closeAuthModal()
     authModalOnSuccess?.()
   }
-
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-    if (regPassword !== confirmPassword) { setError('Mật khẩu xác nhận không khớp'); return }
-    if (!agreedTerms) { setError('Vui lòng đồng ý với điều khoản sử dụng'); return }
-    setLoading(true)
-    const { error: err } = await register(name, regPhone, email, regPassword)
-    setLoading(false)
-    if (err) { setError(err); return }
-    closeAuthModal()
-    authModalOnSuccess?.()
-  }
-
-  const switchTab = (t: 'login' | 'register') => { setTab(t); setError('') }
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" onClick={closeAuthModal}>
+    <div className="fixed inset-0 z-[200] flex items-end justify-center sm:items-center sm:p-4" onClick={closeAuthModal}>
       <div className="absolute inset-0 bg-ink/50" />
-      <div className="relative bg-white rounded-3xl w-full max-w-[420px] shadow-[0_24px_60px_rgba(15,23,42,0.18)] overflow-hidden"
-        onClick={e => e.stopPropagation()}>
-
-        {/* Tabs */}
-        <div className="flex border-b border-line">
-          {(['login', 'register'] as const).map(t => (
-            <button key={t} onClick={() => switchTab(t)}
-              className={`flex-1 py-[18px] border-0 cursor-pointer font-[inherit] text-[15px] transition-colors
-                ${tab === t
-                  ? 'bg-white text-blue font-black border-b-2 border-blue'
-                  : 'bg-bg text-muted font-semibold border-b-2 border-transparent'
-                }`}>
-              {t === 'login' ? 'Đăng nhập' : 'Đăng ký'}
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Đăng nhập hoặc đăng ký"
+        className="relative max-h-[92vh] w-full max-w-[420px] overflow-y-auto rounded-t-3xl bg-white shadow-raised sm:rounded-3xl"
+        onClick={event => event.stopPropagation()}
+      >
+        <div role="tablist" className="flex border-b border-line pr-12">
+          {(Object.keys(TAB_LABELS) as Tab[]).map(key => (
+            <button
+              key={key}
+              type="button"
+              role="tab"
+              aria-selected={tab === key}
+              onClick={() => setTab(key)}
+              className={`min-h-14 flex-1 cursor-pointer border-0 border-b-2 font-[inherit] text-[15px] transition-colors ${
+                tab === key ? 'border-blue bg-white font-extrabold text-blue' : 'border-transparent bg-bg font-semibold text-muted'
+              }`}
+            >
+              {TAB_LABELS[key]}
             </button>
           ))}
-          <button onClick={closeAuthModal}
-            aria-label="Đóng" className="absolute top-2 right-2 size-11 rounded-full border-0 bg-transparent text-muted cursor-pointer grid place-items-center hover:text-ink">
-            <CloseIcon />
-          </button>
         </div>
+        <button type="button" onClick={closeAuthModal} aria-label="Đóng"
+          className="absolute right-0 top-1.5 grid size-11 cursor-pointer place-items-center rounded-full border-0 bg-transparent text-muted hover:text-ink">
+          <CloseIcon />
+        </button>
 
-        <div className="px-7 pt-7 pb-6">
-          {error && (
-            <div className="bg-red-soft border border-[#ffc9c9] rounded-xl px-3.5 py-2.5 mb-4 text-red text-sm">
-              {error}
-            </div>
-          )}
-
-          {tab === 'login' ? (
-            <form onSubmit={handleLogin}>
-              <label className="block font-bold text-xs text-muted mb-1.5">Số điện thoại</label>
-              <input className="field mb-3.5" type="tel" placeholder="Nhập số điện thoại"
-                value={phone} onChange={e => setPhone(e.target.value)} required />
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="font-bold text-xs text-muted">Mật khẩu</label>
-                <a href="/forgot-password" className="text-xs text-blue hover:underline">Quên mật khẩu?</a>
-              </div>
-              <input className="field mb-5" type="password" placeholder="Nhập mật khẩu"
-                value={password} onChange={e => setPassword(e.target.value)} required />
-              <button type="submit" className="btn btn--green w-full text-base py-3.5" disabled={loading}>
-                {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
-              </button>
-              <p className="text-center mt-3.5 text-muted text-sm">
-                Chưa có tài khoản?{' '}
-                <button type="button" onClick={() => switchTab('register')}
-                  className="border-0 bg-transparent text-blue font-bold cursor-pointer font-[inherit]">
-                  Đăng ký ngay
-                </button>
-              </p>
-            </form>
-          ) : (
-            <form onSubmit={handleRegister}>
-              <label className="block font-bold text-xs text-muted mb-1.5">Họ và tên</label>
-              <input className="field mb-3" type="text" placeholder="Nhập họ và tên"
-                value={name} onChange={e => setName(e.target.value)} required />
-              <label className="block font-bold text-xs text-muted mb-1.5">Số điện thoại</label>
-              <input className="field mb-3" type="tel" placeholder="Nhập số điện thoại"
-                value={regPhone} onChange={e => setRegPhone(e.target.value)} required />
-              <label className="block font-bold text-xs text-muted mb-1.5">Email</label>
-              <input className="field mb-3" type="email" placeholder="Nhập email"
-                value={email} onChange={e => setEmail(e.target.value)} />
-              <label className="block font-bold text-xs text-muted mb-1.5">Mật khẩu</label>
-              <input className="field mb-3" type="password" placeholder="Nhập mật khẩu"
-                value={regPassword} onChange={e => setRegPassword(e.target.value)} required />
-              <label className="block font-bold text-xs text-muted mb-1.5">Xác nhận mật khẩu</label>
-              <input className="field mb-3.5" type="password" placeholder="Nhập lại mật khẩu"
-                value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required />
-              <label className="flex items-start gap-2.5 mb-5 cursor-pointer">
-                <input type="checkbox" checked={agreedTerms} onChange={e => setAgreedTerms(e.target.checked)}
-                  className="mt-0.5 shrink-0" />
-                <span className="text-xs text-muted leading-relaxed">
-                  Tôi đồng ý với{' '}
-                  <Link href="/terms" target="_blank" className="text-blue font-bold">điều khoản sử dụng</Link>
-                  {' '}của anyLEARN
-                </span>
-              </label>
-              <button type="submit" className="btn btn--green w-full text-base py-3.5" disabled={loading}>
-                {loading ? 'Đang đăng ký...' : 'Đăng ký'}
-              </button>
-              <p className="text-center mt-3.5 text-muted text-sm">
-                Đã có tài khoản?{' '}
-                <button type="button" onClick={() => switchTab('login')}
-                  className="border-0 bg-transparent text-blue font-bold cursor-pointer font-[inherit]">
-                  Đăng nhập
-                </button>
-              </p>
-            </form>
-          )}
+        <div className="px-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-6 sm:px-7">
+          {tab === 'login'
+            ? <LoginForm onSuccess={finish} onSwitchToRegister={() => setTab('register')} />
+            : <RegisterForm onSuccess={finish} onSwitchToLogin={() => setTab('login')} />
+          }
         </div>
       </div>
     </div>
   )
+}
+
+// Mounted only while open, so every opening starts on the requested tab with empty forms.
+export default function AuthModal() {
+  const { isAuthModalOpen, authModalTab } = useAuth()
+  if (!isAuthModalOpen) return null
+  return <AuthModalBody initialTab={authModalTab} />
 }

@@ -3,9 +3,39 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { sendPasswordOtp, verifyPasswordOtp, resetPassword } from '@/lib/api'
+import { digitsOnly, isCompleteOtp, isValidPhone, passwordError } from '@/lib/auth/validation'
+import { MIN_PASSWORD_LENGTH, OTP_LENGTH, OTP_RESEND_SECONDS } from '@/config/auth'
+import AuthCard from '@/components/auth/AuthCard'
 import BackLink from '@/components/BackLink'
+import FormField from '@/components/FormField'
+import Alert from '@/components/Alert'
+import { useCountdown } from '@/components/auth/useCountdown'
+import { CheckIcon } from '@/components/icons'
 
 type Step = 'PHONE' | 'OTP' | 'NEW_PASSWORD'
+
+const STEPS: Step[] = ['PHONE', 'OTP', 'NEW_PASSWORD']
+
+function StepIndicator({ current }: { current: Step }) {
+  const currentIndex = STEPS.indexOf(current)
+  return (
+    <ol className="m-0 mb-8 flex list-none items-center justify-center gap-2 p-0" aria-label="Các bước">
+      {STEPS.map((step, index) => {
+        const done = currentIndex > index
+        return (
+          <li key={step} className="flex items-center gap-2" aria-current={step === current ? 'step' : undefined}>
+            <span className={`grid size-8 place-items-center rounded-full text-sm font-extrabold ${
+              step === current ? 'bg-blue text-white' : done ? 'bg-green text-white' : 'bg-surface text-muted'
+            }`}>
+              {done ? <CheckIcon className="size-4" /> : index + 1}
+            </span>
+            {index < STEPS.length - 1 && <span className={`h-0.5 w-8 ${done ? 'bg-green' : 'bg-line'}`} />}
+          </li>
+        )
+      })}
+    </ol>
+  )
+}
 
 export default function ForgotPasswordPage() {
   const router = useRouter()
@@ -17,185 +47,125 @@ export default function ForgotPasswordPage() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [countdown, setCountdown] = useState(0)
+  const { remaining, start: startCountdown } = useCountdown()
 
-  function startCountdown() {
-    setCountdown(60)
-    const timer = setInterval(() => {
-      setCountdown(c => {
-        if (c <= 1) { clearInterval(timer); return 0 }
-        return c - 1
-      })
-    }, 1000)
+  const subtitles: Record<Step, string> = {
+    PHONE: 'Nhập số điện thoại đã đăng ký để nhận OTP qua Zalo',
+    OTP: `Nhập mã OTP đã được gửi tới số ${phone}`,
+    NEW_PASSWORD: 'Tạo mật khẩu mới cho tài khoản của bạn',
   }
 
-  async function handleSendOtp(e: React.FormEvent) {
-    e.preventDefault()
+  const run = async (action: () => Promise<boolean>) => {
     setError('')
-    if (!phone.match(/^0\d{9}$/)) { setError('Số điện thoại không hợp lệ (10 số, bắt đầu bằng 0)'); return }
     setLoading(true)
-    const { error: err } = await sendPasswordOtp(phone)
+    const ok = await action()
     setLoading(false)
-    if (err) { setError(err); return }
-    setStep('OTP')
-    startCountdown()
+    return ok
   }
 
-  async function handleVerifyOtp(e: React.FormEvent) {
-    e.preventDefault()
-    setError('')
-    if (otp.length !== 6) { setError('Vui lòng nhập đủ 6 chữ số OTP'); return }
-    setLoading(true)
-    const { resetToken: token, error: err } = await verifyPasswordOtp(phone, otp)
-    setLoading(false)
-    if (err || !token) { setError(err || 'OTP không đúng'); return }
-    setResetToken(token)
-    setStep('NEW_PASSWORD')
+  const handleSendOtp = (event: React.FormEvent) => {
+    event.preventDefault()
+    if (!isValidPhone(phone)) { setError('Số điện thoại không hợp lệ (10 số, bắt đầu bằng 0)'); return }
+    run(async () => {
+      const { error: err } = await sendPasswordOtp(phone)
+      if (err) { setError(err); return false }
+      setStep('OTP')
+      startCountdown(OTP_RESEND_SECONDS)
+      return true
+    })
   }
 
-  async function handleResetPassword(e: React.FormEvent) {
-    e.preventDefault()
-    setError('')
-    if (newPassword.length < 6) { setError('Mật khẩu phải có ít nhất 6 ký tự'); return }
-    if (newPassword !== confirmPassword) { setError('Mật khẩu không khớp'); return }
-    setLoading(true)
-    const { error: err } = await resetPassword(resetToken, newPassword)
-    setLoading(false)
-    if (err) { setError(err); return }
-    router.push('/login?reset=success')
+  const handleVerifyOtp = (event: React.FormEvent) => {
+    event.preventDefault()
+    if (!isCompleteOtp(otp)) { setError(`Vui lòng nhập đủ ${OTP_LENGTH} chữ số OTP`); return }
+    run(async () => {
+      const { resetToken: token, error: err } = await verifyPasswordOtp(phone, otp)
+      if (err || !token) { setError(err || 'OTP không đúng'); return false }
+      setResetToken(token)
+      setStep('NEW_PASSWORD')
+      return true
+    })
   }
 
-  async function handleResend() {
-    if (countdown > 0) return
-    setError('')
-    setLoading(true)
-    const { error: err } = await sendPasswordOtp(phone)
-    setLoading(false)
-    if (err) { setError(err); return }
-    startCountdown()
+  const handleResetPassword = (event: React.FormEvent) => {
+    event.preventDefault()
+    const problem = passwordError(newPassword, confirmPassword)
+    if (problem) { setError(problem); return }
+    run(async () => {
+      const { error: err } = await resetPassword(resetToken, newPassword)
+      if (err) { setError(err); return false }
+      router.push('/login?reset=success')
+      return true
+    })
+  }
+
+  const handleResend = () => {
+    if (remaining > 0) return
+    run(async () => {
+      const { error: err } = await sendPasswordOtp(phone)
+      if (err) { setError(err); return false }
+      startCountdown(OTP_RESEND_SECONDS)
+      return true
+    })
   }
 
   return (
-    <div className="min-h-[60vh] flex items-center justify-center" style={{ padding: '3rem 1rem' }}>
-      <div className="bg-white border border-[#e6edf4] rounded-[28px] shadow-[0_16px_42px_rgba(15,23,42,0.1)] w-full max-w-md p-8">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/cdn/anylearn/img/LogoanyLEARN.svg" alt="anyLEARN" className="h-10 mx-auto mb-4" />
-          <h1 className="text-2xl font-black text-[#17212f]">Quên mật khẩu</h1>
-          <p className="text-[#6d7a8a] text-sm mt-1">
-            {step === 'PHONE' && 'Nhập số điện thoại đã đăng ký để nhận OTP qua Zalo'}
-            {step === 'OTP' && `Nhập mã OTP đã được gửi tới số ${phone}`}
-            {step === 'NEW_PASSWORD' && 'Tạo mật khẩu mới cho tài khoản của bạn'}
-          </p>
-        </div>
+    <AuthCard title="Quên mật khẩu" subtitle={subtitles[step]} maxWidth="max-w-md" logo>
+      <StepIndicator current={step} />
+      {error && <Alert kind="error" className="mb-5">{error}</Alert>}
 
-        {/* Step indicators */}
-        <div className="flex items-center justify-center gap-2 mb-8">
-          {(['PHONE', 'OTP', 'NEW_PASSWORD'] as Step[]).map((s, i) => (
-            <div key={s} className="flex items-center gap-2">
-              <div className={`w-8 h-8 rounded-full text-sm font-black grid place-items-center ${
-                s === step ? 'bg-blue text-white' :
-                (['PHONE', 'OTP', 'NEW_PASSWORD'].indexOf(step) > i) ? 'bg-[#00a651] text-white' :
-                'bg-[#f0f5fa] text-[#6d7a8a]'
-              }`}>{i + 1}</div>
-              {i < 2 && <div className={`w-8 h-0.5 ${(['PHONE', 'OTP', 'NEW_PASSWORD'].indexOf(step) > i) ? 'bg-[#00a651]' : 'bg-[#e6edf4]'}`} />}
-            </div>
-          ))}
-        </div>
+      {step === 'PHONE' && (
+        <form onSubmit={handleSendOtp} className="flex flex-col gap-4">
+          <FormField label="Số điện thoại">
+            <input type="tel" inputMode="tel" autoComplete="tel" value={phone} onChange={event => setPhone(event.target.value)}
+              placeholder="0374900344" className="field" required />
+          </FormField>
+          <button type="submit" disabled={loading} className="btn btn--blue w-full">
+            {loading ? 'Đang gửi...' : 'Gửi OTP qua Zalo'}
+          </button>
+        </form>
+      )}
 
-        {error && (
-          <div className="bg-[#fff0f0] border border-[#ffcdd2] rounded-xl px-4 py-3 text-sm text-red-600 mb-5">
-            {error}
+      {step === 'OTP' && (
+        <form onSubmit={handleVerifyOtp} className="flex flex-col gap-4">
+          <FormField label={`Mã OTP (${OTP_LENGTH} chữ số)`}>
+            <input type="text" inputMode="numeric" autoComplete="one-time-code" value={otp}
+              onChange={event => setOtp(digitsOnly(event.target.value, OTP_LENGTH))}
+              placeholder="123456" maxLength={OTP_LENGTH} required
+              className="field text-center text-2xl font-extrabold tracking-[0.5em]" />
+          </FormField>
+          <button type="submit" disabled={loading} className="btn btn--blue w-full">
+            {loading ? 'Đang xác thực...' : 'Xác nhận OTP'}
+          </button>
+          <div className="text-center text-sm text-muted">
+            Không nhận được OTP?{' '}
+            <button type="button" onClick={handleResend} disabled={remaining > 0}
+              className={`min-h-11 cursor-pointer border-0 bg-transparent p-0 font-[inherit] font-extrabold ${remaining > 0 ? 'cursor-default text-subtle' : 'text-blue hover:underline'}`}>
+              {remaining > 0 ? `Gửi lại sau ${remaining}s` : 'Gửi lại'}
+            </button>
           </div>
-        )}
+        </form>
+      )}
 
-        {/* Step 1: Phone */}
-        {step === 'PHONE' && (
-          <form onSubmit={handleSendOtp} className="space-y-4">
-            <div>
-              <label className="block text-sm font-black text-[#17212f] mb-1.5">Số điện thoại</label>
-              <input
-                type="tel"
-                value={phone}
-                onChange={e => setPhone(e.target.value)}
-                placeholder="0374900344"
-                className="w-full border border-[#d0e3f5] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue"
-                required
-              />
-            </div>
-            <button type="submit" disabled={loading}
-              className="btn btn--blue w-full" style={{ width: '100%', display: 'flex' }}>
-              {loading ? 'Đang gửi...' : 'Gửi OTP qua Zalo'}
-            </button>
-          </form>
-        )}
+      {step === 'NEW_PASSWORD' && (
+        <form onSubmit={handleResetPassword} className="flex flex-col gap-4">
+          <FormField label="Mật khẩu mới">
+            <input type="password" autoComplete="new-password" value={newPassword} onChange={event => setNewPassword(event.target.value)}
+              placeholder={`Tối thiểu ${MIN_PASSWORD_LENGTH} ký tự`} className="field" required />
+          </FormField>
+          <FormField label="Xác nhận mật khẩu">
+            <input type="password" autoComplete="new-password" value={confirmPassword} onChange={event => setConfirmPassword(event.target.value)}
+              placeholder="Nhập lại mật khẩu" className="field" required />
+          </FormField>
+          <button type="submit" disabled={loading} className="btn btn--green w-full">
+            {loading ? 'Đang cập nhật...' : 'Cập nhật mật khẩu'}
+          </button>
+        </form>
+      )}
 
-        {/* Step 2: OTP */}
-        {step === 'OTP' && (
-          <form onSubmit={handleVerifyOtp} className="space-y-4">
-            <div>
-              <label className="block text-sm font-black text-[#17212f] mb-1.5">Mã OTP (6 chữ số)</label>
-              <input
-                type="text"
-                value={otp}
-                onChange={e => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                placeholder="123456"
-                className="w-full border border-[#d0e3f5] rounded-xl px-4 py-3 text-center text-2xl font-black tracking-[0.5em] focus:outline-none focus:border-blue"
-                maxLength={6}
-                required
-              />
-            </div>
-            <button type="submit" disabled={loading}
-              className="btn btn--blue w-full" style={{ width: '100%', display: 'flex' }}>
-              {loading ? 'Đang xác thực...' : 'Xác nhận OTP'}
-            </button>
-            <div className="text-center text-sm text-[#6d7a8a]">
-              Không nhận được OTP?{' '}
-              <button type="button" onClick={handleResend} disabled={countdown > 0}
-                className={`font-black ${countdown > 0 ? 'text-[#9db4c8]' : 'text-blue hover:underline'}`}>
-                {countdown > 0 ? `Gửi lại sau ${countdown}s` : 'Gửi lại'}
-              </button>
-            </div>
-          </form>
-        )}
-
-        {/* Step 3: New password */}
-        {step === 'NEW_PASSWORD' && (
-          <form onSubmit={handleResetPassword} className="space-y-4">
-            <div>
-              <label className="block text-sm font-black text-[#17212f] mb-1.5">Mật khẩu mới</label>
-              <input
-                type="password"
-                value={newPassword}
-                onChange={e => setNewPassword(e.target.value)}
-                placeholder="Tối thiểu 6 ký tự"
-                className="w-full border border-[#d0e3f5] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-black text-[#17212f] mb-1.5">Xác nhận mật khẩu</label>
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={e => setConfirmPassword(e.target.value)}
-                placeholder="Nhập lại mật khẩu"
-                className="w-full border border-[#d0e3f5] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue"
-                required
-              />
-            </div>
-            <button type="submit" disabled={loading}
-              className="btn btn--green w-full" style={{ width: '100%', display: 'flex' }}>
-              {loading ? 'Đang cập nhật...' : 'Cập nhật mật khẩu'}
-            </button>
-          </form>
-        )}
-
-        <div className="mt-6 flex justify-center">
-          <BackLink href="/login">Quay lại đăng nhập</BackLink>
-        </div>
+      <div className="mt-6 flex justify-center">
+        <BackLink href="/login">Quay lại đăng nhập</BackLink>
       </div>
-    </div>
+    </AuthCard>
   )
 }

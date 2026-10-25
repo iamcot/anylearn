@@ -7,8 +7,7 @@ import AccountCard from '@/components/account/AccountCard'
 import FormField from '@/components/FormField'
 import Alert from '@/components/Alert'
 import { CheckIcon } from '@/components/icons'
-
-const MIN_PASSWORD_LENGTH = 6
+import { MIN_PASSWORD_LENGTH } from '@/config/auth'
 
 export default function ChangePasswordPage() {
   const { token } = useAuth()
