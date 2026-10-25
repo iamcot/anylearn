@@ -18,6 +18,7 @@ import ActivityFields from '@/components/ActivityFields'
 import ChildFormModal, { type ChildDraft } from '@/components/ChildFormModal'
 import { useToast } from '@/components/ToastProvider'
 import { BookIcon, CalendarIcon, GiftIcon, PencilIcon, UserIcon } from '@/components/icons'
+import { takePendingChildId } from '@/components/guest/guestLearnerStore'
 
 const ACTIVITY_ROW_LABELS: Record<ActivityType, string> = { trial: 'Học thử', test: 'Đăng ký thi đầu vào', visit: 'Tham quan trường' }
 const BILLING_CYCLES = ['month', 'year', 'week', 'day']
@@ -71,7 +72,10 @@ export default function Add2CartPage() {
       // Links from /today can preselect the child and the start month.
       const params = new URLSearchParams(window.location.search)
       const childId = Number(params.get('child'))
-      if (childId && info?.children?.some(c => c.id === childId)) setSelectedStudent(childId)
+      // The child created from what the visitor told us before registering is picked unless a link chose another one.
+      const pendingChildId = takePendingChildId()
+      const preselected = childId || pendingChildId
+      if (preselected && info?.children?.some(c => c.id === preselected)) setSelectedStudent(preselected)
       const start = params.get('start')
       if (start && /^\d{4}-\d{2}$/.test(start)) setStartMonth(start)
     })

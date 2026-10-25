@@ -12,6 +12,7 @@ import AuthModal from '@/components/AuthModal'
 import NavigationProgress from '@/components/NavigationProgress'
 import ToastProvider from '@/components/ToastProvider'
 import ServiceWorkerRegister from '@/components/pwa/ServiceWorkerRegister'
+import GuestLearnerHost from '@/components/guest/GuestLearnerHost'
 
 const beVietnamPro = Be_Vietnam_Pro({
   subsets: ['vietnamese', 'latin'],
@@ -54,6 +55,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </SiteChrome>
             <AuthModal />
             <ServiceWorkerRegister />
+            <GuestLearnerHost />
           </ToastProvider>
         </AuthProvider>
         <Script src="https://sp.zalo.me/plugins/sdk.js" strategy="lazyOnload" />

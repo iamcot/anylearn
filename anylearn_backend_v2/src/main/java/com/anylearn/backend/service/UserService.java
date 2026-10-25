@@ -105,9 +105,7 @@ public class UserService {
             user.setTitle(body.get("title") != null ? body.get("title").toString() : null);
         if (body.containsKey("fullContent"))
             user.setFullContent(body.get("fullContent") != null ? body.get("fullContent").toString() : null);
-        if (body.containsKey("dob") && body.get("dob") != null) {
-            try { user.setDob(LocalDate.parse(body.get("dob").toString())); } catch (Exception ignored) {}
-        }
+        applyDob(user, body);
         if (body.containsKey("sex"))
             user.setSex(body.get("sex") != null ? body.get("sex").toString() : null);
         user.setUpdatedAt(LocalDateTime.now());
@@ -130,6 +128,16 @@ public class UserService {
 
     // ── Children ──────────────────────────────────────────────────────────────
 
+    /** Saves "dob" (yyyy-MM-dd); with "dobYearOnly": true the date is only a placeholder for the birth year. */
+    static void applyDob(User target, Map<String, Object> body) {
+        Object raw = body.get("dob");
+        if (raw == null) return;
+        try {
+            target.setDob(LocalDate.parse(raw.toString()));
+            target.setDobYearOnly(Boolean.TRUE.equals(body.get("dobYearOnly")));
+        } catch (Exception ignored) {}
+    }
+
     public List<UserInfoResponse> getChildren(User user) {
         return userRepository.findByUserIdAndIsChild(user.getId(), (byte) 1)
                 .stream().map(UserInfoResponse::new).toList();
@@ -148,9 +156,7 @@ public class UserService {
             }
             if (body.containsKey("name") && body.get("name") != null)
                 child.setName(body.get("name").toString());
-            if (body.containsKey("dob") && body.get("dob") != null) {
-                try { child.setDob(LocalDate.parse(body.get("dob").toString())); } catch (Exception ignored) {}
-            }
+            applyDob(child, body);
             child.setUpdatedAt(LocalDateTime.now());
             userRepository.save(child);
             return new UserInfoResponse(child);
@@ -166,9 +172,7 @@ public class UserService {
             child.setIsChild((byte) 1);
             child.setUserId(user.getId());
             child.setApiToken(UUID.randomUUID().toString().replace("-", ""));
-            if (body.containsKey("dob") && body.get("dob") != null) {
-                try { child.setDob(LocalDate.parse(body.get("dob").toString())); } catch (Exception ignored) {}
-            }
+            applyDob(child, body);
             child.setCreatedAt(LocalDateTime.now());
             child.setUpdatedAt(LocalDateTime.now());
             userRepository.save(child);

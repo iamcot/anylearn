@@ -5,7 +5,7 @@ import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
-  getCart, removeCartItem, checkout, initiatePayment, getPendingOrders, cancelOrder, checkVoucher,
+  getCart, removeCartItem, checkout, initiatePayment, getPendingOrders, cancelOrder, checkVoucher, saveChild, updateProfile,
   type CartItem, type PendingOrder, type VoucherResult,
 } from '@/lib/api'
 import { formatExactPrice } from '@/lib/format/price'
@@ -15,6 +15,8 @@ import PaymentMethodSelector from '@/components/PaymentMethodSelector'
 import SectionCard from '@/components/SectionCard'
 import OrderLine from '@/components/cart/OrderLine'
 import ApplyRow from '@/components/cart/ApplyRow'
+import LearnerDobForm from '@/components/cart/LearnerDobForm'
+import { learnersMissingFullDob, nextLearnerMessage, type LearnerNeedingDob } from '@/lib/checkout/learnerDob'
 import { useToast } from '@/components/ToastProvider'
 import { FormPageSkeleton, ListSkeleton } from '@/components/PageSkeleton'
 import { CardIcon, CartIcon, ClockIcon, CloseIcon, GiftIcon } from '@/components/icons'
@@ -69,6 +71,7 @@ export default function CheckoutPage() {
   const [voucherResult, setVoucherResult] = useState<VoucherResult | null>(null)
   const [voucherError, setVoucherError] = useState('')
   const [voucherLoading, setVoucherLoading] = useState(false)
+  const [savingDobFor, setSavingDobFor] = useState<number | null>(null)
 
   useEffect(() => {
     if (!isAuthLoading && !user) router.push('/login')
@@ -89,6 +92,7 @@ export default function CheckoutPage() {
   const subtotal = items.reduce((sum, item) => sum + item.price, 0)
   const { pointsDiscount, voucherDiscount, finalTotal } = calcCheckoutTotals(subtotal, pointsApplied, voucherResult?.discountValue ?? 0)
   const walletPoints = user.walletC ?? 0
+  const learnersMissingDob = learnersMissingFullDob(items)
 
   const handleRemove = async (id: number) => {
     if (!token) return
@@ -124,13 +128,36 @@ export default function CheckoutPage() {
     toast({ kind: 'success', text: 'Đã hủy đơn hàng' })
   }
 
+  const handleSaveDob = async (learner: LearnerNeedingDob, dob: string) => {
+    if (!token) return
+    setSavingDobFor(learner.learnerId)
+    const { error: err } = learner.childId === null
+      ? await updateProfile({ dob }, token)
+      : await saveChild({ id: learner.childId, name: learner.name, dob, dobYearOnly: false }, token)
+    if (err) {
+      setSavingDobFor(null)
+      toast({ kind: 'error', text: err })
+      return
+    }
+    setItems(await getCart(token))
+    setSavingDobFor(null)
+    toast({ kind: 'success', text: `Đã lưu ngày sinh của ${learner.name}` })
+  }
+
   const handleCheckout = async () => {
     if (!agreedTerms) { setError('Vui lòng đồng ý với điều khoản thanh toán'); return }
     if (!token) return
+    if (learnersMissingDob.length > 0) { setError(nextLearnerMessage(learnersMissingDob)); return }
     setSubmitting(true)
     setError('')
     const { data, error: err } = await checkout({ paymentMethod, couponCode: coupon || undefined, pointsUsed: points ? Number(points) : undefined }, token)
-    if (err || !data) { setError(err || 'Thanh toán thất bại'); setSubmitting(false); return }
+    if (err || !data) {
+      setError(err || 'Thanh toán thất bại')
+      setSubmitting(false)
+      // The server may have refused for a missing date of birth: reload the cart so the form for that learner shows.
+      setItems(await getCart(token))
+      return
+    }
 
     // walletC may have been deducted
     await refreshUser()
@@ -142,7 +169,7 @@ export default function CheckoutPage() {
     await refreshCartCount()
 
     if (payData?.redirectUrl) {
-      window.location.href = payData.redirectUrl
+      window.location.assign(payData.redirectUrl)
     } else {
       router.push(`/order/${data.orderId}`)
     }
@@ -247,6 +274,19 @@ export default function CheckoutPage() {
         {items.length > 0 && (
           <SectionCard icon={<CardIcon className="size-5" />} title="Phương thức thanh toán">
             <div className="p-4 sm:p-5">
+              {learnersMissingDob.length > 0 && (
+                <div className="mb-4 flex flex-col gap-3">
+                  <p className="m-0 text-sm text-text">Trước khi thanh toán, anyLEARN cần ngày sinh đầy đủ của người học để kiểm tra độ tuổi và lập hồ sơ.</p>
+                  {learnersMissingDob.map(learner => (
+                    <LearnerDobForm
+                      key={learner.learnerId}
+                      learner={learner}
+                      saving={savingDobFor === learner.learnerId}
+                      onSave={dob => handleSaveDob(learner, dob)}
+                    />
+                  ))}
+                </div>
+              )}
               <PaymentMethodSelector total={subtotal} value={paymentMethod} onChange={setPaymentMethod} />
               <div className="mt-4 border-t border-line pt-4">
                 {error && <div className="mb-3.5 rounded-xl border border-red-line bg-red-soft px-3.5 py-2.5 text-sm text-red">{error}</div>}
@@ -258,7 +298,7 @@ export default function CheckoutPage() {
                     {' '}của Công ty
                   </span>
                 </label>
-                <button type="button" onClick={handleCheckout} className="btn btn--green w-full p-4 text-[17px]" disabled={submitting}>
+                <button type="button" onClick={handleCheckout} className="btn btn--green w-full p-4 text-[17px]" disabled={submitting || learnersMissingDob.length > 0}>
                   {submitting ? 'Đang xử lý...' : 'THANH TOÁN'}
                 </button>
               </div>

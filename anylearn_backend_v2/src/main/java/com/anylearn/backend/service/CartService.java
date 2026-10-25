@@ -1,6 +1,7 @@
 package com.anylearn.backend.service;
 
 import com.anylearn.backend.service.payment.bank.TransferNote;
+import com.anylearn.backend.exception.LearnerDobRequiredException;
 import com.anylearn.backend.entity.Item;
 import com.anylearn.backend.entity.ItemActivity;
 import com.anylearn.backend.entity.ItemSchedule;
@@ -69,6 +70,7 @@ public class CartService {
             m.put("name", c.getName() != null ? c.getName() : "");
             m.put("image", c.getImage());
             m.put("dob", c.getDob());
+            m.put("dobYearOnly", Boolean.TRUE.equals(c.getDobYearOnly()));
             return m;
         }).toList();
 
@@ -155,11 +157,8 @@ public class CartService {
                     .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy thông tin học sinh."));
             if (student.getDob() == null)
                 throw new IllegalArgumentException("Vui lòng cập nhật ngày sinh cho học sinh để kiểm tra độ tuổi.");
-            int age = java.time.Period.between(student.getDob(), java.time.LocalDate.now()).getYears();
-            if (item.getAgesMin() != null && age < item.getAgesMin())
-                throw new IllegalArgumentException("Học sinh chưa đủ tuổi (tối thiểu " + item.getAgesMin() + " tuổi).");
-            if (item.getAgesMax() != null && age > item.getAgesMax())
-                throw new IllegalArgumentException("Học sinh vượt quá độ tuổi (tối đa " + item.getAgesMax() + " tuổi).");
+            // A learner with only a birth year is checked again with the full date at checkout.
+            requireAgeInRange(item, student);
         }
 
         // Rule 4: Fee period must not overlap a paid or waiting one
@@ -230,6 +229,7 @@ public class CartService {
             row.put("orgPrice", item.getOrgPrice());
             row.put("dateStart", item.getDateStart());
             userRepository.findById(item.getUserId()).ifPresent(u -> row.put("authorName", u.getName()));
+            putLearner(row, action, currentUser);
             try {
                 if (action.getExtraValue() != null) {
                     Map<?, ?> extra = objectMapper.readValue(action.getExtraValue(), Map.class);
@@ -255,6 +255,58 @@ public class CartService {
         return result;
     }
 
+    /** The learner of a cart line: the chosen child, or the account itself. */
+    private Long learnerIdOf(ItemUserAction action, User currentUser) {
+        try {
+            if (action.getExtraValue() != null) {
+                Object sid = objectMapper.readValue(action.getExtraValue(), Map.class).get("studentId");
+                if (sid != null) return Long.parseLong(String.valueOf(sid));
+            }
+        } catch (Exception ignored) {}
+        return currentUser.getId();
+    }
+
+    private void putLearner(Map<String, Object> row, ItemUserAction action, User currentUser) {
+        Long learnerId = learnerIdOf(action, currentUser);
+        row.put("studentId", learnerId.equals(currentUser.getId()) ? null : learnerId);
+        row.put("learnerId", learnerId);
+        userRepository.findById(learnerId).ifPresent(learner -> {
+            row.put("learnerName", learner.getName());
+            row.put("dobComplete", LearnerDob.isComplete(learner));
+            row.put("learnerDobYear", learner.getDob() != null ? learner.getDob().getYear() : null);
+        });
+    }
+
+    private void requireAgeInRange(Item item, User learner) {
+        switch (LearnerDob.checkAge(learner, item.getAgesMin(), item.getAgesMax(), java.time.LocalDate.now())) {
+            case TOO_YOUNG -> throw new IllegalArgumentException(
+                    "Học sinh chưa đủ tuổi (tối thiểu " + item.getAgesMin() + " tuổi).");
+            case TOO_OLD -> throw new IllegalArgumentException(
+                    "Học sinh vượt quá độ tuổi (tối đa " + item.getAgesMax() + " tuổi).");
+            case OK -> { }
+        }
+    }
+
+    /**
+     * Checkout needs the full date of birth of every learner in the cart (a guest may have given only the birth year).
+     * With the exact date the age limit of each course is checked once more.
+     */
+    private void requireFullDobForLearners(List<ItemUserAction> cartItems, User currentUser) {
+        Map<Long, User> learners = new LinkedHashMap<>();
+        for (ItemUserAction action : cartItems) {
+            Long learnerId = learnerIdOf(action, currentUser);
+            userRepository.findById(learnerId).ifPresent(learner -> learners.put(learnerId, learner));
+        }
+        List<Long> missing = learners.values().stream().filter(learner -> !LearnerDob.isComplete(learner)).map(User::getId).toList();
+        if (!missing.isEmpty()) throw new LearnerDobRequiredException(missing);
+
+        for (ItemUserAction action : cartItems) {
+            User learner = learners.get(learnerIdOf(action, currentUser));
+            Item item = itemRepository.findById(action.getItemId()).orElse(null);
+            if (learner != null && item != null) requireAgeInRange(item, learner);
+        }
+    }
+
     public void removeCartItem(Long actionId, User currentUser) {
         ItemUserAction action = itemUserActionRepository.findById(actionId)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy item giỏ hàng"));
@@ -267,6 +319,7 @@ public class CartService {
                                          Integer pointsUsed, User currentUser) {
         List<ItemUserAction> cartItems = findCartItems(currentUser.getId());
         if (cartItems.isEmpty()) throw new IllegalArgumentException("Giỏ hàng trống");
+        requireFullDobForLearners(cartItems, currentUser);
 
         // Build item list and calculate total
         long totalAmount = 0;

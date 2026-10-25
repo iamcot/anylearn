@@ -5,6 +5,7 @@ import { AuthUser, loginApi, registerApi, getCart } from '@/lib/api'
 import { API_BASE } from '@/lib/apiBase'
 import { parseStoredUser, readStoredUserRaw, subscribeUser, writeStoredUser } from '@/lib/auth/userStore'
 import { forgetPushDevice } from '@/components/pwa/pushDevice'
+import { importGuestLearners } from '@/components/guest/importGuestLearners'
 
 const subscribeNever = () => () => {}
 
@@ -97,6 +98,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const register = async (name: string, phone: string, email: string, password: string) => {
     const { user: u, error } = await registerApi(name, phone, email, password)
     if (error || !u) return { error: error || 'Đăng ký thất bại' }
+    // The children a visitor told us about become accounts of the new user before the pages see the login, so the next
+    // step (add2cart) already lists them. A failure never blocks registering; leftovers are offered after the next login.
+    await importGuestLearners(u.jwtToken).catch(() => {})
     writeStoredUser(u)
     return {}
   }

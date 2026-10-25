@@ -15,6 +15,7 @@ export interface UserProfile {
   title?: string
   address?: string
   dob?: string
+  dobYearOnly?: boolean
   sex?: string
   walletM?: number
   walletC?: number
@@ -27,6 +28,7 @@ export interface ChildUser {
   phone: string
   image?: string
   dob?: string
+  dobYearOnly?: boolean
 }
 
 export interface UserOrder {
@@ -81,7 +83,7 @@ export async function getChildren(token: string): Promise<ChildUser[]> {
 }
 
 export async function saveChild(
-  data: { id?: number; name: string; dob?: string },
+  data: { id?: number; name: string; dob?: string; dobYearOnly?: boolean },
   token: string
 ): Promise<{ data: ChildUser | null; error?: string }> {
   return authFetch<ChildUser>('/user/children', token, {

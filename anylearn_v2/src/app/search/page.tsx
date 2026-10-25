@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { getCategories, getUserProfile, type Category, type PublicUserProfile } from '@/lib/api'
-import { SORT_OPTIONS } from '@/config/searchFilters'
+import { FILTER_ALL, SORT_OPTIONS } from '@/config/searchFilters'
 import {
   DEFAULT_FILTERS, SEARCH_PAGE_SIZE, buildSearchUrl, parseSearchParams, type SearchMode, type SearchState,
 } from '@/lib/search/query'
@@ -17,6 +17,7 @@ import Pagination from '@/components/search/Pagination'
 import { NoResults } from '@/components/search/SearchMessages'
 import { useSearchHistory } from '@/components/search/useSearchHistory'
 import { ResultRowsSkeleton } from '@/components/PageSkeleton'
+import GuestLearnerChips from '@/components/guest/GuestLearnerChips'
 
 interface FetchedResults extends SearchResults {
   url: string
@@ -54,6 +55,7 @@ function SearchPageInner() {
     window.history.replaceState(null, '', buildSearchUrl({ ...state, page: 0, ...patch }))
   }
 
+  const pickAge = (ageFilter: string | null) => apply({ filters: { ...state.filters, age: ageFilter ?? FILTER_ALL } })
   const changeMode = (mode: SearchMode) => apply({ mode, q: '', category: undefined, authorId: undefined, filters: DEFAULT_FILTERS })
   const submitQuery = (q: string) => { if (q) remember(q); apply({ q, authorId: undefined }) }
   const pickHistory = (term: string) => { remember(term); apply({ q: term, authorId: undefined }) }
@@ -87,6 +89,8 @@ function SearchPageInner() {
         onPickHistory={pickHistory}
         onClearHistory={clearHistory}
       />
+
+      {state.mode === 'class' && <GuestLearnerChips activeAge={state.filters.age} onPickAge={pickAge} />}
 
       <section className="section py-6 lg:py-10">
         <div className={`container grid items-start gap-7 ${state.mode === 'class' ? 'lg:grid-cols-[300px_1fr]' : ''}`}>

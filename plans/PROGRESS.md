@@ -34,7 +34,7 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | Task | Mô tả | Trạng thái | Ghi chú |
 |---|---|---|---|
 | 12.1–12.6 | Sửa lỗi UI mobile | done | Chờ chủ sản phẩm chốt luật VNPay "giảm 1%, trên 100 triệu" |
-| 04.7 | Hỏi "Tìm cho ai?" khi chưa đăng nhập + tự tạo con khi đăng ký + bắt buộc ngày sinh đầy đủ ở checkout | todo | Dùng bộ lọc `age` có sẵn, không chờ plan 03 |
+| 04.7 | Hỏi "Tìm cho ai?" khi chưa đăng nhập + tự tạo con khi đăng ký + bắt buộc ngày sinh đầy đủ ở checkout | done | Chưa ghi `audience`/tuổi vào `search_logs` (chờ plan 01.1) |
 | 01.1 | `search_logs` + ghi log + click | todo | |
 | 01.2 | Form "Tìm giúp tôi" (`course_requests`) | todo | |
 | 01.3 | Admin xử lý yêu cầu | todo | |
@@ -119,6 +119,23 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 13.8 | Thay app cũ trên store bằng bản bọc web (TWA / Capacitor), cùng package/bundle id | todo | Theo kết quả 13.0; có thể kéo lên sớm |
 
 ## Nhật ký
+
+### 25/10/2026 – 04.7 xong
+- Khách chưa đăng nhập vào `/`, `/search`, `/class/*` được hỏi "Tìm cho ai?" (sheet nhẹ, hiện sau 1,5 giây, "Để sau" ẩn 7 ngày).
+  Con: tên/biệt danh + năm sinh (tối đa 5); bản thân: năm sinh tuỳ chọn. Lưu `localStorage` (`anylearn.guestLearners`).
+- Dùng ngay khi chưa có tài khoản: dải "Khóa học hợp với Bin · 11t" ở trang chủ; chip trên `/search` đặt bộ lọc `age` (tự lọc
+  một lần mỗi tab, bấm lại chip để bỏ); chọn bé ở trang khóa học.
+- Đăng ký: tạo con trước khi lưu đăng nhập (dob `yyyy-01-01`, `dob_year_only = 1`), chọn sẵn bé ở `/add2cart`, xoá storage;
+  lỗi giữa chừng thì giữ phần chưa tạo. Đăng nhập: bé trùng (tên không dấu + năm sinh) dùng luôn, bé mới thì hỏi "Thêm bé".
+- Checkout: dòng giỏ có `dobComplete`; form ngày/tháng (năm điền sẵn, đổi năm phải tích xác nhận); nút thanh toán khoá tới khi
+  đủ; backend chặn `LEARNER_DOB_REQUIRED` và kiểm tra lại độ tuổi với ngày sinh đầy đủ. Migration V17.
+- Quyết định cần theo dõi: luật "cần ngày sinh đầy đủ" áp cả cho **chủ tài khoản** khi chính họ là người học (đúng plan), nên
+  người dùng cũ chưa có `dob` sẽ phải nhập ngày sinh ở lần thanh toán tới. Nếu thấy cản trở thì chỉ áp cho tài khoản con.
+- Kiểm tra: backend 155 test pass (mới: `LearnerDobTest`, `CartServiceDobTest`); FE typecheck, lint, 23 file test, build ok;
+  Playwright 390px với API giả: hỏi lần đầu, lưu 2 bé, dải trang chủ, chip tìm kiếm, đăng ký tạo đúng 2 bé và chọn sẵn bé, checkout
+  khoá nút tới khi nhập ngày sinh, ngày không tồn tại, đổi năm cần xác nhận.
+- Chưa làm / ghi chú: chưa thử trên Java thật + MySQL (migration V17 chưa chạy trên DB thật); chưa ghi `search_logs` (plan 01);
+  trang chủ chỉ có dải link, chưa cá nhân hoá các khối theo tuổi (plan 04.3).
 
 ### 25/10/2026 – plan 12: sửa lỗi UI mobile
 - 12.1: nút "N" là dev indicator của `next dev` → `devIndicators: false` trong `next.config.ts` (bản production không có nút này).

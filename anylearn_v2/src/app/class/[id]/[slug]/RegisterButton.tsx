@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useIsClient } from '@/components/useIsClient'
+import GuestLearnerPicker from '@/components/guest/GuestLearnerPicker'
 
 export default function RegisterButton({ itemId }: { itemId: number }) {
   const { user, openAuthModal } = useAuth()
@@ -45,6 +46,7 @@ export default function RegisterButton({ itemId }: { itemId: number }) {
 
   return (
     <>
+      <GuestLearnerPicker />
       <div ref={sentinelRef} />
       <button type="button" onClick={handleRegister} className="btn btn--green w-full px-6 py-4 text-[17px]">
         Đăng ký ngay

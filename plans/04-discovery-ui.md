@@ -69,7 +69,7 @@ Yêu cầu của chủ sản phẩm (25/10/2026). **Làm ở giai đoạn 1**, t
 ```ts
 interface GuestLearnerStore {
   version: 1
-  audience: 'child' | 'self'
+  audience?: 'child' | 'self'   // missing until answered (or only dismissedAt after "Để sau")
   learners: { localId: string; nickname: string; birthYear: number }[]
   selfBirthYear?: number
   selectedLocalId?: string

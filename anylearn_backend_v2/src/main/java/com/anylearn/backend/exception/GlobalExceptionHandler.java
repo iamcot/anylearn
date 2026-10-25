@@ -4,6 +4,7 @@ import com.anylearn.backend.dto.response.ApiResponse;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import java.util.Map;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -35,6 +36,13 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiResponse<?> handleConstraint(ConstraintViolationException ex) {
         return ApiResponse.fail(ex.getMessage());
+    }
+
+    @ExceptionHandler(LearnerDobRequiredException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiResponse<?> handleLearnerDobRequired(LearnerDobRequiredException ex) {
+        return new ApiResponse<>(0, ex.getMessage(),
+                Map.of("code", LearnerDobRequiredException.CODE, "learnerIds", ex.getLearnerIds()));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

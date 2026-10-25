@@ -7,6 +7,7 @@ import TodayRedirect from '@/components/TodayRedirect'
 import CategoryIcon from '@/components/CategoryIcon'
 import { BoltIcon, BookIcon, ChatIcon, GiftIcon, PlayIcon, SearchIcon } from '@/components/icons'
 import ChevronLabel from '@/components/ChevronLabel'
+import GuestLearnerStrip from '@/components/guest/GuestLearnerStrip'
 
 const BENEFITS = [
   { Icon: SearchIcon, title: 'Dễ tìm kiếm', desc: 'Tìm trường học, khóa học và chuyên gia theo nhu cầu của con' },
@@ -60,6 +61,7 @@ export default async function HomePage() {
       </div>
 
       {/* ── Promo ── */}
+      <GuestLearnerStrip />
       <PromoSlider promos={promos} />
 
       {/* ── Categories ── */}

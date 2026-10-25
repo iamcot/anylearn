@@ -11,7 +11,7 @@ export interface ItemSchedule {
 // ── Cart ──────────────────────────────────────────────
 export interface CartInfoData {
   item: Item & { orgPrice?: number; nolimitTime?: string; authorName?: string; cycleType?: string; cycleAmount?: number }
-  children: { id: number; name: string; image?: string; dob?: string }[]
+  children: { id: number; name: string; image?: string; dob?: string; dobYearOnly?: boolean }[]
   plans: { id: number; title?: string; weekdays?: string; date_start?: string; time_start?: string; location_title?: string; address?: string }[]
   schedules: ItemSchedule[]
   categories: { id: number; title: string; url: string }[]
@@ -30,6 +30,12 @@ export interface CartItem {
   dateStart?: string
   authorName?: string
   studentName?: string
+  // Who attends: a child (studentId) or the account itself (null). dobComplete is false while only a birth year is known.
+  studentId?: number | null
+  learnerId?: number
+  learnerName?: string
+  dobComplete?: boolean
+  learnerDobYear?: number | null
   scheduleTitle?: string
   scheduleTime?: string
   activities?: { type: string; date?: string; note?: string }[]
