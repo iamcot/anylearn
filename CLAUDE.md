@@ -90,6 +90,10 @@ BANK_NAME / BANK_BIN / BANK_ACCOUNT_NUMBER / BANK_ACCOUNT_NAME   # default recei
 SEPAY_API_KEY       # key of the SePay webhook, see "Bank transfer by QR"
 ```
 
+## CI (GitHub Actions, self-hosted runner)
+
+- The runner is the production box: 2 cores, 4 GB RAM shared with Java, MySQL, MeiliSearch, Next.js and nginx. Measured peaks on 2 cores: `npm ci` about 0.9 GB, `next build` about 1 GB, `mvn package` about 0.5 GB. The three build jobs therefore run one after another (`build-backend` → `build-frontend` → `build-admin`); do not make them parallel again. If builds still get killed, add 2 GB of swap on the server.
+
 ## HTTP Test Files
 
 Thư mục `http/` chứa VS Code REST Client files cho mọi endpoint:

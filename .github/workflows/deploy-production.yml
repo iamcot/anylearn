@@ -55,6 +55,9 @@ jobs:
 
       - name: Build with Maven
         working-directory: anylearn_backend_v2
+        env:
+          # runner has 4 GB shared with the running app: keep the JVM small (measured peak about 0.5 GB)
+          MAVEN_OPTS: -Xmx768m
         run: nice -n 19 mvn clean package -DskipTests -B
 
       - name: Upload backend artifact
