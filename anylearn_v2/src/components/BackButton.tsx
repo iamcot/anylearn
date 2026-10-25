@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { ChevronLeftIcon } from '@/components/icons'
 
 export default function BackButton() {
   const router = useRouter()
@@ -15,15 +16,12 @@ export default function BackButton() {
 
   return (
     <button
+      type="button"
       onClick={() => router.back()}
-      style={{
-        display: 'inline-flex', alignItems: 'center', gap: 6,
-        border: 0, background: 'transparent',
-        color: '#6d7a8a', fontWeight: 500, fontSize: 14,
-        cursor: 'pointer', fontFamily: 'inherit', padding: '0 0 20px',
-      }}
+      className="mb-2 inline-flex min-h-11 cursor-pointer items-center gap-0.5 border-0 bg-transparent p-0 text-sm font-bold text-muted hover:text-blue"
     >
-      ← Quay lại
+      <ChevronLeftIcon className="-ml-1 size-5" />
+      Quay lại
     </button>
   )
 }

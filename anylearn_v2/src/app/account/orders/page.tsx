@@ -6,12 +6,8 @@ import { useAuth } from '@/context/AuthContext'
 import { getUserOrders, UserOrder, getCourseUrl } from '@/lib/api'
 import OrderItemRating from '@/components/OrderItemRating'
 import { API_BASE } from '@/lib/apiBase'
-
-function formatPrice(p: number) {
-  if (!p) return '0 đ'
-  if (p >= 1_000_000) return `${(p / 1_000_000).toFixed(1).replace('.0', '')} triệu`
-  return p.toLocaleString('vi-VN') + ' đ'
-}
+import { formatPrice } from '@/lib/format/price'
+import { ListSkeleton } from '@/components/PageSkeleton'
 
 const UNPAID_STATUSES = new Set(['new', 'pay_pending'])
 
@@ -67,7 +63,7 @@ export default function OrdersPage() {
       </div>
 
       {loading ? (
-        <div className="p-5 text-muted text-sm">Đang tải...</div>
+        <div className="p-5"><ListSkeleton showTitle={false} /></div>
       ) : orders.length === 0 ? (
         <div className="p-10 text-center text-muted text-sm">Chưa có đơn hàng nào.</div>
       ) : (
@@ -147,7 +143,7 @@ export default function OrdersPage() {
                           )}
                         </div>
                         <div className="shrink-0 text-right">
-                          <div className="font-black text-red text-base">{formatPrice(item.paidPrice)}</div>
+                          <div className="font-black text-red text-base">{formatPrice(item.paidPrice, '0 đ')}</div>
                           {order.items.indexOf(item) === 0 && (
                             <div className="text-xs text-muted">{paymentLabel}</div>
                           )}

@@ -2,6 +2,8 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { getArticle, getArticleUrl } from '@/lib/api'
+import { formatDate } from '@/lib/format/date'
+import BackLink from '@/components/BackLink'
 
 interface Props {
   params: Promise<{ id: string; slug: string }>
@@ -27,15 +29,6 @@ const TYPE_LABELS: Record<string, string> = {
   video: '🎬 Video',
   event: '📅 Sự kiện',
   promotion: '🎁 Khuyến mãi',
-}
-
-function formatDate(dateStr?: string): string {
-  if (!dateStr) return ''
-  try {
-    return new Date(dateStr).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })
-  } catch {
-    return ''
-  }
 }
 
 function getVideoEmbedUrl(url: string): string {
@@ -123,7 +116,7 @@ export default async function ArticleDetailPage({ params }: Props) {
 
       {/* Back link */}
       <div className="mt-10 pt-6 border-t border-[#e6edf4]">
-        <Link href="/article" className="text-blue font-black hover:underline">← Xem tất cả bài viết</Link>
+        <BackLink href="/article">Xem tất cả bài viết</BackLink>
       </div>
     </div>
   )

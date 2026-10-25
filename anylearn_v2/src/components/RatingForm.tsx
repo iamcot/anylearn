@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { API_BASE } from '@/lib/apiBase'
+import { StarIcon } from './icons'
 
 interface Props {
   itemId: number
@@ -57,11 +58,13 @@ export default function RatingForm({ itemId, existingRating, existingComment, on
           <button
             key={n}
             type="button"
-            className="text-[28px] leading-none transition-transform hover:scale-110"
-            style={{ color: n <= display ? '#f5a623' : '#ddd', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+            aria-label={`${n} sao`}
+            className={`grid size-11 cursor-pointer place-items-center border-0 bg-transparent p-0 transition-transform hover:scale-110 ${n <= display ? 'text-star' : 'text-line'}`}
             onMouseEnter={() => setHovered(n)}
             onClick={() => setRating(n)}
-          >★</button>
+          >
+            <StarIcon filled className="size-7" />
+          </button>
         ))}
         {display > 0 && (
           <span className="ml-2 text-sm text-muted self-center">

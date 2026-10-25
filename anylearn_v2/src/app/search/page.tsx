@@ -4,21 +4,8 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState, useCallback, Suspense, useRef } from 'react'
 import { searchItems, searchUsers, Item, UserResult, SearchResult, UserSearchResult, getCategories, Category, getUserProfile, PublicUserProfile, getCourseUrl } from '@/lib/api'
 import Link from 'next/link'
-
-const SUBTYPE_LABELS: Record<string, string> = {
-  extra:     'Ngoại khóa',
-  offline:   'Học trực tiếp',
-  online:    'Học online',
-  digital:   'Kỹ thuật số',
-  video:     'Video',
-  preschool: 'Mầm non',
-}
-
-function formatPrice(price: number) {
-  if (!price) return 'Liên hệ'
-  if (price >= 1_000_000) return `${(price / 1_000_000).toFixed(1).replace('.0', '')} triệu`
-  return price.toLocaleString('vi-VN') + ' đ'
-}
+import { formatPrice } from '@/lib/format/price'
+import { SUBTYPE_LABELS } from '@/config/itemLabels'
 
 const MODES = [
   { key: 'class',   label: 'Khóa học' },

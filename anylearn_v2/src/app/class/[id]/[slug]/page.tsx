@@ -8,17 +8,8 @@ import RegisterButton from './RegisterButton'
 import FavButton from '@/components/FavButton'
 import ReviewsSection from '@/components/ReviewsSection'
 import ActivityButton from '@/components/ActivityButton'
-
-const SUBTYPE_LABELS: Record<string, string> = {
-  extra: 'Ngoại khóa', offline: 'Học trực tiếp', online: 'Học online',
-  digital: 'Kỹ thuật số', video: 'Video', preschool: 'Mầm non',
-}
-
-function formatPrice(p: number) {
-  if (!p) return 'Liên hệ'
-  if (p >= 1_000_000) return `${(p / 1_000_000).toFixed(1).replace('.0', '')} triệu`
-  return p.toLocaleString('vi-VN') + ' đ'
-}
+import { formatPrice } from '@/lib/format/price'
+import { SUBTYPE_LABELS } from '@/config/itemLabels'
 
 function formatAge(min?: number, max?: number) {
   if (!min && !max) return null

@@ -5,18 +5,13 @@ import Link from 'next/link'
 import { useAuth } from '@/context/AuthContext'
 import { getCourseUrl } from '@/lib/api'
 import { API_BASE } from '@/lib/apiBase'
+import { ListSkeleton } from '@/components/PageSkeleton'
 
 interface FavItem {
   id: number
   title: string
   image?: string
   shortContent?: string
-}
-
-function formatPrice(p: number) {
-  if (!p) return 'Liên hệ'
-  if (p >= 1_000_000) return `${(p / 1_000_000).toFixed(1).replace('.0', '')} triệu`
-  return p.toLocaleString('vi-VN') + ' đ'
 }
 
 export default function FavoritesPage() {
@@ -44,7 +39,7 @@ export default function FavoritesPage() {
       </div>
 
       {loading ? (
-        <div className="p-5 text-muted text-sm">Đang tải...</div>
+        <div className="p-5"><ListSkeleton showTitle={false} /></div>
       ) : items.length === 0 ? (
         <div className="p-10 text-center text-muted text-sm">
           Bạn chưa yêu thích khóa học nào.<br />

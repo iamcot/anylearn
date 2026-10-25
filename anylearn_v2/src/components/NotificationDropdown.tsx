@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getNotifications, markNotificationRead, markAllNotificationsRead, AppNotification } from '@/lib/api'
+import { BellIcon, CardIcon, CartIcon, ClipboardIcon, GiftIcon, MegaphoneIcon } from './icons'
 
 interface Props {
   token: string
@@ -29,14 +30,14 @@ function resolveRoute(route?: string, extraContent?: string): string | null {
   }
 }
 
-function typeIcon(type: string): string {
+function TypeIcon({ type }: { type: string }) {
   switch (type) {
-    case 'order':                return '🛒'
-    case 'payment':              return '💳'
-    case 'voucher_partner_sent': return '🎁'
+    case 'order':                return <CartIcon />
+    case 'payment':              return <CardIcon />
+    case 'voucher_partner_sent': return <GiftIcon />
     case 'system':
-    case 'system_notif':         return '📢'
-    default:                     return '🔔'
+    case 'system_notif':         return <MegaphoneIcon />
+    default:                     return <BellIcon />
   }
 }
 
@@ -137,7 +138,7 @@ export default function NotificationDropdown({ token, onClose, onUnreadChange }:
           </div>
         ) : visibleItems.length === 0 ? (
           <div className="py-10 text-center text-[#6d7a8a] text-sm">
-            <div className="text-3xl mb-2">🔔</div>
+            <BellIcon className="mx-auto mb-2 size-8" />
             Chưa có thông báo nào
           </div>
         ) : (
@@ -151,8 +152,8 @@ export default function NotificationDropdown({ token, onClose, onUnreadChange }:
                 className={`w-full text-left px-4 py-3 flex gap-3 border-b border-[#f0f5fa] last:border-0 transition-colors ${
                   isUnread ? 'bg-[#f0f7ff] hover:bg-[#e8f3ff]' : 'hover:bg-[#f7fafc]'
                 } ${hasDest ? 'cursor-pointer' : 'cursor-default'}`}>
-                <div className={`w-9 h-9 rounded-full flex-shrink-0 grid place-items-center text-lg ${isUnread ? 'bg-[#dbeeff]' : 'bg-[#f0f5fa]'}`}>
-                  {isCopyVoucher ? '📋' : typeIcon(notif.type)}
+                <div className={`w-9 h-9 rounded-full flex-shrink-0 grid place-items-center text-blue ${isUnread ? 'bg-[#dbeeff]' : 'bg-[#f0f5fa]'}`}>
+                  {isCopyVoucher ? <ClipboardIcon /> : <TypeIcon type={notif.type} />}
                 </div>
                 <div className="flex-1 min-w-0">
                   {notif.title && (

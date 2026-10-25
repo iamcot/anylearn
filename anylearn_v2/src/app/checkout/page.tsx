@@ -6,12 +6,8 @@ import { useRouter } from 'next/navigation'
 import { getCart, removeCartItem, checkout, initiatePayment, getPendingOrders, cancelOrder, checkVoucher, CartItem, PendingOrder, VoucherResult } from '@/lib/api'
 import PaymentMethodSelector from '@/components/PaymentMethodSelector'
 import Link from 'next/link'
-
-function formatPrice(p: number) {
-  if (!p) return 'Liên hệ'
-  if (p >= 1_000_000) return `${(p / 1_000_000).toFixed(1).replace('.0', '')} triệu`
-  return p.toLocaleString('vi-VN') + ' đ'
-}
+import { formatPrice } from '@/lib/format/price'
+import { ListSkeleton } from '@/components/PageSkeleton'
 
 export default function CheckoutPage() {
   const { user, token, refreshCartCount, refreshUser, isAuthLoading } = useAuth()
@@ -137,7 +133,7 @@ export default function CheckoutPage() {
             <span className="font-black text-ink">Đơn hàng của bạn</span>
           </div>
           {loading ? (
-            <div className="p-5 text-muted">Đang tải...</div>
+            <div className="p-5"><ListSkeleton showTitle={false} /></div>
           ) : items.length === 0 ? (
             <div className="p-5 text-center">
               <p className="text-muted mb-4">Giỏ hàng trống</p>

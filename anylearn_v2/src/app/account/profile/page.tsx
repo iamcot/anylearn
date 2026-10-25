@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { updateProfile, updateImageUrl, getMyProfile, UserProfile } from '@/lib/api'
 import { API_BASE } from '@/lib/apiBase'
+import { ListSkeleton } from '@/components/PageSkeleton'
 
 const ROLES_WITH_FULL_CONTENT = ['school', 'teacher']
 
@@ -77,7 +78,7 @@ export default function ProfilePage() {
     }
   }
 
-  if (!profile) return <div className="text-muted text-sm">Đang tải...</div>
+  if (!profile) return <ListSkeleton />
 
   return (
     <div className="bg-white border border-line rounded-card overflow-hidden">

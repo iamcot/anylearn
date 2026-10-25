@@ -3,9 +3,14 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { getChildren, saveChild, deleteChild, ChildUser } from '@/lib/api'
+import { ListSkeleton } from '@/components/PageSkeleton'
+import { useToast } from '@/components/ToastProvider'
+
+const CONFIRM_DELETE_MS = 4000
 
 export default function ChildrenPage() {
   const { token } = useAuth()
+  const toast = useToast()
   const [children, setChildren] = useState<ChildUser[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
@@ -13,6 +18,7 @@ export default function ChildrenPage() {
   const [form, setForm] = useState({ name: '', dob: '' })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [confirmingDeleteId, setConfirmingDeleteId] = useState<number | null>(null)
 
   useEffect(() => {
     if (!token) return
@@ -46,12 +52,20 @@ export default function ChildrenPage() {
     setShowForm(true)
   }
 
+  useEffect(() => {
+    if (confirmingDeleteId === null) return
+    const timer = setTimeout(() => setConfirmingDeleteId(null), CONFIRM_DELETE_MS)
+    return () => clearTimeout(timer)
+  }, [confirmingDeleteId])
+
   const handleDelete = async (childId: number) => {
     if (!token) return
-    if (!confirm('Bạn có chắc muốn xóa tài khoản này?')) return
+    if (confirmingDeleteId !== childId) { setConfirmingDeleteId(childId); return }
+    setConfirmingDeleteId(null)
     const { error: err } = await deleteChild(childId, token)
-    if (err) { alert(err); return }
+    if (err) { toast({ kind: 'error', text: err }); return }
     setChildren(prev => prev.filter(c => c.id !== childId))
+    toast({ kind: 'success', text: 'Đã xoá tài khoản' })
   }
 
   const handleCancel = () => {
@@ -100,7 +114,7 @@ export default function ChildrenPage() {
       {/* List */}
       <div className="p-5">
         {loading ? (
-          <p className="text-muted text-sm">Đang tải...</p>
+          <ListSkeleton showTitle={false} />
         ) : children.length === 0 ? (
           <p className="text-muted text-sm text-center py-8">Chưa có tài khoản nào. Nhấn nút thêm để tạo.</p>
         ) : (
@@ -120,7 +134,9 @@ export default function ChildrenPage() {
                 </div>
                 <div className="flex gap-2 shrink-0">
                   <button onClick={() => handleEdit(child)} className="text-xs text-blue font-bold border-0 bg-transparent cursor-pointer">Sửa</button>
-                  <button onClick={() => handleDelete(child.id)} className="text-xs text-red font-bold border-0 bg-transparent cursor-pointer">Xóa</button>
+                  <button onClick={() => handleDelete(child.id)} className="min-h-11 text-xs text-red font-bold border-0 bg-transparent cursor-pointer">
+                    {confirmingDeleteId === child.id ? 'Bấm lần nữa để xoá' : 'Xóa'}
+                  </button>
                 </div>
               </div>
             ))}

@@ -6,12 +6,8 @@ import { useRouter, useParams } from 'next/navigation'
 import { getCartInfo, addToCart, CartInfoData, ItemSchedule, getCourseUrl } from '@/lib/api'
 import Link from 'next/link'
 import { API_BASE } from '@/lib/apiBase'
-
-function formatPrice(p: number) {
-  if (!p) return 'Liên hệ'
-  if (p >= 1_000_000) return `${(p / 1_000_000).toFixed(1).replace('.0', '')} triệu`
-  return p.toLocaleString('vi-VN') + ' đ'
-}
+import { formatPrice } from '@/lib/format/price'
+import { ListSkeleton } from '@/components/PageSkeleton'
 
 export default function Add2CartPage() {
   const { user, token, openAuthModal, refreshCartCount, isAuthLoading } = useAuth()
@@ -135,7 +131,7 @@ export default function Add2CartPage() {
 
   if (isAuthLoading) return null
   if (!user) return null
-  if (loading) return <div className="section"><div className="container text-center text-muted">Đang tải...</div></div>
+  if (loading) return <div className="section"><div className="container max-w-[720px]"><ListSkeleton /></div></div>
   if (!data) return <div className="section"><div className="container text-center text-red">Không tìm thấy khóa học</div></div>
 
   const item = data.item

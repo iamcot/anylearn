@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { getUserItemCodes, ItemCode } from '@/lib/api'
+import { ListSkeleton } from '@/components/PageSkeleton'
 
 type CodeData =
   | { isPlain: true; value: string }
@@ -61,7 +62,7 @@ export default function CourseCodesPage() {
       </div>
 
       {loading ? (
-        <div className="p-5 text-muted text-sm">Đang tải...</div>
+        <div className="p-5"><ListSkeleton showTitle={false} /></div>
       ) : codes.length === 0 ? (
         <div className="p-10 text-center text-muted text-sm">Chưa có mã code nào.</div>
       ) : (

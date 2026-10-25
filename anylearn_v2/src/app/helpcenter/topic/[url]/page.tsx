@@ -2,6 +2,7 @@ import { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { API_BASE } from '@/lib/apiBase'
+import BackLink from '@/components/BackLink'
 
 interface TopicData {
   id: number; title: string; url: string
@@ -32,9 +33,7 @@ export default async function HelpcenterTopicPage({ params }: { params: Promise<
     <div className="section section--soft">
       <div className="container max-w-[780px]">
         <div className="mb-6">
-          <Link href="/helpcenter" className="text-sm text-muted no-underline hover:text-blue">
-            ← Trung tâm hỗ trợ
-          </Link>
+          <BackLink href="/helpcenter">Trung tâm hỗ trợ</BackLink>
         </div>
         <h1 className="text-[clamp(22px,3vw,30px)] font-black text-ink mb-6">{data.title}</h1>
 

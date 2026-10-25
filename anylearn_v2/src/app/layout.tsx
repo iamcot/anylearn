@@ -8,6 +8,7 @@ import Footer from '@/components/Footer'
 import FloatContact from '@/components/FloatContact'
 import { AuthProvider } from '@/context/AuthContext'
 import AuthModal from '@/components/AuthModal'
+import ToastProvider from '@/components/ToastProvider'
 
 const beVietnamPro = Be_Vietnam_Pro({
   subsets: ['vietnamese', 'latin'],
@@ -28,13 +29,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="vi" className={beVietnamPro.variable}>
       <body>
         <AuthProvider>
-          <SiteChrome
-            header={<Header />}
-            footer={<><Footer /><FloatContact /></>}
-          >
-            {children}
-          </SiteChrome>
-          <AuthModal />
+          <ToastProvider>
+            <SiteChrome
+              header={<Header />}
+              footer={<><Footer /><FloatContact /></>}
+            >
+              {children}
+            </SiteChrome>
+            <AuthModal />
+          </ToastProvider>
         </AuthProvider>
         <Script src="https://sp.zalo.me/plugins/sdk.js" strategy="lazyOnload" />
       </body>

@@ -1,23 +1,11 @@
 import Link from 'next/link'
 import { Item, getCourseUrl } from '@/lib/api'
+import { formatPrice } from '@/lib/format/price'
+import { SUBTYPE_LABELS } from '@/config/itemLabels'
+import { BookIcon, HeartIcon, StarIcon, UserIcon } from './icons'
 
 interface Props {
   item: Item
-}
-
-function formatPrice(price: number) {
-  if (!price) return 'Liên hệ'
-  if (price >= 1_000_000) return `${(price / 1_000_000).toFixed(1).replace('.0', '')} triệu`
-  return price.toLocaleString('vi-VN') + ' đ'
-}
-
-const SUBTYPE_LABELS: Record<string, string> = {
-  extra:      'Ngoại khóa',
-  offline:    'Học trực tiếp',
-  online:     'Học online',
-  digital:    'Kỹ thuật số',
-  video:      'Video',
-  preschool:  'Mầm non',
 }
 
 export default function CourseCard({ item }: Props) {
@@ -33,7 +21,7 @@ export default function CourseCard({ item }: Props) {
           // eslint-disable-next-line @next/next/no-img-element
           <img src={item.image} alt={item.title} className="w-full h-full object-cover absolute inset-0" />
         ) : (
-          <span className="text-5xl">📚</span>
+          <BookIcon className="size-14 text-blue/40" />
         )}
         {item.isHot ? (
           <span className="absolute top-3 left-3 bg-yellow text-ink rounded-full px-2.5 py-1.5 font-black text-xs z-10">HOT</span>
@@ -52,7 +40,7 @@ export default function CourseCard({ item }: Props) {
             {item.authorImage
               // eslint-disable-next-line @next/next/no-img-element
               ? <img src={item.authorImage} alt={item.authorName} className="w-[18px] h-[18px] rounded-full object-cover shrink-0" />
-              : <span className="w-[18px] h-[18px] rounded-full bg-blue-soft grid place-items-center text-[9px] shrink-0">👤</span>
+              : <span className="w-[18px] h-[18px] rounded-full bg-blue-soft grid place-items-center text-blue shrink-0"><UserIcon className="size-3" /></span>
             }
             <span className="text-xs text-muted font-bold overflow-hidden text-ellipsis whitespace-nowrap">
               {item.authorName}
@@ -80,8 +68,12 @@ export default function CourseCard({ item }: Props) {
           </div>
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 text-xs text-muted">
-              {item.rating != null && item.rating > 0 && <span>⭐ {item.rating.toFixed(1)}</span>}
-              {item.num_favorite != null && item.num_favorite > 0 && <span>❤️ {item.num_favorite}</span>}
+              {item.rating != null && item.rating > 0 && (
+                <span className="inline-flex items-center gap-1"><StarIcon filled className="size-3.5 text-star" />{item.rating.toFixed(1)}</span>
+              )}
+              {item.num_favorite != null && item.num_favorite > 0 && (
+                <span className="inline-flex items-center gap-1"><HeartIcon filled className="size-3.5 text-red" />{item.num_favorite}</span>
+              )}
             </div>
             <span className="text-[#008244] font-black text-sm no-underline shrink-0">
               Tìm hiểu thêm →

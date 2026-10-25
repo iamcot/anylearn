@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import Link from 'next/link'
+import { CloseIcon } from './icons'
 
 export default function AuthModal() {
   const { isAuthModalOpen, authModalTab, closeAuthModal, login, register, authModalOnSuccess } = useAuth()
@@ -75,8 +76,8 @@ export default function AuthModal() {
             </button>
           ))}
           <button onClick={closeAuthModal}
-            className="absolute top-3.5 right-3.5 w-8 h-8 rounded-full border border-line bg-white cursor-pointer text-base grid place-items-center">
-            ✕
+            aria-label="Đóng" className="absolute top-2 right-2 size-11 rounded-full border-0 bg-transparent text-muted cursor-pointer grid place-items-center hover:text-ink">
+            <CloseIcon />
           </button>
         </div>
 

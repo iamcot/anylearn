@@ -1,9 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { sendPasswordOtp, verifyPasswordOtp, resetPassword } from '@/lib/api'
+import BackLink from '@/components/BackLink'
 
 type Step = 'PHONE' | 'OTP' | 'NEW_PASSWORD'
 
@@ -192,8 +192,8 @@ export default function ForgotPasswordPage() {
           </form>
         )}
 
-        <div className="mt-6 text-center text-sm text-[#6d7a8a]">
-          <Link href="/login" className="text-blue font-black hover:underline">← Quay lại đăng nhập</Link>
+        <div className="mt-6 flex justify-center">
+          <BackLink href="/login">Quay lại đăng nhập</BackLink>
         </div>
       </div>
     </div>

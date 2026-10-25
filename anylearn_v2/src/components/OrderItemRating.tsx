@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import RatingForm from './RatingForm'
 import { API_BASE } from '@/lib/apiBase'
+import StarRating from './StarRating'
 
 interface MyRating { value: number; comment: string }
 
@@ -86,9 +87,7 @@ export default function OrderItemRating({ itemId, itemTitle }: Props) {
         </>
       ) : (
         <div className="flex items-center gap-2">
-          <span style={{ fontSize: 13, color: '#f5a623' }}>
-            {'★'.repeat(myRating?.value ?? 0)}{'☆'.repeat(5 - (myRating?.value ?? 0))}
-          </span>
+          <StarRating value={myRating?.value ?? 0} className="size-3.5" />
           <button
             onClick={() => setOpen(true)}
             style={{ fontSize: 11, color: '#00539b', fontWeight: 500, background: 'none', border: 'none', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>

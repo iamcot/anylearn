@@ -6,6 +6,8 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import NotificationDropdown from './NotificationDropdown'
 import UpcomingEventsBar from './UpcomingEventsBar'
+import { BellIcon, CartIcon, CoinIcon, MenuIcon, SearchIcon } from './icons'
+import { getNotifications } from '@/lib/api'
 import { BROWSE_HOME_URL, markBrowsing } from '@/lib/today/links'
 import { TODAY_NAV, isNavActive } from '@/lib/today/nav'
 import { API_BASE } from '@/lib/apiBase'
@@ -30,6 +32,17 @@ const ACCOUNT_MENU = [
   { href: '/account/change-password', label: 'Đổi mật khẩu' },
 ]
 
+const ICON_BUTTON_CLASS = 'relative grid size-11 cursor-pointer place-items-center rounded-full border border-line bg-white text-ink no-underline lg:size-[38px]'
+
+function CountBadge({ count }: { count: number }) {
+  if (count <= 0) return null
+  return (
+    <span className="absolute -right-1 -top-1 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-red px-1 text-[11px] font-black text-white">
+      {count > 99 ? '99+' : count}
+    </span>
+  )
+}
+
 export default function Header() {
   const pathname = usePathname()
   const isToday = pathname.startsWith('/today')
@@ -42,18 +55,12 @@ export default function Header() {
   const { user, cartCount, logout, openAuthModal, refreshUser } = useAuth()
   const compactMobile = isToday || !!user
   const accountRef = useRef<HTMLDivElement>(null)
-  const notifRef = useRef<HTMLDivElement>(null)
   const closeNotif = useCallback(() => setNotifOpen(false), [])
 
   const fetchUnreadCount = useCallback(async () => {
     if (!user) return
-    try {
-      const res = await fetch(`${API_BASE}/user/notification?page=0`, {
-        headers: { Authorization: `Bearer ${user.jwtToken}` },
-      })
-      const json = await res.json()
-      setUnreadCount(json?.data?.unread ?? 0)
-    } catch {}
+    const { unread } = await getNotifications(user.jwtToken)
+    setUnreadCount(unread ?? 0)
   }, [user])
 
   // Register service worker for reliable browser notifications (Chrome requires this)
@@ -79,46 +86,29 @@ export default function Header() {
     const es = new EventSource(`${API_BASE}/user/notification/stream?api_token=${user.apiToken}`)
 
     es.addEventListener('notification', async () => {
+      const result = await getNotifications(user.jwtToken)
+      setUnreadCount(result.unread ?? 0)
+
+      // Refresh wallet_c and user profile so anyPoint balance is up to date
+      refreshUser()
+
+      if (!('Notification' in window) || Notification.permission !== 'granted') return
+      const latest = result.items.find(n => !n.read && n.type !== 'sms' && n.type !== 'zalo')
+      if (!latest) return
+      const opts = {
+        body: latest.content,
+        icon: `${window.location.origin}/favicon-16x16.png`,
+        tag: `notif-${latest.id}`,
+        requireInteraction: true,
+        data: { url: `${window.location.origin}/` },
+      }
       try {
-        const res = await fetch(`${API_BASE}/user/notification?page=0`, {
-          headers: { Authorization: `Bearer ${user.jwtToken}` },
-        })
-        const json = await res.json()
-        const count = json?.data?.unread ?? 0
-        setUnreadCount(count)
-
-        // Refresh wallet_c and user profile so anyPoint balance is up to date
-        refreshUser()
-
-        // Browser push notification
-        if ('Notification' in window) {
-          if (Notification.permission === 'granted') {
-            const latest = json?.data?.items?.find(
-              (n: { read?: string | null; type?: string }) =>
-                !n.read && n.type !== 'sms' && n.type !== 'zalo'
-            )
-            if (latest) {
-              const opts = {
-                body: latest.content as string,
-                icon: `${window.location.origin}/favicon-16x16.png`,
-                tag: `notif-${latest.id}`,
-                requireInteraction: true,
-                data: { url: `${window.location.origin}/` },
-              }
-              try {
-                const reg = await navigator.serviceWorker?.ready
-                if (reg) {
-                  await reg.showNotification(latest.title || 'anyLEARN', opts)
-                } else {
-                  new Notification(latest.title || 'anyLEARN', opts)
-                }
-              } catch {
-                new Notification(latest.title || 'anyLEARN', opts)
-              }
-            }
-          }
-        }
-      } catch {}
+        const reg = await navigator.serviceWorker?.ready
+        if (reg) await reg.showNotification(latest.title || 'anyLEARN', opts)
+        else new Notification(latest.title || 'anyLEARN', opts)
+      } catch {
+        new Notification(latest.title || 'anyLEARN', opts)
+      }
     })
 
     return () => es.close()
@@ -132,6 +122,22 @@ export default function Header() {
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [])
+
+  const bell = user && (
+    <div className="relative">
+      <button type="button" aria-label="Thông báo" onClick={() => { setNotifOpen(v => !v); setAccountOpen(false) }}
+        className={ICON_BUTTON_CLASS}>
+        <BellIcon />
+        <CountBadge count={unreadCount} />
+      </button>
+      {notifOpen && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={closeNotif} />
+          <NotificationDropdown token={user.jwtToken} onClose={closeNotif} onUnreadChange={setUnreadCount} />
+        </>
+      )}
+    </div>
+  )
 
   return (
     <>
@@ -157,41 +163,12 @@ export default function Header() {
 
         {/* Right actions */}
         <div className="hidden lg:flex items-center gap-2.5">
-          {/* Cart */}
-          <Link href="/checkout" className="relative no-underline">
-            <button className="w-[38px] h-[38px] rounded-full border border-line bg-white grid place-items-center cursor-pointer text-lg">🛒</button>
-            {cartCount > 0 && (
-              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full bg-red text-white text-[11px] font-black grid place-items-center px-1">
-                {cartCount}
-              </span>
-            )}
+          <Link href="/checkout" aria-label="Giỏ hàng" className={ICON_BUTTON_CLASS}>
+            <CartIcon />
+            <CountBadge count={cartCount} />
           </Link>
 
-          {/* Notification bell */}
-          {user && (
-            <div className="relative" ref={notifRef}>
-              <button
-                onClick={() => { setNotifOpen(v => !v); setAccountOpen(false) }}
-                className="w-[38px] h-[38px] rounded-full border border-line bg-white grid place-items-center cursor-pointer text-lg relative">
-                🔔
-                {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full bg-red text-white text-[11px] font-black grid place-items-center px-1">
-                    {unreadCount > 99 ? '99+' : unreadCount}
-                  </span>
-                )}
-              </button>
-              {notifOpen && (
-                <>
-                  <div className="fixed inset-0 z-40" onClick={closeNotif} />
-                  <NotificationDropdown
-                    token={user.jwtToken}
-                    onClose={closeNotif}
-                    onUnreadChange={setUnreadCount}
-                  />
-                </>
-              )}
-            </div>
-          )}
+          {bell}
 
           {/* Auth */}
           {user ? (
@@ -225,7 +202,7 @@ export default function Header() {
                     onClick={() => setAccountOpen(false)}
                     className="px-4 py-3 flex items-center gap-2 bg-bg border-b border-line no-underline hover:bg-blue-soft transition-colors"
                   >
-                    <span className="text-base">🟡</span>
+                    <CoinIcon className="size-5 text-yellow" />
                     <span className="text-xs text-muted">anyPoint:</span>
                     <span className="text-sm font-black text-ink">{(user.walletC ?? 0).toLocaleString()}</span>
                   </Link>
@@ -267,47 +244,16 @@ export default function Header() {
         <div className="flex lg:hidden items-center gap-2">
           {compactMobile && (
             <Link href="/search" onClick={isToday ? markBrowsing : undefined} aria-label="Tìm khóa học"
-              className="w-[38px] h-[38px] rounded-full border border-line bg-white grid place-items-center text-lg no-underline">🔍</Link>
+              className={ICON_BUTTON_CLASS}><SearchIcon /></Link>
           )}
-          {/* Cart on mobile */}
-          <Link href="/checkout" className="relative no-underline">
-            <button className="w-[38px] h-[38px] rounded-full border border-line bg-white grid place-items-center cursor-pointer text-lg">🛒</button>
-            {cartCount > 0 && (
-              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full bg-red text-white text-[11px] font-black grid place-items-center px-1">
-                {cartCount}
-              </span>
-            )}
+          <Link href="/checkout" aria-label="Giỏ hàng" className={ICON_BUTTON_CLASS}>
+            <CartIcon />
+            <CountBadge count={cartCount} />
           </Link>
-          {/* Bell on mobile */}
-          {user && (
-            <div className="relative">
-              <button
-                onClick={() => { setNotifOpen(v => !v); setAccountOpen(false) }}
-                className="w-[38px] h-[38px] rounded-full border border-line bg-white grid place-items-center cursor-pointer text-lg relative">
-                🔔
-                {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full bg-red text-white text-[11px] font-black grid place-items-center px-1">
-                    {unreadCount > 99 ? '99+' : unreadCount}
-                  </span>
-                )}
-              </button>
-              {notifOpen && (
-                <>
-                  <div className="fixed inset-0 z-40" onClick={closeNotif} />
-                  <NotificationDropdown
-                    token={user.jwtToken}
-                    onClose={closeNotif}
-                    onUnreadChange={setUnreadCount}
-                  />
-                </>
-              )}
-            </div>
-          )}
-          {/* Hamburger */}
+          {bell}
           {!compactMobile && (
-            <button onClick={() => setMenuOpen(!menuOpen)}
-              className="w-[38px] h-[38px] rounded-[10px] border border-line bg-white flex items-center justify-center cursor-pointer text-xl"
-              aria-label="Mở menu">☰</button>
+            <button type="button" onClick={() => setMenuOpen(!menuOpen)} aria-label="Mở menu" aria-expanded={menuOpen}
+              className={ICON_BUTTON_CLASS}><MenuIcon /></button>
           )}
         </div>
       </div>

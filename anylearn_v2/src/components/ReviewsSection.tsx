@@ -6,6 +6,7 @@ import ReviewsList from './ReviewsList'
 import RatingForm from './RatingForm'
 import { useAuth } from '@/context/AuthContext'
 import { API_BASE } from '@/lib/apiBase'
+import StarRating from './StarRating'
 
 interface MyRating { value: number; comment: string }
 
@@ -114,9 +115,7 @@ export default function ReviewsSection({ itemId, initialReviews, initialRating }
         {/* Already rated — show summary + edit button */}
         {checked && hasPurchased && myRating && !editing && (
           <div className="flex items-center gap-3 rounded-[12px] bg-[#f0fff8] border border-[#c3f0d8] px-4 py-3">
-            <span style={{ fontSize: 14, color: '#f5a623' }}>
-              {'★'.repeat(myRating.value)}{'☆'.repeat(5 - myRating.value)}
-            </span>
+            <StarRating value={myRating.value} />
             <span className="text-sm text-[#008244] font-bold flex-1">Đánh giá của bạn</span>
             <button
               onClick={startEdit}

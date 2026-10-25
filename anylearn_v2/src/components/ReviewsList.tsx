@@ -2,19 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import type { PdpReview } from '@/lib/api'
+import StarRating from './StarRating'
+import { UserIcon } from './icons'
 
 interface Props {
   reviews: PdpReview[]
   rating?: number
-}
-
-function Stars({ value, size = 14 }: { value: number; size?: number }) {
-  const filled = Math.round(value)
-  return (
-    <span style={{ fontSize: size, color: '#f5a623', letterSpacing: 1 }}>
-      {'★'.repeat(filled)}{'☆'.repeat(5 - filled)}
-    </span>
-  )
 }
 
 function ReviewRow({ r }: { r: PdpReview }) {
@@ -24,12 +17,12 @@ function ReviewRow({ r }: { r: PdpReview }) {
         // eslint-disable-next-line @next/next/no-img-element
         ? <img src={r.user_image} alt={r.user_name}
             className="w-9 h-9 rounded-full object-cover shrink-0 mt-0.5" />
-        : <div className="w-9 h-9 rounded-full bg-[linear-gradient(135deg,#eef7ff,#e9fff3)] grid place-items-center text-base shrink-0 mt-0.5">👤</div>
+        : <div className="w-9 h-9 rounded-full bg-[linear-gradient(135deg,#eef7ff,#e9fff3)] grid place-items-center text-blue shrink-0 mt-0.5"><UserIcon className="size-5" /></div>
       }
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-0.5 flex-wrap">
           <span className="font-bold text-ink text-[13px]">{r.user_name}</span>
-          <Stars value={Number(r.value)} size={12} />
+          <StarRating value={Number(r.value)} className="size-3" />
         </div>
         {r.extra_value && (
           <p className="m-0 text-text text-sm leading-[1.6]">{r.extra_value}</p>
@@ -86,7 +79,7 @@ export default function ReviewsList({ reviews, rating }: Props) {
               {rating != null && (
                 <div className="flex items-center gap-2">
                   <span className="text-2xl font-black text-ink">{rating.toFixed(1)}</span>
-                  <Stars value={rating} size={18} />
+                  <StarRating value={rating} className="size-[18px]" />
                   <span className="text-sm text-muted">({reviews.length} đánh giá)</span>
                 </div>
               )}

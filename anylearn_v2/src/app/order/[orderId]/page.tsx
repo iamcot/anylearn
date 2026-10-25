@@ -7,12 +7,8 @@ import { getOrder, initiatePayment, getBankInfo, OrderData, BankInfo, getCourseU
 import PaymentMethodSelector from '@/components/PaymentMethodSelector'
 import Link from 'next/link'
 import CheckCircle from '@/components/CheckCircle'
-
-function formatPrice(p: number) {
-  if (!p) return 'Liên hệ'
-  if (p >= 1_000_000) return `${(p / 1_000_000).toFixed(1).replace('.0', '')} triệu`
-  return p.toLocaleString('vi-VN') + ' đ'
-}
+import { formatPrice } from '@/lib/format/price'
+import { ListSkeleton } from '@/components/PageSkeleton'
 
 const PAYMENT_INSTRUCTIONS: Record<string, { title: string; steps: string[] }> = {
   bank_transfer: {
@@ -82,7 +78,7 @@ export default function OrderPage() {
     <div className="section">
       <div className="container text-center">
         {loading ? (
-          <p className="text-muted">Đang tải...</p>
+          <div className="mx-auto max-w-[720px] text-left"><ListSkeleton /></div>
         ) : !order ? (
           <div>
             <p className="text-red mb-4">Không tìm thấy đơn hàng</p>

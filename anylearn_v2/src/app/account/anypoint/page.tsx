@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { getWalletCHistory, WalletTransaction } from '@/lib/api'
+import { ListSkeleton } from '@/components/PageSkeleton'
 
 const TYPE_LABELS: Record<string, string> = {
   commission:     'Điểm giới thiệu',
@@ -63,7 +64,7 @@ export default function AnypointPage() {
 
       {/* History */}
       {loading ? (
-        <div className="p-5 text-muted text-sm">Đang tải...</div>
+        <div className="p-5"><ListSkeleton showTitle={false} /></div>
       ) : history.length === 0 ? (
         <div className="p-10 text-center text-muted text-sm">Chưa có lịch sử điểm nào.</div>
       ) : (

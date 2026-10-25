@@ -2,6 +2,7 @@ import { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { API_BASE } from '@/lib/apiBase'
+import BackLink from '@/components/BackLink'
 
 interface ArticleData {
   id: number; title: string; url: string; content: string; updatedAt?: string
@@ -32,9 +33,7 @@ export default async function KnowledgeArticlePage({ params }: { params: Promise
     <section className="section">
       <div className="container max-w-[860px]">
         <div className="mb-4">
-          <Link href="/helpcenter" className="text-sm text-muted no-underline hover:text-blue">
-            ← Trung tâm hỗ trợ
-          </Link>
+          <BackLink href="/helpcenter">Trung tâm hỗ trợ</BackLink>
         </div>
 
         <div className="flex gap-8 items-start">

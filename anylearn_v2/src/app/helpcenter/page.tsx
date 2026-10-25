@@ -76,7 +76,7 @@ export default async function HelpcenterPage() {
         )}
 
         {!data && (
-          <p className="text-muted text-center py-8">Đang tải nội dung hỗ trợ...</p>
+          <p className="text-muted text-center py-8">Chưa tải được nội dung hỗ trợ, vui lòng thử lại sau.</p>
         )}
 
         {data && data.topKnowledge.length === 0 && data.topics.length === 0 && (

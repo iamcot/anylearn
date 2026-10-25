@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useAuth } from '@/context/AuthContext'
 import { getCourseUrl } from '@/lib/api'
 import { API_BASE } from '@/lib/apiBase'
+import { ListSkeleton } from '@/components/PageSkeleton'
 
 const PALETTE = ['#0078d4', '#107c10', '#b4009e', '#ff8c00', '#d13438', '#00b294', '#7b69ee']
 const color = (id: number) => PALETTE[id % PALETTE.length]
@@ -542,7 +543,7 @@ export default function SchedulePage() {
       </div>
 
       {loading ? (
-        <div className="p-5 text-muted text-sm">Đang tải...</div>
+        <div className="p-5"><ListSkeleton showTitle={false} /></div>
       ) : (
         <div className="p-4 flex flex-col gap-4">
 
