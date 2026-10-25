@@ -43,7 +43,7 @@ function EmptyState() {
     <PageFrame>
       <h1 className="text-2xl font-black">Chưa có khóa học đang học</h1>
       <p className="mt-2 text-muted">Khi bạn đăng ký khóa học, lịch học sẽ hiện ở đây mỗi ngày.</p>
-      <Link href={BROWSE_HOME_URL} className="mt-5 inline-flex min-h-11 items-center rounded-full bg-blue px-5 text-[15px] font-black text-white">
+      <Link href={BROWSE_HOME_URL} className="mt-5 inline-flex min-h-11 items-center rounded-full bg-green px-5 text-[15px] font-black text-white">
         Tìm khóa học mới
       </Link>
     </PageFrame>

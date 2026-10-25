@@ -60,7 +60,7 @@ export default function EnablePushCard({ context, push }: { context: Context; pu
           type="button"
           onClick={handleEnable}
           disabled={push.busy}
-          className="min-h-11 cursor-pointer rounded-full border-0 bg-blue px-5 text-sm font-medium text-white disabled:opacity-60"
+          className="min-h-11 cursor-pointer rounded-full border-0 bg-green px-5 text-sm font-medium text-white disabled:opacity-60"
         >
           {push.busy ? 'Đang bật...' : 'Bật thông báo'}
         </button>

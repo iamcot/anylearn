@@ -120,6 +120,10 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 
 ## Nhật ký
 
+### 25/10/2026 – rà lại màu nút (chính/phụ/đã chọn)
+- Nút "Áp dụng" mã giảm giá thành nút phụ (nền trắng, viền mảnh). `btn--blue`/`btn--yellow` thành xanh lá, `btn--outline`/`btn--white` thành nền trắng viền `line`, chữ `ink` (sửa tại `globals.css`, các trang cũ tự theo).
+- Đổi nút xanh dương lẻ thành xanh lá (bật thông báo, xem đơn, Về Hôm nay, Đóng/Gửi ở /today, ...), nút phụ viền xanh dương thành trắng viền `line` (Sao chép, xem thêm đánh giá), mục đã chọn (phân trang, tab lọc bài viết, chip tài khoản, chip bé /today, tuần, đổi chế độ lịch) thành `border-green bg-green-soft text-green-dark`.
+- Quy ước mới trong `anylearn_v2/CLAUDE.md`: mỗi lần sửa trang có nút phải kiểm lại từng nút chính hay phụ. Chưa rà: app admin (antd) và các nút nằm trong ảnh/banner.
 ### 25/10/2026 – thống nhất từ "anyPoint"
 - Mọi chữ hiển thị (giao diện, thông báo, lịch sử giao dịch mới, admin) viết **anyPoint**, không viết "điểm"; giá trị quy đổi dùng dấu "~" ("Nhận +120 anyPoint (~120.000đ)"). Ghi trong `CLAUDE.md` gốc. Dòng lịch sử cũ trong DB vẫn giữ chữ cũ (chỉ nội dung giao dịch tạo từ nay mới dùng chữ mới).
 ### 25/10/2026 – 02.3 công tắc dùng điểm, 02.4 trang anyPoint

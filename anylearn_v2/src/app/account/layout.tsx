@@ -27,7 +27,7 @@ const NAV_ITEMS: NavItem[] = [
 
 function PointBadge({ points, active }: { points: number; active: boolean }) {
   return (
-    <span className={`rounded-full px-2 py-0.5 text-xs font-extrabold ${active ? 'bg-blue text-white' : 'bg-yellow/20 text-ink'}`}>
+    <span className={`rounded-full px-2 py-0.5 text-xs font-extrabold ${active ? 'bg-green text-white' : 'bg-yellow/20 text-ink'}`}>
       {points.toLocaleString()}
     </span>
   )
@@ -65,7 +65,7 @@ function MobileNav({ pathname, points, onLogout }: { pathname: string; points: n
                 key={href} href={href} ref={active ? activeRef : undefined}
                 aria-current={active ? 'page' : undefined}
                 className={`inline-flex min-h-11 shrink-0 snap-start items-center gap-2 whitespace-nowrap rounded-full border px-4 text-sm no-underline ${
-                  active ? 'border-blue bg-blue font-extrabold text-white' : 'border-line bg-white font-bold text-text'
+                  active ? 'border-green bg-green-soft text-green-dark font-extrabold' : 'border-line bg-white font-bold text-text'
                 }`}
               >
                 <Icon className="size-4" />

@@ -15,7 +15,7 @@ export default function LearnerChips({ learners, selectedId, onSelect }: Props) 
         return (
           <button
             key={learner.id} type="button" role="tab" aria-selected={selected} onClick={() => onSelect(learner.id)}
-            className={`min-h-11 rounded-full px-5 text-sm font-bold ${selected ? 'bg-blue text-white' : 'border border-line bg-white text-ink hover:bg-bg'}`}
+            className={`min-h-11 rounded-full px-5 text-sm font-bold ${selected ? 'border-green bg-green-soft text-green-dark border' : 'border border-line bg-white text-ink hover:bg-bg'}`}
           >
             {learner.self ? 'Bạn' : learner.name}
           </button>

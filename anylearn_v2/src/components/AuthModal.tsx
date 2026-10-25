@@ -44,7 +44,7 @@ function AuthModalBody({ initialTab }: { initialTab: Tab }) {
               aria-selected={tab === key}
               onClick={() => setTab(key)}
               className={`min-h-14 flex-1 cursor-pointer border-0 border-b-2 font-[inherit] text-[15px] transition-colors ${
-                tab === key ? 'border-blue bg-white font-extrabold text-blue' : 'border-transparent bg-bg font-semibold text-muted'
+                tab === key ? 'border-green bg-white font-extrabold text-green-dark' : 'border-transparent bg-bg font-semibold text-muted'
               }`}
             >
               {TAB_LABELS[key]}

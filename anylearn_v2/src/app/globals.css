@@ -121,10 +121,11 @@ body {
     box-shadow: 0 12px 24px rgba(15, 23, 42, 0.12);
   }
   .btn--green  { background: var(--color-green); color: #fff; }
-  .btn--blue   { background: var(--color-blue); color: #fff; }
-  .btn--yellow { background: var(--color-yellow); color: var(--color-ink); }
-  .btn--white  { background: #fff; color: var(--color-blue); border: 1px solid var(--color-blue-line); }
-  .btn--outline { background: transparent; color: var(--color-blue); border: 1px solid var(--color-blue-line); }
+  /* One system: primary = solid green, secondary = white with a thin line border. The old names stay as aliases. */
+  .btn--blue   { background: var(--color-green); color: #fff; }
+  .btn--yellow { background: var(--color-green); color: #fff; }
+  .btn--white  { background: #fff; color: var(--color-ink); border: 1px solid var(--color-line); }
+  .btn--outline { background: #fff; color: var(--color-ink); border: 1px solid var(--color-line); }
 
   /* ── Section helpers ── */
   .section {

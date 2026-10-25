@@ -48,7 +48,7 @@ export default function BankTransferPanel({ note, amount, bank }: Props) {
             <img src={qrImage} alt="Mã VietQR thanh toán đơn hàng" width={QR_IMAGE_SIZE_PX} height={QR_IMAGE_SIZE_PX}
               className="mx-auto w-full max-w-64 rounded-xl border border-line" />
             <button type="button" onClick={() => void saveQrImage(qrImage, `anylearn-${note}.png`)}
-              className="mt-3 min-h-11 cursor-pointer rounded-full border border-blue bg-white px-5 text-sm font-semibold text-blue">
+              className="mt-3 min-h-11 cursor-pointer rounded-full border border-line bg-white px-5 text-sm font-semibold text-ink">
               Lưu ảnh QR
             </button>
           </div>

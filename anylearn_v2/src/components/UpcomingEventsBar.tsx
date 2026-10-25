@@ -40,7 +40,7 @@ export default function UpcomingEventsBar() {
         </Link>
         <Link
           href={TODAY_HREF}
-          className="inline-flex min-h-11 shrink-0 items-center whitespace-nowrap rounded-full bg-blue px-4 text-[15px] font-extrabold text-white no-underline transition hover:-translate-y-px sm:px-5"
+          className="inline-flex min-h-11 shrink-0 items-center whitespace-nowrap rounded-full bg-green px-4 text-[15px] font-extrabold text-white no-underline transition hover:-translate-y-px sm:px-5"
         >
           <span className="sm:hidden">Hôm nay</span>
           <span className="hidden sm:inline">Hôm nay của bạn</span>

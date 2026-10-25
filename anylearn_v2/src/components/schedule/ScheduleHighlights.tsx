@@ -46,7 +46,7 @@ export function PendingStartDates({ enrollments, onSetStartDate }: PendingProps)
               type="button"
               onClick={() => save(enrollment.id)}
               disabled={!dates[enrollment.id] || savingId === enrollment.id}
-              className="min-h-11 cursor-pointer rounded-full border-0 bg-blue px-4 text-xs font-medium text-white disabled:opacity-50"
+              className="min-h-11 cursor-pointer rounded-full border-0 bg-green px-4 text-xs font-medium text-white disabled:opacity-50"
             >
               {savingId === enrollment.id ? '...' : 'Xác nhận'}
             </button>

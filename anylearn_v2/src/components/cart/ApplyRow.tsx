@@ -21,7 +21,7 @@ export default function ApplyRow({ label, hint, inputProps, buttonLabel, onApply
           type="button"
           onClick={onApply}
           disabled={disabled}
-          className="min-h-11 w-28 shrink-0 cursor-pointer rounded-full border border-warn-line bg-warn-soft text-xs font-bold text-ink transition-colors hover:bg-yellow/30 disabled:cursor-default disabled:opacity-60"
+          className="min-h-11 w-28 shrink-0 cursor-pointer rounded-full border border-line bg-white text-xs font-bold text-ink transition-colors hover:bg-bg disabled:cursor-default disabled:opacity-60"
         >
           {buttonLabel}
         </button>

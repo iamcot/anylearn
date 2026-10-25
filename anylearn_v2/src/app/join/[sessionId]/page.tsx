@@ -41,7 +41,7 @@ function JoinContent() {
           <>
             <h1 className="text-xl font-black text-ink">Chưa vào lớp được</h1>
             <p className="mt-2 text-muted">{error}</p>
-            <Link href="/today" className="mt-5 inline-flex min-h-11 items-center rounded-full bg-blue px-5 text-[15px] font-black text-white">Về Hôm nay</Link>
+            <Link href="/today" className="mt-5 inline-flex min-h-11 items-center rounded-full bg-green px-5 text-[15px] font-black text-white">Về Hôm nay</Link>
           </>
         )}
         {!error && !join && <p className="text-muted">Đang kiểm tra và vào lớp...</p>}

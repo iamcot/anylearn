@@ -23,12 +23,12 @@ const REQUEST_LABEL: Record<RequestType, string> = {
 
 const BUTTON = 'inline-flex min-h-11 items-center justify-center rounded-full px-5 text-[15px] font-black transition hover:-translate-y-px'
 const TONE_PRIMARY: Record<Tone, string> = {
-  light: 'bg-white text-blue hover:bg-white/90',
+  light: 'bg-white text-green-dark hover:bg-white/90',
   dark: 'bg-green text-white hover:bg-green-dark',
 }
 const TONE_SECOND: Record<Tone, string> = {
   light: 'border border-white/50 text-white hover:bg-white/10',
-  dark: 'border border-blue/40 text-blue hover:bg-blue/5',
+  dark: 'border border-line bg-white text-ink hover:bg-bg',
 }
 
 export function DirectionsLink({ location, tone }: { location: LocationView | null; tone: Tone }) {
@@ -135,7 +135,7 @@ function RequestDialog({ session, ctx, onClose }: { session: SessionView; ctx: A
             <p className="mt-4 rounded-xl bg-green-soft p-3 text-sm font-semibold text-green-dark">
               Đã gửi yêu cầu. anyLEARN sẽ liên hệ với bạn sớm.
             </p>
-            <button type="button" onClick={onClose} className={`${BUTTON} mt-4 w-full bg-blue text-white`}>Đóng</button>
+            <button type="button" onClick={onClose} className={`${BUTTON} mt-4 w-full bg-green text-white`}>Đóng</button>
           </>
         ) : (
           <>
@@ -143,7 +143,7 @@ function RequestDialog({ session, ctx, onClose }: { session: SessionView; ctx: A
               {(Object.keys(REQUEST_LABEL) as RequestType[]).map(option => (
                 <button
                   key={option} type="button" role="radio" aria-checked={type === option} onClick={() => setType(option)}
-                  className={`min-h-11 rounded-xl border px-2 text-sm font-bold ${type === option ? 'border-blue bg-blue text-white' : 'border-line text-ink'}`}
+                  className={`min-h-11 rounded-xl border px-2 text-sm font-bold ${type === option ? 'border-green bg-green-soft text-green-dark' : 'border-line text-ink'}`}
                 >
                   {upperFirst(REQUEST_LABEL[option])}
                 </button>
@@ -152,12 +152,12 @@ function RequestDialog({ session, ctx, onClose }: { session: SessionView; ctx: A
             <textarea
               value={note} onChange={event => setNote(event.target.value)} maxLength={500} rows={3}
               placeholder="Lý do (không bắt buộc)"
-              className="mt-3 w-full rounded-xl border border-line p-3 text-sm outline-none focus:border-blue"
+              className="mt-3 w-full rounded-xl border border-line p-3 text-sm outline-none focus:border-green"
             />
             {error && <p className="mt-2 text-sm text-warn-text">{error}</p>}
             <div className="mt-4 flex gap-2">
               <button type="button" onClick={onClose} className={`${BUTTON} flex-1 border border-line text-ink`}>Hủy</button>
-              <button type="button" onClick={handleSubmit} disabled={saving} className={`${BUTTON} flex-1 bg-blue text-white`}>
+              <button type="button" onClick={handleSubmit} disabled={saving} className={`${BUTTON} flex-1 bg-green text-white`}>
                 {saving ? 'Đang gửi...' : 'Gửi yêu cầu'}
               </button>
             </div>

@@ -10,7 +10,7 @@ import { useToast } from '@/components/ToastProvider'
 import { IosSteps } from '@/components/pwa/InstallAppCard'
 import { usePushPrompt, type PushPrompt } from '@/components/pwa/usePushPrompt'
 
-const PRIMARY_BUTTON = 'min-h-11 cursor-pointer rounded-full border-0 bg-blue px-5 text-sm font-medium text-white disabled:opacity-60'
+const PRIMARY_BUTTON = 'min-h-11 cursor-pointer rounded-full border-0 bg-green px-5 text-sm font-medium text-white disabled:opacity-60'
 const OUTLINE_BUTTON = 'min-h-11 cursor-pointer rounded-full border border-line bg-white px-5 text-sm font-medium text-text disabled:opacity-60'
 
 function EnabledActions({ push }: { push: PushPrompt }) {

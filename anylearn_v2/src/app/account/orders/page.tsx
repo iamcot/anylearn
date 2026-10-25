@@ -77,7 +77,7 @@ export default function OrdersPage() {
 
                   {UNPAID_STATUSES.has(order.status) && (
                     <div className="flex flex-wrap items-center gap-2">
-                      <Link href={`/order/${order.orderId}`} className="inline-flex min-h-11 items-center rounded-full bg-blue px-4 text-xs font-bold text-white no-underline hover:opacity-90">
+                      <Link href={`/order/${order.orderId}`} className="inline-flex min-h-11 items-center rounded-full bg-green px-4 text-xs font-bold text-white no-underline hover:opacity-90">
                         Thanh toán ngay
                       </Link>
                       {confirmId === order.orderId ? (

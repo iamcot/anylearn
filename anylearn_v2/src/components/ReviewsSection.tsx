@@ -96,7 +96,7 @@ export default function ReviewsSection({ itemId, initialReviews, initialRating }
             <button
               type="button"
               onClick={startEdit}
-              className="min-h-11 cursor-pointer rounded-lg border border-blue bg-transparent px-3 text-xs font-medium text-blue"
+              className="min-h-11 cursor-pointer rounded-lg border border-line bg-white px-3 text-xs font-medium text-ink"
             >
               Sửa
             </button>
