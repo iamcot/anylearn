@@ -17,7 +17,7 @@ import RadioOption from '@/components/RadioOption'
 import ActivityFields from '@/components/ActivityFields'
 import ChildFormModal, { type ChildDraft } from '@/components/ChildFormModal'
 import { useToast } from '@/components/ToastProvider'
-import { BookIcon, CalendarIcon, GiftIcon, UserIcon } from '@/components/icons'
+import { BookIcon, CalendarIcon, GiftIcon, PencilIcon, UserIcon } from '@/components/icons'
 
 const ACTIVITY_ROW_LABELS: Record<ActivityType, string> = { trial: 'Học thử', test: 'Đăng ký thi đầu vào', visit: 'Tham quan trường' }
 const BILLING_CYCLES = ['month', 'year', 'week', 'day']
@@ -89,6 +89,7 @@ export default function Add2CartPage() {
       const children = draft.id ? prev.children.map(c => (c.id === draft.id ? { ...c, ...child } : c)) : [...prev.children, child]
       return { ...prev, children }
     })
+    if (!draft.id) setSelectedStudent(saved.id)
     setChildDraft(null)
   }
 
@@ -169,8 +170,9 @@ export default function Add2CartPage() {
                   />
                 </div>
                 <button type="button" onClick={() => setChildDraft({ id: child.id, name: child.name, dob: child.dob ?? '' })}
-                  className="min-h-11 cursor-pointer border-0 bg-transparent px-2 text-xs text-muted hover:text-ink">
-                  Sửa
+                  aria-label={`Sửa thông tin ${child.name}`} title="Sửa"
+                  className="grid w-11 shrink-0 cursor-pointer place-items-center rounded-xl border border-line bg-white text-blue hover:bg-blue-soft">
+                  <PencilIcon className="size-[18px]" />
                 </button>
               </div>
             ))}

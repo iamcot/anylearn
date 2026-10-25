@@ -19,6 +19,7 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 
 ## Câu hỏi đang chờ chủ sản phẩm
 
+- [ ] VNPay: luật "giảm 1%" và "trên 100 triệu" là gì? Backend không áp dụng cả hai, nên chữ đã bỏ khỏi checkout (plan 12.5).
 - [ ] Thời hạn điểm (gợi ý 12 tháng) và ngày bắt đầu áp dụng (plan 02.5).
 - [ ] Điểm từ đơn dùng được ngay hay sau khi lớp bắt đầu (plan 02).
 - [ ] Câu chữ chính sách hoàn tiền trong "Lời hứa anyLEARN" (plan 10.1).
@@ -32,7 +33,7 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 
 | Task | Mô tả | Trạng thái | Ghi chú |
 |---|---|---|---|
-| 12.1–12.6 | Sửa lỗi UI mobile | todo | |
+| 12.1–12.6 | Sửa lỗi UI mobile | done | Chờ chủ sản phẩm chốt luật VNPay "giảm 1%, trên 100 triệu" |
 | 04.7 | Hỏi "Tìm cho ai?" khi chưa đăng nhập + tự tạo con khi đăng ký + bắt buộc ngày sinh đầy đủ ở checkout | todo | Dùng bộ lọc `age` có sẵn, không chờ plan 03 |
 | 01.1 | `search_logs` + ghi log + click | todo | |
 | 01.2 | Form "Tìm giúp tôi" (`course_requests`) | todo | |
@@ -118,6 +119,19 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 13.8 | Thay app cũ trên store bằng bản bọc web (TWA / Capacitor), cùng package/bundle id | todo | Theo kết quả 13.0; có thể kéo lên sớm |
 
 ## Nhật ký
+
+### 25/10/2026 – plan 12: sửa lỗi UI mobile
+- 12.1: nút "N" là dev indicator của `next dev` → `devIndicators: false` trong `next.config.ts` (bản production không có nút này).
+- 12.2: thanh sự kiện dưới header xuống tối đa 2 dòng thay vì cắt chữ; nút còn "Hôm nay" trên mobile.
+- 12.3: footer dưới `lg` gập 2 nhóm link thành accordion (`<details>`, đóng mặc định), giữ liên hệ + mạng xã hội;
+  cao ~554px ở 390px (trước khoảng gấp đôi). Desktop giữ nguyên lưới 4 cột.
+- 12.4: checkout và trang đơn ghi đủ số tiền (`formatExactPrice`): dòng khóa học, Tạm tính / Dùng anyPoint / Mã giảm giá /
+  Tổng thanh toán, đơn chờ thanh toán.
+- 12.5: bỏ "(giảm 1%) (trên 100 triệu)" khỏi VNPay vì backend không áp dụng (hỏi lại chủ sản phẩm); viết lại nhãn trả góp.
+  Phần bật/tắt điểm 1 chạm vẫn để plan 02.3.
+- 12.6: nút sửa con thành nút bút chì 44px; thêm con xong tự chọn bé vừa thêm.
+- Kiểm tra: typecheck, lint, test, build ok; Playwright 390px chụp thanh sự kiện, footer đóng/mở, checkout có dùng điểm,
+  chọn người học.
 
 ### 25/10/2026 – PWA: Web Push xong (13.4–13.6)
 - Backend: thư viện `nl.martijndwars:web-push` 5.1.1 (BouncyCastle `bcprov-jdk18on`, ép `jose4j` 0.9.6 vì bản 0.7.0 kèm theo có CVE).

@@ -34,15 +34,16 @@ export default function UpcomingEventsBar() {
             <CalendarIcon className="size-4" />
             {formatRelativeDay(ev.date)}{ev.time ? ` ${ev.time}` : ''}
           </span>
-          <span className="min-w-0 flex-[1_1_9rem] truncate text-[15px] text-ink">
+          <span className="line-clamp-2 min-w-0 flex-[1_1_9rem] break-words text-[15px] leading-snug text-ink">
             {ev.label} · <strong className="font-extrabold">{ev.itemTitle}</strong>
           </span>
         </Link>
         <Link
           href={TODAY_HREF}
-          className="inline-flex min-h-11 shrink-0 items-center whitespace-nowrap rounded-full bg-blue px-5 text-[15px] font-extrabold text-white no-underline hover:-translate-y-px transition"
+          className="inline-flex min-h-11 shrink-0 items-center whitespace-nowrap rounded-full bg-blue px-4 text-[15px] font-extrabold text-white no-underline transition hover:-translate-y-px sm:px-5"
         >
-          Hôm nay của bạn
+          <span className="sm:hidden">Hôm nay</span>
+          <span className="hidden sm:inline">Hôm nay của bạn</span>
         </Link>
       </div>
     </div>

@@ -10,7 +10,7 @@ export interface PaymentMethod {
 const BASE: PaymentMethod[] = [
   { value: 'bank_transfer', label: 'Chuyển khoản ngân hàng hoặc thanh toán tại trường' },
   { value: 'card', label: 'Thanh toán trực tuyến bằng thẻ' },
-  { value: 'vnpay', label: 'Quét mã QR qua VNPay (giảm 1%) (trên 100 triệu)' },
+  { value: 'vnpay', label: 'Quét mã QR qua VNPay' },
 ]
 
 export function getPaymentMethods(total: number): PaymentMethod[] {
@@ -18,7 +18,7 @@ export function getPaymentMethods(total: number): PaymentMethod[] {
   if (total >= 1_000 && total <= 50_000_000)
     methods.push({ value: 'momo', label: 'Thanh toán bằng ví MoMo' })
   if (total >= 3_000_000)
-    methods.push({ value: 'installment', label: 'Trả góp qua thẻ tín dụng (trên 3 triệu) (kỳ hạn 3 tháng) (0% lãi suất)' })
+    methods.push({ value: 'installment', label: 'Trả góp 0% lãi suất qua thẻ tín dụng, kỳ hạn 3 tháng' })
   return methods
 }
 

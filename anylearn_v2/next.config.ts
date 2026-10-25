@@ -3,6 +3,9 @@ import type { NextConfig } from "next";
 const API_SERVER_ORIGIN = process.env.API_SERVER_ORIGIN || "http://localhost:8080";
 
 const nextConfig: NextConfig = {
+  // The round "N" button of `next dev` sits on top of the logo on phones (ngrok testing); errors still show.
+  devIndicators: false,
+
   // Versions the service worker URL (see components/pwa/ServiceWorkerRegister.tsx): every build is a new worker.
   env: {
     NEXT_PUBLIC_BUILD_ID: process.env.GITHUB_SHA ?? String(Date.now()),

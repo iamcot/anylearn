@@ -8,7 +8,7 @@ import {
   getCart, removeCartItem, checkout, initiatePayment, getPendingOrders, cancelOrder, checkVoucher,
   type CartItem, type PendingOrder, type VoucherResult,
 } from '@/lib/api'
-import { formatPrice } from '@/lib/format/price'
+import { formatExactPrice } from '@/lib/format/price'
 import { POINT_VALUE_VND } from '@/config/points'
 import { calcCheckoutTotals, clampPoints } from '@/lib/checkout/totals'
 import PaymentMethodSelector from '@/components/PaymentMethodSelector'
@@ -20,6 +20,36 @@ import { FormPageSkeleton, ListSkeleton } from '@/components/PageSkeleton'
 import { CardIcon, CartIcon, ClockIcon, CloseIcon, GiftIcon } from '@/components/icons'
 
 const REMOVE_BUTTON_CLASS = 'grid size-11 cursor-pointer place-items-center rounded-full border-0 bg-transparent text-red hover:bg-red-soft'
+
+function TotalRow({ label, value, discount = false }: { label: string; value: number; discount?: boolean }) {
+  return (
+    <div className="flex items-baseline justify-between gap-3 text-sm">
+      <span className="text-muted">{label}</span>
+      <span className={discount ? 'text-green-dark' : 'text-ink'}>{discount ? '−' : ''}{formatExactPrice(value)}</span>
+    </div>
+  )
+}
+
+// Where the person pays, amounts are exact ("1.500.000 đ"), never rounded to "1.5 triệu".
+function TotalsSummary({ subtotal, pointsDiscount, voucherDiscount, voucherCode, finalTotal }: {
+  subtotal: number
+  pointsDiscount: number
+  voucherDiscount: number
+  voucherCode?: string
+  finalTotal: number
+}) {
+  return (
+    <div className="flex flex-col gap-1.5 border-t border-line px-4 py-4 sm:px-5">
+      <TotalRow label="Tạm tính" value={subtotal} />
+      {pointsDiscount > 0 && <TotalRow label="Dùng anyPoint" value={pointsDiscount} discount />}
+      {voucherDiscount > 0 && <TotalRow label={voucherCode ? `Mã ${voucherCode}` : 'Mã giảm giá'} value={voucherDiscount} discount />}
+      <div className="mt-1 flex items-baseline justify-between gap-3 border-t border-dashed border-line pt-2.5">
+        <span className="text-sm font-bold text-ink">Tổng thanh toán</span>
+        <span className="text-xl font-extrabold text-red">{formatExactPrice(finalTotal)}</span>
+      </div>
+    </div>
+  )
+}
 
 export default function CheckoutPage() {
   const { user, token, refreshCartCount, refreshUser, isAuthLoading } = useAuth()
@@ -157,7 +187,7 @@ export default function CheckoutPage() {
                   hint={
                     <span className="text-xs text-muted">
                       Có <strong className="text-green-dark">{walletPoints}</strong> điểm
-                      {walletPoints > 0 && ` (~${formatPrice(walletPoints * POINT_VALUE_VND)})`}
+                      {walletPoints > 0 && ` (= ${formatExactPrice(walletPoints * POINT_VALUE_VND)})`}
                       {' · '}
                       <button type="button" onClick={() => setPoints(String(walletPoints))}
                         className="cursor-pointer border-0 bg-transparent p-0 font-[inherit] text-xs font-bold text-blue">Dùng hết</button>
@@ -166,7 +196,7 @@ export default function CheckoutPage() {
                   inputProps={{ type: 'number', placeholder: 'Nhập số điểm', value: points, onChange: event => { setPoints(event.target.value); setPointsApplied(0) } }}
                   buttonLabel={pointsApplied > 0 ? 'Đã dùng' : 'Dùng điểm'}
                   onApply={handleApplyPoints}
-                  message={pointsApplied > 0 ? { kind: 'success', text: `Giảm ${formatPrice(pointsDiscount)} từ anyPoint` } : null}
+                  message={pointsApplied > 0 ? { kind: 'success', text: `Giảm ${formatExactPrice(pointsDiscount)} từ anyPoint` } : null}
                 />
                 <ApplyRow
                   label="Mã giảm giá"
@@ -175,20 +205,18 @@ export default function CheckoutPage() {
                   onApply={handleApplyCoupon}
                   disabled={voucherLoading}
                   message={voucherResult
-                    ? { kind: 'success', text: `Giảm ${formatPrice(voucherDiscount)} từ mã ${voucherResult.code}` }
+                    ? { kind: 'success', text: `Giảm ${formatExactPrice(voucherDiscount)} từ mã ${voucherResult.code}` }
                     : voucherError ? { kind: 'error', text: voucherError } : null}
                 />
               </div>
 
-              <div className="flex justify-end border-t border-line px-5 py-4 text-right">
-                <div>
-                  {(pointsDiscount > 0 || voucherDiscount > 0) && (
-                    <div className="mb-0.5 text-xs text-muted line-through">{formatPrice(subtotal)}</div>
-                  )}
-                  <div className="mb-0.5 text-xs font-bold uppercase tracking-wide text-muted">Tổng tiền</div>
-                  <div className="text-xl font-extrabold text-red">{formatPrice(finalTotal)}</div>
-                </div>
-              </div>
+              <TotalsSummary
+                subtotal={subtotal}
+                pointsDiscount={pointsDiscount}
+                voucherDiscount={voucherDiscount}
+                voucherCode={voucherResult?.code}
+                finalTotal={finalTotal}
+              />
             </>
           )}
         </SectionCard>
@@ -203,7 +231,7 @@ export default function CheckoutPage() {
               <div key={order.orderId} className="flex flex-wrap items-center gap-3 border-b border-warn-line px-4 py-3.5 last:border-b-0 sm:px-5">
                 <div className="min-w-[180px] flex-1">
                   <div className="mb-1 text-sm font-bold text-ink">{order.items.map(item => item.title).join(', ')}</div>
-                  <div className="text-xs text-muted">{formatPrice(order.amount)} · {order.items.length} khóa học</div>
+                  <div className="text-xs text-muted">{formatExactPrice(order.amount)} · {order.items.length} khóa học</div>
                 </div>
                 <Link href={`/order/${order.orderId}?status=pending`} className="btn btn--green min-h-11 whitespace-nowrap px-4 py-2 text-xs no-underline">
                   Tiếp tục thanh toán
