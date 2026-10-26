@@ -135,6 +135,7 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 - Chỉ lưu (làm "Hội sở") khi Google có đúng 1 gợi ý chứa số nhà và tên đường của hợp đồng; nhiều gợi ý hoặc không khớp → "Cần xem lại" kèm gợi ý, không có → "Không tìm thấy"; cả hai có link "Xử lý tay". Mỗi dòng đã nhập có "Hoàn tác".
 - Thử bằng server Places giả: 4 đối tác (1 khớp, 1 hai kết quả khớp, 1 không thấy, 1 gợi ý lệch) cho ra đúng 1 / 1 / 1 / 1; đối tác đã có địa chỉ hoặc hợp đồng mới (status 1) không có trong danh sách; hoàn tác ẩn địa chỉ.
 - Có ô "Số lượng" để chạy từng đợt (để trống = chạy hết); nút Dừng vẫn dùng được (dừng sau đối tác đang xử lý). Kết quả "cần xem lại / không tìm thấy" không lưu DB: mở lại cửa sổ thì các dòng này về "Chờ" (đã cân nhắc lưu, chủ sản phẩm chọn không cần).
+- Nút nhập dùng luôn bộ lọc đang bật ở danh sách (tìm kiếm, role, trạng thái, ký HĐ); cửa sổ ghi rõ bộ lọc đang áp dụng.
 - "Xử lý tay" mở popup địa chỉ ngay trong cửa sổ nhập; đóng popup thì dòng đó cập nhật thành "Đã xử lý tay" kèm địa chỉ mới (có link Sửa) và thanh tổng kết đếm lại.
 - Chưa chạy với Google thật: nên chạy thử vài đối tác trước, xem tên quận/phường và độ khớp.
 

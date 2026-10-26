@@ -25,11 +25,15 @@ public interface ContractRepository extends JpaRepository<Contract, Long> {
                 SELECT c2.id FROM contracts c2
                 WHERE c2.user_id = u.id AND c2.status IN (10, 99) AND c2.address IS NOT NULL AND TRIM(c2.address) <> ''
                 ORDER BY (c2.status = 99) DESC, c2.id DESC LIMIT 1)
-            WHERE u.status = 1
+            WHERE ((:status IS NULL AND u.status = 1) OR u.status = :status)
               AND NOT EXISTS (SELECT 1 FROM user_locations ul WHERE ul.user_id = u.id AND ul.status = 1)
+              AND (:role IS NULL OR u.role = :role)
+              AND (:q IS NULL OR u.name LIKE CONCAT('%', :q, '%') OR u.phone LIKE CONCAT('%', :q, '%') OR u.email LIKE CONCAT('%', :q, '%'))
+              AND (:signed IS NULL OR (:signed = 1 AND u.is_signed = 99) OR (:signed = 0 AND u.is_signed <> 99))
             ORDER BY u.id LIMIT :limit
             """, nativeQuery = true)
-    List<java.util.Map<String, Object>> findImportCandidates(@Param("limit") int limit);
+    List<java.util.Map<String, Object>> findImportCandidates(@Param("q") String q, @Param("role") String role, @Param("status") Integer status,
+                                                             @Param("signed") Integer signed, @Param("limit") int limit);
 
     /** The address of the partner's signed or approved contract (approved first); empty when there is none. */
     @Query(value = """

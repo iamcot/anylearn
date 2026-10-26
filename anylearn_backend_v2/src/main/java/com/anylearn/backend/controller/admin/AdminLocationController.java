@@ -48,9 +48,12 @@ public class AdminLocationController {
 
     /** Partners with a signed or approved contract and no address: the list the bulk import works through. */
     @GetMapping("/contract-import")
-    public ApiResponse<?> contractImportCandidates(@AuthenticationPrincipal User user) {
+    public ApiResponse<?> contractImportCandidates(@AuthenticationPrincipal User user,
+                                                   @RequestParam(required = false) String q, @RequestParam(required = false) String role,
+                                                   @RequestParam(required = false) Integer status, @RequestParam(required = false) Integer isSigned) {
         if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
-        return ApiResponse.ok(Map.of("enabled", places.isEnabled(), "candidates", contractImport.candidates()));
+        var filters = new com.anylearn.backend.service.location.ContractAddressImportService.Filters(q, role, status, isSigned);
+        return ApiResponse.ok(Map.of("enabled", places.isEnabled(), "candidates", contractImport.candidates(filters)));
     }
 
     /** Imports one partner (the page calls this one by one so it can show progress and be stopped). */

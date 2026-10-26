@@ -308,7 +308,8 @@ export default function Users() {
           />
         </Form>
       </Drawer>
-      <ContractImportModal open={importOpen} onClose={() => setImportOpen(false)} />
+      <ContractImportModal open={importOpen} onClose={() => setImportOpen(false)}
+        filters={{ q, role, status: statusFilter, isSigned: isSignedFilter }} />
       <UserLocationsModal open={locationsOpen || !!locationUser} user={locationUser ?? selected}
         onClose={() => { setLocationsOpen(false); setLocationUser(null); qc.invalidateQueries({ queryKey: ['admin-users'] }) }} />
 

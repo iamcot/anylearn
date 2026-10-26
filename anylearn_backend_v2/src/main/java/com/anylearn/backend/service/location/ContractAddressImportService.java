@@ -31,8 +31,13 @@ public class ContractAddressImportService {
     private final GooglePlacesClient places;
     private final LocationService locationService;
 
-    public List<Map<String, Object>> candidates() {
-        return contracts.findImportCandidates(CANDIDATE_LIMIT);
+    /** The member list filters the page is showing (all optional) narrow the partners to import. */
+    public record Filters(String q, String role, Integer status, Integer signed) {}
+
+    public List<Map<String, Object>> candidates(Filters filters) {
+        String q = filters.q() == null || filters.q().isBlank() ? null : filters.q().trim();
+        String role = filters.role() == null || filters.role().isBlank() ? null : filters.role();
+        return contracts.findImportCandidates(q, role, filters.status(), filters.signed(), CANDIDATE_LIMIT);
     }
 
     public Result importFor(Long userId) {

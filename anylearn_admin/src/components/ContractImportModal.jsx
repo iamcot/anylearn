@@ -17,7 +17,19 @@ const OUTCOME = {
 
 // Gives partners with a signed or approved contract and no address their head office from the raw address on the
 // contract. Runs one partner at a time so the person sees each result and can stop.
-export default function ContractImportModal({ open, onClose }) {
+const ROLE_LABEL = { member: 'Thành viên', teacher: 'Giáo viên', school: 'Trường' }
+
+// The member list filters in use when the button was pressed narrow the partners to import.
+function filterSummary({ q, role, status, isSigned }) {
+  return [
+    q && `"${q}"`,
+    role && `vai trò ${ROLE_LABEL[role] ?? role}`,
+    status !== '' && status != null && (String(status) === '1' ? 'đang hoạt động' : 'đã khoá'),
+    isSigned !== '' && isSigned != null && (String(isSigned) === '1' ? 'đã ký HĐ' : 'chưa ký HĐ'),
+  ].filter(Boolean)
+}
+
+export default function ContractImportModal({ open, onClose, filters = {} }) {
   const [rows, setRows] = useState({}) // userId -> {outcome, location, suggestions}
   const [running, setRunning] = useState(false)
   const [limit, setLimit] = useState(null) // how many partners this run handles; empty = all
@@ -26,8 +38,11 @@ export default function ContractImportModal({ open, onClose }) {
   const qc = useQueryClient()
 
   const { data, isLoading } = useQuery({
-    queryKey: ['admin-contract-import'],
-    queryFn: () => client.get('/admin/locations/contract-import').then(r => r.data?.data ?? { enabled: false, candidates: [] }),
+    queryKey: ['admin-contract-import', filters.q, filters.role, filters.status, filters.isSigned],
+    queryFn: () => client.get('/admin/locations/contract-import', {
+      params: { q: filters.q || undefined, role: filters.role || undefined,
+        status: filters.status === '' ? undefined : filters.status, isSigned: filters.isSigned === '' ? undefined : filters.isSigned },
+    }).then(r => r.data?.data ?? { enabled: false, candidates: [] }),
     enabled: open,
     refetchOnMount: 'always',
   })
@@ -121,6 +136,10 @@ export default function ContractImportModal({ open, onClose }) {
       <Typography.Paragraph type="secondary" style={{ marginBottom: 12 }}>
         Các đối tác có hợp đồng đã ký hoặc đã duyệt nhưng chưa có địa chỉ. Hệ thống tìm địa chỉ trong hợp đồng trên Google; chỉ khi có đúng một kết quả khớp số nhà và tên đường thì mới lưu làm hội sở. Các trường hợp còn lại để bạn xử lý tay.
       </Typography.Paragraph>
+      {filterSummary(filters).length > 0 && (
+        <Alert type="info" showIcon style={{ marginBottom: 12 }}
+          message={`Đang áp dụng bộ lọc của danh sách: ${filterSummary(filters).join(', ')}. Bỏ lọc ở trang Thành viên để nhập cho tất cả.`} />
+      )}
       {data && !data.enabled && <Alert type="warning" showIcon style={{ marginBottom: 12 }} message="Chưa bật Google Maps (thiếu GOOGLE_MAPS_API_KEY), chưa thể nhập tự động." />}
       <Space style={{ marginBottom: 12 }} wrap>
         <InputNumber min={1} max={Math.max(remaining, 1)} precision={0} value={limit} onChange={setLimit} disabled={running}
