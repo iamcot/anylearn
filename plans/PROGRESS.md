@@ -13,11 +13,18 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 25/10/2026 | Thử hạn anyPoint, chỉ cho thành viên mua hàng (`role = 'member'`); điểm của đối tác không hết hạn vì là tiền trả đối tác (plan 02.5). |
 | 25/10/2026 | Làm thêm cộng đồng: review (plan 09) và nhóm chat người cùng lớp (plan 11). |
 | 25/10/2026 | Khách chưa đăng nhập: hỏi tìm cho con hay bản thân, lưu tên/biệt danh + năm sinh vào `localStorage`, khi đăng ký tự tạo tài khoản con và chọn bé (plan 04.7). |
+| 26/10/2026 | Phase 2: không khảo sát dữ liệu thực tế, chuẩn hoá và làm dễ nhập trước, hướng dẫn đối tác sau. Portal PHP đã tắt nên được dọn bảng cũ. |
+| 26/10/2026 | Tags là danh mục do admin quản lý (nhóm, gộp, ẩn); đối tác/admin chỉ chọn từ danh mục. |
+| 26/10/2026 | Địa chỉ → toạ độ + tỉnh/quận/phường dùng Google Places (chủ sản phẩm có key). |
+| 26/10/2026 | Bảng portal cũ không còn dùng: đổi tên thành `<tên>_old`, 1–2 tháng sau mới xoá hẳn. |
 | 25/10/2026 | Đồng ý thêm thư viện Java `nl.martijndwars:web-push` (+ BouncyCastle) cho Web Push (plan 13.4). |
 | 25/10/2026 | App cũ trên store đã bị xoá, lượt tải không đáng kể → **chỉ làm PWA**, làm trước (plan 13). Push dùng Web Push thuần, không FCM. |
 | 25/10/2026 | 04.7 làm ở **giai đoạn 1**. Lúc đầu chỉ cần năm sinh; checkout bắt buộc nhập ngày sinh đầy đủ của người học trước khi thanh toán (FE khoá nút + backend chặn tạo đơn). |
 
 ## Câu hỏi đang chờ chủ sản phẩm
+
+- [ ] Danh sách bảng portal cũ định đổi tên `_old` (plan 03.2d), chờ chủ sản phẩm xác nhận từng bảng.
+- [ ] Khóa học cho người lớn: có `audience` (trẻ em / thiếu niên / người lớn / mọi lứa tuổi) hay chỉ dùng độ tuổi? (plan 03.2c)
 
 - [ ] VNPay: luật "giảm 1%" và "trên 100 triệu" là gì? Backend không áp dụng cả hai, nên chữ đã bỏ khỏi checkout (plan 12.5).
 - [ ] Thời hạn điểm (gợi ý 12 tháng) và ngày bắt đầu áp dụng (plan 02.5).
@@ -62,8 +69,11 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 
 | Task | Mô tả | Trạng thái | Ghi chú |
 |---|---|---|---|
-| 03.1 | Khảo sát độ đầy đủ dữ liệu khóa học | todo | |
-| 03.2 | Migration thuộc tính | todo | |
+| 03.1 | Khảo sát độ đầy đủ dữ liệu khóa học | skip | Chủ sản phẩm: không khảo sát, chuẩn hoá trước rồi hướng dẫn đối tác sau |
+| 03.2a | Bảng tags: danh mục chuẩn + `item_tags` | done | V22; sửa lỗi tag lưu ở `items.tags` không vào search |
+| 03.2b | Địa điểm / chi nhánh của đối tác (Google Places) | todo | |
+| 03.2c | Thuộc tính còn lại (loại đối tác, số buổi, học thử, đối tượng) | todo | Xem câu hỏi chờ |
+| 03.2d | Dọn bảng portal cũ (đổi tên `_old`) | todo | |
 | 03.3 | Admin nhập liệu + cảnh báo thiếu | todo | |
 | 03.4 | Index MeiliSearch | todo | |
 | 03.5 | API search bộ lọc mới | todo | |
@@ -119,6 +129,17 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 13.8 | Thay app cũ trên store bằng bản bọc web (TWA / Capacitor), cùng package/bundle id | todo | Theo kết quả 13.0; có thể kéo lên sớm |
 
 ## Nhật ký
+
+### 26/10/2026 – 03.2a bảng tags
+- Nguyên nhân lỗi cũ: admin lưu tag vào cột `items.tags` (chuỗi cách nhau dấu phẩy) nhưng index MeiliSearch và `/search-tags`
+  đọc bảng `tags` (mỗi dòng một tag của một khóa, do portal ghi) → tag nhập ở back office không bao giờ vào tìm kiếm;
+  bảng cũ cũng cho gõ tự do nên trùng "bóng rổ / Bong ro".
+- Làm: V22 đổi `tags` → `tags_old`, tạo `tags` (danh mục: tên, nhóm, thứ tự, ẩn/hiện) + `item_tags`; nạp tag từ `tags_old` (loại `class`)
+  và từ `items.tags`, gộp trùng không phân biệt dấu/hoa thường (collation `utf8mb4_unicode_ci`); mọi tag cũ vào nhóm "Chưa phân loại".
+- Admin: trang "Tags" (nhóm, đổi tên, ẩn, gộp vào tag khác, đếm số khóa); form khóa học chọn tag từ danh mục, gõ tag chưa có thì tạo.
+  `PUT /admin/items/{id}` nhận `tagIds`; `GET` trả `tagIds`. Không còn ghi `items.tags`, `articles.tags` giữ nguyên (chuỗi, chỉ để hiện).
+- `/api/search-tags` trả tag đang dùng nhiều nhất; MeiliSearch lấy tên tag từ `item_tags`.
+- Việc của chủ sản phẩm: vào trang Tags xếp nhóm cho các tag "Chưa phân loại" sau khi chạy migration.
 
 ### 25/10/2026 – 10.1 Lời hứa anyLEARN
 - Nội dung một chỗ: `config/promise.ts` (4 lời hứa, FAQ, dòng cam kết giá, link Zalo + giờ làm việc). PDP: dải 4 icon dưới nút đăng ký (`PromiseStrip`) + link "Vì sao đặt qua anyLEARN?"; checkout: dòng "Giá đã bằng hoặc rẻ hơn tại trường." trên dòng "Đơn này bạn sẽ nhận +X anyPoint"; trang `/info/why-anylearn` (4 lời hứa chi tiết, FAQ, nút báo giá, nút Zalo).

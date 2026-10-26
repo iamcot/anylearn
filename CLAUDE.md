@@ -171,6 +171,11 @@ Thư mục `http/` chứa VS Code REST Client files cho mọi endpoint:
 - The promise ("giá bằng hoặc rẻ hơn tại trường", refund if the class does not open, all schedules in one place, Zalo support) lives in one file: `anylearn_v2/src/config/promise.ts` (`PROMISES`, `WHY_FAQ`, `PRICE_GUARANTEE_LINE`, Zalo link and hours). Shown by `components/promise/PromiseStrip` under the register button of a course, by one line under the totals at checkout, and in detail at `/info/why-anylearn`. The refund wording is still waiting for the owner's confirmation.
 - "Thấy giá rẻ hơn ở nơi khác? Báo cho chúng tôi": `ReportPriceButton` → `POST /api/price-reports` (open to visitors; a visitor without an account must leave a phone number; 5 per account or phone per day, `app.price-report.daily-limit`) → table `price_reports` (V21), every back-office recipient gets a notification. Back office page "Báo giá rẻ hơn" (`/admin/price-reports`: new / checking / fixed / rejected; `fixed` thanks a reporter who has an account). Backend: `service/pricing/*`, `AdminPriceReportController`. Samples: `http/admin.http`.
 
+## Tags
+
+- `tags` is a dictionary (name, group, sort order, hidden flag) curated in the back office page "Tags" (`/admin/tags`, `AdminTagController`, `TagService`); courses point at it through `item_tags` (V22). Only the back office creates tags; `TagService.create` returns the existing tag when the name matches ignoring accents and case. Groups are fixed in `TagGroups` ("other" = not sorted yet).
+- `PUT /admin/items/{id}` takes `tagIds`; `GET` returns `tagIds`. `items.tags` and `articles.tags` (text) are no longer written by the back office; the old per-item table is `tags_old`. MeiliSearch `tags` is built from `item_tags`; `/api/search-tags` lists the most used active tags.
+
 ## Growth roadmap
 
 Feature plans live in `plans/` (start with `plans/00-overview.md`); progress, owner decisions and open questions in `plans/PROGRESS.md`. Update PROGRESS.md after every task.

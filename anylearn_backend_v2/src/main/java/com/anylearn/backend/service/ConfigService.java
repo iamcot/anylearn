@@ -161,6 +161,6 @@ public class ConfigService {
     }
 
     public List<String> searchTags(String q) {
-        return tagRepository.findDistinctActiveTags(q);
+        return tagRepository.findUsedNames(q == null || q.isBlank() ? null : q.trim(), 30);
     }
 }

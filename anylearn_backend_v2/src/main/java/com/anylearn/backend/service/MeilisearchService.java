@@ -293,7 +293,7 @@ public class MeilisearchService {
                 .collect(Collectors.joining("|"));
 
         List<String> categoryUrls = itemCategoryRepository.findAllCategoryUrlsByItemId(item.getId());
-        String tags = tagRepository.findTagsByItemId(item.getId());
+        String tags = String.join(" ", tagRepository.findActiveNamesByItemId(item.getId()));
 
         int isHot  = item.getIsHot() != null ? item.getIsHot() : 0;
         int boost  = item.getBoostScore() != null ? item.getBoostScore() : 0;

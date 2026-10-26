@@ -29,6 +29,7 @@ public class AdminItemController {
     private final ItemUserActionRepository itemUserActionRepository;
     private final ItemScheduleRepository itemScheduleRepository;
     private final UserLocationRepository userLocationRepository;
+    private final com.anylearn.backend.service.tags.TagService tagService;
     private final OrderDetailRepository orderDetailRepository;
     private final UserRepository userRepository;
     private final MeilisearchService meilisearchService;
@@ -173,7 +174,7 @@ public class AdminItemController {
             m.put("activiyTest", item.getActiviyTest());
             m.put("activiyVisit", item.getActiviyVisit());
             m.put("activationSupport", item.getActivationSupport());
-            m.put("tags", item.getTags());
+            m.put("tagIds", tagService.tagsOfItem(item.getId()).stream().map(com.anylearn.backend.entity.Tag::getId).toList());
             // content
             m.put("image", item.getImage());
             m.put("shortContent", item.getShortContent());
@@ -213,7 +214,6 @@ public class AdminItemController {
             if (body.containsKey("isHot")) item.setIsHot(toNum(body.get("isHot")).byteValue());
             if (body.containsKey("boostScore")) item.setBoostScore(toNum(body.get("boostScore")).intValue());
             if (body.containsKey("itemCategoryId")) item.setItemCategoryId(toNum(body.get("itemCategoryId")).intValue());
-            if (body.containsKey("tags")) item.setTags((String) body.get("tags"));
             // schedule
             if (body.containsKey("dateStart") && body.get("dateStart") != null) item.setDateStart(LocalDate.parse((String) body.get("dateStart")));
             if (body.containsKey("dateEnd")) item.setDateEnd(body.get("dateEnd") == null ? null : LocalDate.parse((String) body.get("dateEnd")));
@@ -240,6 +240,8 @@ public class AdminItemController {
             if (body.containsKey("seoUrl")) item.setSeoUrl((String) body.get("seoUrl"));
             if (body.containsKey("seoDesc")) item.setSeoDesc((String) body.get("seoDesc"));
             itemRepository.save(item);
+            if (body.get("tagIds") instanceof java.util.List<?> tagIds)
+                tagService.setItemTags(id, tagIds.stream().filter(Number.class::isInstance).map(n -> ((Number) n).longValue()).toList());
             meilisearchService.indexItem(id);
             return ApiResponse.ok(item);
         }).orElse(ApiResponse.fail("Not found"));

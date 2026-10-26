@@ -108,7 +108,7 @@ function itemToForm(d) {
     dateEnd: d.dateEnd ? dayjs(d.dateEnd) : null,
     // special fields
     nolimitTime: d.nolimitTime === '1',
-    tags: (d.tags || '').split(',').filter(Boolean).map(t => t.trim()),
+    tagIds: d.tagIds ?? [],
     categoryIds: (d.categories ?? []).map(c => c.id),
     // company commission JSON
     cc_discount: ccObj.discount ?? null,
@@ -176,6 +176,21 @@ export default function ItemDetail() {
     }
   }, [item?.id])
 
+  const [tagSearch, setTagSearch] = useState('')
+  const { data: tagDictionary } = useQuery({
+    queryKey: ['admin-tags', '', ''],
+    queryFn: () => client.get('/admin/tags').then(r => r.data?.data ?? { tags: [] }),
+  })
+  const createTag = useMutation({
+    mutationFn: (name) => client.post('/admin/tags', { name }).then(r => r.data),
+    onSuccess: (res) => {
+      if (res.resultCode !== 1) return message.error(res.message)
+      form.setFieldValue('tagIds', [...(form.getFieldValue('tagIds') ?? []), res.data.id])
+      setTagSearch('')
+      setDirty(true)
+      qc.invalidateQueries({ queryKey: ['admin-tags'] })
+    },
+  })
   const { data: categories } = useQuery({
     queryKey: ['admin-categories'],
     queryFn: () => client.get('/admin/categories').then(r => r.data?.data ?? []),
@@ -220,7 +235,6 @@ export default function ItemDetail() {
 
   const saveMutation = useMutation({
     mutationFn: async (values) => {
-      const tagArr = Array.isArray(values.tags) ? values.tags : []
       const ccJson = JSON.stringify({
         discount: values.cc_discount ?? null, commission: values.cc_commission ?? null,
         bonus_ref_seller: values.cc_bonus_ref_seller ?? null, bonus_foundation: values.cc_bonus_foundation ?? null,
@@ -229,7 +243,6 @@ export default function ItemDetail() {
       const body = {
         ...values,
         userId: values.userId?.value ?? values.userId,
-        tags: tagArr.join(','),
         dateStart: null,
         dateEnd: null,
         nolimitTime: values.nolimitTime ? '1' : '0',
@@ -393,8 +406,11 @@ export default function ItemDetail() {
             </Form.Item>
           </FieldRow>
           <FieldRow label="Tags">
-            <Form.Item name="tags" noStyle>
-              <Select mode="tags" placeholder="Gõ rồi nhấn , hoặc Enter" style={{ width: '100%' }} tokenSeparators={[',']} onChange={() => setDirty(true)} />
+            <Form.Item name="tagIds" noStyle>
+              <Select mode="multiple" placeholder="Chọn tag" style={{ width: '100%' }} optionFilterProp="label"
+                onSearch={setTagSearch} onChange={() => setDirty(true)}
+                options={(tagDictionary?.tags ?? []).filter(t => t.status === 1).map(t => ({ value: t.id, label: t.name }))}
+                notFoundContent={tagSearch.trim() ? <Button type="link" onClick={() => createTag.mutate(tagSearch.trim())}>Tạo tag &quot;{tagSearch.trim()}&quot;</Button> : null} />
             </Form.Item>
           </FieldRow>
         </SectionCard>
