@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { SearchOptions } from '@/lib/api'
 import {
   FILTER_ALL, NEAR_RADIUS_KM, PRICE_PRESETS, PROVINCE_OPTIONS, QUICK_CHIPS, TIME_SLOT_OPTIONS, type QuickChipId,
@@ -21,6 +21,8 @@ interface Props {
   loading: boolean
   onOpenFilters: () => void
   onNeedDistrict: () => void
+  // Arrived from the home page chip "Gần tôi": look for the position once, without a second tap
+  autoLocate?: boolean
 }
 
 type MenuId = 'slot' | 'price' | 'district'
@@ -47,7 +49,7 @@ const OPTION_CHIPS = 'flex flex-wrap gap-2'
 
 // The chip row under the search box (plan 04.2): a "Lọc" button with the number of panel filters, chips that switch a
 // filter on and off, and chips that open a small menu. Every change goes straight to the URL, so the count is live.
-export default function FilterBar({ state, apply, options, total, loading, onOpenFilters, onNeedDistrict }: Props) {
+export default function FilterBar({ state, apply, options, total, loading, onOpenFilters, onNeedDistrict, autoLocate }: Props) {
   const { adv } = state
   const [menu, setMenu] = useState<MenuId | null>(null)
   const { status, locate, clearStatus } = useNearMe()
@@ -62,6 +64,15 @@ export default function FilterBar({ state, apply, options, total, loading, onOpe
     const point = await locate()
     if (point) apply({ adv: { ...adv, near: point, radiusKm: NEAR_RADIUS_KM }, sort: state.sort === 'popular' ? 'nearest' : state.sort })
   }
+
+  const autoLocated = useRef(false)
+  useEffect(() => {
+    if (!autoLocate || autoLocated.current) return
+    autoLocated.current = true
+    void switchNear()
+    // once, on arrival
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoLocate])
 
   const pressQuick = (id: QuickChipId) => {
     clearStatus()

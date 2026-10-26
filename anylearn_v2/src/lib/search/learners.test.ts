@@ -27,9 +27,9 @@ describe('learnerChips', () => {
       TODAY,
     )
     expect(chips).toEqual([
-      { key: 'c1', label: 'Bin 15t', ageFrom: 15, ageTo: 15 },
-      { key: 'c2', label: 'Su 9t', ageFrom: 8, ageTo: 9 },
-      { key: 'self', label: 'Tôi · 38t', ageFrom: 38, ageTo: 38 },
+      { key: 'c1', name: 'Bin', label: 'Bin 15t', ageFrom: 15, ageTo: 15 },
+      { key: 'c2', name: 'Su', label: 'Su 9t', ageFrom: 8, ageTo: 9 },
+      { key: 'self', name: 'Tôi', label: 'Tôi · 38t', ageFrom: 38, ageTo: 38 },
     ])
   })
 })

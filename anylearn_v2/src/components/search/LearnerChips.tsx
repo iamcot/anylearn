@@ -27,13 +27,15 @@ interface Props {
   chips: LearnerChip[]
   activeKey?: string
   onPick: (chip: LearnerChip | null) => void
+  // Inside a container already (the home hero): no container of its own
+  bare?: boolean
 }
 
 // "Tất cả | Bin 15t | Su 9t | Tôi": every list is narrowed to the age of the one picked (plan 04.1).
-export default function LearnerChips({ chips, activeKey, onPick }: Props) {
+export default function LearnerChips({ chips, activeKey, onPick, bare }: Props) {
   if (chips.length === 0) return null
   return (
-    <div className="container flex items-center gap-2 overflow-x-auto py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label="Tìm cho ai">
+    <div className={`${bare ? 'mt-4' : 'container py-3'} flex items-center gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden`} aria-label="Tìm cho ai">
       <button type="button" aria-pressed={!activeKey} onClick={() => onPick(null)} className={!activeKey ? GUEST_CHIP_ON : GUEST_CHIP_OFF}>Tất cả</button>
       {chips.map(chip => (
         <button key={chip.key} type="button" aria-pressed={activeKey === chip.key} onClick={() => onPick(chip)} className={activeKey === chip.key ? GUEST_CHIP_ON : GUEST_CHIP_OFF}>

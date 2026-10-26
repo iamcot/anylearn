@@ -79,7 +79,7 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 03.5 | API search bộ lọc mới | done | Chưa có `ageFor=<learnerId>`: FE gửi `ageFrom/ageTo` (xem ghi chú nhật ký) |
 | 04.1 | Chip chọn người học | done | Tài khoản: `Tất cả / con / Tôi` (tuổi từ ngày sinh, bé chỉ có năm sinh = 2 tuổi khả dĩ), nhớ lựa chọn `anylearn.activeLearner`; khách giữ chip cũ. Mới gắn vào trang search, trang chủ làm ở 04.3 |
 | 04.2 | Chip lọc nhanh + bộ lọc đầy đủ | done | Chip: Gần tôi/Cuối tuần/Tối trong tuần/Học thử/Giảm giá/Online; panel thêm quận, khung giờ, đối tác, giá tối đa (thanh trượt), khai giảng, tag; thẻ có khoảng cách/giờ/Học thử/Giảm giá. Chưa có "+X anyPoint" trên thẻ |
-| 04.3 | Trang chủ mobile gọn | todo | |
+| 04.3 | Trang chủ mobile gọn | done | Còn 5 khối: hero (tìm kiếm + chip bé + chip nhanh), Dành cho {bé}, Đang hot gần bạn (cần địa chỉ đã lưu), chuyên gia/đối tác nổi bật, CTA nhờ tìm giúp + 3 bài viết. Chưa có khối bộ sưu tập (04.4) và nút "Thử điều mới" (04.5); PromoSlider giữ lại tới khi có bộ sưu tập. Chưa đo trước/sau |
 | 04.4 | Bộ sưu tập | todo | |
 | 04.5 | Trang chuyên gia + "Ngẫu nhiên" | todo | |
 | 01.5 | Khảo sát sở thích khi thêm con | todo | |
@@ -407,3 +407,8 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 - Mobile: A + D + hai chip có menu: nút `Lọc (n)`, chip có icon và ✕ khi bật, `Khung giờ ▾`, `Giá ▾`; `Lọc` mở bottom sheet, nút cuối `Xem N khóa học` (N là tổng kết quả hiện tại vì bộ lọc áp ngay lên URL). Desktop: B, thanh chip ngang + popover thả xuống (`Khung giờ`, `Giá`, `Quận`), bỏ cột lọc bên trái, `Lọc` mở ngăn kéo bên phải, kết quả 3 cột.
 - Code: `components/search/{FilterBar,ChipMenu}.tsx`, `FilterDrawer` trong `SearchFilters.tsx`, nhãn chip ở `lib/search/chipLabels.ts`. Bỏ chip "Cuối tuần" và "Tối trong tuần" riêng, gộp vào menu Khung giờ.
 - Trang chủ: chốt 6 khối theo mockup (chip bé + tìm kiếm + chip nhanh, Dành cho Bin, Đang hot gần bạn, Bộ sưu tập, Chuyên gia nổi bật, Thử điều mới).
+
+### 26/10/2026 – 04.3 trang chủ gọn
+- Bỏ khỏi trang chủ: 4 ô lợi ích, chọn nhanh nhóm học, khóa nổi bật chung, ưu đãi phụ huynh. Thêm `components/home/*` (`HomeLearnerRow`, `HomeQuickChips`, `HomePersonalRows`, `FeaturedPartners`), logic thuần `lib/home/blocks.ts` (có test).
+- Tài khoản: chip `Tất cả | Bin | Tôi` chọn bé cho cả trang chủ lẫn trang search (cùng `anylearn.activeLearner`); chưa chọn thì lấy bé đầu tiên. Khách: dải gợi ý cũ, khối đầu theo độ tuổi khách khai. Chip "Gần tôi" ở trang chủ mở `/search?locate=1` và tự xin vị trí.
+- "Đang hot gần bạn" chỉ hiện khi tài khoản có địa chỉ nhà đã lưu (`/user/home-point`), không xin vị trí ngay ở trang chủ để khỏi hỏi quyền khi vừa vào.

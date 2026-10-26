@@ -169,6 +169,11 @@ getOrder(orderId, token)       // GET /order/:orderId     [auth]
 - Web Push: the site never asks for notification permission by itself. `components/pwa/AppPromptCard.tsx` (on `/today` and the order page while waiting for the transfer or after payment) shows `EnablePushCard` ("Bật thông báo") when `lib/pwa/push.ts` says the browser can receive push, otherwise the install card (iPhone: notifications only work in the installed app). `/account/notifications` turns them on/off for this device and sends a test. `components/pwa/pushDevice.ts` subscribes (`/push/subscribe`), re-registers a device that already has permission once per account (`syncPushDevice`, called from `useNotifications`), and forgets it on logout (`AuthContext.logout`).
 - The service worker `push` handler always shows the notification (Safari revokes silent push) with tag `notif-<id>`, the same tag the open tab uses for its SSE notification, so they replace each other. Tapping opens `/notifications/open?id&route&extra`, which marks it read and goes to `resolveNotificationRoute` (`lib/notifications/route.ts`, also used by the bell). The app icon badge follows the unread count.
 
+## Home page (plan 04.3)
+
+- `app/(home)/page.tsx` is server rendered (hero, partners, articles); the personal rows are client components in `components/home/*` that read `useHomeContext` (chosen child from `anylearn.activeLearner`, shared with `/search`; the saved home point for "near"). What each row asks the search API is decided by the pure `lib/home/blocks.ts`.
+- `/search?locate=1` (home chip "Gần tôi") asks for the position once on arrival (`FilterBar` `autoLocate`).
+
 ## Static and content pages
 
 - API HTML (policies, guides, articles, help center) is rendered with the `rich-content` class (list, heading, link, image styles in `globals.css`; there is no typography plugin, `prose` does nothing). Policy and guide pages share `components/DocPage.tsx` + `lib/docs/fetchDoc.ts`.

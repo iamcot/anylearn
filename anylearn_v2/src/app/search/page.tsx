@@ -151,6 +151,7 @@ function SearchPageInner() {
       {state.mode === 'class' && (
         <FilterBar
           state={state} apply={apply} options={options} total={total} loading={loading}
+          autoLocate={searchParams.get('locate') === '1'}
           onOpenFilters={() => setFiltersOpen(true)} onNeedDistrict={() => setFiltersOpen(true)}
         />
       )}

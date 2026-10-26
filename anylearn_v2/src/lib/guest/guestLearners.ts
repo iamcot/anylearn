@@ -204,6 +204,8 @@ export function withoutLearners(store: GuestLearnerStore, localIds: string[]): G
 // Who the visitor is shopping for, as chips: each child, or the visitor when they gave a birth year.
 export interface GuestPerson {
   key: string
+  // First name only ("Bin"), "Tôi" for the visitor
+  name: string
   label: string
   age: number
   ageFilter: string
@@ -214,11 +216,11 @@ export interface GuestPerson {
 export function guestPeople(store: GuestLearnerStore, today = new Date()): GuestPerson[] {
   if (store.audience === 'self' && store.selfBirthYear) {
     const age = ageFromBirthYear(store.selfBirthYear, today)
-    return [{ key: 'self', label: `Tôi · ${age}t`, age, ageFilter: ageFilterFor(age) }]
+    return [{ key: 'self', name: 'Tôi', label: `Tôi · ${age}t`, age, ageFilter: ageFilterFor(age) }]
   }
   return store.learners.map(learner => {
     const age = ageFromBirthYear(learner.birthYear, today)
-    return { key: learner.localId, label: describeGuestLearner(learner, today), age, ageFilter: ageFilterFor(age), localId: learner.localId }
+    return { key: learner.localId, name: learner.nickname, label: describeGuestLearner(learner, today), age, ageFilter: ageFilterFor(age), localId: learner.localId }
   })
 }
 
