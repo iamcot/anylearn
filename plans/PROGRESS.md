@@ -130,6 +130,12 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 
 ## Nhật ký
 
+### 27/10/2026 – nhập hàng loạt địa chỉ từ hợp đồng
+- Nút "Nhập địa chỉ từ hợp đồng" ở trang Thành viên mở cửa sổ liệt kê đối tác có hợp đồng đã ký/đã duyệt, chưa có địa chỉ (tối đa 500); bấm "Bắt đầu nhập" thì xử lý lần lượt từng người, hiện địa chỉ trong hợp đồng, địa chỉ mới (kèm khu vực) và kết quả; có thanh tiến độ, nút Dừng/Tiếp tục.
+- Chỉ lưu (làm "Hội sở") khi Google có đúng 1 gợi ý chứa số nhà và tên đường của hợp đồng; nhiều gợi ý hoặc không khớp → "Cần xem lại" kèm gợi ý, không có → "Không tìm thấy"; cả hai có link "Xử lý tay". Mỗi dòng đã nhập có "Hoàn tác".
+- Thử bằng server Places giả: 4 đối tác (1 khớp, 1 hai kết quả khớp, 1 không thấy, 1 gợi ý lệch) cho ra đúng 1 / 1 / 1 / 1; đối tác đã có địa chỉ hoặc hợp đồng mới (status 1) không có trong danh sách; hoàn tác ẩn địa chỉ.
+- Chưa chạy với Google thật: nên chạy thử vài đối tác trước, xem tên quận/phường và độ khớp.
+
 ### 27/10/2026 – sửa nhầm bảng contracts, "Ký HĐ" = 99, địa chỉ từ hợp đồng
 - V24 đã đổi tên nhầm `contracts` (vẫn đang dùng, quan trọng). V27 đổi tên lại nếu bảng đang là `contracts_old` (chạy lặp lại an toàn, không đổi V24 nên không lệch checksum); khôi phục entity `Contract` + repository, hằng số trạng thái 0/1/10/99.
 - "Ký HĐ" trước đây coi `is_signed = 1` là đã ký (công tắc, bộ lọc, chỉ mục tìm đối tác), trong khi portal ghi 99 → nay "đã ký" là `is_signed = 99`; công tắc ghi 99/0. Dòng nào v2 từng bật thành 1 sẽ hiện chưa ký (1 = hợp đồng mới) và cần bật lại.

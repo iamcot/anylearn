@@ -6,6 +6,7 @@ import client from '../api/client'
 import { fmtVND, fmtDate, fmtDateTime } from '../utils/format'
 import { Field } from '../components/Field'
 import UserLocationsModal from '../components/UserLocationsModal'
+import ContractImportModal from '../components/ContractImportModal'
 import { PARTNER_ROLES } from '../utils/roles'
 import RichEditor from '../components/RichEditor'
 import { message } from 'antd'
@@ -50,6 +51,7 @@ export default function Users() {
   const [locationsOpen, setLocationsOpen] = useState(false)
   const [locationUser, setLocationUser] = useState(null) // a row opened from the list column
   const [locationFilter, setLocationFilter] = useState('')
+  const [importOpen, setImportOpen] = useState(false)
   const { data: locations } = useQuery({
     queryKey: ['admin-locations', selected?.id],
     queryFn: () => client.get('/admin/locations', { params: { userId: selected.id } }).then(r => r.data?.data ?? []),
@@ -196,6 +198,7 @@ export default function Users() {
             />
           </Space>
           <Space>
+            <Button size="small" onClick={() => setImportOpen(true)}>Nhập địa chỉ từ hợp đồng</Button>
             {data?.total != null && <Typography.Text type="secondary">{data.total.toLocaleString('vi-VN')} thành viên</Typography.Text>}
           </Space>
         </Space>
@@ -305,6 +308,7 @@ export default function Users() {
           />
         </Form>
       </Drawer>
+      <ContractImportModal open={importOpen} onClose={() => setImportOpen(false)} onOpenUser={row => setLocationUser({ id: row.userId, name: row.name, role: row.role })} />
       <UserLocationsModal open={locationsOpen || !!locationUser} user={locationUser ?? selected}
         onClose={() => { setLocationsOpen(false); setLocationUser(null); qc.invalidateQueries({ queryKey: ['admin-users'] }) }} />
 

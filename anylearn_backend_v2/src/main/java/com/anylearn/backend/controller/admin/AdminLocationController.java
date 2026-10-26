@@ -29,6 +29,7 @@ public class AdminLocationController {
     private final LocationService locationService;
     private final GooglePlacesClient places;
     private final com.anylearn.backend.repository.ContractRepository contracts;
+    private final com.anylearn.backend.service.location.ContractAddressImportService contractImport;
 
     @GetMapping
     public ApiResponse<?> list(@AuthenticationPrincipal User user, @RequestParam Long userId) {
@@ -43,6 +44,32 @@ public class AdminLocationController {
         return contracts.findWithAddress(userId, org.springframework.data.domain.PageRequest.of(0, 1)).stream().findFirst()
                 .map(c -> ApiResponse.ok(Map.of("address", c.getAddress().trim(), "status", c.getStatus())))
                 .orElse(ApiResponse.ok(null));
+    }
+
+    /** Partners with a signed or approved contract and no address: the list the bulk import works through. */
+    @GetMapping("/contract-import")
+    public ApiResponse<?> contractImportCandidates(@AuthenticationPrincipal User user) {
+        if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
+        return ApiResponse.ok(Map.of("enabled", places.isEnabled(), "candidates", contractImport.candidates()));
+    }
+
+    /** Imports one partner (the page calls this one by one so it can show progress and be stopped). */
+    @PostMapping("/contract-import/{userId}")
+    public ApiResponse<?> contractImportOne(@AuthenticationPrincipal User user, @PathVariable Long userId) {
+        if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
+        if (!places.isEnabled()) return ApiResponse.fail("Chưa cấu hình Google Maps");
+        try {
+            var result = contractImport.importFor(userId);
+            Map<String, Object> view = new LinkedHashMap<>();
+            view.put("outcome", result.outcome().name().toLowerCase());
+            view.put("contractAddress", result.contractAddress());
+            view.put("location", result.location() != null ? view(result.location()) : null);
+            view.put("suggestions", result.suggestions());
+            return ApiResponse.ok(view);
+        } catch (RuntimeException e) {
+            log.warn("Contract address import failed for {}: {}", userId, e.getMessage());
+            return ApiResponse.fail("Không tìm được lúc này: " + e.getMessage());
+        }
     }
 
     @GetMapping("/autocomplete")
