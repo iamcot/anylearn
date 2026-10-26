@@ -109,8 +109,8 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 02.5 | Hạn điểm cho member (lô điểm) | todo | Chờ chốt thời hạn |
 | 02.6 | Nhắc điểm sắp hết hạn | todo | |
 | 09.4 | Đối tác trả lời + báo cáo review | partial | Đối tác trả lời ngay trên trang khóa học (theo yêu cầu 26/10); chưa có nút "Báo cáo review" |
-| 09.5 | Nhắc viết review | todo | |
-| 09.6 | Thưởng điểm review | todo | |
+| 09.5 | Nhắc viết review | done | Nhắc ở nửa khóa và khi hết khóa (mỗi mốc 1 lần), quét mỗi giờ; chưa có thẻ "Review chờ viết" ở "Cần làm ngay" (chờ plan 06) |
+| 09.6 | Thưởng điểm review | done | 20 anyPoint cho nhận xét từ 50 ký tự + 20 khi có ảnh (chỉnh được, mặc định do mình chọn, chờ chủ sản phẩm xác nhận); thu hồi khi ẩn/xóa; chưa dùng `point_lots` (chờ 02.5) |
 | 11.1 | Chat MVP backend | todo | |
 | 11.2 | Chat MVP FE | todo | |
 | 11.3 | Thông báo chat | todo | |
@@ -439,3 +439,12 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 - Giữ nguyên nơi lưu điểm (`item_user_actions`), thêm bảng chi tiết V30 thay vì chuyển sang bảng `item_reviews` cũ (rỗng, mọi truy vấn điểm/độ phổ biến đang đọc `item_user_actions`).
 - Đối tác trả lời trực tiếp trên trang khóa học khi đăng nhập bằng tài khoản sở hữu khóa (chưa cần trang admin cho đối tác). Thông báo cho người viết.
 - Chưa làm: 09.5 nhắc viết review, 09.6 thưởng điểm, báo cáo review, lọc theo tuổi bé.
+
+### 26/10/2026 – 09.5 nhắc review và 09.6 thưởng anyPoint
+- V31: `review_rewards` (đã thưởng gì cho review nào, thu hồi lúc nào) và `review_reminders` (duy nhất theo người + khóa + mốc).
+- Thưởng: `ReviewRewardService`, ghi `transactions` loại `review_reward` / `review_reward_revoke` + cộng/trừ `wallet_c`. Mỗi review thưởng một lần; sửa review chỉ thêm phần còn thiếu (ví dụ thêm ảnh). Ẩn hoặc xóa review thì thu hồi (không để số dư âm); hiện lại không thưởng lại.
+- Số anyPoint chỉnh ở Cài đặt > Vận hành (`review/points_text`, `review/points_media`, `review/remind_enabled`). Mặc định 20/20 là do mình chọn, chưa hỏi chủ sản phẩm.
+- Nhắc: `ReviewReminderService` (mỗi giờ) gửi thông báo `review_reminder` cho người mua đơn đã giao chưa review; khóa không có ngày kết thúc coi là hết sau 30 ngày; bỏ qua khóa đã hết quá 14 ngày để lần chạy đầu không nhắn hàng loạt đơn cũ.
+- FE: form review có dòng "+X anyPoint", sau khi gửi hiện "Bạn vừa nhận +X anyPoint", lịch sử anyPoint có nhãn mới, `/info/anypoint` thêm cách nhận "Viết đánh giá khóa học".
+- Thử bằng backend thật + MariaDB: nhận xét ngắn 0, đủ 50 ký tự +20, sửa lại 0, thêm ảnh +20, ẩn thu hồi 40, lưu lại sau khi ẩn 0. Job nhắc: xem dòng dưới.
+- Chưa làm: báo cáo review, lọc theo tuổi bé, tách review theo từng bé.

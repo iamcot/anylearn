@@ -67,6 +67,8 @@ Content-Type: application/json
 
 
 ### Reviews (plan 09)
+GET {{baseUrl}}/review-rewards
+###
 GET {{baseUrl}}/item/1693/reviews?stars=5&photos=false
 ###
 GET {{baseUrl}}/item/1693/review-summary

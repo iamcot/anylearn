@@ -227,7 +227,11 @@ Trang khóa học hiện: điểm trung bình, số đánh giá, tỉ lệ từn
 
 **Cần cấu hình:** ảnh đánh giá được lưu trên kho ảnh của hệ thống (biến `AWS_S3_BUCKET`, `AWS_ACCESS_KEY`... mục 11). Chưa cấu hình thì phụ huynh vẫn viết đánh giá được nhưng không tải ảnh lên được.
 
-**Chưa có:** nhắc phụ huynh viết đánh giá, thưởng anyPoint khi đánh giá, nút "Báo cáo đánh giá" của đối tác, lọc theo tuổi của bé.
+**Nhắc viết đánh giá:** hệ thống mỗi giờ quét các đơn đã giao và gửi thông báo (trong app và push) cho người mua chưa đánh giá khóa đó, hai lần: khi bé học được **nửa khóa** và khi **khóa kết thúc**. Khóa không có ngày kết thúc được tính là kết thúc sau 30 ngày kể từ ngày bắt đầu. Mỗi mốc chỉ gửi một lần; không gửi cho khóa đã kết thúc quá 14 ngày (để lần chạy đầu không nhắn hàng loạt đơn cũ). Tắt/bật ở Cài đặt > Vận hành > Đánh giá khóa học.
+
+**Thưởng anyPoint khi đánh giá:** đánh giá có nhận xét từ **50 ký tự** được thưởng anyPoint, có ít nhất một ảnh được thưởng thêm (số anyPoint chỉnh ở Cài đặt > Vận hành, mặc định 20 và 20; nhập 0 để tắt). Mỗi đánh giá chỉ thưởng một lần: sửa lại không nhận thêm, chỉ thêm ảnh sau đó thì nhận phần thưởng ảnh. Phụ huynh thấy dòng "+X anyPoint" ngay trong form và nhận thông báo; lịch sử anyPoint ghi "Thưởng viết đánh giá". **Admin ẩn hoặc xóa đánh giá thì anyPoint đã thưởng bị thu hồi** (ghi "Thu hồi anyPoint thưởng đánh giá"); nếu phụ huynh đã tiêu bớt thì chỉ thu phần còn lại, số dư không âm. Đánh giá đã bị ẩn rồi hiện lại thì không được thưởng lần nữa. Giao dịch nằm ở Giao dịch với loại `review_reward` và `review_reward_revoke`.
+
+**Chưa có:** nút "Báo cáo đánh giá" của đối tác, lọc theo tuổi của bé.
 
 ---
 
@@ -241,6 +245,9 @@ Menu **Cài đặt (bánh răng) > Vận hành > Cấu hình tìm kiếm & đơn
 | Nhắc thanh toán sau (giờ) | Các mốc nhắc đơn chưa thanh toán, cách nhau dấu phẩy. Mốc đầu: thông báo trong app và push. Từ mốc 2: thêm email | 2, 24 |
 | Tự hủy đơn quá hạn | Bật/tắt việc tự hủy đơn chưa thanh toán | Bật |
 | Hủy đơn sau (giờ) | Đơn chưa thanh toán bị hủy sau thời gian này kể từ lúc đặt. Điểm anyPoint đã dùng được hoàn lại | 72 giờ |
+| Thưởng khi viết đánh giá (anyPoint) | Cho đánh giá có nhận xét từ 50 ký tự, mỗi đánh giá một lần. 0 = tắt | 20 |
+| Thưởng thêm khi có ảnh (anyPoint) | Cộng thêm khi đánh giá có ít nhất một ảnh. 0 = tắt | 20 |
+| Nhắc phụ huynh viết đánh giá | Nhắc khi học nửa khóa và khi hết khóa (mục 7c) | Bật |
 | Cập nhật chỉ mục ngay | Chạy lại toàn bộ chỉ mục tìm kiếm, gồm cả khóa học và danh sách trường / chuyên gia (mất vài phút) | |
 
 Đơn bị hủy do quá hạn mà khách vẫn chuyển khoản: tiền được ghi lại ở mục cần kiểm tra và admin nhận thông báo để xử lý, không mất tiền.

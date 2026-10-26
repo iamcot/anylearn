@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { getReviews, getReviewSummary, type PdpReview, type ReviewSummary } from '@/lib/api'
 import { useAuth } from '@/context/AuthContext'
 import { REVIEWS_SHOWN_FIRST } from '@/config/reviews'
+import { rewardThanks } from '@/lib/reviews/text'
 import { GUEST_CHIP_OFF, GUEST_CHIP_ON } from '@/components/guest/chipStyles'
 import RatingForm from './RatingForm'
 import StarRating from './StarRating'
@@ -30,6 +31,7 @@ export default function ReviewsSection({ itemId, authorId, authorName, initialRe
   const [withPhotos, setWithPhotos] = useState(false)
   const [showAll, setShowAll] = useState(false)
   const [editing, setEditing] = useState(false)
+  const [thanks, setThanks] = useState('')
   const { checked, hasPurchased, myRating, saveRating } = useItemRatingStatus(itemId)
   const isPartner = Boolean(user && authorId && user.id === authorId)
 
@@ -40,8 +42,9 @@ export default function ReviewsSection({ itemId, authorId, authorName, initialRe
 
   useEffect(() => { reload() }, [reload])
 
-  function handleSaved(saved: MyRating) {
+  function handleSaved(saved: MyRating, pointsGiven: number) {
     saveRating(saved)
+    setThanks(rewardThanks(pointsGiven))
     setEditing(false)
     reload()
   }
@@ -57,6 +60,7 @@ export default function ReviewsSection({ itemId, authorId, authorName, initialRe
   return (
     <>
       <div id="rating-form-anchor" className="mb-6">
+        {thanks && <p className="m-0 mb-3 rounded-lg bg-green-soft px-3 py-2 text-sm font-semibold text-green-dark" role="status">{thanks}</p>}
         {checked && hasPurchased && !myRating && !editing && <RatingForm itemId={itemId} onSaved={handleSaved} />}
 
         {editing && (

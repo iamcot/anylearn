@@ -3,6 +3,8 @@ package com.anylearn.backend.service.settings;
 import com.anylearn.backend.entity.Configuration;
 import com.anylearn.backend.repository.ConfigurationRepository;
 import com.anylearn.backend.service.order.OrderFollowUpSettings;
+import com.anylearn.backend.service.reviews.ReviewRewardRules;
+import com.anylearn.backend.service.reviews.ReviewSettings;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +27,7 @@ public class OperationSettingsService {
 
     private final ConfigurationRepository configurationRepository;
     private final OrderFollowUpSettings orderSettings;
+    private final ReviewSettings reviewSettings;
 
     public int nearRadiusKm() {
         return SettingsRules.nearRadiusKm(configurationRepository.findByKey(KEY_NEAR_RADIUS_KM).map(Configuration::getValue).orElse(null));
@@ -36,6 +39,9 @@ public class OperationSettingsService {
         map.put("remindHours", orderSettings.remindHours());
         map.put("autoCancelHours", orderSettings.autoCancelHours());
         map.put("autoCancelEnabled", orderSettings.autoCancelEnabled());
+        map.put("reviewPointsText", reviewSettings.pointsForText());
+        map.put("reviewPointsMedia", reviewSettings.pointsForMedia());
+        map.put("reviewRemindEnabled", reviewSettings.remindEnabled());
         return map;
     }
 
@@ -57,10 +63,23 @@ public class OperationSettingsService {
             String problem = SettingsRules.hoursProblem(cancelHours, "Thời gian tự hủy đơn");
             if (problem != null) return problem;
         }
+        Integer pointsText = integer(body.get("reviewPointsText"));
+        if (body.containsKey("reviewPointsText")) {
+            String problem = ReviewRewardRules.problem(pointsText, "Điểm thưởng đánh giá có chữ");
+            if (problem != null) return problem;
+        }
+        Integer pointsMedia = integer(body.get("reviewPointsMedia"));
+        if (body.containsKey("reviewPointsMedia")) {
+            String problem = ReviewRewardRules.problem(pointsMedia, "Điểm thưởng thêm khi có ảnh");
+            if (problem != null) return problem;
+        }
 
         if (body.containsKey("nearRadiusKm")) write(KEY_NEAR_RADIUS_KM, String.valueOf(radius));
         if (body.containsKey("remindHours")) write(OrderFollowUpSettings.KEY_REMIND_HOURS, remind.stream().map(String::valueOf).collect(Collectors.joining(",")));
         if (body.containsKey("autoCancelHours")) write(OrderFollowUpSettings.KEY_AUTO_CANCEL_HOURS, String.valueOf(cancelHours));
+        if (body.containsKey("reviewPointsText")) write(ReviewSettings.KEY_POINTS_TEXT, String.valueOf(pointsText));
+        if (body.containsKey("reviewPointsMedia")) write(ReviewSettings.KEY_POINTS_MEDIA, String.valueOf(pointsMedia));
+        if (body.get("reviewRemindEnabled") instanceof Boolean remindReview) write(ReviewSettings.KEY_REMIND_ENABLED, remindReview ? "1" : "0");
         if (body.get("autoCancelEnabled") instanceof Boolean enabled) write(OrderFollowUpSettings.KEY_AUTO_CANCEL_ENABLED, enabled ? "1" : "0");
         return null;
     }

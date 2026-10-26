@@ -68,6 +68,21 @@ export default function OperationSettings() {
           </Form.Item>
         </Card>
 
+        <Card title="Đánh giá khóa học" style={{ marginBottom: 16 }}>
+          <Form.Item name="reviewPointsText" label="Thưởng khi viết đánh giá (anyPoint)" rules={[{ required: true, message: 'Nhập số anyPoint' }]}
+            extra="Cho đánh giá có nhận xét từ 50 ký tự. Mỗi đánh giá chỉ được thưởng một lần, sửa lại không nhận thêm. Nhập 0 để tắt.">
+            <InputNumber min={0} max={10000} precision={0} addonAfter="anyPoint" style={{ width: 200 }} />
+          </Form.Item>
+          <Form.Item name="reviewPointsMedia" label="Thưởng thêm khi có ảnh (anyPoint)" rules={[{ required: true, message: 'Nhập số anyPoint' }]}
+            extra="Cộng thêm khi đánh giá có ít nhất một ảnh. Ẩn hoặc xóa đánh giá thì anyPoint đã thưởng bị thu hồi. Nhập 0 để tắt.">
+            <InputNumber min={0} max={10000} precision={0} addonAfter="anyPoint" style={{ width: 200 }} />
+          </Form.Item>
+          <Form.Item name="reviewRemindEnabled" label="Nhắc phụ huynh viết đánh giá" valuePropName="checked"
+            extra="Gửi thông báo khi bé học được nửa khóa và khi khóa kết thúc (mỗi mốc một lần), nếu chưa viết đánh giá.">
+            <Switch />
+          </Form.Item>
+        </Card>
+
         <Card title="Chỉ mục tìm kiếm" style={{ marginBottom: 16 }}>
           <Typography.Paragraph type="secondary">
             Tìm kiếm tự cập nhật khi sửa từng khóa học, và chạy lại toàn bộ lúc 5 giờ sáng mỗi ngày. Bấm nút này sau khi sửa

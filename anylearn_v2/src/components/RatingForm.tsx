@@ -1,10 +1,11 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
-import { saveReview, uploadReviewPhoto } from '@/lib/api'
+import { getReviewRewards, saveReview, uploadReviewPhoto } from '@/lib/api'
+import type { ReviewRewards } from '@/lib/api'
 import { REVIEW_CRITERIA, REVIEW_MAX_PHOTOS, REVIEW_QUICK_PHRASES, STAR_LABELS } from '@/config/reviews'
-import { appendPhrase } from '@/lib/reviews/text'
+import { appendPhrase, rewardHint } from '@/lib/reviews/text'
 import { GUEST_CHIP_OFF } from '@/components/guest/chipStyles'
 import { CameraIcon, CloseIcon, StarIcon } from './icons'
 import type { MyRating } from './useItemRatingStatus'
@@ -15,7 +16,7 @@ interface Props {
   existingComment?: string
   existingScores?: Record<string, number>
   existingMedia?: string[]
-  onSaved?: (myRating: MyRating) => void
+  onSaved?: (myRating: MyRating, pointsGiven: number) => void
 }
 
 function Stars({ value, onPick, size = 'size-7', box = 'size-11' }: { value: number; onPick: (n: number) => void; size?: string; box?: string }) {
@@ -49,7 +50,10 @@ export default function RatingForm({ itemId, existingRating, existingComment, ex
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
+  const [rewards, setRewards] = useState<ReviewRewards | null>(null)
   const fileInput = useRef<HTMLInputElement>(null)
+
+  useEffect(() => { getReviewRewards().then(setRewards) }, [])
 
   if (!user) return null
   const token = user.jwtToken
@@ -58,10 +62,10 @@ export default function RatingForm({ itemId, existingRating, existingComment, ex
     if (rating === 0) { setError('Vui lòng chọn số sao'); return }
     setSaving(true)
     setError('')
-    const problem = await saveReview(itemId, { rating, comment, scores, media }, token)
+    const result = await saveReview(itemId, { rating, comment, scores, media }, token)
     setSaving(false)
-    if (problem) { setError(problem); return }
-    onSaved?.({ value: rating, comment, scores, media })
+    if (result.error) { setError(result.error); return }
+    onSaved?.({ value: rating, comment, scores, media }, result.pointsGiven)
   }
 
   async function addPhotos(files: FileList | null) {
@@ -81,6 +85,8 @@ export default function RatingForm({ itemId, existingRating, existingComment, ex
     <div className="rounded-[18px] border border-line bg-white p-5">
       <div className="mb-1 font-extrabold text-ink">{existingRating ? 'Cập nhật đánh giá của bạn' : 'Viết đánh giá'}</div>
       <p className="m-0 mb-3 text-xs text-muted">Chỉ phụ huynh đã đăng ký khóa này mới đánh giá được, nên mỗi đánh giá đều có dấu &quot;Đã học tại anyLEARN&quot;.</p>
+
+      {rewardHint(rewards) && <p className="m-0 mb-3 rounded-lg bg-green-soft px-3 py-2 text-xs font-semibold text-green-dark">{rewardHint(rewards)}</p>}
 
       <div className="mb-4 flex items-center">
         <Stars value={rating} onPick={setRating} />

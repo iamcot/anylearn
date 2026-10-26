@@ -36,21 +36,25 @@ public class ReviewService {
     private final S3Service s3Service;
     private final MeilisearchService meilisearchService;
     private final NotificationService notificationService;
+    private final ReviewRewardService rewardService;
 
     /** What a parent sends. `media` null means "keep the photos already saved". */
     public record Submission(Integer rating, String comment, Map<String, Integer> scores, List<String> media) {}
 
+    /** The problem to show (null when saved) and the anyPoint given by this save. */
+    public record SaveResult(String problem, int pointsGiven) {}
+
     // ── Writing ──────────────────────────────────────────────────────────────
 
-    /** Saves or updates the review of `userId` for a course. Returns the problem to show, or null when it was saved. */
+    /** Saves or updates the review of `userId` for a course. */
     @Transactional
-    public String save(Long userId, Long itemId, Submission submission) {
+    public SaveResult save(Long userId, Long itemId, Submission submission) {
         Item item = itemRepository.findById(itemId).orElse(null);
-        if (item == null) return "Không tìm thấy khóa học";
+        if (item == null) return new SaveResult("Không tìm thấy khóa học", 0);
         Long orderId = deliveredOrderId(userId, itemId);
-        if (orderId == null) return "Chỉ phụ huynh đã đăng ký khóa này mới đánh giá được";
+        if (orderId == null) return new SaveResult("Chỉ phụ huynh đã đăng ký khóa này mới đánh giá được", 0);
         int rating = ReviewRules.overallRating(submission.rating(), submission.scores());
-        if (rating == 0) return "Vui lòng chọn số sao";
+        if (rating == 0) return new SaveResult("Vui lòng chọn số sao", 0);
 
         ItemUserAction action = actions.findRatingByItemAndUser(itemId, userId).orElseGet(ItemUserAction::new);
         action.setItemId(itemId);
@@ -70,7 +74,9 @@ public class ReviewService {
         if (submission.media() != null) replaceMedia(reviewId, submission.media());
 
         meilisearchService.updateItemPopularityScoreAsync(item);
-        return null;
+        int photoCount = jdbc.queryForObject("SELECT COUNT(*) FROM review_media WHERE review_id = ?", Integer.class, reviewId);
+        int points = rewardService.grant(reviewId, userId, item.getTitle(), action.getExtraValue(), photoCount);
+        return new SaveResult(null, points);
     }
 
     private void replaceMedia(Long reviewId, List<String> urls) {
@@ -133,12 +139,14 @@ public class ReviewService {
         if (item == null || reviewOf(itemId, reviewId) == null) return "Không tìm thấy đánh giá";
         jdbc.update("INSERT IGNORE INTO review_details (review_id) VALUES (?)", reviewId);
         jdbc.update("UPDATE review_details SET status = ? WHERE review_id = ?", status, reviewId);
+        if (ReviewRules.HIDDEN.equals(status)) rewardService.revoke(reviewId);
         meilisearchService.updateItemPopularityScoreAsync(item);
         return null;
     }
 
     @Transactional
     public void delete(Long itemId, Long reviewId) {
+        rewardService.revoke(reviewId);
         jdbc.update("DELETE FROM review_scores WHERE review_id = ?", reviewId);
         jdbc.update("DELETE FROM review_media WHERE review_id = ?", reviewId);
         jdbc.update("DELETE FROM review_details WHERE review_id = ?", reviewId);

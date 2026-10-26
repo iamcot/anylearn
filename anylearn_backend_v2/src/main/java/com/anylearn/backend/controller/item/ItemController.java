@@ -42,6 +42,7 @@ public class ItemController {
     private final ItemActivityRepository itemActivityRepository;
     private final NotificationService notificationService;
     private final UserRepository userRepository;
+    private final com.anylearn.backend.service.reviews.ReviewSettings reviewSettings;
 
     @GetMapping("/pdp/{id}")
     public ApiResponse<?> pdp(@PathVariable Long id,
@@ -60,6 +61,13 @@ public class ItemController {
     @GetMapping("/item/{itemId}/review-summary")
     public ApiResponse<?> reviewSummary(@PathVariable Long itemId) {
         return ApiResponse.ok(reviewService.summary(itemId));
+    }
+
+    /** What a review earns, so the form can say it before the parent writes. */
+    @GetMapping("/review-rewards")
+    public ApiResponse<?> reviewRewards() {
+        return ApiResponse.ok(Map.of("textPoints", reviewSettings.pointsForText(), "mediaPoints", reviewSettings.pointsForMedia(),
+                "minTextLength", com.anylearn.backend.service.reviews.ReviewRewardRules.MIN_TEXT_LENGTH));
     }
 
     @PostMapping("/item/{itemId}/review-media")
@@ -165,9 +173,9 @@ public class ItemController {
         var scores = ReviewRules.cleanScores(body.get("scores") instanceof Map<?, ?> map ? map : null);
         List<String> media = body.containsKey("media")
                 ? ReviewRules.cleanMedia(body.get("media") instanceof List<?> list ? list : null, reviewService::isOwnUrl) : null;
-        String problem = reviewService.save(currentUser.getId(), itemId,
+        var saved = reviewService.save(currentUser.getId(), itemId,
                 new ReviewService.Submission(rating, body.get("comment") instanceof String text ? text : "", scores, media));
-        return problem == null ? ApiResponse.ok(Map.of("ok", true)) : ApiResponse.fail(problem);
+        return saved.problem() == null ? ApiResponse.ok(Map.of("ok", true, "pointsGiven", saved.pointsGiven())) : ApiResponse.fail(saved.problem());
     }
 
     @GetMapping("/user/{userId}/items")

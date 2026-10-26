@@ -31,9 +31,25 @@ export interface SaveReviewInput {
   media: string[]
 }
 
-export async function saveReview(itemId: number, input: SaveReviewInput, token: string): Promise<string | null> {
-  const { error } = await authFetch(`/item/${itemId}/save-rating`, token, { method: 'POST', body: JSON.stringify(input) })
-  return error ?? null
+export interface SaveReviewResult {
+  error?: string
+  // anyPoint given by this save (0 when none)
+  pointsGiven: number
+}
+
+export async function saveReview(itemId: number, input: SaveReviewInput, token: string): Promise<SaveReviewResult> {
+  const { data, error } = await authFetch<{ pointsGiven?: number }>(`/item/${itemId}/save-rating`, token, { method: 'POST', body: JSON.stringify(input) })
+  return { error, pointsGiven: data?.pointsGiven ?? 0 }
+}
+
+export interface ReviewRewards {
+  textPoints: number
+  mediaPoints: number
+  minTextLength: number
+}
+
+export async function getReviewRewards(): Promise<ReviewRewards | null> {
+  return apiFetch<ReviewRewards>('/review-rewards')
 }
 
 // Uploads one photo for a review and returns its address.

@@ -15,6 +15,8 @@ export interface HistoryReason {
 const FIXED_REASONS: Record<string, string> = {
   commission_add: 'Cộng anyPoint bổ sung',
   activitybonus: 'Thưởng hoạt động',
+  review_reward: 'Thưởng viết đánh giá',
+  review_reward_revoke: 'Thu hồi anyPoint thưởng đánh giá',
 }
 
 // The wallet history mixes the reward for the account's own purchase (it has an order) and referral rewards (it does not).
