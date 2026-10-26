@@ -7,6 +7,7 @@ import { REVIEWS_SHOWN_FIRST } from '@/config/reviews'
 import { GUEST_CHIP_OFF, GUEST_CHIP_ON } from '@/components/guest/chipStyles'
 import RatingForm from './RatingForm'
 import StarRating from './StarRating'
+import { StarIcon } from './icons'
 import ReviewItem from './reviews/ReviewItem'
 import ReviewSummaryCard from './reviews/ReviewSummaryCard'
 import { useItemRatingStatus, type MyRating } from './useItemRatingStatus'
@@ -88,7 +89,7 @@ export default function ReviewsSection({ itemId, authorId, authorName, initialRe
           <button type="button" aria-pressed={withPhotos} onClick={() => setWithPhotos(!withPhotos)} className={withPhotos ? GUEST_CHIP_ON : GUEST_CHIP_OFF}>Có ảnh</button>
           {STAR_FILTERS.map(count => (
             <button key={count} type="button" aria-pressed={stars === count} onClick={() => setStars(stars === count ? undefined : count)} className={stars === count ? GUEST_CHIP_ON : GUEST_CHIP_OFF}>
-              {count} sao
+              <span className="inline-flex items-center gap-1" aria-label={`${count} sao`}>{count}<StarIcon filled className="size-3.5 text-star" /></span>
             </button>
           ))}
         </div>

@@ -2,6 +2,7 @@ import type { ReviewSummary } from '@/lib/api'
 import { REVIEW_CRITERIA } from '@/config/reviews'
 import { distributionPercents } from '@/lib/reviews/text'
 import StarRating from '@/components/StarRating'
+import { StarIcon } from '@/components/icons'
 
 // The numbers at the top of the reviews: average, how the stars spread, the score of each criterion and the photos.
 export default function ReviewSummaryCard({ summary }: { summary: ReviewSummary }) {
@@ -19,8 +20,8 @@ export default function ReviewSummaryCard({ summary }: { summary: ReviewSummary 
 
         <ul className="m-0 grid list-none gap-1.5 p-0" aria-label="Phân bố số sao">
           {distributionPercents(summary.distribution, summary.count).map(row => (
-            <li key={row.stars} className="grid grid-cols-[44px_1fr_36px] items-center gap-2 text-xs text-muted">
-              <span>{row.stars} sao</span>
+            <li key={row.stars} className="grid grid-cols-[32px_1fr_36px] items-center gap-2 text-xs text-muted">
+              <span className="inline-flex items-center gap-0.5 whitespace-nowrap" aria-label={`${row.stars} sao`}>{row.stars}<StarIcon filled className="size-3 text-star" /></span>
               <span className="h-2 overflow-hidden rounded-full bg-bg"><span className="block h-full rounded-full bg-star" style={{ width: `${row.percent}%` }} /></span>
               <span className="text-right">{row.percent}%</span>
             </li>
