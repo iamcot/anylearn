@@ -477,3 +477,5 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 - Nút "Xem bản đồ" cạnh số kết quả khi lọc Gần tôi: popup bản đồ (Leaflet, nền OpenStreetMap, thư viện chỉ tải khi mở) với vị trí khách ở giữa, vòng tròn bán kính từ cấu hình admin, tên các trường (`role = school`, đang hoạt động, đã Ký HĐ) có cơ sở trong vòng tròn; bấm vào tên thấy ảnh, tên, giới thiệu ngắn, nút "Tìm hiểu thêm" mở trang đối tác tab mới. API `GET /api/partners/nearby`.
 - Đã thử bằng trình duyệt thật với API giả (marker, thẻ nhỏ, link); ô nền bản đồ không tải được trong môi trường này nên chưa xem được nền. Chưa thử với MySQL thật. Nền OpenStreetMap miễn phí nhưng có giới hạn dùng; nếu lượng khách lớn nên đổi sang nhà cung cấp có khóa riêng.
 
+### 26/10/2026 – "Gần tôi" cho khóa chưa có địa chỉ
+- Khóa không có địa chỉ riêng dùng hội sở của đối tác để index vị trí (`_geo`, `locations`, `districtCodes`), cờ `locationFromPartner` trong document, không hiện trên thẻ khóa. Cần chạy reindex một lần sau khi triển khai.

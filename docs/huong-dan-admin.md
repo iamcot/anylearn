@@ -348,3 +348,7 @@ Mỗi chức năng viết theo cùng khung:
 5. Lỗi thường gặp: dòng mới trong mục 12.
 
 Ghi chú cho người làm phần mềm: file này nằm ở `docs/huong-dan-admin.md`; `CLAUDE.md` ở gốc dự án ghi quy tắc cập nhật.
+
+### Khóa chưa có địa chỉ vẫn tìm được bằng "Gần tôi"
+
+Khóa không có địa chỉ riêng (không địa chỉ khóa, không địa chỉ ở các lớp) sẽ được tìm theo **hội sở của đối tác** (không có hội sở thì lấy địa chỉ đầu tiên có tọa độ). Địa chỉ của khóa/lớp luôn được ưu tiên. Đối tác cần có ít nhất một địa chỉ có tọa độ. Sau khi cập nhật hệ thống, bấm **Cài đặt > Vận hành > Lập lại chỉ mục** một lần. Khóa vẫn được cảnh báo "Thiếu thuộc tính" cho đến khi gắn địa chỉ riêng.

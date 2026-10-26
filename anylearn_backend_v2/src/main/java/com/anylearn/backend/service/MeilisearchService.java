@@ -326,7 +326,9 @@ public class MeilisearchService {
                 .filter(t -> t.getStatus() != null && t.getStatus() == 1).map(com.anylearn.backend.entity.Tag::getId).toList();
         var schedules = itemScheduleRepository.findByItemIdAndStatus(item.getId(), (byte) 1);
         var branches = ItemSearchAttributes.activeBranchesOf(item, userLocationRepository.findItemAddressIds(item.getId()), schedules, userLocationRepository::findAllById);
-        var attributes = ItemSearchAttributes.derive(item, schedules, branches, java.time.LocalDate.now());
+        var partnerBranches = branches.isEmpty() && item.getUserId() != null
+                ? userLocationRepository.findByUserIdAndStatus(item.getUserId(), (byte) 1) : java.util.List.<com.anylearn.backend.entity.UserLocation>of();
+        var attributes = ItemSearchAttributes.derive(item, schedules, branches, partnerBranches, java.time.LocalDate.now());
 
         int isHot  = item.getIsHot() != null ? item.getIsHot() : 0;
         int boost  = item.getBoostScore() != null ? item.getBoostScore() : 0;
@@ -366,7 +368,8 @@ public class MeilisearchService {
                 tagIds,
                 attributes.pricePerSession(),
                 attributes.nextStartDay(),
-                author != null && ItemVisibility.isAuthorLive(author.getStatus(), author.getIsSigned()) ? 1 : 0
+                author != null && ItemVisibility.isAuthorLive(author.getStatus(), author.getIsSigned()) ? 1 : 0,
+                attributes.locationFromPartner()
         );
     }
 

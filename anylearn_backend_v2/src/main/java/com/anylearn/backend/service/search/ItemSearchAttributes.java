@@ -17,9 +17,18 @@ import java.util.Set;
 /** Values the search index derives from a course, its schedules and its branches. Nothing here is stored twice. */
 public record ItemSearchAttributes(
         List<String> timeSlots, Integer nextStartDay, Long pricePerSession, boolean onSale, boolean hasFreeTrial,
-        Map<String, Double> geo, List<Map<String, Object>> locations, List<String> districtCodes) {
+        Map<String, Double> geo, List<Map<String, Object>> locations, List<String> districtCodes,
+        boolean locationFromPartner) {
 
     public static ItemSearchAttributes derive(Item item, List<ItemSchedule> schedules, List<UserLocation> branches, LocalDate today) {
+        return derive(item, schedules, branches, List.of(), today);
+    }
+
+    /** With no address of its own, a course falls back to its partner's head office (flagged `locationFromPartner`). */
+    public static ItemSearchAttributes derive(Item item, List<ItemSchedule> schedules, List<UserLocation> branches,
+                                              List<UserLocation> partnerBranches, LocalDate today) {
+        boolean fromPartner = branches.isEmpty() && !partnerHeadOffice(partnerBranches).isEmpty();
+        if (fromPartner) branches = partnerHeadOffice(partnerBranches);
         List<TimeSlots.ScheduleSlot> slots = schedules.stream()
                 .map(s -> new TimeSlots.ScheduleSlot(s.getWeekdays(), s.getTimeStart(), s.getEventDate())).toList();
         Integer sessions = SessionCounts.estimate(item.getCycleType(), item.getCycleAmount(), weekdaysPerWeek(schedules));
@@ -33,7 +42,16 @@ public record ItemSearchAttributes(
                 item.getActiviyTrial() != null && item.getActiviyTrial() == 1,
                 primary.map(b -> Map.of("lat", b.getLat().doubleValue(), "lng", b.getLng().doubleValue())).orElse(null),
                 located.stream().map(ItemSearchAttributes::branchView).toList(),
-                branches.stream().map(UserLocation::getDistrictCode).filter(Objects::nonNull).distinct().toList());
+                branches.stream().map(UserLocation::getDistrictCode).filter(Objects::nonNull).distinct().toList(),
+                fromPartner);
+    }
+
+    /** The partner's head office when it has coordinates, else its first located address; empty when none has coordinates. */
+    static List<UserLocation> partnerHeadOffice(List<UserLocation> partnerBranches) {
+        List<UserLocation> located = partnerBranches.stream()
+                .filter(b -> b.getStatus() != null && b.getStatus() == 1 && b.getLat() != null && b.getLng() != null).toList();
+        return located.stream().filter(b -> b.getIsHead() != null && b.getIsHead() == 1).findFirst()
+                .or(() -> located.stream().findFirst()).map(List::of).orElse(List.of());
     }
 
     /** The branch the course points at by default, else the first one with coordinates. */
