@@ -75,8 +75,8 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 03.2c | Thuộc tính còn lại (loại đối tác, số buổi, học thử) | done | `users.partner_type` (V25) chọn ở trang Thành viên; học thử dùng `activiyTrial`; số buổi suy ra từ `cycle_type`/`cycle_amount` khi lập chỉ mục (03.4) |
 | 03.2d | Dọn bảng portal cũ (đổi tên `_old`) | done | V24 đổi tên 11 bảng; xoá entity/repository tương ứng |
 | 03.3 | Admin nhập liệu + cảnh báo thiếu | todo | |
-| 03.4 | Index MeiliSearch | todo | |
-| 03.5 | API search bộ lọc mới | todo | |
+| 03.4 | Index MeiliSearch | done | Thử trên Meilisearch 1.12 thật; cần `POST /admin/reindex` sau khi deploy |
+| 03.5 | API search bộ lọc mới | done | Chưa có `ageFor=<learnerId>`: FE gửi `ageFrom/ageTo` (xem ghi chú nhật ký) |
 | 04.1 | Chip chọn người học | todo | |
 | 04.2 | Chip lọc nhanh + bộ lọc đầy đủ | todo | |
 | 04.3 | Trang chủ mobile gọn | todo | |
@@ -129,6 +129,15 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 13.8 | Thay app cũ trên store bằng bản bọc web (TWA / Capacitor), cùng package/bundle id | todo | Theo kết quả 13.0; có thể kéo lên sớm |
 
 ## Nhật ký
+
+### 26/10/2026 – 03.4/03.5 chỉ mục và bộ lọc tìm kiếm
+- Thêm vào document: quận, `_geo`, danh sách cơ sở, khung giờ, loại đối tác, học thử, đang giảm giá, tag, giá/buổi, ngày khai giảng gần nhất.
+  API `/api/search` nhận tuổi người học, quận, "gần tôi" (+`distanceKm`), khung giờ, loại đối tác, học thử, khuyến mãi, tag, khoảng giá, khai giảng trong N ngày;
+  sắp xếp thêm: khai giảng sớm, giá/buổi, gần nhất. Dựng filter bằng hàm thuần có test (`SearchFilterBuilder`).
+- Thử với Meilisearch 1.12 thật trên dữ liệu demo: lọc tuổi (khóa không giới hạn tuổi vẫn hiện), bán kính 3km/20km, khung giờ, học thử, giảm giá, đối tác, quận, tag, giá đều ra đúng.
+- Sửa lỗi cũ: `initIndexSettings` ghi đè danh sách sắp xếp của `MeilisearchConfig` (mất `dateStart`); giờ chỉ còn một nơi khai báo. Filter cũ nối thẳng chuỗi (category) nay được bọc dấu nháy.
+- Giới hạn: Meilisearch chỉ nhận một điểm `_geo`/khóa nên "gần tôi" khớp theo cơ sở mặc định; `distanceKm` tính theo cơ sở gần nhất.
+- `ageFor=<learnerId>` chưa làm ở backend: FE biết tuổi bé nên gửi `ageFrom/ageTo` (bé chỉ có năm sinh thì khoảng 2 tuổi). Làm cùng 04.1.
 
 ### 26/10/2026 – 03.2c/03.2d loại đối tác và dọn bảng
 - V24 đổi tên thành `*_old`: contracts, sale_activities, activitybonuses, spms, user_specs, user_spec_links, item_specs, item_spec_links, user_reviews, migrations, password_resets (xoá hẳn sau 1–2 tháng chạy ổn). Xoá 9 entity + repository không còn dùng.

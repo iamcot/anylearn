@@ -189,6 +189,12 @@ Thư mục `http/` chứa VS Code REST Client files cho mọi endpoint:
 - V24 renamed tables of the old portal that no code reads (`contracts`, `sale_activities`, `activitybonuses`, `spms`, `user_specs`, `user_spec_links`, `item_specs`, `item_spec_links`, `user_reviews`, `migrations`, `password_resets`) to `*_old`; drop them by hand once nothing broke. Do not add entities for them.
 - `users.partner_type` (V25: school / center / club / tutor / expert, `PartnerTypes`) is set per partner in the back office user page; courses inherit it for search.
 
+## Course search attributes
+
+- `MeilisearchService.buildDocument` adds, per course: `districtCodes`, `_geo` (default branch, else first with coordinates), `locations` (every branch with coordinates, used for `distanceKm`), `timeSlots` (`weekday|weekend` × `morning|afternoon|evening`, from the schedules), `partnerType` (of the author), `hasFreeTrial` (`items.activiy_trial`), `onSale` (`org_price > price`), `tagIds`, `pricePerSession` (price ÷ sessions from `cycle_type`/`cycle_amount`, weeks and months need the schedule's weekdays), `nextStartDay` (epoch day; a running or undated weekly class counts as today). Derivation is in `service/search` (`ItemSearchAttributes`, `TimeSlots`, `SessionCounts`), pure and tested. Nothing is stored twice; the 5 AM reindex and every item/schedule/tag save refresh it. After a deploy that changes the document, call `POST /admin/reindex` once.
+- `GET /api/search` filters (all optional, built by `SearchFilterBuilder`): `ageFrom`+`ageTo` (a learner's possible ages; courses with no age limit stay), `district`, `location` (province), `nearLat`+`nearLng`+`radiusKm` (default 10, max 100; response items get `distanceKm` to their nearest branch), `timeSlot` (repeat for several), `partnerType`, `freeTrial`, `onSale`, `tag` (tag ids, repeat), `priceMin`/`priceMax`, `startWithin` (days) and `sort` = `popular|newest|priceLow|priceHigh|soonest|perSession|nearest`. The old `age`, `priceRange`, `mode` buckets still work. Filter values are quoted, so a visitor cannot inject filter syntax.
+- Meilisearch index settings live in `MeilisearchConfig` only (filterable and sortable lists); `_geo` supports one point per course, so "near me" matches the default branch, while `distanceKm` uses the nearest branch.
+
 ## Growth roadmap
 
 Feature plans live in `plans/` (start with `plans/00-overview.md`); progress, owner decisions and open questions in `plans/PROGRESS.md`. Update PROGRESS.md after every task.
