@@ -47,14 +47,4 @@ class ItemAttributeGapsTest {
     void anAppPartnerNeedsNoPlace() {
         assertThat(ItemAttributeGaps.of(course("offline"), new Facts(1, 1, 1, 0, true, true))).isEmpty();
     }
-
-    @Test
-    void aFeeCollectionCourseNeedsAPlaceButNoScheduleOrSessions() {
-        Item item = new Item();
-        item.setSubtype("offline");
-        item.setIsPaymentfee(1);
-        item.setAgesMin((byte) 6);
-        assertThat(ItemAttributeGaps.of(item, new Facts(1, 1, 0, 0, true, false))).containsExactly("location");
-        assertThat(ItemAttributeGaps.of(item, new Facts(1, 1, 0, 1, true, false))).isEmpty();
-    }
 }

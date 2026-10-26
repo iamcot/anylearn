@@ -69,12 +69,12 @@ function SectionCard({ title, children }) {
 
 function FieldRow({ label, tooltip, children }) {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '170px 1fr', alignItems: 'flex-start', padding: '6px 0' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: '170px minmax(0, 1fr)', alignItems: 'flex-start', padding: '6px 0' }}>
       <span style={{ fontSize: 13, color: '#555', paddingTop: 5, display: 'flex', alignItems: 'center', gap: 4 }}>
         {label}
         {tooltip && <Tooltip title={tooltip}><InfoCircleOutlined style={{ fontSize: 11, color: '#bbb' }} /></Tooltip>}
       </span>
-      <div>{children}</div>
+      <div style={{ minWidth: 0 }}>{children}</div>
     </div>
   )
 }
@@ -223,7 +223,6 @@ export default function ItemDetail() {
 
   const [locationModal, setLocationModal] = useState(null) // null | 'default' | 'schedule'
   const [partnerLocationsOpen, setPartnerLocationsOpen] = useState(false)
-  const isFeeOnly = !!Form.useWatch('isPaymentfee', form)
   const { data: partnerLocations, refetch: refetchLocations } = useQuery({
     queryKey: ['admin-item-locations', id],
     queryFn: () => client.get(`/admin/items/${id}/locations`).then(r => r.data?.data ?? []),
@@ -456,19 +455,11 @@ export default function ItemDetail() {
 
     { key: 'schedule', label: 'Lịch học', children: (
       <div style={{ maxWidth: 640, paddingBottom: 32 }}>
-        <SectionCard title="Hình thức khóa học">
-          <FieldRow label="Thu hộ học phí">
-            <Space direction="vertical" size={2}>
-              <Form.Item name="isPaymentfee" noStyle {...switchItemProps}>
-                <Switch onChange={() => setDirty(true)} />
-              </Form.Item>
-              <Typography.Text type="secondary" style={{ fontSize: 12 }}>Bật nếu đây là khóa chỉ thu hộ học phí: không có ca học, vẫn cần địa chỉ học.</Typography.Text>
-            </Space>
-          </FieldRow>
-          {item?.addressRequired && (
-            <FieldRow label="Địa chỉ học">
-              <Space direction="vertical" size={4} style={{ width: '100%' }}>
-                {(itemSchedules ?? []).length > 0 && !isFeeOnly
+        {item?.addressRequired && (
+          <SectionCard title="Địa chỉ học">
+            <FieldRow label="Địa chỉ">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {(itemSchedules ?? []).length > 0
                   ? <span style={{ color: '#888' }}>Khóa có ca học: mỗi ca dùng địa chỉ chọn riêng cho ca đó.</span>
                   : (partnerLocations ?? []).length === 0
                     ? <span style={{ color: '#cf1322' }}>Đối tác chưa có địa chỉ.</span>
@@ -484,10 +475,10 @@ export default function ItemDetail() {
                   <Button size="small" onClick={() => setPartnerLocationsOpen(true)}>Quản lý địa chỉ của đối tác</Button>
                   <Typography.Text type="secondary" style={{ fontSize: 12 }}>Nếu khóa có ca học thì dùng địa chỉ cài đặt cho ca học.</Typography.Text>
                 </Space>
-              </Space>
+              </div>
             </FieldRow>
-          )}
-        </SectionCard>
+          </SectionCard>
+        )}
 
         <SectionCard title="Thời gian & ca học">
           <FieldRow label="Chiêu sinh liên tục">
@@ -503,7 +494,7 @@ export default function ItemDetail() {
           </FieldRow>
 
           {/* Ca học — inline in Thời gian */}
-          {!isNew && !isFeeOnly && (
+          {!isNew && (
             <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid #f0f0f0' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                 <Typography.Text strong style={{ fontSize: 13 }}>Ca học</Typography.Text>
@@ -563,6 +554,17 @@ export default function ItemDetail() {
 
     { key: 'finance', label: 'Tài chính', children: (
       <div style={{ maxWidth: 640, paddingBottom: 32 }}>
+        <SectionCard title="Cài đặt thanh toán">
+          <FieldRow label="Thu hộ học phí">
+            <Space direction="vertical" size={2}>
+              <Form.Item name="isPaymentfee" noStyle {...switchItemProps}>
+                <Switch onChange={() => setDirty(true)} />
+              </Form.Item>
+              <Typography.Text type="secondary" style={{ fontSize: 12 }}>Bật nếu đây là khóa chỉ thu hộ học phí</Typography.Text>
+            </Space>
+          </FieldRow>
+        </SectionCard>
+
         <SectionCard title="Hoa hồng đối tác">
           <FieldRow label="Tỉ lệ HH đối tác">
             <Space direction="vertical" size={2}>
