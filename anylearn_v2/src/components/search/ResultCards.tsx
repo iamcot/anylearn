@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { getCourseUrl, type Item, type UserResult } from '@/lib/api'
 import { formatPrice } from '@/lib/format/price'
 import { SUBTYPE_LABELS } from '@/config/itemLabels'
+import CardPointsChip from '@/components/points/CardPointsChip'
 import ChevronLabel from '@/components/ChevronLabel'
 import { trackSearchClick } from '@/components/search/searchTracking'
 import { BookIcon, HeartIcon, SchoolIcon, StarIcon, UserIcon } from '@/components/icons'
@@ -74,6 +75,7 @@ export function CourseResultCard({ item }: { item: Item }) {
         {item.shortContent && <p className="m-0 line-clamp-2 flex-1 text-xs text-muted md:text-sm">{item.shortContent}</p>}
         <div className="mt-auto pt-1">
           <div className="mb-1 text-base font-extrabold text-red">{formatPrice(item.price)}</div>
+          <CardPointsChip points={item.points} className="mb-1" />
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 text-xs text-subtle">
               {item.rating != null && item.rating > 0 && (

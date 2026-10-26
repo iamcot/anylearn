@@ -103,6 +103,7 @@ jobs:
         working-directory: anylearn_v2
         run: |
           echo "NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}" > .env.production
+          echo "NEXT_PUBLIC_GOOGLE_MAPS_KEY=${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_KEY }}" >> .env.production
 
       - name: Build Next.js
         working-directory: anylearn_v2
@@ -296,6 +297,7 @@ jobs:
           sudo mkdir -p ${{ env.DEPLOY_PATH }}/frontend
           sudo tee ${{ env.DEPLOY_PATH }}/frontend/.env.production > /dev/null << 'EOF'
           NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
+          NEXT_PUBLIC_GOOGLE_MAPS_KEY=${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_KEY }}
           EOF
           sudo chown anylearn-app:anylearn-deploy ${{ env.DEPLOY_PATH }}/frontend/.env.production
           sudo chmod 640 ${{ env.DEPLOY_PATH }}/frontend/.env.production

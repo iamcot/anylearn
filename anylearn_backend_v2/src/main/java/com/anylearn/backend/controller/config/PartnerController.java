@@ -9,6 +9,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import com.anylearn.backend.service.search.NearbyPartners;
+
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,9 +26,29 @@ public class PartnerController {
     private final JdbcTemplate jdbc;
     private final com.anylearn.backend.service.reviews.ReviewService reviewService;
     private final com.anylearn.backend.repository.UserRepository userRepository;
+    private final com.anylearn.backend.service.settings.OperationSettingsService operationSettingsService;
 
     private static boolean partnerLive(User partner) {
         return com.anylearn.backend.service.search.ItemVisibility.isAuthorLive(partner.getStatus(), partner.getIsSigned());
+    }
+
+    /**
+     * Schools with a branch inside the circle around the visitor, for the map popup of "Gần tôi". The radius is the one set in
+     * the back office (Cài đặt > Vận hành) unless the search sent its own; the answer says which one was used.
+     */
+    @GetMapping("/nearby")
+    public ApiResponse<?> nearby(@RequestParam Double lat, @RequestParam Double lng, @RequestParam(required = false) Double radiusKm) {
+        if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return ApiResponse.fail("Vị trí không hợp lệ");
+        double radius = radiusKm != null && radiusKm > 0 ? Math.min(radiusKm, 100) : operationSettingsService.nearRadiusKm();
+        double[] box = NearbyPartners.boundingBox(lat, lng, radius);
+        List<NearbyPartners.Branch> branches = jdbc.query(
+                "SELECT a.id, a.name, a.image, a.introduce, l.lat, l.lng FROM users a JOIN user_locations l ON l.user_id = a.id AND l.status = 1 "
+                        + "WHERE a.role = 'school' AND " + com.anylearn.backend.service.search.ItemVisibility.AUTHOR_LIVE_SQL
+                        + " AND l.lat BETWEEN ? AND ? AND l.lng BETWEEN ? AND ?",
+                (rs, row) -> new NearbyPartners.Branch(rs.getLong("id"), rs.getString("name"), rs.getString("image"),
+                        rs.getString("introduce"), rs.getDouble("lat"), rs.getDouble("lng")),
+                box[0], box[1], box[2], box[3]);
+        return ApiResponse.ok(Map.of("radiusKm", radius, "partners", NearbyPartners.inRadius(branches, lat, lng, radius)));
     }
 
     @GetMapping("/{id}/summary")

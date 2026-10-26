@@ -35,6 +35,23 @@ export async function setFollowing(partnerId: number, follow: boolean, token: st
   return data
 }
 
+export interface NearbyPartner {
+  id: number
+  name: string
+  image?: string | null
+  intro: string
+  lat: number
+  lng: number
+  distanceKm: number
+}
+
+// Schools with a branch in the circle around a point; without `radiusKm` the back office radius is used.
+export async function getNearbyPartners(lat: number, lng: number, radiusKm?: number): Promise<{ radiusKm: number; partners: NearbyPartner[] } | null> {
+  const params = new URLSearchParams({ lat: String(lat), lng: String(lng) })
+  if (radiusKm !== undefined) params.set('radiusKm', String(radiusKm))
+  return apiFetch<{ radiusKm: number; partners: NearbyPartner[] }>(`/partners/nearby?${params}`)
+}
+
 export interface DiscoverResult {
   items: Item[]
   total: number

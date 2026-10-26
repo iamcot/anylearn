@@ -12,6 +12,7 @@ import com.anylearn.backend.repository.OrderDetailRepository;
 import com.anylearn.backend.repository.TagRepository;
 import com.anylearn.backend.service.search.Geo;
 import com.anylearn.backend.service.search.ItemSearchAttributes;
+import com.anylearn.backend.service.search.PartnerCap;
 import com.anylearn.backend.service.search.SearchFilterBuilder;
 import com.anylearn.backend.service.search.SearchFilters;
 import com.anylearn.backend.repository.UserRepository;
@@ -94,7 +95,19 @@ public class MeilisearchService {
         }
     }
 
+    /** How many hits are read to apply the per-partner cap: the pages are cut from this window. */
+    private static final int CAP_WINDOW = 300;
+
     public Map<String, Object> search(String query, int page, int pageSize, String sort, SearchFilters filters) {
+        return search(query, page, pageSize, sort, filters, 0);
+    }
+
+    /**
+     * `maxPerPartner` > 0 keeps at most that many courses of one partner in the list (not when the list is already
+     * one partner's); the cap works on the first {@link #CAP_WINDOW} hits, so `total` is the count after the cap.
+     */
+    public Map<String, Object> search(String query, int page, int pageSize, String sort, SearchFilters filters, int maxPerPartner) {
+        boolean capped = maxPerPartner > 0 && filters.authorId() == null;
         try {
             List<String> clauses = SearchFilterBuilder.build(filters);
 
@@ -114,14 +127,20 @@ public class MeilisearchService {
                     .q(query != null ? query : "")
                     .filter(clauses.toArray(new String[0]))
                     .sort(sortClause)
-                    .offset(page * pageSize)
-                    .limit(pageSize)
+                    .offset(capped ? 0 : page * pageSize)
+                    .limit(capped ? CAP_WINDOW : pageSize)
                     .build();
 
             var rawResult = meilisearchClient.index("items").search(request);
             SearchResult result = (SearchResult) rawResult;
             List<Map<String, Object>> hits = objectMapper.convertValue(
                     result.getHits(), new TypeReference<>() {});
+            long total = result.getEstimatedTotalHits();
+            if (capped) {
+                hits = PartnerCap.limitPerPartner(hits, maxPerPartner);
+                total = hits.size();
+                hits = hits.subList(Math.min(page * pageSize, hits.size()), Math.min((page + 1) * pageSize, hits.size()));
+            }
 
             List<Long> ids = hits.stream()
                     .map(h -> ((Number) h.get("id")).longValue())
@@ -160,7 +179,7 @@ public class MeilisearchService {
 
             Map<String, Object> response = new java.util.LinkedHashMap<>();
             response.put("items", items);
-            response.put("total", result.getEstimatedTotalHits());
+            response.put("total", total);
             response.put("page", page);
             response.put("pageSize", pageSize);
             return response;

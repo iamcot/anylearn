@@ -103,6 +103,16 @@ public class ItemController {
         return problem == null ? ApiResponse.ok("OK") : ApiResponse.fail(problem);
     }
 
+    /** The partner of the course reports a review to the team (the team decides to keep or hide it). */
+    @PostMapping("/item/{itemId}/reviews/{reviewId}/report")
+    public ApiResponse<?> reportReview(@PathVariable Long itemId, @PathVariable Long reviewId,
+                                       @RequestBody Map<String, Object> body,
+                                       @AuthenticationPrincipal User currentUser) {
+        if (currentUser == null) return ApiResponse.fail("Unauthorized");
+        String problem = reviewService.report(currentUser.getId(), itemId, reviewId, body.get("reason") instanceof String reason ? reason : "");
+        return problem == null ? ApiResponse.ok("OK") : ApiResponse.fail(problem);
+    }
+
     @GetMapping("/item/{itemId}/is-fav")
     public ApiResponse<?> isFav(@PathVariable Long itemId,
                                 @AuthenticationPrincipal User currentUser) {

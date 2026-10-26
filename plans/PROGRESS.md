@@ -55,7 +55,7 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 13.6 | SW nhận push, chống trùng với SSE, badge | done | Cùng tag `notif-<id>`; bấm mở `/notifications/open` |
 | 13.7 | Đo cài app / push | todo | |
 | 02.1 | API điểm dự kiến nhận | done | `ItemPointsResolver`, `GET /points/preview`, `points` trên dòng giỏ |
-| 02.2 | "+X điểm" ở PDP/giỏ/đơn | done | thẻ khóa trong danh sách chưa làm |
+| 02.2 | "+X điểm" ở PDP/giỏ/đơn | done | thẻ khóa trong danh sách: xong, mặc định bật, đặt `NEXT_PUBLIC_CARD_POINTS=0` để ẩn |
 | 02.3 | Công tắc dùng điểm ở checkout | done | `UsePointsToggle`, `maxUsablePoints` |
 | 02.4 | Trang anyPoint timeline + `/info/anypoint` | done | chưa có dòng hết hạn (02.5) |
 | 05.1 | Chống đơn trùng | done | |
@@ -78,11 +78,11 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 03.4 | Index MeiliSearch | done | Thử trên Meilisearch 1.12 thật; cần `POST /admin/reindex` sau khi deploy |
 | 03.5 | API search bộ lọc mới | done | Chưa có `ageFor=<learnerId>`: FE gửi `ageFrom/ageTo` (xem ghi chú nhật ký) |
 | 04.1 | Chip chọn người học | done | Tài khoản: `Tất cả / con / Tôi` (tuổi từ ngày sinh, bé chỉ có năm sinh = 2 tuổi khả dĩ), nhớ lựa chọn `anylearn.activeLearner`; khách giữ chip cũ. Mới gắn vào trang search, trang chủ làm ở 04.3 |
-| 04.2 | Chip lọc nhanh + bộ lọc đầy đủ | done | Chip: Gần tôi/Cuối tuần/Tối trong tuần/Học thử/Giảm giá/Online; panel thêm quận, khung giờ, đối tác, giá tối đa (thanh trượt), khai giảng, tag; thẻ có khoảng cách/giờ/Học thử/Giảm giá. Chưa có "+X anyPoint" trên thẻ |
+| 04.2 | Chip lọc nhanh + bộ lọc đầy đủ | done | Chip: Gần tôi/Cuối tuần/Tối trong tuần/Học thử/Giảm giá/Online; panel thêm quận, khung giờ, đối tác, giá tối đa (thanh trượt), khai giảng, tag; thẻ có khoảng cách/giờ/Học thử/Giảm giá. Chip "+X anyPoint" trên thẻ: xong, mặc định bật (`NEXT_PUBLIC_CARD_POINTS=0` để ẩn) |
 | 04.3 | Trang chủ mobile gọn | done | Còn 5 khối: hero (tìm kiếm + chip bé + chip nhanh), Dành cho {bé}, Đang hot gần bạn (cần địa chỉ đã lưu), chuyên gia/đối tác nổi bật, CTA nhờ tìm giúp + 3 bài viết. Chưa có khối bộ sưu tập (04.4) và nút "Thử điều mới" (04.5); PromoSlider giữ lại tới khi có bộ sưu tập. Chưa đo trước/sau |
 | 04.4 | Bộ sưu tập | done | Chọn tay + gợi ý theo bộ lọc, không dùng `filter_json`; mùa là khoảng ngày tuyệt đối (năm sau phải sửa tay). Tìm gợi ý cần Meilisearch nên chưa thử với Meilisearch thật trong sandbox (chỉ thử CRUD thật + gợi ý giả lập) |
 | 04.5 | Trang chuyên gia + "Ngẫu nhiên" | done | Trang `/partner/[id]` (giới thiệu, khóa đang mở, cơ sở, theo dõi), `/discover`. Chưa có phần review (chờ plan 09) và "thành tích" (chưa có dữ liệu) |
-| 01.5 | Khảo sát sở thích khi thêm con | todo | |
+| 01.5 | Khảo sát sở thích khi thêm con | done | 3 câu tuỳ chọn ở `/account/children` (tự mở sau khi thêm bé, nút "Sở thích" để sửa); lưu `learner_interests` (V35). Chưa dùng cho gợi ý (plan 04/08) và 01.4 |
 | 09.1 | Review xác thực | done | Nhãn "Đã học tại anyLEARN", ẩn/hiện (admin), một review/khóa/người (theo tài khoản, chưa tách theo bé) |
 | 09.2 | Review tiêu chí + ảnh | done | 4 tiêu chí, cụm gợi ý, tối đa 4 ảnh; ảnh cần S3 (chưa thử upload thật) |
 | 09.3 | Hiển thị review PDP/đối tác | done | Tóm tắt, lọc có ảnh/theo sao, trang đối tác tổng hợp. Chưa lọc theo tuổi bé |
@@ -108,7 +108,7 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 06.5 | Ưu đãi gom một chỗ | todo | |
 | 02.5 | Hạn điểm cho member (lô điểm) | todo | Chờ chốt thời hạn |
 | 02.6 | Nhắc điểm sắp hết hạn | todo | |
-| 09.4 | Đối tác trả lời + báo cáo review | partial | Đối tác trả lời ngay trên trang khóa học (theo yêu cầu 26/10); chưa có nút "Báo cáo review" |
+| 09.4 | Đối tác trả lời + báo cáo review | done | Đối tác trả lời ngay trên trang khóa học; nút "Báo cáo" (V34 `review_reports`), admin lọc "Đối tác báo cáo", Giữ/Ẩn, số đỏ trên menu |
 | 09.5 | Nhắc viết review | done | Nhắc ở nửa khóa và khi hết khóa (mỗi mốc 1 lần), quét mỗi giờ; chưa có thẻ "Review chờ viết" ở "Cần làm ngay" (chờ plan 06) |
 | 09.6 | Thưởng điểm review | done | 20 anyPoint cho nhận xét từ 50 ký tự + 20 khi có ảnh (chỉnh được, mặc định do mình chọn, chờ chủ sản phẩm xác nhận); thu hồi khi ẩn/xóa; chưa dùng `point_lots` (chờ 02.5) |
 | 11.1 | Chat MVP backend | todo | |
@@ -461,6 +461,21 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 ### 26/10/2026 – quy tắc hiện khóa học
 - Khóa chỉ hiện cho khách khi khóa bật (status và user_status) VÀ đối tác hoạt động VÀ đã Ký HĐ (is_signed 99): một quy tắc `ItemVisibility` áp cho tìm kiếm (trường `authorLive` trong Meilisearch), trang chủ, danh mục, bộ sưu tập, trang đối tác, khóa liên quan, thông báo khóa mới và trang chi tiết khóa (admin, đối tác và người đã mua vẫn mở được).
 - Rủi ro khi triển khai: đối tác chưa bật Ký HĐ sẽ mất toàn bộ khóa trên site; cần rà công tắc Ký HĐ trước. Chưa thử với Meilisearch thật (chỉ thử phần SQL và trang chi tiết).
+
+### 26/10/2026 – chip "+X anyPoint" trên thẻ khóa học
+- Backend: `ConfigService.enrichItem` (nơi duy nhất dựng thẻ khóa cho search, bộ sưu tập, khám phá, trang chủ, đối tác) thêm `points` (từ `ItemPointsResolver.buyerPoints`, bỏ khi 0 hoặc lỗi), nên số khớp với PDP và lúc tạo đơn.
+- FE: `components/points/CardPointsChip` ("+120 anyPoint", không kèm tiền) trong `CourseCard` và `CourseResultCard`; mặc định hiện, đặt `NEXT_PUBLIC_CARD_POINTS=0` (`lib/features.ts`) để ẩn (ban đầu làm mặc định tắt, đổi sang bật theo yêu cầu 26/10). Test `cardPointsLabel`.
+- Chưa thử trên giao diện thật (không có DB/Meilisearch trong môi trường này); mỗi thẻ thêm vài truy vấn nhỏ như `enrichItem` đã có.
+
+### 26/10/2026 – 01.5 khảo sát sở thích, 09.4 báo cáo review
+- 01.5: `learner_interests (learner_id, tag, source)` (V35; source `likes`/`wants`/`budget`). API `GET/PUT /api/user/children/{id}/interests` (chỉ cha mẹ của bé), khóa hợp lệ trong `LearnerInterestRules` (12 sở thích, 4 mức ngân sách, tối đa 8 mỗi câu), nhãn tiếng Việt ở `config/interests.ts`. FE `ChildInterestsModal`: mở ngay sau khi thêm bé, có "Bỏ qua"; xóa bé thì xóa câu trả lời. Chỉ lưu, chưa dùng để gợi ý hay vào báo cáo 01.4.
+- 09.4: bảng `review_reports` (V34). Đối tác của khóa bấm "Báo cáo" (lý do từ 10 ký tự, mỗi người một lần/đánh giá), admin nhận thông báo; trang "Tất cả đánh giá" có bộ lọc "Đối tác báo cáo, chờ xem" kèm lý do, nút "Giữ đánh giá" hoặc ẩn như thường (báo cáo tự đóng); số đỏ trên nút Xem tất cả đánh giá cộng cả báo cáo. Đối tác vẫn không ẩn/xóa được.
+- Chưa thử với MySQL thật (không có DB trong môi trường này); đã chạy test thuần và build FE/admin.
+
+### 26/10/2026 – kết quả tìm kiếm gọn hơn và bản đồ "Gần tôi"
+- Mỗi đối tác tối đa 2 khóa trong kết quả tìm khóa học (`PartnerCap`, cấu hình `app.search.max-per-partner`, mặc định 2, 0 = tắt): đọc 300 kết quả đầu, giới hạn rồi mới cắt trang nên `total` là số sau khi giới hạn. Không áp khi tìm theo một đối tác (`authorId`) và ở trang chọn khóa của bộ sưu tập (admin).
+- Nút "Xem bản đồ" cạnh số kết quả khi lọc Gần tôi: popup bản đồ (Google Maps JavaScript API, chỉ tải khi mở; ban đầu làm bằng Leaflet + OpenStreetMap, đổi theo yêu cầu 26/10) với vị trí khách ở giữa, vòng tròn bán kính từ cấu hình admin, tên các trường (`role = school`, đang hoạt động, đã Ký HĐ) có cơ sở trong vòng tròn; bấm vào tên thấy ảnh, tên, giới thiệu ngắn, nút "Tìm hiểu thêm" mở trang đối tác tab mới. API `GET /api/partners/nearby`.
+- Đã thử bằng trình duyệt thật với API giả (marker, thẻ nhỏ, link); ô nền bản đồ không tải được trong môi trường này nên chưa xem được nền. Chưa thử với MySQL thật. Khóa `NEXT_PUBLIC_GOOGLE_MAPS_KEY` (secret GitHub cùng tên) phải giới hạn theo tên miền và chỉ cho Maps JavaScript API; chưa thử với khóa thật.
 
 ### 26/10/2026 – "Gần tôi" cho khóa chưa có địa chỉ
 - Khóa không có địa chỉ riêng dùng hội sở của đối tác để index vị trí (`_geo`, `locations`, `districtCodes`), cờ `locationFromPartner` trong document, không hiện trên thẻ khóa. Cần chạy reindex một lần sau khi triển khai.

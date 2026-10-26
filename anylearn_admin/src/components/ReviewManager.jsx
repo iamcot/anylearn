@@ -11,6 +11,7 @@ const FILTERS = [
   { value: 'published', label: 'Đang hiện' },
   { value: 'hidden', label: 'Đã ẩn' },
   { value: 'resubmitted', label: 'Đã ẩn, người viết đã sửa lại' },
+  { value: 'reported', label: 'Đối tác báo cáo, chờ xem' },
 ]
 
 // Reviews of one course (itemId) or of every course. Hiding asks for a reason that the author sees; deleting takes back the anyPoint of the review.
@@ -49,6 +50,13 @@ export default function ReviewManager({ itemId }) {
       refresh()
     },
   })
+  const keep = useMutation({
+    mutationFn: (review) => client.put(`/admin/items/${review.itemId}/reviews/${review.id}/keep`).then(r => r.data),
+    onSuccess: (res) => {
+      if (res.resultCode !== 1) { message.error(res.message); return }
+      refresh()
+    },
+  })
   const remove = useMutation({
     mutationFn: (review) => client.delete(`/admin/items/${review.itemId ?? itemId}/reviews/${review.id}`),
     onSuccess: refresh,
@@ -72,6 +80,15 @@ export default function ReviewManager({ itemId }) {
           )}
           {r.partnerReply && <div style={{ color: '#888', fontSize: 12 }}>Đối tác trả lời: {r.partnerReply}</div>}
           {r.status === 'hidden' && <div style={{ color: '#cf1322', fontSize: 12 }}>Lý do ẩn: {r.hiddenReason || '—'}</div>}
+          {r.report && (
+            <div style={{ marginTop: 4, padding: '6px 8px', background: '#fff7e6', borderRadius: 6, fontSize: 12 }}>
+              <Tag color="orange">Đối tác báo cáo</Tag>{r.report.by}: {r.report.reason}
+              <div style={{ marginTop: 4 }}>
+                <Button size="small" loading={keep.isPending} onClick={() => keep.mutate(r)}>Giữ đánh giá</Button>
+                <span style={{ color: '#888', marginLeft: 8 }}>hoặc tắt công tắc "Hiện" để ẩn (kèm lý do)</span>
+              </div>
+            </div>
+          )}
           {r.resubmittedAt && <Tag color="orange" style={{ marginTop: 4 }}>Người viết đã sửa lại, chờ xem</Tag>}
         </div>
       ),

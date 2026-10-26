@@ -22,6 +22,8 @@ export interface Item {
   seoUrl?: string
   rating?: number
   num_favorite?: number
+  // anyPoint the buyer earns (plan 02.2); shown on cards unless NEXT_PUBLIC_CARD_POINTS=0
+  points?: number
   // Search results only (plan 04.2)
   distanceKm?: number
   hasFreeTrial?: boolean

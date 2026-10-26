@@ -157,6 +157,10 @@ Trang **Tags** (nút ở đầu trang Khóa học). Tag là danh mục kỹ năn
 Khóa hiện nếu **một trong các cơ sở** nằm trong bán kính. Bán kính do bạn đặt ở **Cấu hình vận hành > Bán kính "Gần tôi"** (mặc định 10 km, từ 1 đến 100).
 Khách chỉ gửi tọa độ làm tròn khoảng 100 m, không gửi vị trí chính xác.
 
+**Xem bản đồ:** khi đang lọc Gần tôi, cạnh số kết quả có nút **Xem bản đồ**. Bấm vào mở bản đồ với vị trí khách ở giữa, vòng tròn đúng bán kính trên, và **tên các trường** (tài khoản có vai trò *school*, đang hoạt động, đã Ký HĐ) có ít nhất một cơ sở trong vòng tròn. Bấm vào tên hiện thẻ nhỏ: ảnh, tên, giới thiệu ngắn (lấy từ phần giới thiệu của đối tác, cắt 140 ký tự) và nút **Tìm hiểu thêm** mở trang đối tác ở tab mới. Trường không hiện trên bản đồ khi cơ sở chưa có tọa độ. Bản đồ là **Google Maps**, cần khóa riêng cho trình duyệt (`NEXT_PUBLIC_GOOGLE_MAPS_KEY`, do người phụ trách kỹ thuật cài lúc triển khai; chưa có khóa thì nút Xem bản đồ không hiện). Khi bản đồ có nhiều trường gần nhau, tên bị trùng sẽ ẩn bớt, phóng to để thấy đủ.
+
+**Tối đa 2 khóa mỗi đối tác:** trong kết quả tìm kiếm khóa học, mỗi đối tác chỉ hiện tối đa 2 khóa (khóa xếp trên cùng theo cách sắp xếp đang chọn), để đối tác lớn không chiếm hết trang. Xem hết khóa của một đối tác ở trang đối tác. Con số này đặt bằng cấu hình `app.search.max-per-partner` của máy chủ (mặc định 2, đặt 0 để tắt). Số kết quả được tính sau khi giới hạn, và chỉ xét 300 kết quả đầu của lượt tìm.
+
 ### 5.3 Sắp xếp
 
 Phổ biến nhất (mặc định), mới nhất, giá thấp/cao, khai giảng sớm nhất, giá mỗi buổi thấp nhất, và Gần nhất (chỉ khi dùng Gần tôi).
@@ -243,7 +247,9 @@ Trang khóa học hiện: điểm trung bình, số đánh giá, tỉ lệ từn
 
 **Thưởng anyPoint khi đánh giá:** đánh giá có nhận xét từ **50 ký tự** được thưởng anyPoint, có ít nhất một ảnh được thưởng thêm (số anyPoint chỉnh ở Cài đặt > Vận hành, mặc định 20 và 20; nhập 0 để tắt). Mỗi đánh giá chỉ thưởng một lần: sửa lại không nhận thêm, chỉ thêm ảnh sau đó thì nhận phần thưởng ảnh. Phụ huynh thấy dòng "+X anyPoint" ngay trong form và nhận thông báo; lịch sử anyPoint ghi "Thưởng viết đánh giá". **Admin xóa đánh giá thì anyPoint đã thưởng bị thu hồi** (ghi "Thu hồi anyPoint thưởng đánh giá"); nếu phụ huynh đã tiêu bớt thì chỉ thu phần còn lại, số dư không âm. Chỉ ẩn thì không thu hồi. Giao dịch nằm ở trang anyPoints với loại `review_reward` và `review_reward_revoke`.
 
-**Chưa có:** nút "Báo cáo đánh giá" của đối tác, lọc theo tuổi của bé.
+**Đối tác báo cáo đánh giá:** đối tác đăng nhập, mở trang khóa của mình, bấm **Báo cáo** dưới một đánh giá và nhập lý do (ít nhất 10 ký tự, ví dụ "người này chưa từng học ở trung tâm"). Đối tác không tự ẩn hay xóa được. Admin (và các thành viên nhận thông báo) nhận thông báo "{đối tác} báo cáo một đánh giá"; số đỏ trên nút **Xem tất cả đánh giá** cộng cả đánh giá đã sửa lại và đánh giá bị báo cáo. Vào **Tất cả đánh giá**, chọn bộ lọc **Đối tác báo cáo, chờ xem**: mỗi dòng hiện lý do. Chọn **Giữ đánh giá** (báo cáo đóng, đánh giá vẫn hiện) hoặc tắt công tắc **Hiện** để ẩn kèm lý do (báo cáo tự đóng). Mỗi đối tác báo cáo một đánh giá một lần; người viết không biết ai báo cáo.
+
+**Chưa có:** lọc đánh giá theo tuổi của bé.
 
 ---
 

@@ -7,6 +7,7 @@ import { formatDate } from '@/lib/format/date'
 import StarRating from '@/components/StarRating'
 import { ShieldCheckIcon, UserIcon } from '@/components/icons'
 import ReplyBox from './ReplyBox'
+import ReportBox from './ReportBox'
 
 interface Props {
   review: PdpReview
@@ -21,6 +22,8 @@ interface Props {
 
 export default function ReviewItem({ review, itemId, partnerName = 'Đối tác', replyToken, onChanged, showCourse }: Props) {
   const [replying, setReplying] = useState(false)
+  const [reporting, setReporting] = useState(false)
+  const [reported, setReported] = useState(false)
   const scores = REVIEW_CRITERIA.filter(criterion => review.scores?.[criterion.id] !== undefined)
   const canReply = Boolean(replyToken && review.id)
 
@@ -72,6 +75,20 @@ export default function ReviewItem({ review, itemId, partnerName = 'Đối tác'
           <button type="button" onClick={() => setReplying(true)} className="mt-1.5 min-h-11 cursor-pointer border-0 bg-transparent p-0 text-xs font-medium text-green-dark">
             {review.partner_reply ? 'Sửa trả lời' : 'Trả lời'}
           </button>
+        )}
+        {canReply && !replying && !reporting && (
+          reported
+            ? <span className="ml-3 text-xs text-muted">Đã gửi báo cáo cho anyLEARN</span>
+            : <button type="button" onClick={() => setReporting(true)} className="ml-3 mt-1.5 min-h-11 cursor-pointer border-0 bg-transparent p-0 text-xs text-muted">Báo cáo</button>
+        )}
+        {canReply && reporting && replyToken && review.id && (
+          <ReportBox
+            itemId={itemId}
+            reviewId={review.id}
+            token={replyToken}
+            onCancel={() => setReporting(false)}
+            onDone={() => { setReporting(false); setReported(true) }}
+          />
         )}
         {canReply && replying && replyToken && review.id && (
           <ReplyBox
