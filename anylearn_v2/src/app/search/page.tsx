@@ -176,14 +176,14 @@ function SearchPageInner() {
 
             <div className="mb-[18px] flex items-end justify-between gap-4">
               <div>
-                <h2 ref={headingRef} className="m-0 scroll-mt-24 text-xl font-extrabold text-ink md:text-3xl">Kết quả phù hợp</h2>
-                <p className="mb-0 mt-1 flex flex-wrap items-center gap-x-3 text-muted">
-                  <span>{loading ? 'Đang tìm kiếm...' : `${total} kết quả`}</span>
-                  {state.mode === 'class' && state.adv.near && GOOGLE_MAPS_KEY && (
+                <h2 ref={headingRef} className="m-0 scroll-mt-24 text-xl font-extrabold text-ink md:text-3xl">Kết quả phù hợp {state.mode === 'class' && state.adv.near && GOOGLE_MAPS_KEY && (
                     <button type="button" onClick={() => setMapOpen(true)} className="inline-flex min-h-11 cursor-pointer items-center gap-1 border-0 bg-transparent p-0 text-sm font-bold text-green-dark">
                       <MapIcon className="size-4" />Xem bản đồ
                     </button>
-                  )}
+                  )}</h2>
+                <p className="mb-0 mt-1 flex flex-wrap items-center gap-x-3 text-muted">
+                  <span>{loading ? 'Đang tìm kiếm...' : `${total} kết quả`}</span>
+                  
                 </p>
               </div>
               {state.mode === 'class' && (
