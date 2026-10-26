@@ -66,7 +66,6 @@ public class NotificationService {
         notificationRepository.save(n);
         pushToBrowser(userId);
         pushToDevices(n);
-        if (allowed(userId, type, NotificationTopics.EMAIL)) tryEmailForNotification(userId, type, title, content);
         return n;
     }
 
@@ -93,21 +92,6 @@ public class NotificationService {
                 action.run();
             }
         });
-    }
-
-    private void tryEmailForNotification(Long userId, String type, String title, String content) {
-        if (emailTemplateService == null) return;
-        try {
-            if ("order".equals(type)) {
-                emailTemplateService.sendToUser(userId, "email-order_success", title,
-                    Map.of("userName", "", "orderId", "", "items", content != null ? content : "", "amount", ""));
-            } else if ("schedule_reminder".equals(type)) {
-                emailTemplateService.sendToUser(userId, "email-schedule_reminder", title,
-                    Map.of("userName", "", "itemTitle", content != null ? content : "", "date", "", "scheduleInfo", ""));
-            }
-        } catch (Exception e) {
-            log.warn("[NotificationService] email trigger failed type={}: {}", type, e.getMessage());
-        }
     }
 
     public Notification createScheduledNotification(Long userId, String type, String title,
@@ -141,13 +125,35 @@ public class NotificationService {
             n.setIsSend((byte) 1);
             n.setUpdatedAt(LocalDateTime.now());
             notificationRepository.save(n);
+            if ("schedule_reminder".equals(n.getType())) {
+                emailTemplate(n.getUserId(), n.getType(), "email-schedule_reminder", n.getTitle(),
+                        Map.of("itemTitle", String.valueOf(n.getContent()), "date", "", "scheduleInfo", "Mở lịch học để xem chi tiết"));
+            }
         }
     }
 
-    /** Same, for a notification type the person may have switched off on the email channel. */
-    public void sendEmailNotification(Long userId, String type, String subject, String htmlBody) {
-        if (!allowed(userId, type, NotificationTopics.EMAIL)) return;
-        sendEmailNotification(userId, subject, htmlBody);
+    /** Email from an admin-editable template to a person; skipped when they switched the email channel of this type off or have no address. */
+    public void emailTemplate(Long userId, String type, String templateKey, String subject, Map<String, String> vars) {
+        if (emailTemplateService == null || !allowed(userId, type, NotificationTopics.EMAIL)) return;
+        try {
+            emailTemplateService.sendToUser(userId, templateKey, subject, vars);
+        } catch (Exception e) {
+            log.warn("[NotificationService] email {} failed for user {}: {}", templateKey, userId, e.getMessage());
+        }
+    }
+
+    /** Email every back office recipient with the generic notice template (the in-app notification is separate). */
+    public void emailAdmins(String subject, String content) {
+        emailAdmins(subject, "email-admin_notice", Map.of("title", subject, "content", content));
+    }
+
+    public void emailAdmins(String subject, String templateKey, Map<String, String> vars) {
+        if (emailTemplateService == null) return;
+        try {
+            emailTemplateService.sendToAdmins(subject, templateKey, vars);
+        } catch (Exception e) {
+            log.warn("[NotificationService] admin email {} failed: {}", templateKey, e.getMessage());
+        }
     }
 
     public void sendEmailNotification(Long userId, String subject, String htmlBody) {

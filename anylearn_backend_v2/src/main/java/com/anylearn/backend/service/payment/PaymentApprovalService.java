@@ -7,6 +7,9 @@ import com.anylearn.backend.service.WalletService;
 import com.anylearn.backend.service.today.ScheduleSlot;
 import com.anylearn.backend.service.today.SessionSchedule;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.anylearn.backend.service.EmailTemplateService;
+import com.anylearn.backend.entity.Item;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -111,6 +114,8 @@ public class PaymentApprovalService {
         } catch (Exception e) {
             log.warn("[approveOrder] failed to notify admin: {}", e.getMessage());
         }
+        notificationService.emailAdmins("Đơn hàng thanh toán thành công",
+                "Đơn hàng #" + orderId + " đã được thanh toán qua " + paymentMethod + " (" + EmailTemplateService.money(order.getAmount()) + ")");
 
         // Notify buyer
         try {
@@ -121,6 +126,11 @@ public class PaymentApprovalService {
         } catch (Exception e) {
             log.warn("[approveOrder] failed to notify buyer: {}", e.getMessage());
         }
+        String itemTitles = itemRepository.findAllById(details.stream().map(OrderDetail::getItemId).distinct().toList()).stream()
+                .map(Item::getTitle).collect(Collectors.joining("; "));
+        notificationService.emailTemplate(order.getUserId(), "order", "email-order_success",
+                "Đơn hàng #" + orderId + " đã thanh toán thành công",
+                Map.of("orderId", String.valueOf(orderId), "items", itemTitles, "amount", EmailTemplateService.money(order.getAmount())));
 
         // Create payment Transaction record (order)
         saveTransaction(order.getUserId(), "order", order.getAmount(), paymentMethod, orderId,
@@ -368,6 +378,11 @@ public class PaymentApprovalService {
         } catch (Exception e) {
             log.warn("[cancelOrder] failed to notify buyer {}: {}", order.getUserId(), e.getMessage());
         }
+        notificationService.emailTemplate(order.getUserId(), "order_cancelled", "email-order_cancelled",
+                "Đơn hàng #" + orderId + " đã bị hủy",
+                Map.of("orderId", String.valueOf(orderId), "reason", expired
+                        ? "Đơn hàng đã hết hạn thanh toán nên được hủy. Nếu bạn đã chuyển khoản, đơn sẽ được khôi phục sau khi anyLEARN kiểm tra."
+                        : "Đơn hàng đã bị hủy. Nếu bạn đã thanh toán, vui lòng liên hệ hỗ trợ."));
 
         // 7. Notify admins (an expiry is routine, the daily numbers are on the dashboard)
         if (!expired) try {

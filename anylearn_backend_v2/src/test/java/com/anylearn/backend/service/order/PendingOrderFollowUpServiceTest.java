@@ -83,7 +83,7 @@ class PendingOrderFollowUpServiceTest {
     void firstReminderIsInAppOnly() {
         runAt(CREATED.plusHours(3), waitingOrder(1));
         verify(notifications).createNotification(eq(7L), eq("order_reminder"), anyString(), anyString(), eq("/order/1"), any());
-        verify(notifications, never()).sendEmailNotification(anyLong(), anyString(), anyString(), anyString());
+        verify(notifications, never()).emailTemplate(anyLong(), anyString(), anyString(), anyString(), any());
     }
 
     @Test
@@ -94,7 +94,7 @@ class PendingOrderFollowUpServiceTest {
         when(followups.findByOrderId(1L)).thenReturn(List.of(first));
         runAt(CREATED.plusHours(25), waitingOrder(1));
         verify(notifications).createNotification(eq(7L), eq("order_reminder"), anyString(), anyString(), eq("/order/1"), any());
-        verify(notifications).sendEmailNotification(eq(7L), eq("order_reminder"), anyString(), anyString());
+        verify(notifications).emailTemplate(eq(7L), eq("order_reminder"), eq("email-order_reminder"), anyString(), any());
     }
 
     @Test

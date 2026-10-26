@@ -35,6 +35,21 @@ public class EmailTemplates {
             "user_register.html",
             List.of("userName", "phone")
         ));
+        put("email-order_reminder", new TemplateInfo(
+            "Nhắc thanh toán đơn hàng",
+            "order_reminder.html",
+            List.of("userName", "orderId", "amount", "deadline", "payUrl")
+        ));
+        put("email-order_cancelled", new TemplateInfo(
+            "Đơn hàng đã hủy",
+            "order_cancelled.html",
+            List.of("userName", "orderId", "reason")
+        ));
+        put("email-admin_notice", new TemplateInfo(
+            "Thông báo cho đội anyLEARN (đơn mới, chuyển khoản, hủy đăng ký...)",
+            "admin_notice.html",
+            List.of("title", "content")
+        ));
     }};
 
     public static String loadDefault(String key) {

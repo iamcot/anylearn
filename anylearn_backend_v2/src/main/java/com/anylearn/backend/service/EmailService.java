@@ -21,6 +21,10 @@ public class EmailService {
     @Value("${spring.mail.from:noreply@anylearn.vn}")
     private String fromEmail;
 
+    // The name people see in their inbox instead of the bare address (info@anylearn.vn).
+    @Value("${spring.mail.from-name:anyLEARN}")
+    private String fromName;
+
     private final JavaMailSender mailSender;
 
     public EmailService(@Autowired(required = false) JavaMailSender mailSender) {
@@ -44,7 +48,7 @@ public class EmailService {
         try {
             var message = mailSender.createMimeMessage();
             var helper = new MimeMessageHelper(message, true, "UTF-8");
-            helper.setFrom(fromEmail);
+            helper.setFrom(fromEmail, fromName);
             helper.setTo(to);
             helper.setSubject(subject);
             helper.setText(htmlBody, true);
