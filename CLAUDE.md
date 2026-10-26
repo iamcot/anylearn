@@ -195,6 +195,12 @@ Thư mục `http/` chứa VS Code REST Client files cho mọi endpoint:
 - `GET /api/search` filters (all optional, built by `SearchFilterBuilder`): `ageFrom`+`ageTo` (a learner's possible ages; courses with no age limit stay), `district`, `location` (province), `nearLat`+`nearLng`+`radiusKm` (default 10, max 100; response items get `distanceKm` to their nearest branch), `timeSlot` (repeat for several), `partnerType`, `freeTrial`, `onSale`, `tag` (tag ids, repeat), `priceMin`/`priceMax`, `startWithin` (days) and `sort` = `popular|newest|priceLow|priceHigh|soonest|perSession|nearest`. The old `age`, `priceRange`, `mode` buckets still work. Filter values are quoted, so a visitor cannot inject filter syntax.
 - Missing attributes: `ItemAttributeGaps` (pure) feeds `GET /admin/items/attribute-gaps`, the "Thiếu thuộc tính" back office page and the warning on a course (`gaps` in `GET /admin/items/{id}`).
 - Meilisearch index settings live in `MeilisearchConfig` only (filterable and sortable lists); `_geo` supports one point per course, so "near me" matches the default branch, while `distanceKm` uses the nearest branch.
+## Sessions and expired logins
+
+- JWT lives 30 days (`JWT_EXPIRATION_MS`, default 2592000000). While a token is past half of its life, the next API call answers with a new one in the `X-Refreshed-Token` header (`JwtFilter`, `JwtService.shouldRefresh`), so people who keep using the app are never signed out.
+- A request that needs a login but has no valid token gets **401** with `{resultCode: 0, code: "UNAUTHORIZED"}` (authentication entry point in `SecurityConfig`; 403 stays for "signed in but not allowed"). Public endpoints still ignore a stale token.
+- FE `lib/auth/sessionGuard.ts` (installed once by `AuthProvider`) wraps `fetch` for every API call: a 401 to a request that carried the stored token clears the session and, on pages that need an account (`/account`, `/checkout`, `/order`, `/today`…), goes to `/login?expired=1&redirect=…`; a refreshed token replaces the stored one. Do not handle 401 per call. Admin: `api/client.js` does the same with `admin_token`; `components/ErrorBoundary.jsx` shows "Tải lại / Đăng xuất" instead of a white page.
+- After a deploy an open tab may ask for script files of the old build: `app/error.tsx` and `app/global-error.tsx` reload the page once (`lib/errors/chunkReload.ts`, 30 s cooldown); the admin `ErrorBoundary` does the same.
 
 ## Growth roadmap
 

@@ -20,6 +20,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
 
+    public static final String REFRESHED_TOKEN_HEADER = "X-Refreshed-Token";
+
     private final JwtService jwtService;
     private final UserRepository userRepository;
 
@@ -32,6 +34,7 @@ public class JwtFilter extends OncePerRequestFilter {
             String token = header.substring(7);
             if (jwtService.isValid(token)) {
                 Long userId = jwtService.extractUserId(token);
+                if (jwtService.shouldRefresh(token)) response.setHeader(REFRESHED_TOKEN_HEADER, jwtService.generateToken(userId));
                 userRepository.findById(userId).ifPresent(user -> {
                     var auth = new UsernamePasswordAuthenticationToken(user, null, List.of());
                     auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

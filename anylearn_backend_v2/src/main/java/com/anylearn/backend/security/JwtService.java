@@ -37,6 +37,12 @@ public class JwtService {
         return Long.parseLong(parseClaims(token).getSubject());
     }
 
+    /** A token past half of its life is replaced on the next call, so people who keep using the app never sign in again. */
+    public boolean shouldRefresh(String token) {
+        long remaining = parseClaims(token).getExpiration().getTime() - System.currentTimeMillis();
+        return remaining < expirationMs / 2;
+    }
+
     public boolean isValid(String token) {
         try {
             parseClaims(token);
