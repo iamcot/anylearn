@@ -245,3 +245,23 @@ Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
 Content-Type: application/json
 
 { "tagIds": [1, 4] }
+
+
+### Partner branches: list, search an address (Google), place details, create
+GET http://localhost:8080/v2/admin/locations?userId=14422
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+###
+GET http://localhost:8080/v2/admin/locations/autocomplete?q=12 nguyen hue&session=abc
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+###
+GET http://localhost:8080/v2/admin/locations/place?placeId=PLACE_ID&session=abc
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+###
+POST http://localhost:8080/v2/admin/locations
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+Content-Type: application/json
+
+{ "userId": 14422, "title": "Cơ sở Quận 1", "address": "12 Nguyễn Huệ, Quận 1", "lat": 10.7745, "lng": 106.7032, "provinceName": "Thành phố Hồ Chí Minh", "districtName": "Quận 1" }

@@ -71,7 +71,7 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 |---|---|---|---|
 | 03.1 | Khảo sát độ đầy đủ dữ liệu khóa học | skip | Chủ sản phẩm: không khảo sát, chuẩn hoá trước rồi hướng dẫn đối tác sau |
 | 03.2a | Bảng tags: danh mục chuẩn + `item_tags` | done | V22; sửa lỗi tag lưu ở `items.tags` không vào search |
-| 03.2b | Địa điểm / chi nhánh của đối tác (Google Places) | todo | |
+| 03.2b | Địa điểm / chi nhánh của đối tác (Google Places) | done | V23; cần `GOOGLE_MAPS_API_KEY` (Places API New) trên server |
 | 03.2c | Thuộc tính còn lại (loại đối tác, số buổi, học thử, đối tượng) | todo | Xem câu hỏi chờ |
 | 03.2d | Dọn bảng portal cũ (đổi tên `_old`) | todo | |
 | 03.3 | Admin nhập liệu + cảnh báo thiếu | todo | |
@@ -129,6 +129,16 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 13.8 | Thay app cũ trên store bằng bản bọc web (TWA / Capacitor), cùng package/bundle id | todo | Theo kết quả 13.0; có thể kéo lên sớm |
 
 ## Nhật ký
+
+### 26/10/2026 – 03.2b địa điểm / chi nhánh
+- Cách cũ: cơ sở (`user_locations`) chỉ do portal tạo, v2 chỉ có ô chọn; mã tỉnh/quận/phường bắt buộc; toạ độ là chuỗi.
+- Cách mới: một đối tác nhiều cơ sở; khóa học có **địa điểm mặc định** (`items.user_location_id`) + hình thức online/offline/hybrid;
+  mỗi lịch học để trống thì dùng mặc định, chỉ chọn riêng khi khác. Thêm cơ sở ngay trong trang khóa học ("+ Thêm cơ sở") hoặc ở trang "Địa điểm".
+- Nhập: gõ địa chỉ → gợi ý Google Places (New) → chọn → tự điền địa chỉ, toạ độ, tỉnh/quận/phường (khớp mã bằng tên, bỏ qua chữ "Quận/Phường…").
+  Không có key thì nhập tay địa chỉ + toạ độ. Toạ độ ngoài Việt Nam bị chặn (hay gặp nhập ngược vĩ/kinh độ).
+- V23: `lat`/`lng` số thực (chép từ chuỗi cũ), `place_id`, `phone`, tên tỉnh/quận/phường; các mã thành tuỳ chọn. Trang "Hôm nay" đọc toạ độ mới.
+- Chưa thử với Google thật (sandbox không có key): đã test bộ đọc kết quả Google bằng dữ liệu mẫu và client bằng server giả.
+  Việc của chủ sản phẩm: bật Places API (New) cho key, đặt `GOOGLE_MAPS_API_KEY` ở server (hạn chế key theo IP server).
 
 ### 26/10/2026 – 03.2a bảng tags
 - Nguyên nhân lỗi cũ: admin lưu tag vào cột `items.tags` (chuỗi cách nhau dấu phẩy) nhưng index MeiliSearch và `/search-tags`

@@ -11,6 +11,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import { useEffect, useRef, useState } from 'react'
+import LocationFormModal from '../components/LocationFormModal'
 import { useNavigate, useParams } from 'react-router-dom'
 import client from '../api/client'
 import RichEditor from '../components/RichEditor'
@@ -215,7 +216,8 @@ export default function ItemDetail() {
     enabled: !isNew,
   })
 
-  const { data: partnerLocations } = useQuery({
+  const [locationModal, setLocationModal] = useState(null) // null | 'default' | 'schedule'
+  const { data: partnerLocations, refetch: refetchLocations } = useQuery({
     queryKey: ['admin-item-locations', id],
     queryFn: () => client.get(`/admin/items/${id}/locations`).then(r => r.data?.data ?? []),
     enabled: !isNew,
@@ -404,6 +406,20 @@ export default function ItemDetail() {
               <Select mode="multiple" placeholder="Chọn lĩnh vực" style={{ width: '100%' }} optionFilterProp="label" onChange={() => setDirty(true)}
                 options={(categories ?? []).map(c => ({ value: c.id, label: c.title }))} />
             </Form.Item>
+          </FieldRow>
+          <FieldRow label="Hình thức">
+            <Form.Item name="locationType" noStyle>
+              <Select allowClear placeholder="Online / Offline / Kết hợp" style={{ width: 240 }} onChange={() => setDirty(true)} options={LOCATION_TYPES} />
+            </Form.Item>
+          </FieldRow>
+          <FieldRow label="Địa điểm mặc định">
+            <Space>
+              <Form.Item name="userLocationId" noStyle>
+                <Select allowClear placeholder="Cơ sở của đối tác" style={{ width: 320 }} onChange={() => setDirty(true)}
+                  options={(partnerLocations ?? []).map(l => ({ value: l.id, label: `${l.title} — ${l.address}` }))} />
+              </Form.Item>
+              {!isNew && <Button onClick={() => setLocationModal('default')}>+ Thêm cơ sở</Button>}
+            </Space>
           </FieldRow>
           <FieldRow label="Tags">
             <Form.Item name="tagIds" noStyle>
@@ -658,6 +674,14 @@ export default function ItemDetail() {
       </div>
     </Form>
 
+    <LocationFormModal open={!!locationModal} partnerId={item?.userId} onClose={() => setLocationModal(null)}
+      onSaved={async (saved) => {
+        await refetchLocations()
+        if (locationModal === 'schedule') scheduleForm.setFieldValue('userLocationId', saved.id)
+        else { form.setFieldValue('userLocationId', saved.id); setDirty(true) }
+        setLocationModal(null)
+      }} />
+
     {/* Schedule Modal — outside Form/Tabs to avoid nesting issues */}
     <Modal
       title={scheduleModal === 'new' ? 'Thêm lịch học' : 'Sửa lịch học'}
@@ -710,9 +734,14 @@ export default function ItemDetail() {
           </Form.Item>
         </Space>
         <Form.Item name="title" label="Tên lịch (tuỳ chọn)"><Input placeholder="VD: Ca chiều T3-T5" /></Form.Item>
-        <Form.Item name="userLocationId" label="Cơ sở (lớp tại trung tâm)">
-          <Select allowClear placeholder="Chọn cơ sở của đối tác"
-            options={(partnerLocations ?? []).map(l => ({ value: l.id, label: `${l.title} — ${l.address}` }))} />
+        <Form.Item label="Cơ sở học" extra="Để trống thì dùng địa điểm mặc định của khóa học.">
+          <Space.Compact style={{ width: '100%' }}>
+            <Form.Item name="userLocationId" noStyle>
+              <Select allowClear placeholder="Dùng địa điểm mặc định" style={{ width: '100%' }}
+                options={(partnerLocations ?? []).map(l => ({ value: l.id, label: `${l.title} — ${l.address}` }))} />
+            </Form.Item>
+            <Button onClick={() => setLocationModal('schedule')}>+ Thêm</Button>
+          </Space.Compact>
         </Form.Item>
         <Form.Item name="locationNote" label="Phòng học / Ghi chú"><Input placeholder="VD: Phòng A203, tầng 2" /></Form.Item>
         <Form.Item name="meetingUrl" label="Link học online (Zoom...)"><Input placeholder="https://zoom.us/j/..." /></Form.Item>

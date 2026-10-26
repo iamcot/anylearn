@@ -10,6 +10,7 @@ import Audit from './pages/Audit'
 import CourseRequests from './pages/CourseRequests'
 import PriceReports from './pages/PriceReports'
 import Tags from './pages/Tags'
+import Locations from './pages/Locations'
 import SearchInsights from './pages/SearchInsights'
 import NotificationRecipients from './pages/NotificationRecipients'
 import BankAccount from './pages/BankAccount'
@@ -91,6 +92,7 @@ export default function App() {
                   <Route path="course-requests" element={<CourseRequests />} />
                   <Route path="price-reports" element={<PriceReports />} />
                   <Route path="tags" element={<Tags />} />
+                  <Route path="locations" element={<Locations />} />
                   <Route path="search-insights" element={<SearchInsights />} />
                   <Route path="settings" element={<Settings />} />
                   <Route path="transactions" element={<Transactions />} />

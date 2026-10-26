@@ -13,6 +13,8 @@ public interface UserLocationRepository extends JpaRepository<UserLocation, Long
 
     List<UserLocation> findByUserIdAndStatus(Long userId, Byte status);
 
-    @Query("SELECT DISTINCT ul.provinceCode FROM UserLocation ul WHERE ul.userId = :userId AND ul.status = 1")
+    List<UserLocation> findByUserIdAndPlaceIdAndStatus(Long userId, String placeId, Byte status);
+
+    @Query("SELECT DISTINCT ul.provinceCode FROM UserLocation ul WHERE ul.userId = :userId AND ul.status = 1 AND ul.provinceCode IS NOT NULL")
     List<String> findProvinceCodesByUserId(@Param("userId") Long userId);
 }

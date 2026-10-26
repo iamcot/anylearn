@@ -51,7 +51,8 @@ public class SessionViewBuilder {
         UserLocation location = locations.get(locationIdOf(context));
         if (location != null) {
             return new LocationView(location.getTitle(), location.getAddress(), roomNote,
-                    parseCoordinate(location.getLatitude()), parseCoordinate(location.getLongitude()));
+                    location.getLat() != null ? location.getLat().doubleValue() : null,
+                    location.getLng() != null ? location.getLng().doubleValue() : null);
         }
         String freeTextAddress = context.item().getLocation();
         if (freeTextAddress == null || freeTextAddress.isBlank()) return null;
@@ -61,14 +62,5 @@ public class SessionViewBuilder {
     static Long locationIdOf(EnrollmentContext context) {
         Long scheduleLocation = context.schedule().getUserLocationId();
         return scheduleLocation != null ? scheduleLocation : context.item().getUserLocationId();
-    }
-
-    private Double parseCoordinate(String value) {
-        if (value == null || value.isBlank()) return null;
-        try {
-            return Double.valueOf(value.trim());
-        } catch (NumberFormatException e) {
-            return null;
-        }
     }
 }

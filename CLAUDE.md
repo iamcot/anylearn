@@ -87,6 +87,7 @@ JWT_SECRET          # default: change-me-in-production-use-at-least-32-chars
 MEILI_HOST          # default: http://localhost:7700
 MEILI_MASTER_KEY    # default: local_dev_key
 BANK_NAME / BANK_BIN / BANK_ACCOUNT_NUMBER / BANK_ACCOUNT_NAME   # default receiving account; admins override it in the back office (BIN 970422 = MB Bank)
+GOOGLE_MAPS_API_KEY # Places API (New) key for the branch address search; empty = typed addresses only
 SEPAY_API_KEY       # key of the SePay webhook, see "Bank transfer by QR"
 VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY / VAPID_SUBJECT   # Web Push keys (npx web-push generate-vapid-keys); empty = push off, see "PWA and push"
 ```
@@ -175,6 +176,13 @@ Thư mục `http/` chứa VS Code REST Client files cho mọi endpoint:
 
 - `tags` is a dictionary (name, group, sort order, hidden flag) curated in the back office page "Tags" (`/admin/tags`, `AdminTagController`, `TagService`); courses point at it through `item_tags` (V22). Only the back office creates tags; `TagService.create` returns the existing tag when the name matches ignoring accents and case. Groups are fixed in `TagGroups` ("other" = not sorted yet).
 - `PUT /admin/items/{id}` takes `tagIds`; `GET` returns `tagIds`. `items.tags` and `articles.tags` (text) are no longer written by the back office; the old per-item table is `tags_old`. MeiliSearch `tags` is built from `item_tags`; `/api/search-tags` lists the most used active tags.
+
+## Partner locations (branches)
+
+- A partner has many branches in `user_locations` (V23: numeric `lat`/`lng`, `place_id`, `phone`, province/district/ward names; the codes are optional). Back office page "Địa điểm" (`/admin/locations`, `AdminLocationController`, `LocationService`) lists, adds, edits and hides branches; the same form (`components/LocationFormModal.jsx`) opens from the course page ("+ Thêm cơ sở"), so nobody leaves the course to create a branch.
+- A course has a default branch (`items.user_location_id`) and a `locationType` (online / offline / hybrid); a schedule may override it (`item_schedules.user_location_id`), empty means the course default (`SessionViewBuilder.locationIdOf`).
+- Address search: `GooglePlacesClient` (Places API (New): autocomplete + details, key `GOOGLE_MAPS_API_KEY`, kept on the server; blank key = off and the form asks for typed address and coordinates). `AdministrativeMatcher` maps Google's names to our `provinces`/`districts`/`wards` codes (type words ignored, so "Quận 1" ≠ "Quận 12"); names that do not match leave the code empty. Coordinates outside Vietnam are rejected (`LocationRules`).
+- `latitude`/`longitude` (text, from the old portal) are no longer read; V23 copied valid ones into `lat`/`lng`.
 
 ## Growth roadmap
 

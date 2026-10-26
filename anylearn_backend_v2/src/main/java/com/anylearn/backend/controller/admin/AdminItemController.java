@@ -166,6 +166,7 @@ public class AdminItemController {
             m.put("nolimitTime", item.getNolimitTime());
             m.put("cycleType", item.getCycleType()); m.put("cycleAmount", item.getCycleAmount());
             m.put("locationType", item.getLocationType()); m.put("location", item.getLocation());
+            m.put("userLocationId", item.getUserLocationId());
             // enrollment flags (note typo: activiy not activity)
             m.put("agesMin", item.getAgesMin()); m.put("agesMax", item.getAgesMax());
             m.put("seats", item.getSeats());
@@ -224,6 +225,7 @@ public class AdminItemController {
             if (body.containsKey("cycleAmount")) item.setCycleAmount(body.get("cycleAmount") == null ? null : toNum(body.get("cycleAmount")).intValue());
             if (body.containsKey("locationType")) item.setLocationType((String) body.get("locationType"));
             if (body.containsKey("location")) item.setLocation((String) body.get("location"));
+            if (body.containsKey("userLocationId")) item.setUserLocationId(body.get("userLocationId") == null ? null : toNum(body.get("userLocationId")).longValue());
             if (body.containsKey("agesMin")) item.setAgesMin(body.get("agesMin") == null ? null : toNum(body.get("agesMin")).byteValue());
             if (body.containsKey("agesMax")) item.setAgesMax(body.get("agesMax") == null ? null : toNum(body.get("agesMax")).byteValue());
             if (body.containsKey("seats")) item.setSeats(body.get("seats") == null ? null : toNum(body.get("seats")).intValue());
@@ -414,7 +416,7 @@ public class AdminItemController {
         if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
         return itemRepository.findById(id)
                 .map(item -> ApiResponse.ok(userLocationRepository.findByUserIdAndStatus(item.getUserId(), (byte) 1).stream()
-                        .map(l -> Map.of("id", l.getId(), "title", l.getTitle(), "address", l.getAddress()))
+                        .map(l -> Map.of("id", l.getId(), "title", l.getTitle(), "address", l.getAddress(), "hasCoordinates", l.getLat() != null))
                         .toList()))
                 .orElse(ApiResponse.fail("Not found"));
     }
