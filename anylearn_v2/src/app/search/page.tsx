@@ -10,7 +10,7 @@ import {
 import { fetchSearchResults, type SearchResults } from '@/lib/search/fetchResults'
 import SearchModeTabs from '@/components/search/SearchModeTabs'
 import SearchForm from '@/components/search/SearchForm'
-import { MobileFilters, SearchFiltersPanel } from '@/components/search/SearchFilters'
+import { FilterDrawer } from '@/components/search/SearchFilters'
 import AuthorProfileCard from '@/components/search/AuthorProfileCard'
 import { CourseResultCard, UserResultCard } from '@/components/search/ResultCards'
 import Pagination from '@/components/search/Pagination'
@@ -22,7 +22,7 @@ import { useSearchHistory } from '@/components/search/useSearchHistory'
 import { ResultRowsSkeleton } from '@/components/PageSkeleton'
 import GuestLearnerChips from '@/components/guest/GuestLearnerChips'
 import LearnerChips, { useLearnerChips } from '@/components/search/LearnerChips'
-import QuickChips from '@/components/search/QuickChips'
+import FilterBar from '@/components/search/FilterBar'
 import { useAuth } from '@/context/AuthContext'
 import { ALL_LEARNERS, readActiveLearner, writeActiveLearner, type LearnerChip } from '@/lib/search/learners'
 import { createSearchTracking } from '@/components/search/searchTracking'
@@ -148,18 +148,16 @@ function SearchPageInner() {
       {state.mode === 'class' && (token
         ? <LearnerChips chips={learnerChips} activeKey={state.adv.learner} onPick={pickLearner} />
         : <GuestLearnerChips activeAge={state.filters.age} onPickAge={pickAge} />)}
-      {state.mode === 'class' && <QuickChips state={state} apply={apply} onNeedDistrict={() => setFiltersOpen(true)} />}
+      {state.mode === 'class' && (
+        <FilterBar
+          state={state} apply={apply} options={options} total={total} loading={loading}
+          onOpenFilters={() => setFiltersOpen(true)} onNeedDistrict={() => setFiltersOpen(true)}
+        />
+      )}
 
       <section className="section py-6 lg:py-10">
-        <div className={`container grid items-start gap-7 ${state.mode === 'class' ? 'lg:grid-cols-[300px_1fr]' : ''}`}>
-          {state.mode === 'class' && (
-            <>
-              <MobileFilters {...filterProps} open={filtersOpen} onOpenChange={setFiltersOpen} />
-              <aside className="hidden rounded-[26px] border border-line bg-white p-[22px] shadow-card lg:block">
-                <SearchFiltersPanel {...filterProps} />
-              </aside>
-            </>
-          )}
+        <div className="container">
+          {state.mode === 'class' && <FilterDrawer {...filterProps} open={filtersOpen} onOpenChange={setFiltersOpen} total={total} loading={loading} />}
 
           <div className="min-w-0">
             {authorProfile && <AuthorProfileCard profile={authorProfile} />}
@@ -184,7 +182,7 @@ function SearchPageInner() {
             {loading && <ResultRowsSkeleton />}
 
             {results && state.mode === 'class' && results.items.length > 0 && (
-              <div className="grid gap-3 xl:grid-cols-2">
+              <div className="grid gap-3 lg:grid-cols-2 xl:grid-cols-3">
                 {results.items.map(item => <CourseResultCard key={item.id} item={item} />)}
               </div>
             )}

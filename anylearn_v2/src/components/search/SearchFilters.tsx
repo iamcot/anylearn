@@ -8,7 +8,7 @@ import {
 import { activeFilterCount, type AdvancedFilters, type SearchFilters as Filters, type SearchState } from '@/lib/search/query'
 import { formatPrice } from '@/lib/format/price'
 import { GUEST_CHIP_OFF, GUEST_CHIP_ON } from '@/components/guest/chipStyles'
-import { CloseIcon, FilterIcon } from '@/components/icons'
+import { CloseIcon } from '@/components/icons'
 
 interface PanelProps {
   state: SearchState
@@ -197,56 +197,36 @@ export function SearchFiltersPanel({ state, categories, onCategoryChange, onFilt
   )
 }
 
-export function MobileFilters({ open, onOpenChange, ...props }: Omit<PanelProps, 'hideTitle'> & { open: boolean; onOpenChange: (open: boolean) => void }) {
-  const setOpen = onOpenChange
-  const count = activeFilterCount(props.state)
+type DrawerProps = Omit<PanelProps, 'hideTitle'> & { open: boolean; onOpenChange: (open: boolean) => void; total: number; loading: boolean }
+
+// All the filters in one place: a bottom sheet on a phone, a drawer from the right from lg up. Changes apply at once,
+// so the button at the bottom only closes it and shows how many courses are left.
+export function FilterDrawer({ open, onOpenChange, total, loading, ...props }: DrawerProps) {
+  if (!open) return null
+  const close = () => onOpenChange(false)
 
   return (
-    <>
-      <div className="col-span-full flex items-center justify-between rounded-2xl border border-line bg-white px-4 py-2 shadow-card lg:hidden">
-        <span className="flex items-center gap-2 text-sm font-extrabold text-ink">
-          Bộ lọc
-          {count > 0 && (
-            <span className="grid size-5 place-items-center rounded-full bg-red text-[10px] font-extrabold text-white">{count}</span>
-          )}
-        </span>
-        <button type="button" onClick={() => setOpen(true)} className="btn btn--outline min-h-11 gap-2 px-4 py-2 text-[13px]">
-          <FilterIcon className="size-4" />
-          Lọc
-        </button>
-      </div>
-
-      {open && (
-        <div className="fixed inset-0 z-[60] flex justify-end lg:hidden" onClick={() => setOpen(false)}>
-          <div className="absolute inset-0 bg-ink/40" />
-          <div
-            role="dialog"
-            aria-label="Bộ lọc"
-            className="relative flex h-full w-[85vw] max-w-sm flex-col rounded-l-[20px] bg-white shadow-raised"
-            onClick={event => event.stopPropagation()}
-          >
-            <div className="flex shrink-0 items-center justify-between border-b border-line px-4 py-1">
-              <span className="text-base font-extrabold text-ink">Bộ lọc</span>
-              <button type="button" aria-label="Đóng" onClick={() => setOpen(false)} className="-mr-2 grid size-11 cursor-pointer place-items-center border-0 bg-transparent text-muted hover:text-ink">
-                <CloseIcon />
-              </button>
-            </div>
-            <div className="flex-1 overflow-y-auto p-4">
-              <SearchFiltersPanel
-                {...props}
-                hideTitle
-                onCategoryChange={props.onCategoryChange}
-                onFilterChange={props.onFilterChange}
-                onAdvancedChange={props.onAdvancedChange}
-                onClear={() => { props.onClear(); setOpen(false) }}
-              />
-            </div>
-            <div className="shrink-0 border-t border-line p-3">
-              <button type="button" onClick={() => setOpen(false)} className="btn btn--green w-full">Xem kết quả</button>
-            </div>
-          </div>
+    <div className="fixed inset-0 z-[60] flex items-end lg:items-stretch lg:justify-end" onClick={close}>
+      <div className="absolute inset-0 bg-ink/40" />
+      <div
+        role="dialog"
+        aria-label="Bộ lọc"
+        className="relative flex max-h-[88vh] w-full flex-col rounded-t-[22px] bg-white shadow-raised lg:h-full lg:max-h-none lg:w-[380px] lg:rounded-l-[22px] lg:rounded-tr-none"
+        onClick={event => event.stopPropagation()}
+      >
+        <div className="flex shrink-0 items-center justify-between border-b border-line px-4 py-1">
+          <span className="text-base font-extrabold text-ink">Bộ lọc</span>
+          <button type="button" aria-label="Đóng" onClick={close} className="-mr-2 grid size-11 cursor-pointer place-items-center border-0 bg-transparent text-muted hover:text-ink">
+            <CloseIcon />
+          </button>
         </div>
-      )}
-    </>
+        <div className="flex-1 overflow-y-auto p-4">
+          <SearchFiltersPanel {...props} hideTitle onClear={props.onClear} />
+        </div>
+        <div className="shrink-0 border-t border-line p-3">
+          <button type="button" onClick={close} className="btn btn--green w-full">{loading ? 'Xem kết quả' : `Xem ${total} khóa học`}</button>
+        </div>
+      </div>
+    </div>
   )
 }

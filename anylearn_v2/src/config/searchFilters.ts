@@ -66,13 +66,25 @@ export const PRICE_SLIDER_STEP = 500_000
 export const NEAR_RADIUS_KM = 10
 export const TAG_CHIP_LIMIT = 24
 
-// The chips under the search box. `near` asks for the position, the others are filters switched on and off.
-export type QuickChipId = 'near' | 'weekend' | 'weekdayEvening' | 'freeTrial' | 'onSale' | 'online'
+// Chips under the search box that switch one filter on and off. `near` asks for the position first.
+// Time slots, price and district are chips with a menu (components/search/FilterBar.tsx).
+export type QuickChipId = 'near' | 'freeTrial' | 'onSale' | 'online'
 export const QUICK_CHIPS: { id: QuickChipId; label: string }[] = [
   { id: 'near', label: 'Gần tôi' },
-  { id: 'weekend', label: 'Cuối tuần' },
-  { id: 'weekdayEvening', label: 'Tối trong tuần' },
-  { id: 'freeTrial', label: 'Học thử miễn phí' },
-  { id: 'onSale', label: 'Đang giảm giá' },
+  { id: 'freeTrial', label: 'Học thử' },
+  { id: 'onSale', label: 'Giảm giá' },
   { id: 'online', label: 'Online' },
+]
+
+// Ready-made price ranges in the "Giá" menu (VND); the last one has no upper limit.
+export const PRICE_PRESETS: { label: string; min?: number; max?: number }[] = [
+  { label: 'Dưới 1 triệu', max: 1_000_000 },
+  { label: '1 - 3 triệu', min: 1_000_000, max: 3_000_000 },
+  { label: '3 - 5 triệu', min: 3_000_000, max: 5_000_000 },
+  { label: 'Trên 5 triệu', min: 5_000_000 },
+]
+
+export const PROVINCE_OPTIONS = [
+  { label: 'TP.HCM', value: '79' },
+  { label: 'Hà Nội', value: '01' },
 ]

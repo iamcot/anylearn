@@ -402,3 +402,8 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 - Backend: `GET /api/search/options?province=` (quận + tag có id), `GET /api/user/home-point` (địa chỉ nhà đã lưu, dùng khi trình duyệt từ chối vị trí), kết quả search có thêm `hasFreeTrial`, `onSale`, `timeSlots`, `pricePerSession`.
 - FE: `AdvancedFilters` trong URL (`for`, `ageFrom/ageTo`, `district`, `near=lat,lng` làm tròn ~100 m, `slot`, `partnerType`, `freeTrial`, `onSale`, `priceMax`, `startWithin`, `tag`), `QuickChips`, `LearnerChips`, `useNearMe`; panel lọc trên mobile không tự đóng, có nút "Xem kết quả"; bỏ select học phí cũ (link cũ `price=` vẫn chạy).
 - Gần tôi: vị trí trình duyệt → địa chỉ đã lưu → nhắc chọn quận.
+
+### 26/10/2026 – chốt giao diện chip lọc (mockup đã duyệt)
+- Mobile: A + D + hai chip có menu: nút `Lọc (n)`, chip có icon và ✕ khi bật, `Khung giờ ▾`, `Giá ▾`; `Lọc` mở bottom sheet, nút cuối `Xem N khóa học` (N là tổng kết quả hiện tại vì bộ lọc áp ngay lên URL). Desktop: B, thanh chip ngang + popover thả xuống (`Khung giờ`, `Giá`, `Quận`), bỏ cột lọc bên trái, `Lọc` mở ngăn kéo bên phải, kết quả 3 cột.
+- Code: `components/search/{FilterBar,ChipMenu}.tsx`, `FilterDrawer` trong `SearchFilters.tsx`, nhãn chip ở `lib/search/chipLabels.ts`. Bỏ chip "Cuối tuần" và "Tối trong tuần" riêng, gộp vào menu Khung giờ.
+- Trang chủ: chốt 6 khối theo mockup (chip bé + tìm kiếm + chip nhanh, Dành cho Bin, Đang hot gần bạn, Bộ sưu tập, Chuyên gia nổi bật, Thử điều mới).
