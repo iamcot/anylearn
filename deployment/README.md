@@ -101,6 +101,7 @@ Vào **Settings → Secrets and variables → Actions → New repository secret*
 | `PAYMENT_CALLBACK_URL` | `https://anylearn.vn` |
 | `FRONTEND_URL` | `https://anylearn.vn` |
 | `NEXT_PUBLIC_API_URL` | `https://anylearn.vn/v2/api` |
+| `NEXT_PUBLIC_GOOGLE_MAPS_KEY` | Khóa **Maps JavaScript API** cho nút "Xem bản đồ" (khóa công khai, phải giới hạn theo tên miền, xem `CLAUDE.md`). Để trống thì nút ẩn |
 
 **MeiliSearch:**
 | Secret | Giá trị |

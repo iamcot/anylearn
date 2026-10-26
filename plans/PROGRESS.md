@@ -474,8 +474,8 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 
 ### 26/10/2026 – kết quả tìm kiếm gọn hơn và bản đồ "Gần tôi"
 - Mỗi đối tác tối đa 2 khóa trong kết quả tìm khóa học (`PartnerCap`, cấu hình `app.search.max-per-partner`, mặc định 2, 0 = tắt): đọc 300 kết quả đầu, giới hạn rồi mới cắt trang nên `total` là số sau khi giới hạn. Không áp khi tìm theo một đối tác (`authorId`) và ở trang chọn khóa của bộ sưu tập (admin).
-- Nút "Xem bản đồ" cạnh số kết quả khi lọc Gần tôi: popup bản đồ (Leaflet, nền OpenStreetMap, thư viện chỉ tải khi mở) với vị trí khách ở giữa, vòng tròn bán kính từ cấu hình admin, tên các trường (`role = school`, đang hoạt động, đã Ký HĐ) có cơ sở trong vòng tròn; bấm vào tên thấy ảnh, tên, giới thiệu ngắn, nút "Tìm hiểu thêm" mở trang đối tác tab mới. API `GET /api/partners/nearby`.
-- Đã thử bằng trình duyệt thật với API giả (marker, thẻ nhỏ, link); ô nền bản đồ không tải được trong môi trường này nên chưa xem được nền. Chưa thử với MySQL thật. Nền OpenStreetMap miễn phí nhưng có giới hạn dùng; nếu lượng khách lớn nên đổi sang nhà cung cấp có khóa riêng.
+- Nút "Xem bản đồ" cạnh số kết quả khi lọc Gần tôi: popup bản đồ (Google Maps JavaScript API, chỉ tải khi mở; ban đầu làm bằng Leaflet + OpenStreetMap, đổi theo yêu cầu 26/10) với vị trí khách ở giữa, vòng tròn bán kính từ cấu hình admin, tên các trường (`role = school`, đang hoạt động, đã Ký HĐ) có cơ sở trong vòng tròn; bấm vào tên thấy ảnh, tên, giới thiệu ngắn, nút "Tìm hiểu thêm" mở trang đối tác tab mới. API `GET /api/partners/nearby`.
+- Đã thử bằng trình duyệt thật với API giả (marker, thẻ nhỏ, link); ô nền bản đồ không tải được trong môi trường này nên chưa xem được nền. Chưa thử với MySQL thật. Khóa `NEXT_PUBLIC_GOOGLE_MAPS_KEY` (secret GitHub cùng tên) phải giới hạn theo tên miền và chỉ cho Maps JavaScript API; chưa thử với khóa thật.
 
 ### 26/10/2026 – "Gần tôi" cho khóa chưa có địa chỉ
 - Khóa không có địa chỉ riêng dùng hội sở của đối tác để index vị trí (`_geo`, `locations`, `districtCodes`), cờ `locationFromPartner` trong document, không hiện trên thẻ khóa. Cần chạy reindex một lần sau khi triển khai.
