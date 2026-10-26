@@ -28,7 +28,7 @@ export default function ItemGaps() {
   ]
 
   return (
-    <Card title="Khóa học thiếu thuộc tính tìm kiếm">
+    <Card title="Khóa học thiếu thuộc tính tìm kiếm" style={{ margin: 24 }}>
       <Typography.Paragraph type="secondary">
         Khóa thiếu thuộc tính sẽ ít xuất hiện khi khách lọc theo tuổi, khu vực, giờ học… Bấm tên khóa để bổ sung. &quot;Loại đối tác&quot; đặt ở trang Thành viên.
       </Typography.Paragraph>

@@ -162,7 +162,7 @@ Trang chủ có các khối: tìm kiếm + chip, **Dành cho {tên bé}**, **Đa
 - **Đang hot gần bạn**: chỉ hiện với tài khoản có **địa chỉ nhà đã lưu có tọa độ** (dùng bán kính "Gần tôi").
 - **Bộ sưu tập**: xem mục 7. Không có bộ nào đang bật thì khối ẩn.
 - **Chuyên gia và đối tác nổi bật**: tự động lấy 4 trường và 4 giáo viên được tìm nhiều nhất, bấm vào mở trang đối tác (mục 7b). Muốn đưa ai lên cao hơn thì tăng điểm ưu tiên của họ.
-- Nút **Thử điều mới cho con** mở danh sách ngẫu nhiên theo ngày (mục 7b).
+- Khối **Thử điều mới cho con** là một thẻ nổi bật giải thích ngắn: chọn theo tuổi bé, ưu tiên gần nhà (cần địa chỉ nhà trong tài khoản), mỗi ngày một danh sách mới. Bấm "Khám phá hôm nay" để mở danh sách (mục 7b).
 - Khối nào không có dữ liệu thì tự ẩn, không để lại chỗ trống.
 
 ---

@@ -1,4 +1,4 @@
-import { Button, DatePicker, Drawer, Form, Input, InputNumber, Popconfirm, Space, Switch, Table, Tag, Typography, message } from 'antd'
+import { Button, Card, DatePicker, Drawer, Form, Input, InputNumber, Popconfirm, Space, Switch, Table, Tag, Typography, message } from 'antd'
 import { ArrowDownOutlined, ArrowUpOutlined, CloseOutlined, DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons'
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -142,11 +142,11 @@ export default function Collections() {
   })
 
   return (
-    <>
-      <Space style={{ marginBottom: 12, width: '100%', justifyContent: 'space-between' }}>
-        <Typography.Title level={4} style={{ margin: 0 }}>Bộ sưu tập</Typography.Title>
-        <Button type="primary" icon={<PlusOutlined />} onClick={() => setEditing('new')}>Tạo bộ sưu tập</Button>
-      </Space>
+    <Card
+      title="Bộ sưu tập"
+      extra={<Button type="primary" icon={<PlusOutlined />} onClick={() => setEditing('new')}>Tạo bộ sưu tập</Button>}
+      style={{ margin: 24 }}
+    >
       <Table
         rowKey="id" loading={isLoading} dataSource={data ?? []} pagination={false}
         columns={[
@@ -166,6 +166,6 @@ export default function Collections() {
         ]}
       />
       {editing !== null && <CollectionEditor key={editing} id={editing} onClose={() => setEditing(null)} />}
-    </>
+    </Card>
   )
 }

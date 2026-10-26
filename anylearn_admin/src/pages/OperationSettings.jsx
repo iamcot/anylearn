@@ -43,7 +43,7 @@ export default function OperationSettings() {
   })
 
   return (
-    <div style={{ maxWidth: 640 }}>
+    <div style={{ maxWidth: 688, padding: 24 }}>
       <Typography.Title level={4}>Cấu hình vận hành</Typography.Title>
       <Form form={form} layout="vertical" disabled={isLoading} onFinish={save.mutate}>
         <Card title="Tìm kiếm" style={{ marginBottom: 16 }}>

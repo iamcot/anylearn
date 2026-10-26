@@ -67,7 +67,7 @@ export default function Tags() {
   ]
 
   return (
-    <Card title="Tags" extra={<Button type="primary" onClick={() => setAdding({ name: '', group: UNSORTED })}>+ Thêm tag</Button>}>
+    <Card title="Tags" style={{ margin: 24 }} extra={<Button type="primary" onClick={() => setAdding({ name: '', group: UNSORTED })}>+ Thêm tag</Button>}>
       <Typography.Paragraph type="secondary" style={{ marginBottom: 12 }}>
         Danh mục tag dùng chung cho mọi khóa học. Nhóm &quot;Chưa phân loại&quot; là tag mới cần xếp nhóm. Hai tag trùng nghĩa thì dùng &quot;Gộp vào…&quot;: khóa học của tag bị gộp sẽ chuyển sang tag đích.
       </Typography.Paragraph>

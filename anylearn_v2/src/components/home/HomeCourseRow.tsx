@@ -44,7 +44,7 @@ export default function HomeCourseRow({ block }: { block: HomeBlock }) {
         </div>
         {items === null ? <Skeleton /> : (
           <ScrollRow>
-            {items.map(item => <div key={item.id} className="w-[220px] shrink-0 sm:w-[250px]"><CourseCard item={item} /></div>)}
+            {items.map(item => <div key={item.id} className="grid w-[220px] shrink-0 sm:w-[250px]"><CourseCard item={item} /></div>)}
           </ScrollRow>
         )}
       </div>
