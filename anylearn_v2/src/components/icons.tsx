@@ -231,6 +231,10 @@ export const PinIcon = (props: IconProps) => (
   <Icon {...props}><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z" /><circle cx="12" cy="10" r="2.5" /></Icon>
 )
 
+export const MapIcon = (props: IconProps) => (
+  <Icon {...props}><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2zM9 4v14M15 6v14" /></Icon>
+)
+
 export const TagIcon = (props: IconProps) => (
   <Icon {...props}><path d="M3 12V4h8l10 10-8 8z" /><circle cx="7.5" cy="8.5" r="1.2" /></Icon>
 )

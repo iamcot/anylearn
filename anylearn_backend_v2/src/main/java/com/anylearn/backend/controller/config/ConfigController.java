@@ -39,6 +39,10 @@ public class ConfigController {
     private final KnowledgeTopicRepository knowledgeTopicRepository;
     private final KnowledgeTopicCategoryLinkRepository knowledgeTopicCategoryLinkRepository;
 
+    /** Courses of one partner kept in a search list, so a big partner does not fill the page (0 = no limit). */
+    @org.springframework.beans.factory.annotation.Value("${app.search.max-per-partner:2}")
+    private int maxPerPartner = 2;
+
     @GetMapping({"/config/homev2/{role}", "/config/homev2"})
     public ApiResponse<?> homeV2(@PathVariable(required = false) String role) {
         return ApiResponse.ok(configService.homeV2(role != null ? role : "buyer"));
@@ -90,7 +94,7 @@ public class ConfigController {
                 .tags(tag == null ? List.of() : tag).price(priceMin, priceMax).startWithin(startWithin).today(java.time.LocalDate.now());
         if (freeTrial) filters.freeTrial();
         if (onSale) filters.onSale();
-        var result = meilisearchService.search(q, page, pageSize, sort, filters.build());
+        var result = meilisearchService.search(q, page, pageSize, sort, filters.build(), maxPerPartner);
         searchLogService.record(new SearchQuery(q, "class", category, age, priceRange, location, mode, authorId), page,
                 new SearchContext(ref, sessionKey, audience, learnerAge, user != null ? user.getId() : null), totalOf(result));
         return ApiResponse.ok(result);
