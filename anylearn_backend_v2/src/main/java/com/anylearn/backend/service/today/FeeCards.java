@@ -2,6 +2,8 @@ package com.anylearn.backend.service.today;
 
 import com.anylearn.backend.dto.today.FeeView;
 import com.anylearn.backend.entity.Item;
+import com.anylearn.backend.service.lifecycle.LifecycleSettings;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -20,6 +22,14 @@ import java.util.stream.Collectors;
 public class FeeCards {
 
     private static final int DUE_SOON_DAYS = 7;
+    // Editable in the back office (plan 07.6); absent in unit tests.
+    @Autowired(required = false)
+    private LifecycleSettings settings;
+
+    private int dueSoonDays() {
+        return settings == null ? DUE_SOON_DAYS : Math.max(DUE_SOON_DAYS, settings.feeDays().stream().mapToInt(Integer::intValue).max().orElse(DUE_SOON_DAYS));
+    }
+
     private static final String NO_PERIOD_LABEL = "Kỳ học phí";
 
     public List<FeeView> build(LearnerData data, LocalDate today) {
@@ -40,7 +50,7 @@ public class FeeCards {
         if (hasPendingPayment) return FeeCardState.AWAITING_CONFIRMATION;
         if (paidUntil == null) return FeeCardState.HIDDEN;
         if (today.isAfter(paidUntil)) return FeeCardState.OVERDUE;
-        return ChronoUnit.DAYS.between(today, paidUntil) <= DUE_SOON_DAYS ? FeeCardState.DUE_SOON : FeeCardState.HIDDEN;
+        return ChronoUnit.DAYS.between(today, paidUntil) <= dueSoonDays() ? FeeCardState.DUE_SOON : FeeCardState.HIDDEN;
     }
 
     public LocalDate periodEnd(LocalDate start, String cycleType, Integer cycleAmount) {

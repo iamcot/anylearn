@@ -43,3 +43,18 @@ POST {{baseUrl}}/cart/add?api_token={{parentToken}}
 Content-Type: application/json
 
 { "itemId": 1, "studentId": 1, "startDate": "2026-12-01" }
+
+### Plan 07: surveys waiting for this account (mid-course "Bé học có vui không?")
+GET {{baseUrl}}/lifecycle/surveys?api_token={{parentToken}}
+
+### Plan 07: answer a survey (score 1-5, note optional; low scores notify the back office)
+POST {{baseUrl}}/lifecycle/feedback?api_token={{parentToken}}
+Content-Type: application/json
+
+{ "enrollmentId": 1, "score": 4, "note": "" }
+
+### Plan 07: one-tap renewal (puts the same course, learner and class in the cart; then POST /checkout)
+POST {{baseUrl}}/lifecycle/renew?api_token={{parentToken}}
+Content-Type: application/json
+
+{ "enrollmentId": 1 }

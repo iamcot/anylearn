@@ -28,3 +28,24 @@ export function requestChange(
 ): Result<{ id: number; status: string }> {
   return post('/today/requests', token, { learnerId, sessionKey, type, note })
 }
+
+export interface PendingSurvey {
+  enrollmentId: number
+  learnerId: number
+  learnerName: string
+  itemId: number
+  itemTitle: string
+}
+
+export function getSurveys(token: string): Result<PendingSurvey[]> {
+  return authFetch<PendingSurvey[]>('/lifecycle/surveys', token)
+}
+
+export function sendFeedback(enrollmentId: number, score: number, note: string, token: string): Result<{ saved: boolean; low: boolean }> {
+  return post('/lifecycle/feedback', token, { enrollmentId, score, note })
+}
+
+/** Puts the renewal of this package in the cart (same class, same learner). */
+export function renewEnrollment(enrollmentId: number, token: string): Result<{ early: boolean; bonusPoints: number }> {
+  return post('/lifecycle/renew', token, { enrollmentId })
+}

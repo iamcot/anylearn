@@ -91,12 +91,12 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 
 | Task | Mô tả | Trạng thái | Ghi chú |
 |---|---|---|---|
-| 07.1 | Khung lifecycle message | todo | Mở rộng `ScheduleNotificationService` |
-| 07.2 | Xác nhận + trước khai giảng | todo | |
-| 07.3 | Phát hiện vắng học | todo | |
-| 07.4 | Khảo sát giữa khóa | todo | |
-| 07.5 | Gia hạn 1 chạm | todo | |
-| 07.6 | Nhắc học phí theo kỳ | todo | |
+| 07.1 | Khung lifecycle message | done | `LifecycleService` (hook vào scan hằng giờ của `ScheduleNotificationService`), bảng `lifecycle_messages` (V37, khóa duy nhất nên không gửi trùng), `LifecycleSettings` (khóa `lifecycle/*`, sửa ở Cài đặt > Vận hành), luật thuần `LifecycleRules` + `LifecycleMessages` có test. Mọi tin gửi app + push + email; chỉ gửi trong giờ 8–21 |
+| 07.2 | Xác nhận + trước khai giảng | done | Email xác nhận đơn có thông tin lớp (giờ tập trung, địa điểm, link học, đồ mang) + link `/today`; nhắc trước khai giảng mốc 3, 1 ngày (cấu hình). ZNS chưa nối: xem `docs/zns-templates.md` |
+| 07.3 | Phát hiện vắng học | done | Vắng N buổi liền (mặc định 2), chỉ lớp có điểm danh, buổi đã duyệt nghỉ không tính; phụ huynh nhận tin + admin nhận thông báo |
+| 07.4 | Khảo sát giữa khóa | done | Bảng `enrollment_feedback` (V37), `GET /api/lifecycle/surveys`, `POST /api/lifecycle/feedback`; thẻ `SurveyCard` ở `/today`; điểm thấp (≤ 2) báo admin |
+| 07.5 | Gia hạn 1 chạm | done | `POST /api/lifecycle/renew` đưa đúng khóa/bé/lớp vào giỏ rồi sang `/checkout`; tặng anyPoint (giao dịch `renew_bonus`, mặc định 0, chủ sản phẩm chọn anyPoint thay voucher) khi đơn gia hạn sớm được thanh toán, mỗi lần gia hạn một lần. Ngưỡng buổi / số ngày sửa được trong admin |
+| 07.6 | Nhắc học phí theo kỳ | done | Nhiều mốc trước hạn (mặc định 7 và 1 ngày), quá hạn một nhắc riêng; email cho mọi thông báo `schedule_renewal` (mẫu "Gia hạn khóa học / nhắc học phí") |
 | 08.1 | Lộ trình khóa học | todo | |
 | 08.2 | Engine gợi ý theo luật | todo | |
 | 08.3 | Hiển thị gợi ý | todo | |
@@ -479,3 +479,9 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 
 ### 26/10/2026 – "Gần tôi" cho khóa chưa có địa chỉ
 - Khóa không có địa chỉ riêng dùng hội sở của đối tác để index vị trí (`_geo`, `locations`, `districtCodes`), cờ `locationFromPartner` trong document, không hiện trên thẻ khóa. Cần chạy reindex một lần sau khi triển khai.
+
+### 26/10/2026 – plan 07 vòng đời đăng ký
+- Backend: `service/lifecycle/*` (`LifecycleService`, `RenewalService`, `EnrollmentFeedbackService`, `LifecycleSettings`, luật thuần + test), V37 (`lifecycle_messages`, `enrollment_feedback`), `LifecycleController` (`/api/lifecycle/*`). `PackageCards`, `FeeCards` và `findEnrollmentsEndingSoon` đọc ngưỡng từ cài đặt thay vì số cứng (3 buổi, 7 ngày).
+- Email mới: `email-lifecycle_start`, `_absent`, `_survey`, `_renew`; `email-order_success` thêm `classInfo`, `todayUrl`. Thông báo hẹn giờ `schedule_renewal` giờ cũng gửi email.
+- Chủ sản phẩm chốt: gửi cả email ngoài ZNS; ưu đãi gia hạn sớm là anyPoint; mọi thông số sửa trong admin. Danh sách đầy đủ mẫu ZNS cần đăng ký: `docs/zns-templates.md`.
+- Chưa làm: gửi ZNS thật (chờ mã mẫu được duyệt); nút gia hạn 1 chạm cho học phí theo kỳ (vẫn đi qua trang add2cart); chưa thử với MySQL thật (đã chạy test thuần, tsc, vitest, build admin).

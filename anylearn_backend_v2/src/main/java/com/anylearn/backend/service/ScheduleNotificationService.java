@@ -10,7 +10,12 @@ import com.anylearn.backend.service.today.FeeCards;
 import com.anylearn.backend.service.today.LearnerData;
 import com.anylearn.backend.service.today.LearnerLoader;
 import com.anylearn.backend.service.today.PackageCards;
+import com.anylearn.backend.service.lifecycle.LifecycleMessages;
+import com.anylearn.backend.service.lifecycle.LifecycleRules;
+import com.anylearn.backend.service.lifecycle.LifecycleService;
+import com.anylearn.backend.service.lifecycle.LifecycleSettings;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -21,6 +26,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.OptionalInt;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +40,12 @@ public class ScheduleNotificationService {
     private final PackageCards packageCards;
     private final FeeCards feeCards;
     private final Clock clock;
+
+    // Plan 07: settings editable in the back office and the lifecycle messages. Absent in unit tests: defaults, no lifecycle.
+    @Autowired(required = false)
+    private LifecycleSettings settings;
+    @Autowired(required = false)
+    private LifecycleService lifecycle;
 
     private static final Map<String, Integer> WEEKDAY_MAP = Map.of(
             "mon", 1, "tue", 2, "wed", 3, "thu", 4, "fri", 5, "sat", 6, "sun", 0
@@ -49,6 +61,7 @@ public class ScheduleNotificationService {
         scanPendingEnrollments();
         scanRenewals();
         scanLearnerRenewals();
+        if (lifecycle != null) lifecycle.scan();
     }
 
     private void scanUpcomingSessions() {
@@ -105,7 +118,7 @@ public class ScheduleNotificationService {
 
     private void scanRenewals() {
         LocalDate tomorrow = LocalDate.now().plusDays(1);
-        var renewals = enrollmentRepository.findEnrollmentsEndingSoon(tomorrow);
+        var renewals = enrollmentRepository.findEnrollmentsEndingSoon(tomorrow, settings == null ? LifecycleSettings.DEFAULT_RENEW_DAYS_BEFORE : settings.renewDaysBefore());
         for (var e : renewals) {
             Long userId = toLong(e.get("user_id"));
             Long eid = toLong(e.get("id"));
@@ -148,19 +161,25 @@ public class ScheduleNotificationService {
         String left = pack.remaining() == 0 ? "đã học hết số buổi" : "còn " + pack.remaining() + " buổi";
         notificationService.createScheduledNotification(
                 accountId, "schedule_renewal", "Sắp hết buổi học",
-                "%s %s %s. Gia hạn để học tiếp →".formatted(displayName(learner), left, pack.title()),
+                "%s %s %s. Gia hạn để học tiếp →".formatted(displayName(learner), left, pack.title())
+                        + LifecycleMessages.bonusSuffix(pack.remaining() > 0 && settings != null ? settings.earlyRenewBonusPoints() : 0),
                 todayRoute(learner), "renew-sessions:" + pack.enrollmentId(), LocalDateTime.now(clock).plusHours(2));
     }
 
     private void remindFee(Long accountId, User learner, FeeView fee) {
         boolean overdue = fee.state() == FeeCardState.OVERDUE;
+        long daysLeft = fee.paidUntil() == null ? 0 : java.time.temporal.ChronoUnit.DAYS.between(LocalDate.now(clock), fee.paidUntil());
+        // "N days before" steps (default 7 and 1): the smallest step still ahead; every step is a separate dedup key.
+        List<Integer> steps = settings == null ? LifecycleSettings.DEFAULT_FEE_DAYS : settings.feeDays();
+        OptionalInt step = overdue ? OptionalInt.empty() : LifecycleRules.dueDay(daysLeft, steps);
+        if (!overdue && step.isEmpty()) return;
         String title = overdue ? "Chưa nhận được học phí" : "Học phí sắp đến hạn";
         String content = overdue
                 ? "anyLEARN chưa nhận được học phí %s của %s. Bạn đóng giúp để việc học không bị gián đoạn →"
                     .formatted(fee.nextPeriodLabel(), displayName(learner))
-                : "%s của %s: đã đóng %s. Đóng %s để học liên tục →"
-                    .formatted(fee.itemTitle(), displayName(learner), fee.paidUntilText(), fee.nextPeriodLabel());
-        String dedup = "renew-fee:%d:%d:%s:%s".formatted(fee.itemId(), learner.getId(), fee.paidUntil(), fee.state());
+                : LifecycleMessages.feeContent(fee.itemTitle(), displayName(learner), fee.paidUntilText(), fee.nextPeriodLabel(), daysLeft);
+        String dedup = "renew-fee:%d:%d:%s:%s".formatted(fee.itemId(), learner.getId(), fee.paidUntil(), fee.state())
+                + (overdue ? "" : ":d" + step.getAsInt());
         notificationService.createScheduledNotification(
                 accountId, "schedule_renewal", title, content, todayRoute(learner), dedup,
                 LocalDateTime.now(clock).plusHours(2));

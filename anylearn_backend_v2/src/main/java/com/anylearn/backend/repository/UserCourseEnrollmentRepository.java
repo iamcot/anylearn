@@ -63,9 +63,9 @@ public interface UserCourseEnrollmentRepository extends JpaRepository<UserCourse
         FROM user_course_enrollments uce
         JOIN items i ON i.id = uce.item_id
         WHERE uce.status = 'active'
-          AND uce.end_date BETWEEN :tomorrow AND DATE_ADD(:tomorrow, INTERVAL 7 DAY)
+          AND uce.end_date BETWEEN :tomorrow AND DATE_ADD(:tomorrow, INTERVAL :days DAY)
           AND COALESCE(i.cycle_type, '') <> 'session'
           AND NOT (i.is_paymentfee = 1 AND uce.schedule_id IS NULL)
         """, nativeQuery = true)
-    List<java.util.Map<String, Object>> findEnrollmentsEndingSoon(@Param("tomorrow") java.time.LocalDate tomorrow);
+    List<java.util.Map<String, Object>> findEnrollmentsEndingSoon(@Param("tomorrow") java.time.LocalDate tomorrow, @Param("days") int days);
 }

@@ -266,7 +266,27 @@ Menu **Cài đặt (bánh răng) > Vận hành > Cấu hình tìm kiếm & đơn
 | Thưởng khi viết đánh giá (anyPoint) | Cho đánh giá có nhận xét từ 50 ký tự, mỗi đánh giá một lần. 0 = tắt | 20 |
 | Thưởng thêm khi có ảnh (anyPoint) | Cộng thêm khi đánh giá có ít nhất một ảnh. 0 = tắt | 20 |
 | Nhắc phụ huynh viết đánh giá | Nhắc khi học nửa khóa và khi hết khóa (mục 7c) | Bật |
+| Vòng đời học viên | Xem bảng riêng bên dưới | |
 | Cập nhật chỉ mục ngay | Chạy lại toàn bộ chỉ mục tìm kiếm, gồm cả khóa học và danh sách trường / chuyên gia (mất vài phút) | |
+
+### Vòng đời học viên: nhắc lịch, gia hạn, hậu mãi
+
+Cùng trang cài đặt, thẻ **Vòng đời học viên**. Mọi tin gửi **cả trong app (kèm push) và email**, tôn trọng công tắc thông báo của từng người (Tài khoản > Thông báo). Email sửa nội dung ở **Cài đặt Emails** (4 mẫu mới: "Sắp khai giảng", "Bé vắng học liên tiếp", "Khảo sát giữa khóa", "Gia hạn khóa học / nhắc học phí"; mẫu "Xác nhận đơn hàng" có thêm thông tin lớp).
+
+| Mục | Ý nghĩa | Mặc định |
+|---|---|---|
+| Bật nhắc tự động | Tắt thì không gửi nhắc khai giảng, vắng học, khảo sát (nhắc gia hạn và học phí vẫn chạy) | Bật |
+| Giờ gửi tin | Chỉ gửi trong khoảng giờ này; tin đến hạn ban đêm gửi vào sáng hôm sau | 8 đến 21 giờ |
+| Nhắc trước khai giảng (ngày) | Các mốc, cách nhau dấu phẩy. Tin kèm giờ tập trung, địa điểm, link học online, đồ mang theo lấy từ lớp (Khóa học > Lịch học) | 3, 1 |
+| Báo khi vắng liên tiếp (buổi) | Phụ huynh nhận tin hỏi thăm kèm cách xin nghỉ / đổi lịch; admin nhận thông báo để gọi. Chỉ áp dụng lớp có điểm danh; buổi đã duyệt nghỉ không tính là vắng; chỉ báo khi lần vắng gần nhất trong 14 ngày | 2 |
+| Khảo sát giữa khóa (%) | Hỏi phụ huynh chấm 1 đến 5 sao khi bé học được tỷ lệ này của số buổi. Câu hỏi hiện đầu trang Hôm nay đến khi trả lời | 50% |
+| Điểm bị coi là thấp | Từ mức này trở xuống, admin nhận thông báo kèm ghi chú của phụ huynh | 2 sao |
+| Nhắc gia hạn gói khi còn (buổi) | Gói mua theo số buổi | 3 buổi |
+| Nhắc gia hạn trước ngày kết thúc (ngày) | Khóa tính theo thời gian | 14 ngày |
+| Nhắc học phí trước hạn (ngày) | Các mốc, cách nhau dấu phẩy. Quá hạn có một nhắc nhẹ nhàng riêng ("chưa nhận được học phí") | 7, 1 |
+| Tặng anyPoint khi gia hạn sớm | Tặng khi phụ huynh bấm Gia hạn lúc gói / kỳ cũ còn hiệu lực và đơn được thanh toán; mỗi lần gia hạn một lần. 0 = tắt | 0 |
+
+Lưu ý: nút **Gia hạn** ở trang Hôm nay thêm đúng khóa, đúng bé, đúng lớp vào giỏ rồi mở trang thanh toán; nếu lớp đã đóng đăng ký thì mở trang chọn lại. Khoản tặng hiện trong lịch sử anyPoint của khách là "Thưởng gia hạn sớm". Danh sách mẫu ZNS cần đăng ký: `docs/zns-templates.md`.
 
 Đơn bị hủy do quá hạn mà khách vẫn chuyển khoản: tiền được ghi lại ở mục cần kiểm tra và admin nhận thông báo để xử lý, không mất tiền.
 Khách có đơn của cùng khóa và cùng bé đã thanh toán ở đơn khác thì không bị nhắc.
@@ -330,6 +350,9 @@ Dành cho người cài đặt hệ thống; team admin chỉ cần biết để
 | Không lưu được khóa, báo thiếu địa chỉ | Hình thức cần địa chỉ mà đối tác chưa có | Thêm địa chỉ cho đối tác (bấm dòng cảnh báo đỏ) hoặc đổi loại đối tác sang "App / bán mã code" nếu đúng bản chất |
 | Nút Tìm tự động không có kết quả | Chưa có key Google hoặc địa chỉ quá chung chung | Nhờ người cài đặt kiểm tra key; nhập thêm số nhà và tên đường |
 | Khách bị đăng xuất | Đăng nhập hết hạn (30 ngày không dùng) | Đăng nhập lại |
+| Phụ huynh không nhận nhắc khai giảng / vắng / khảo sát | Đang tắt "Bật nhắc tự động", ngoài giờ gửi, người đó tắt công tắc thông báo, hoặc lớp chưa nhập lịch | Kiểm tra mục 8 (Vòng đời học viên) và lịch của lớp |
+| Không có nhắc vắng học cho một lớp | Lớp không có điểm danh nào (không đo được) | Điểm danh ít nhất một buổi, hoặc bật nút "Vào lớp" cho lớp online |
+| Phụ huynh không nhận anyPoint gia hạn sớm | Đặt 0, đơn chưa thanh toán, đã nhận cho lần gia hạn đó, hoặc gói cũ đã hết khi bấm Gia hạn | Kiểm tra mục 8 và lịch sử anyPoint của khách |
 | Phụ huynh không viết được đánh giá | Tài khoản chưa có đơn đã giao của khóa đó | Kiểm tra đơn ở mục Đơn hàng; đơn chưa thanh toán chưa được tính |
 | Không tải được ảnh đánh giá | Chưa cấu hình kho ảnh (AWS) | Nhờ người cài đặt (mục 11) |
 | Đối tác không thấy nút Trả lời | Không đăng nhập bằng tài khoản sở hữu khóa | Đăng nhập đúng tài khoản đối tác, mở khóa của họ |

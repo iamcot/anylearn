@@ -23,7 +23,10 @@ public final class NotificationTopics {
             "order_reminder", "payment",
             "schedule_renewal", "renewal",
             "review_reminder", "review",
-            "new_course", "promo");
+            "new_course", "promo",
+            "lifecycle_start", "schedule",
+            "lifecycle_absent", "schedule",
+            "lifecycle_survey", "review");
 
     private NotificationTopics() {}
 
