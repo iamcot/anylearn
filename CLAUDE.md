@@ -171,6 +171,13 @@ Thư mục `http/` chứa VS Code REST Client files cho mọi endpoint:
 - The promise ("giá bằng hoặc rẻ hơn tại trường", refund if the class does not open, all schedules in one place, Zalo support) lives in one file: `anylearn_v2/src/config/promise.ts` (`PROMISES`, `WHY_FAQ`, `PRICE_GUARANTEE_LINE`, Zalo link and hours). Shown by `components/promise/PromiseStrip` under the register button of a course, by one line under the totals at checkout, and in detail at `/info/why-anylearn`. The refund wording is still waiting for the owner's confirmation.
 - "Thấy giá rẻ hơn ở nơi khác? Báo cho chúng tôi": `ReportPriceButton` → `POST /api/price-reports` (open to visitors; a visitor without an account must leave a phone number; 5 per account or phone per day, `app.price-report.daily-limit`) → table `price_reports` (V21), every back-office recipient gets a notification. Back office page "Báo giá rẻ hơn" (`/admin/price-reports`: new / checking / fixed / rejected; `fixed` thanks a reporter who has an account). Backend: `service/pricing/*`, `AdminPriceReportController`. Samples: `http/admin.http`.
 
+## Sessions and expired logins
+
+- JWT lives 30 days (`JWT_EXPIRATION_MS`, default 2592000000). While a token is past half of its life, the next API call answers with a new one in the `X-Refreshed-Token` header (`JwtFilter`, `JwtService.shouldRefresh`), so people who keep using the app are never signed out.
+- A request that needs a login but has no valid token gets **401** with `{resultCode: 0, code: "UNAUTHORIZED"}` (authentication entry point in `SecurityConfig`; 403 stays for "signed in but not allowed"). Public endpoints still ignore a stale token.
+- FE `lib/auth/sessionGuard.ts` (installed once by `AuthProvider`) wraps `fetch` for every API call: a 401 to a request that carried the stored token clears the session and, on pages that need an account (`/account`, `/checkout`, `/order`, `/today`…), goes to `/login?expired=1&redirect=…`; a refreshed token replaces the stored one. Do not handle 401 per call. Admin: `api/client.js` does the same with `admin_token`; `components/ErrorBoundary.jsx` shows "Tải lại / Đăng xuất" instead of a white page.
+- After a deploy an open tab may ask for script files of the old build: `app/error.tsx` and `app/global-error.tsx` reload the page once (`lib/errors/chunkReload.ts`, 30 s cooldown); the admin `ErrorBoundary` does the same.
+
 ## Growth roadmap
 
 Feature plans live in `plans/` (start with `plans/00-overview.md`); progress, owner decisions and open questions in `plans/PROGRESS.md`. Update PROGRESS.md after every task.

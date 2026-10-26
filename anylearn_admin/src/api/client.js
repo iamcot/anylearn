@@ -13,9 +13,15 @@ client.interceptors.request.use((config) => {
 })
 
 client.interceptors.response.use(
-  (res) => res,
+  (res) => {
+    // The server hands out a new token while the old one is past half of its life, so a busy admin is never signed out.
+    const refreshed = res.headers?.['x-refreshed-token']
+    if (refreshed) localStorage.setItem('admin_token', refreshed)
+    return res
+  },
   (err) => {
-    if (err.response?.status === 401 || err.response?.status === 403) {
+    // 401 = signed out or token expired. (403 is a permission answer: staying signed in is right.)
+    if (err.response?.status === 401 && window.location.pathname !== '/admin/login') {
       localStorage.removeItem('admin_token')
       localStorage.removeItem('admin_user')
       window.location.href = '/admin/login'
