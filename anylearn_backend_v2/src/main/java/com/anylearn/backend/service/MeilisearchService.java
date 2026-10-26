@@ -292,7 +292,7 @@ public class MeilisearchService {
         List<Long> tagIds = tagRepository.findByItemId(item.getId()).stream()
                 .filter(t -> t.getStatus() != null && t.getStatus() == 1).map(com.anylearn.backend.entity.Tag::getId).toList();
         var schedules = itemScheduleRepository.findByItemIdAndStatus(item.getId(), (byte) 1);
-        var branches = ItemSearchAttributes.activeBranchesOf(item, schedules, userLocationRepository::findAllById);
+        var branches = ItemSearchAttributes.activeBranchesOf(item, userLocationRepository.findItemAddressIds(item.getId()), schedules, userLocationRepository::findAllById);
         var attributes = ItemSearchAttributes.derive(item, schedules, branches, java.time.LocalDate.now());
 
         int isHot  = item.getIsHot() != null ? item.getIsHot() : 0;

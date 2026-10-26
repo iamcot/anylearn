@@ -130,6 +130,11 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 
 ## Nhật ký
 
+### 27/10/2026 – thu hộ học phí vẫn cần địa chỉ, địa chỉ chọn nhiều
+- Khóa thu hộ học phí không có ca học nhưng **vẫn cần địa chỉ học** (bỏ ngoại lệ lúc trước): chỉ ẩn danh sách ca học; "Thiếu thuộc tính" chỉ miễn lịch/số buổi.
+- Khóa không có ca học chọn được **nhiều địa chỉ** (`item_locations`, V26; `items.user_location_id` giữ địa chỉ chính). Chỉ mục tìm kiếm lấy mọi địa chỉ của khóa và các ca.
+- Sửa lỗi cũ: công tắc "Thu hộ học phí" ở admin chưa bao giờ được lưu (backend không nhận/trả `isPaymentfee`); nay lưu và đọc đúng.
+
 ### 27/10/2026 – gom lại tab Lịch học của trang khóa học
 - Tab "Lịch học" còn 2 khối: (1) **Hình thức khóa học**: công tắc "Thu hộ học phí" (chuyển từ tab Tài chính) + địa chỉ học và nút quản lý địa chỉ đối tác (chuyển từ tab Tổng quan), có ghi chú "khóa có ca học thì dùng địa chỉ của ca"; (2) **Thời gian & ca học**: chiêu sinh liên tục, chu kỳ thanh toán và danh sách ca học.
 - Bật "Thu hộ học phí" thì ẩn địa chỉ và danh sách ca học; backend không bắt địa chỉ và không báo thiếu địa điểm/lịch/số buổi cho khóa thu hộ.

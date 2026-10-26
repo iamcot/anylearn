@@ -35,13 +35,13 @@ public final class ItemAttributeGaps {
         if (item.getAgesMin() == null && item.getAgesMax() == null) gaps.add("ages");
         if (facts.categories() == 0) gaps.add("category");
         if (facts.tags() == 0) gaps.add("tags");
-        // Fee-collection items only collect tuition: no place, no classes, no sessions to describe.
+        String format = item.getSubtype();
+        if (!facts.placeExempt() && format != null && NEEDS_PLACE.contains(format) && facts.branchesWithCoordinates() == 0) gaps.add("location");
+        // A fee-collection item still has a place, but no classes or sessions to describe.
         if (item.getIsPaymentfee() != null && item.getIsPaymentfee() == 1) {
             if (!facts.partnerTypeKnown()) gaps.add("partnerType");
             return gaps;
         }
-        String format = item.getSubtype();
-        if (!facts.placeExempt() && format != null && NEEDS_PLACE.contains(format) && facts.branchesWithCoordinates() == 0) gaps.add("location");
         if (!NEEDS_NO_SCHEDULE.contains(format == null ? "" : format) && facts.schedulesWithTime() == 0) gaps.add("schedule");
         if (!NEEDS_NO_SCHEDULE.contains(format == null ? "" : format)
                 && (item.getCycleType() == null || item.getCycleAmount() == null || item.getCycleAmount() <= 0)) gaps.add("sessions");

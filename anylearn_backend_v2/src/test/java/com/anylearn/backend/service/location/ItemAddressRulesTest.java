@@ -52,12 +52,12 @@ class ItemAddressRulesTest {
 
     @Test
     void aNewClassTakesEveryTickedAddressOfThePartner() {
-        assertThat(ItemAddressRules.chosenForNewClass(List.of(7L, 8L, 9L), List.of(8L, 9L, 99L))).containsExactly(8L, 9L);
+        assertThat(ItemAddressRules.chosenFor(List.of(7L, 8L, 9L), List.of(8L, 9L, 99L), "ca học")).containsExactly(8L, 9L);
     }
 
     @Test
     void aNewClassWithNothingTickedUsesTheOnlyAddressOrAsks() {
-        assertThat(ItemAddressRules.chosenForNewClass(List.of(7L), List.of())).containsExactly(7L);
-        assertThatThrownBy(() -> ItemAddressRules.chosenForNewClass(List.of(7L, 8L), List.of())).hasMessageContaining("Chọn địa chỉ");
+        assertThat(ItemAddressRules.chosenFor(List.of(7L), List.of(), "ca học")).containsExactly(7L);
+        assertThatThrownBy(() -> ItemAddressRules.chosenFor(List.of(7L, 8L), List.of(), "khóa học")).hasMessageContaining("Chọn địa chỉ");
     }
 }

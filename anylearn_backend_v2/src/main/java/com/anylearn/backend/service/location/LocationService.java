@@ -57,6 +57,13 @@ public class LocationService {
         return saved;
     }
 
+    /** Replaces the addresses a course is taught at. */
+    @Transactional
+    public void replaceItemAddresses(Long itemId, List<Long> locationIds) {
+        locations.deleteItemAddresses(itemId);
+        locationIds.forEach(id -> locations.addItemAddress(itemId, id));
+    }
+
     @Transactional
     public UserLocation update(Long id, LocationInput input) {
         requireValid(input);

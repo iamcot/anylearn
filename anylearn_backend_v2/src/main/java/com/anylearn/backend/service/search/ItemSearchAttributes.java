@@ -74,9 +74,11 @@ public record ItemSearchAttributes(
         return view;
     }
 
-    public static List<UserLocation> activeBranchesOf(Item item, List<ItemSchedule> schedules, java.util.function.Function<List<Long>, List<UserLocation>> load) {
+    public static List<UserLocation> activeBranchesOf(Item item, List<Long> itemAddressIds, List<ItemSchedule> schedules,
+                                                       java.util.function.Function<List<Long>, List<UserLocation>> load) {
         List<Long> ids = new ArrayList<>();
         if (item.getUserLocationId() != null) ids.add(item.getUserLocationId());
+        itemAddressIds.stream().filter(id -> !ids.contains(id)).forEach(ids::add);
         schedules.stream().map(ItemSchedule::getUserLocationId).filter(Objects::nonNull).filter(id -> !ids.contains(id)).forEach(ids::add);
         return ids.isEmpty() ? List.of() : load.apply(ids).stream().filter(b -> b.getStatus() != null && b.getStatus() == 1).toList();
     }

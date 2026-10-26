@@ -462,21 +462,21 @@ export default function ItemDetail() {
               <Form.Item name="isPaymentfee" noStyle {...switchItemProps}>
                 <Switch onChange={() => setDirty(true)} />
               </Form.Item>
-              <Typography.Text type="secondary" style={{ fontSize: 12 }}>Bật nếu đây là khóa chỉ thu hộ học phí: không có ca học và không cần địa chỉ.</Typography.Text>
+              <Typography.Text type="secondary" style={{ fontSize: 12 }}>Bật nếu đây là khóa chỉ thu hộ học phí: không có ca học, vẫn cần địa chỉ học.</Typography.Text>
             </Space>
           </FieldRow>
-          {!isFeeOnly && item?.addressRequired && (
+          {item?.addressRequired && (
             <FieldRow label="Địa chỉ học">
               <Space direction="vertical" size={4} style={{ width: '100%' }}>
-                {(itemSchedules ?? []).length > 0
+                {(itemSchedules ?? []).length > 0 && !isFeeOnly
                   ? <span style={{ color: '#888' }}>Khóa có ca học: mỗi ca dùng địa chỉ chọn riêng cho ca đó.</span>
                   : (partnerLocations ?? []).length === 0
                     ? <span style={{ color: '#cf1322' }}>Đối tác chưa có địa chỉ.</span>
                   : (partnerLocations ?? []).length === 1
                     ? <span>Tự áp dụng: {partnerLocations[0].title} — {partnerLocations[0].address}</span>
                     : (
-                      <Form.Item name="userLocationId" noStyle>
-                        <Select placeholder="Chọn địa chỉ của đối tác" style={{ width: 320 }} onChange={() => setDirty(true)}
+                      <Form.Item name="userLocationIds" noStyle>
+                        <Select mode="multiple" placeholder="Chọn một hoặc nhiều địa chỉ của đối tác" style={{ width: '100%' }} optionFilterProp="label" onChange={() => setDirty(true)}
                           options={(partnerLocations ?? []).map(l => ({ value: l.id, label: `${l.title} — ${l.address}` }))} />
                       </Form.Item>
                     )}

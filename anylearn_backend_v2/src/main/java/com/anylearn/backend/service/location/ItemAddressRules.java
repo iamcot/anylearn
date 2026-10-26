@@ -30,11 +30,11 @@ public final class ItemAddressRules {
         return new Decision(null, "Chọn địa chỉ áp dụng cho " + what + ".");
     }
 
-    /** Several addresses ticked for a new class: all must belong to the partner; none ticked falls back to {@link #resolve}. */
-    public static List<Long> chosenForNewClass(List<Long> partnerAddressIds, List<Long> ticked) {
+    /** Several addresses ticked for a course or a new class: all must belong to the partner; none ticked falls back to {@link #resolve}. */
+    public static List<Long> chosenFor(List<Long> partnerAddressIds, List<Long> ticked, String what) {
         List<Long> valid = ticked.stream().filter(partnerAddressIds::contains).distinct().toList();
         if (!valid.isEmpty()) return valid;
-        Decision auto = resolve(partnerAddressIds, null, "ca học");
+        Decision auto = resolve(partnerAddressIds, null, what);
         if (!auto.ok()) throw new IllegalArgumentException(auto.problem());
         return List.of(auto.id());
     }

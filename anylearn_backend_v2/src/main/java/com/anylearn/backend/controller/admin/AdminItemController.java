@@ -34,6 +34,7 @@ public class AdminItemController {
     private final ItemScheduleRepository itemScheduleRepository;
     private final UserLocationRepository userLocationRepository;
     private final com.anylearn.backend.service.tags.TagService tagService;
+    private final com.anylearn.backend.service.location.LocationService locationService;
     private final OrderDetailRepository orderDetailRepository;
     private final UserRepository userRepository;
     private final MeilisearchService meilisearchService;
@@ -173,6 +174,8 @@ public class AdminItemController {
             m.put("cycleType", item.getCycleType()); m.put("cycleAmount", item.getCycleAmount());
             m.put("locationType", item.getLocationType()); m.put("location", item.getLocation());
             m.put("userLocationId", item.getUserLocationId());
+            m.put("isPaymentfee", item.getIsPaymentfee());
+            m.put("userLocationIds", itemAddressIds(item));
             m.put("gaps", gapsOf(item));
             m.put("addressRequired", addressRequired(item));
             m.put("partnerAddressCount", partnerAddressIds(item).size());
@@ -236,7 +239,7 @@ public class AdminItemController {
 
     private List<String> gapsOf(Item item) {
         var schedules = itemScheduleRepository.findByItemIdAndStatus(item.getId(), (byte) 1);
-        var branches = ItemSearchAttributes.activeBranchesOf(item, schedules, userLocationRepository::findAllById);
+        var branches = ItemSearchAttributes.activeBranchesOf(item, userLocationRepository.findItemAddressIds(item.getId()), schedules, userLocationRepository::findAllById);
         String partnerType = userRepository.findById(item.getUserId()).map(User::getPartnerType).orElse(null);
         return ItemAttributeGaps.of(item, new ItemAttributeGaps.Facts(
                 itemCategoryRepository.findAllCategoryUrlsByItemId(item.getId()).size(),
@@ -264,6 +267,7 @@ public class AdminItemController {
             if (body.containsKey("companyCommission")) item.setCompanyCommission((String) body.get("companyCommission"));
             if (body.containsKey("status")) item.setStatus(toNum(body.get("status")).byteValue());
             if (body.containsKey("userStatus")) item.setUserStatus(toNum(body.get("userStatus")).byteValue());
+            if (body.containsKey("isPaymentfee")) item.setIsPaymentfee(body.get("isPaymentfee") == null ? 0 : toNum(body.get("isPaymentfee")).intValue());
             if (body.containsKey("isHot")) item.setIsHot(toNum(body.get("isHot")).byteValue());
             if (body.containsKey("boostScore")) item.setBoostScore(toNum(body.get("boostScore")).intValue());
             if (body.containsKey("itemCategoryId")) item.setItemCategoryId(toNum(body.get("itemCategoryId")).intValue());
@@ -293,7 +297,7 @@ public class AdminItemController {
             if (body.containsKey("seoTitle")) item.setSeoTitle((String) body.get("seoTitle"));
             if (body.containsKey("seoUrl")) item.setSeoUrl((String) body.get("seoUrl"));
             if (body.containsKey("seoDesc")) item.setSeoDesc((String) body.get("seoDesc"));
-            String addressProblem = applyAddressRules(item);
+            String addressProblem = applyAddressRules(item, tickedAddresses(body));
             if (addressProblem != null) return ApiResponse.fail(addressProblem);
             itemRepository.save(item);
             if (body.get("tagIds") instanceof java.util.List<?> tagIds)
@@ -463,7 +467,7 @@ public class AdminItemController {
         List<Long> addressIds = addressRequired(item) ? partnerAddressIds(item) : null;
         List<Long> places;
         try {
-            places = addressIds == null ? java.util.Collections.singletonList(null) : ItemAddressRules.chosenForNewClass(addressIds, tickedAddresses(body));
+            places = addressIds == null ? java.util.Collections.singletonList(null) : ItemAddressRules.chosenFor(addressIds, tickedAddresses(body), "ca học");
         } catch (IllegalArgumentException e) {
             return ApiResponse.fail(e.getMessage());
         }
@@ -558,37 +562,47 @@ public class AdminItemController {
         return userLocationRepository.findByUserIdAndStatus(item.getUserId(), (byte) 1).stream().map(l -> l.getId()).toList();
     }
 
+    private List<Long> itemAddressIds(Item item) {
+        List<Long> ids = userLocationRepository.findItemAddressIds(item.getId());
+        return ids.isEmpty() && item.getUserLocationId() != null ? List.of(item.getUserLocationId()) : ids;
+    }
+
     private boolean addressRequired(Item item) {
-        if (isFeeOnly(item)) return false;
         String partnerType = userRepository.findById(item.getUserId()).map(User::getPartnerType).orElse(null);
         return ItemAddressRules.requiresAddress(item.getSubtype(), partnerType);
     }
 
-    /** A fee-collection item only collects tuition: no classes and no place. */
-    private static boolean isFeeOnly(Item item) {
-        return item.getIsPaymentfee() != null && item.getIsPaymentfee() == 1;
-    }
-
+    /** The list from the form wins; the single `userLocationId` only matters for a client that sends no list. */
     private static List<Long> tickedAddresses(Map<String, Object> body) {
         List<Long> ticked = new java.util.ArrayList<>();
-        if (body.get("userLocationIds") instanceof List<?> list) list.forEach(v -> { if (v instanceof Number n) ticked.add(n.longValue()); });
+        if (body.get("userLocationIds") instanceof List<?> list) {
+            list.forEach(v -> { if (v instanceof Number n) ticked.add(n.longValue()); });
+            return ticked;
+        }
         if (body.get("userLocationId") instanceof Number n) ticked.add(n.longValue());
         else if (body.get("userLocationId") instanceof String t && !t.isBlank()) ticked.add(Long.parseLong(t.trim()));
         return ticked;
     }
 
     /**
-     * A course taught at a place must have an address: on the course when it has no classes, on every class otherwise.
+     * A course taught at a place must have an address: on the course (one or several) when it has no classes, on every class otherwise.
      * One address of the partner is applied automatically; with several the person must choose. Null when fine.
      */
-    private String applyAddressRules(Item item) {
+    private String applyAddressRules(Item item, List<Long> tickedForCourse) {
         if (!addressRequired(item)) return null;
         List<Long> addressIds = partnerAddressIds(item);
         var classes = itemScheduleRepository.findByItemIdAndStatus(item.getId(), (byte) 1);
         if (classes.isEmpty()) {
-            var place = ItemAddressRules.resolve(addressIds, item.getUserLocationId(), "khóa học");
-            if (!place.ok()) return place.problem();
-            item.setUserLocationId(place.id());
+            // The form sends the whole list; an old client sending only the single address still works.
+            List<Long> ticked = tickedForCourse.isEmpty() && item.getUserLocationId() != null ? List.of(item.getUserLocationId()) : tickedForCourse;
+            List<Long> chosen;
+            try {
+                chosen = ItemAddressRules.chosenFor(addressIds, ticked, "khóa học");
+            } catch (IllegalArgumentException e) {
+                return e.getMessage();
+            }
+            item.setUserLocationId(chosen.get(0));
+            locationService.replaceItemAddresses(item.getId(), chosen);
             return null;
         }
         for (ItemSchedule c : classes) {
