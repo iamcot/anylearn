@@ -148,6 +148,7 @@ public class MeilisearchService {
                             if (categoryTitlesMap.containsKey(itemId)) {
                                 m.put("categoryTitles", categoryTitlesMap.get(itemId));
                             }
+                            copySearchAttributes(hitsById.get(itemId), m);
                             if (filters.hasNear()) {
                                 Double km = nearestBranchKm(hitsById.get(itemId), filters);
                                 if (km != null) m.put("distanceKm", Math.round(km * 10) / 10.0);
@@ -334,6 +335,16 @@ public class MeilisearchService {
                 attributes.pricePerSession(),
                 attributes.nextStartDay()
         );
+    }
+
+    private static final List<String> CARD_ATTRIBUTES = List.of("hasFreeTrial", "onSale", "timeSlots", "pricePerSession");
+
+    /** What a result card shows about a course ("Học thử", when it runs) comes from the index, nothing is looked up twice. */
+    private static void copySearchAttributes(Map<String, Object> hit, Map<String, Object> card) {
+        if (hit == null) return;
+        for (String key : CARD_ATTRIBUTES) {
+            if (hit.get(key) != null) card.put(key, hit.get(key));
+        }
     }
 
     // ── User indexing ──

@@ -35,6 +35,7 @@ public class UserController {
     private final ItemActivityRepository itemActivityRepository;
     private final ItemRepository itemRepository;
     private final ItemScheduleRepository itemScheduleRepository;
+    private final com.anylearn.backend.repository.UserLocationRepository userLocationRepository;
 
     @GetMapping("/users/{role}")
     public ApiResponse<?> usersList(@PathVariable String role,
@@ -78,6 +79,18 @@ public class UserController {
     @GetMapping("/user/children")
     public ApiResponse<?> listChildren(@AuthenticationPrincipal User user) {
         return ApiResponse.ok(userService.getChildren(user));
+    }
+
+    /** Where "near me" starts when the browser gives no position: the member's saved home address (head one first). */
+    @GetMapping("/user/home-point")
+    public ApiResponse<?> homePoint(@AuthenticationPrincipal User user) {
+        var home = userLocationRepository.findByUserIdAndStatus(user.getId(), (byte) 1).stream()
+                .filter(l -> l.getLat() != null && l.getLng() != null)
+                .max(java.util.Comparator.comparing(l -> l.getIsHead() != null && l.getIsHead() == 1))
+                .orElse(null);
+        if (home == null) return ApiResponse.ok(null);
+        return ApiResponse.ok(Map.of("lat", home.getLat(), "lng", home.getLng(),
+                "label", home.getDistrictName() != null ? home.getDistrictName() : String.valueOf(home.getTitle())));
     }
 
     @PostMapping("/user/children")

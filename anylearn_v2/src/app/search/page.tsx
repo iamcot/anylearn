@@ -2,10 +2,10 @@
 
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { getCategories, getUserProfile, type Category, type PublicUserProfile } from '@/lib/api'
-import { FILTER_ALL, SORT_OPTIONS } from '@/config/searchFilters'
+import { getCategories, getSearchOptions, getUserProfile, type Category, type PublicUserProfile, type SearchOptions } from '@/lib/api'
+import { FILTER_ALL, NEAREST_SORT, SORT_OPTIONS } from '@/config/searchFilters'
 import {
-  DEFAULT_FILTERS, SEARCH_PAGE_SIZE, buildSearchUrl, parseSearchParams, type SearchMode, type SearchState,
+  DEFAULT_ADVANCED, DEFAULT_FILTERS, SEARCH_PAGE_SIZE, buildSearchUrl, parseSearchParams, type SearchMode, type SearchState,
 } from '@/lib/search/query'
 import { fetchSearchResults, type SearchResults } from '@/lib/search/fetchResults'
 import SearchModeTabs from '@/components/search/SearchModeTabs'
@@ -21,6 +21,10 @@ import type { CourseRequestDefaults } from '@/components/search/CourseRequestMod
 import { useSearchHistory } from '@/components/search/useSearchHistory'
 import { ResultRowsSkeleton } from '@/components/PageSkeleton'
 import GuestLearnerChips from '@/components/guest/GuestLearnerChips'
+import LearnerChips, { useLearnerChips } from '@/components/search/LearnerChips'
+import QuickChips from '@/components/search/QuickChips'
+import { useAuth } from '@/context/AuthContext'
+import { ALL_LEARNERS, readActiveLearner, writeActiveLearner, type LearnerChip } from '@/lib/search/learners'
 import { createSearchTracking } from '@/components/search/searchTracking'
 import { takeGuestAutoAge } from '@/components/guest/takeGuestAutoAge'
 
@@ -38,6 +42,10 @@ function SearchPageInner() {
   const [fetched, setFetched] = useState<FetchedResults | null>(null)
   const [categories, setCategories] = useState<Category[]>([])
   const [profile, setProfile] = useState<PublicUserProfile | null>(null)
+  const [options, setOptions] = useState<SearchOptions>({ districts: [], tags: [] })
+  const [filtersOpen, setFiltersOpen] = useState(false)
+  const { token } = useAuth()
+  const learnerChips = useLearnerChips()
   const { history, remember, clear: clearHistory } = useSearchHistory()
   const headingRef = useRef<HTMLHeadingElement>(null)
 
@@ -56,6 +64,14 @@ function SearchPageInner() {
 
   useEffect(() => { getCategories().then(setCategories) }, [])
 
+  const province = state.filters.location === FILTER_ALL ? undefined : state.filters.location
+  useEffect(() => {
+    let cancelled = false
+    getSearchOptions(province).then(data => { if (!cancelled) setOptions(data) })
+    return () => { cancelled = true }
+  }, [province])
+
+
   useEffect(() => {
     if (!state.authorId) return
     let cancelled = false
@@ -67,8 +83,27 @@ function SearchPageInner() {
     window.history.replaceState(null, '', buildSearchUrl({ ...state, page: 0, ...patch }))
   }
 
+  const pickLearner = (chip: LearnerChip | null) => {
+    writeActiveLearner(chip?.key ?? ALL_LEARNERS)
+    const adv = chip
+      ? { ...state.adv, learner: chip.key, ageFrom: chip.ageFrom, ageTo: chip.ageTo }
+      : { ...state.adv, learner: undefined, ageFrom: undefined, ageTo: undefined }
+    apply({ adv, filters: { ...state.filters, age: FILTER_ALL } })
+  }
+  // A person with an account who picked a child last time opens the search for that child (once the chips are loaded).
+  const learnerApplied = useRef(false)
+  useEffect(() => {
+    if (!token || learnerChips.length === 0 || learnerApplied.current) return
+    learnerApplied.current = true
+    const remembered = readActiveLearner()
+    const chip = learnerChips.find(item => item.key === remembered)
+    const untouched = state.adv.ageFrom === undefined && !state.adv.learner && state.filters.age === FILTER_ALL
+    if (chip && untouched) pickLearner(chip)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token, learnerChips])
+
   const pickAge = (ageFilter: string | null) => apply({ filters: { ...state.filters, age: ageFilter ?? FILTER_ALL } })
-  const changeMode = (mode: SearchMode) => apply({ mode, q: '', category: undefined, authorId: undefined, filters: DEFAULT_FILTERS })
+  const changeMode = (mode: SearchMode) => apply({ mode, q: '', category: undefined, authorId: undefined, filters: DEFAULT_FILTERS, adv: DEFAULT_ADVANCED })
   const submitQuery = (q: string) => { if (q) remember(q); apply({ q, authorId: undefined }) }
   const pickHistory = (term: string) => { remember(term); apply({ q: term, authorId: undefined }) }
   const changePage = (page: number) => {
@@ -92,7 +127,9 @@ function SearchPageInner() {
     categories,
     onCategoryChange: (category: string | undefined) => apply({ category }),
     onFilterChange: (filters: SearchState['filters']) => apply({ filters }),
-    onClear: () => apply({ category: undefined, sort: 'popular', filters: DEFAULT_FILTERS }),
+    onAdvancedChange: (adv: SearchState['adv']) => apply({ adv }),
+    options,
+    onClear: () => apply({ category: undefined, sort: 'popular', filters: DEFAULT_FILTERS, adv: { ...DEFAULT_ADVANCED, learner: state.adv.learner, ageFrom: state.adv.ageFrom, ageTo: state.adv.ageTo } }),
   }
 
   return (
@@ -108,13 +145,16 @@ function SearchPageInner() {
         onClearHistory={clearHistory}
       />
 
-      {state.mode === 'class' && <GuestLearnerChips activeAge={state.filters.age} onPickAge={pickAge} />}
+      {state.mode === 'class' && (token
+        ? <LearnerChips chips={learnerChips} activeKey={state.adv.learner} onPick={pickLearner} />
+        : <GuestLearnerChips activeAge={state.filters.age} onPickAge={pickAge} />)}
+      {state.mode === 'class' && <QuickChips state={state} apply={apply} onNeedDistrict={() => setFiltersOpen(true)} />}
 
       <section className="section py-6 lg:py-10">
         <div className={`container grid items-start gap-7 ${state.mode === 'class' ? 'lg:grid-cols-[300px_1fr]' : ''}`}>
           {state.mode === 'class' && (
             <>
-              <MobileFilters {...filterProps} />
+              <MobileFilters {...filterProps} open={filtersOpen} onOpenChange={setFiltersOpen} />
               <aside className="hidden rounded-[26px] border border-line bg-white p-[22px] shadow-card lg:block">
                 <SearchFiltersPanel {...filterProps} />
               </aside>
@@ -136,7 +176,7 @@ function SearchPageInner() {
                   onChange={event => apply({ sort: event.target.value })}
                   className="min-h-11 rounded-full border border-line bg-white px-3.5 font-medium text-text outline-none"
                 >
-                  {SORT_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+                  {(state.adv.near ? [...SORT_OPTIONS, NEAREST_SORT] : SORT_OPTIONS).map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
                 </select>
               )}
             </div>

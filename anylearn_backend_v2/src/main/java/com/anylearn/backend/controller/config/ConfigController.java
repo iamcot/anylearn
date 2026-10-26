@@ -107,6 +107,11 @@ public class ConfigController {
         return result.get("total") instanceof Number total ? total.intValue() : 0;
     }
 
+    @GetMapping("/search/options")
+    public ApiResponse<?> searchOptions(@RequestParam(required = false) String province) {
+        return ApiResponse.ok(configService.searchOptions(province));
+    }
+
     @GetMapping("/search-tags")
     public ApiResponse<?> searchTags(@RequestParam(required = false) String q) {
         return ApiResponse.ok(configService.searchTags(q));

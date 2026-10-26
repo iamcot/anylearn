@@ -55,3 +55,6 @@ GET {{baseUrl}}/v3/main-subtypes/online
 
 ### Search with the plan-03 filters: learner age, near me, time slot, free trial, on sale, partner type, tags, start soon
 GET http://localhost:8080/v2/api/search?q=&ageFrom=6&ageTo=7&nearLat=10.7745&nearLng=106.7032&radiusKm=5&timeSlot=weekday_evening&timeSlot=weekend_morning&freeTrial=true&onSale=true&partnerType=center&tag=2&startWithin=14&sort=nearest
+
+### Search filter options (districts of a province, tags with ids)
+GET {{baseUrl}}/search/options?province=79

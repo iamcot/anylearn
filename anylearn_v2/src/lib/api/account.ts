@@ -154,3 +154,9 @@ export async function updateImageUrl(
     body: JSON.stringify({ imageUrl }),
   })
 }
+
+// The member's saved home address, where "near me" starts when the browser gives no position. Null when none is saved.
+export async function getHomePoint(token: string): Promise<{ lat: number; lng: number; label: string } | null> {
+  const { data } = await authFetch<{ lat: number; lng: number; label: string } | null>('/user/home-point', token)
+  return data ?? null
+}

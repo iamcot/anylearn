@@ -42,6 +42,19 @@ public interface TagRepository extends JpaRepository<Tag, Long> {
             """, nativeQuery = true)
     List<String> findUsedNames(@Param("q") String q, @Param("limit") int limit);
 
+    /** Active tags that at least one course uses, with ids: the tag filter of the search. */
+    @Query(value = """
+            SELECT t.id AS id, t.name AS name, t.tag_group AS tagGroup FROM tags t JOIN item_tags it ON it.tag_id = t.id
+            WHERE t.status = 1 GROUP BY t.id, t.name, t.tag_group ORDER BY COUNT(*) DESC, t.name LIMIT :limit
+            """, nativeQuery = true)
+    List<UsedTag> findUsedTags(@Param("limit") int limit);
+
+    interface UsedTag {
+        Long getId();
+        String getName();
+        String getTagGroup();
+    }
+
     @Query(value = "SELECT DISTINCT item_id FROM item_tags WHERE tag_id = :tagId", nativeQuery = true)
     List<Long> findItemIdsByTagId(@Param("tagId") Long tagId);
 

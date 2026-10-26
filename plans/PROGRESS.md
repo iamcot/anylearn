@@ -77,8 +77,8 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 03.3 | Admin nhập liệu + cảnh báo thiếu | done | Cảnh báo ở trang khóa + trang "Thiếu thuộc tính"; tiêu chí xong chờ chủ sản phẩm nhập liệu |
 | 03.4 | Index MeiliSearch | done | Thử trên Meilisearch 1.12 thật; cần `POST /admin/reindex` sau khi deploy |
 | 03.5 | API search bộ lọc mới | done | Chưa có `ageFor=<learnerId>`: FE gửi `ageFrom/ageTo` (xem ghi chú nhật ký) |
-| 04.1 | Chip chọn người học | todo | |
-| 04.2 | Chip lọc nhanh + bộ lọc đầy đủ | todo | |
+| 04.1 | Chip chọn người học | done | Tài khoản: `Tất cả / con / Tôi` (tuổi từ ngày sinh, bé chỉ có năm sinh = 2 tuổi khả dĩ), nhớ lựa chọn `anylearn.activeLearner`; khách giữ chip cũ. Mới gắn vào trang search, trang chủ làm ở 04.3 |
+| 04.2 | Chip lọc nhanh + bộ lọc đầy đủ | done | Chip: Gần tôi/Cuối tuần/Tối trong tuần/Học thử/Giảm giá/Online; panel thêm quận, khung giờ, đối tác, giá tối đa (thanh trượt), khai giảng, tag; thẻ có khoảng cách/giờ/Học thử/Giảm giá. Chưa có "+X anyPoint" trên thẻ |
 | 04.3 | Trang chủ mobile gọn | todo | |
 | 04.4 | Bộ sưu tập | todo | |
 | 04.5 | Trang chuyên gia + "Ngẫu nhiên" | todo | |
@@ -397,3 +397,8 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
   `ComingSoon`; `item_reviews` chỉ có rating + comment.
 - Tạo plan 00–12 và file này. Chưa code tính năng nào.
 - Migration mới bắt đầu từ `V16` (số lớn nhất hiện tại là `V15__bank_webhook_events.sql`).
+
+### 26/10/2026 – 04.1 + 04.2 (trang search)
+- Backend: `GET /api/search/options?province=` (quận + tag có id), `GET /api/user/home-point` (địa chỉ nhà đã lưu, dùng khi trình duyệt từ chối vị trí), kết quả search có thêm `hasFreeTrial`, `onSale`, `timeSlots`, `pricePerSession`.
+- FE: `AdvancedFilters` trong URL (`for`, `ageFrom/ageTo`, `district`, `near=lat,lng` làm tròn ~100 m, `slot`, `partnerType`, `freeTrial`, `onSale`, `priceMax`, `startWithin`, `tag`), `QuickChips`, `LearnerChips`, `useNearMe`; panel lọc trên mobile không tự đóng, có nút "Xem kết quả"; bỏ select học phí cũ (link cũ `price=` vẫn chạy).
+- Gần tôi: vị trí trình duyệt → địa chỉ đã lưu → nhắc chọn quận.
