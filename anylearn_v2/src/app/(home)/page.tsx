@@ -1,6 +1,6 @@
 import SearchCard from '@/components/SearchCard'
 import PromoSlider from '@/components/PromoSlider'
-import { getHomeV2, searchUsers, Category, getArticleUrl, Article, type UserResult } from '@/lib/api'
+import { getCollections, getHomeV2, searchUsers, Category, getArticleUrl, Article, type UserResult } from '@/lib/api'
 import Link from 'next/link'
 import TodayRedirect from '@/components/TodayRedirect'
 import { BookIcon, PlayIcon } from '@/components/icons'
@@ -9,13 +9,15 @@ import CourseRequestCta from '@/components/search/CourseRequestCta'
 import HomeLearnerRow from '@/components/home/HomeLearnerRow'
 import HomeQuickChips from '@/components/home/HomeQuickChips'
 import HomePersonalRows from '@/components/home/HomePersonalRows'
+import CollectionsRow from '@/components/home/CollectionsRow'
 import FeaturedPartners from '@/components/home/FeaturedPartners'
 
 const FEATURED_PARTNERS_PER_ROLE = 4
 
 export default async function HomePage() {
-  const [homeData, schools, teachers] = await Promise.all([
+  const [homeData, collections, schools, teachers] = await Promise.all([
     getHomeV2(),
+    getCollections(),
     searchUsers('', 'school', 0, FEATURED_PARTNERS_PER_ROLE, 'popular'),
     searchUsers('', 'teacher', 0, FEATURED_PARTNERS_PER_ROLE, 'popular'),
   ])
@@ -42,6 +44,7 @@ export default async function HomePage() {
       <PromoSlider promos={promos} />
 
       <HomePersonalRows />
+      <CollectionsRow collections={collections} />
       <FeaturedPartners partners={partners} />
 
       {/* ── Ask us to find a course ── */}

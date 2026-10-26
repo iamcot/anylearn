@@ -205,6 +205,11 @@ Thư mục `http/` chứa VS Code REST Client files cho mọi endpoint:
 - Meilisearch index settings live in `MeilisearchConfig` only (filterable and sortable lists); `_geo` supports one point per course, so "near me" matches the default branch, while `distanceKm` uses the nearest branch.
 - Search UI (plan 04.1/04.2): `GET /api/search/options?province=` lists districts and used tags (with ids), `GET /api/user/home-point` gives the member's saved home point for "Gần tôi". FE filters beyond the classic four live in `AdvancedFilters` (`lib/search/query.ts`), chips in `components/search/{LearnerChips,QuickChips}.tsx`, pure rules in `lib/search/{learners,quickFilters}.ts`.
 
+## Collections
+
+- A collection is a hand-picked list of courses (V28: `collections` with slug, title, subtitle, cover, `season_from`/`season_to`, sort order, active; `collection_items` with the admin's order). Back office page "Bộ sưu tập" (`/admin/collections`, `AdminCollectionController`, `CollectionService`, rules in `CollectionRules`): create/edit in a drawer, courses are added from `GET /admin/collections/course-search` (the visitors' search with the same filters: keyword, age, tags, partner type, time slots, price, free trial, sale; only live courses) by ticking results ("Gợi ý theo bộ lọc" is the same call with filters), reordered with arrows, and saved with `itemIds`. A course id that does not exist is dropped on save.
+- Visitors: `GET /api/collections` (active, in season, at least one live course) and `GET /api/collections/{slug}`; FE `/collections/[slug]` and the home row `CollectionsRow`. A course that is switched off disappears from the list by itself.
+
 ## Sessions and expired logins
 
 - JWT lives 30 days (`JWT_EXPIRATION_MS`, default 2592000000). While a token is past half of its life, the next API call answers with a new one in the `X-Refreshed-Token` header (`JwtFilter`, `JwtService.shouldRefresh`), so people who keep using the app are never signed out.

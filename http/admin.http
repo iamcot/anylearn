@@ -273,3 +273,24 @@ Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
 Content-Type: application/json
 
 { "userId": 14422, "placeIds": ["PLACE_ID_1", "PLACE_ID_2"], "headPlaceId": "PLACE_ID_2" }
+
+
+### ── Collections ─────────────────────────────────────────────────────────────
+
+### List collections
+GET {{baseUrl}}/admin/collections?api_token={{$dotenv ADMIN_TOKEN}}
+
+### Suggest / search courses to add (same filters as the public search)
+GET {{baseUrl}}/admin/collections/course-search?q=bong&ageFrom=8&ageTo=10&freeTrial=true&api_token={{$dotenv ADMIN_TOKEN}}
+
+### Create a collection (itemIds = the courses, in order)
+POST {{baseUrl}}/admin/collections?api_token={{$dotenv ADMIN_TOKEN}}
+Content-Type: application/json
+
+{
+  "title": "Hè không màn hình",
+  "subtitle": "Hoạt động ngoài trời cho bé nghỉ hè",
+  "seasonFrom": "2026-06-01",
+  "seasonTo": "2026-08-31",
+  "itemIds": []
+}

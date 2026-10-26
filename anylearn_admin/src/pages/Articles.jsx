@@ -1,8 +1,9 @@
-import { Button, Drawer, Form, Input, Select, Space, Switch, Table, Tag, Typography, Upload } from 'antd'
-import { CloseOutlined, EditOutlined, SaveOutlined, RightOutlined, UploadOutlined } from '@ant-design/icons'
+import { Button, Drawer, Form, Input, Select, Space, Switch, Table, Tag, Typography } from 'antd'
+import { CloseOutlined, EditOutlined, SaveOutlined, RightOutlined } from '@ant-design/icons'
 import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import client from '../api/client'
+import ImageUpload from '../components/ImageUpload'
 import { fmtDate, fmtDateTime } from '../utils/format'
 import { Field } from '../components/Field'
 import RichEditor from '../components/RichEditor'
@@ -14,27 +15,6 @@ const TYPE_OPTIONS = [
   { value: 'video', label: 'Video' },
 ]
 const typeColor = { event: 'blue', promotion: 'orange', read: 'green', video: 'purple' }
-
-function ArticleImageUpload({ value, onChange }) {
-  const handleChange = async ({ file }) => {
-    const f = file.originFileObj || file
-    const formData = new FormData()
-    formData.append('file', f)
-    try {
-      const res = await client.post('/admin/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } })
-      const url = res.data?.data?.url
-      if (url) onChange(url)
-    } catch {}
-  }
-  return (
-    <Upload showUploadList={false} customRequest={({ file, onSuccess }) => { handleChange({ file }); onSuccess?.() }} accept="image/*">
-      <Space>
-        {value && <img src={value} style={{ maxHeight: 60, borderRadius: 4 }} alt="" />}
-        <Button size="small" icon={<UploadOutlined />}>Upload ảnh</Button>
-      </Space>
-    </Upload>
-  )
-}
 
 export default function Articles() {
   const qc = useQueryClient()
@@ -199,7 +179,7 @@ export default function Articles() {
             viewValue={detailData?.image ? <img src={detailData.image} style={{ maxWidth: '100%', maxHeight: 120, borderRadius: 6 }} alt="" /> : '—'}
             editContent={
               <Form.Item name="image" noStyle>
-                <ArticleImageUpload value={form.getFieldValue('image')} onChange={url => form.setFieldValue('image', url)} />
+                <ImageUpload value={form.getFieldValue('image')} onChange={url => form.setFieldValue('image', url)} />
               </Form.Item>
             }
             editing={editing}

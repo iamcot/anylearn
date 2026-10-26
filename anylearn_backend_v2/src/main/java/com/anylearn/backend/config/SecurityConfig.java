@@ -40,7 +40,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/password/reset", "/api/otp/check").permitAll()
                 // Public content
                 .requestMatchers(HttpMethod.GET,  "/api/users/**", "/api/user/profile/**").permitAll()
-                .requestMatchers(HttpMethod.GET,  "/api/event/**", "/api/search", "/api/search-tags", "/api/search/users").permitAll()
+                .requestMatchers(HttpMethod.GET,  "/api/event/**", "/api/search", "/api/search-tags", "/api/search/users", "/api/search/options", "/api/collections", "/api/collections/*").permitAll()
                 .requestMatchers(HttpMethod.GET,  "/api/config/**").permitAll()
                 .requestMatchers(HttpMethod.GET,  "/api/voucher/check").permitAll()
                 .requestMatchers(HttpMethod.GET,  "/api/pdp/**", "/api/points/preview", "/api/foundation", "/api/doc/**", "/api/helpcenter/**").permitAll()

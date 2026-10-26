@@ -80,7 +80,7 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 04.1 | Chip chọn người học | done | Tài khoản: `Tất cả / con / Tôi` (tuổi từ ngày sinh, bé chỉ có năm sinh = 2 tuổi khả dĩ), nhớ lựa chọn `anylearn.activeLearner`; khách giữ chip cũ. Mới gắn vào trang search, trang chủ làm ở 04.3 |
 | 04.2 | Chip lọc nhanh + bộ lọc đầy đủ | done | Chip: Gần tôi/Cuối tuần/Tối trong tuần/Học thử/Giảm giá/Online; panel thêm quận, khung giờ, đối tác, giá tối đa (thanh trượt), khai giảng, tag; thẻ có khoảng cách/giờ/Học thử/Giảm giá. Chưa có "+X anyPoint" trên thẻ |
 | 04.3 | Trang chủ mobile gọn | done | Còn 5 khối: hero (tìm kiếm + chip bé + chip nhanh), Dành cho {bé}, Đang hot gần bạn (cần địa chỉ đã lưu), chuyên gia/đối tác nổi bật, CTA nhờ tìm giúp + 3 bài viết. Chưa có khối bộ sưu tập (04.4) và nút "Thử điều mới" (04.5); PromoSlider giữ lại tới khi có bộ sưu tập. Chưa đo trước/sau |
-| 04.4 | Bộ sưu tập | todo | |
+| 04.4 | Bộ sưu tập | done | Chọn tay + gợi ý theo bộ lọc, không dùng `filter_json`; mùa là khoảng ngày tuyệt đối (năm sau phải sửa tay). Tìm gợi ý cần Meilisearch nên chưa thử với Meilisearch thật trong sandbox (chỉ thử CRUD thật + gợi ý giả lập) |
 | 04.5 | Trang chuyên gia + "Ngẫu nhiên" | todo | |
 | 01.5 | Khảo sát sở thích khi thêm con | todo | |
 | 09.1 | Review xác thực | todo | |
@@ -412,3 +412,8 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 - Bỏ khỏi trang chủ: 4 ô lợi ích, chọn nhanh nhóm học, khóa nổi bật chung, ưu đãi phụ huynh. Thêm `components/home/*` (`HomeLearnerRow`, `HomeQuickChips`, `HomePersonalRows`, `FeaturedPartners`), logic thuần `lib/home/blocks.ts` (có test).
 - Tài khoản: chip `Tất cả | Bin | Tôi` chọn bé cho cả trang chủ lẫn trang search (cùng `anylearn.activeLearner`); chưa chọn thì lấy bé đầu tiên. Khách: dải gợi ý cũ, khối đầu theo độ tuổi khách khai. Chip "Gần tôi" ở trang chủ mở `/search?locate=1` và tự xin vị trí.
 - "Đang hot gần bạn" chỉ hiện khi tài khoản có địa chỉ nhà đã lưu (`/user/home-point`), không xin vị trí ngay ở trang chủ để khỏi hỏi quyền khi vừa vào.
+
+### 26/10/2026 – 04.4 bộ sưu tập
+- V28 `collections`, `collection_items`; admin tạo/sửa, thêm khóa bằng khung tìm + bộ lọc "Gợi ý" + checkbox, sắp xếp bằng mũi tên; public `/api/collections`, trang `/collections/[slug]`, khối "Bộ sưu tập" trên trang chủ.
+- Sửa lỗi quên mở quyền công khai cho `/api/search/options` (khách chưa đăng nhập sẽ bị 401 ở danh sách quận/tag): đã thêm vào `SecurityConfig` cùng `/api/collections`.
+- Tách `ImageUpload` thành component dùng chung (bài viết + bộ sưu tập).
