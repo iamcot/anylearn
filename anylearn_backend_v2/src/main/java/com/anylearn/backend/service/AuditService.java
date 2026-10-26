@@ -33,7 +33,7 @@ public class AuditService {
 
     // Types that actually affect wallet_c:
     //   exchange (-) + exchange_refund (+) net to 0 when order cancelled — both stay status=1
-    private static final String WALLET_TYPES = "'partner','commission','commission_add','exchange','exchange_refund','withdraw'";
+    private static final String WALLET_TYPES = "'partner','commission','commission_add','exchange','exchange_refund','withdraw','review_reward','review_reward_revoke'";
 
     @SuppressWarnings("unchecked")
     public List<AuditDiscrepancy> runWalletAudit() {

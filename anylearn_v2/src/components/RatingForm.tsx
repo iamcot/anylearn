@@ -42,7 +42,7 @@ function Stars({ value, onPick, size = 'size-7', box = 'size-11' }: { value: num
 
 // Writing or editing a review: stars, optional scores per criterion, a comment with quick phrases and up to 4 photos.
 export default function RatingForm({ itemId, existingRating, existingComment, existingScores, existingMedia, onSaved }: Props) {
-  const { user } = useAuth()
+  const { user, refreshUser } = useAuth()
   const [rating, setRating] = useState(existingRating ?? 0)
   const [comment, setComment] = useState(existingComment ?? '')
   const [scores, setScores] = useState<Record<string, number>>(existingScores ?? {})
@@ -65,6 +65,7 @@ export default function RatingForm({ itemId, existingRating, existingComment, ex
     const result = await saveReview(itemId, { rating, comment, scores, media }, token)
     setSaving(false)
     if (result.error) { setError(result.error); return }
+    if (result.pointsGiven > 0) refreshUser()
     onSaved?.({ value: rating, comment, scores, media }, result.pointsGiven)
   }
 
