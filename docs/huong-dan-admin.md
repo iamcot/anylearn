@@ -205,10 +205,11 @@ Dữ liệu nhập ở **Thành viên > chọn đối tác**:
 - Khóa đang bật sẵn từ trước không báo. Chỉ khóa chuyển từ tắt sang bật mới báo.
 - Tạo khóa mới ở trạng thái tắt, soạn xong mới bật: người theo dõi chỉ nhận thông báo lúc bật.
 
-**Thử điều mới cho con** (`/discover`, nút ở cuối các khối cá nhân của trang chủ): danh sách khóa hợp tuổi bé đang chọn và gần nhà (nếu tài khoản có địa chỉ nhà), sắp theo thứ tự ngẫu nhiên.
+**Thử điều mới cho con** (`/discover`, thẻ ở cuối các khối cá nhân của trang chủ): danh sách khóa hợp tuổi bé đang chọn, ưu tiên khóa gần nhà (nếu tài khoản có địa chỉ nhà), sắp theo thứ tự ngẫu nhiên.
+- Vị trí chỉ dùng để **xếp thứ tự**, không loại khóa nào: khóa xa vẫn xuất hiện, chỉ ở các trang sau. Bán kính "Gần tôi" không áp dụng cho danh sách này.
 - Cùng một bé xem trong cùng một ngày sẽ thấy cùng một danh sách; qua ngày đổi danh sách mới. Bé khác nhau có danh sách khác nhau.
-- Danh sách lấy từ 200 khóa phổ biến nhất khớp tuổi và khu vực, rồi xáo ngẫu nhiên. Không có thao tác cấu hình riêng.
-- Muốn khóa xuất hiện: nhập độ tuổi đúng, bật khóa và để đối tác có cơ sở có tọa độ.
+- Danh sách lấy từ 200 khóa khớp tuổi (gần nhà trước, nếu không có vị trí thì phổ biến trước), chia thành từng nhóm 24 khóa theo thứ tự đó, rồi xáo ngẫu nhiên trong từng nhóm. Nên 24 khóa đầu luôn là các khóa gần nhà, nhưng thứ tự mỗi ngày một khác. Không có thao tác cấu hình riêng.
+- Muốn khóa xuất hiện: nhập độ tuổi đúng và bật khóa. Cơ sở có tọa độ giúp khóa được xếp lên theo khoảng cách; khóa online hoặc không có tọa độ xếp sau cùng.
 
 ---
 

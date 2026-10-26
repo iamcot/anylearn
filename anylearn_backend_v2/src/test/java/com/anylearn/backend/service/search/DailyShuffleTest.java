@@ -37,4 +37,16 @@ class DailyShuffleTest {
         assertThat(DailyShuffle.page(shuffled, 4, 12)).hasSize(2);
         assertThat(DailyShuffle.page(shuffled, 5, 12)).isEmpty();
     }
+
+    @Test
+    void bandsKeepTheirOrderButAreShuffledInside() {
+        List<Integer> shuffled = DailyShuffle.shuffleInBands(POOL, 10, "x");
+        assertThat(shuffled).hasSize(50);
+        for (int band = 0; band < 5; band++) {
+            List<Integer> inBand = shuffled.subList(band * 10, band * 10 + 10);
+            assertThat(inBand).containsExactlyInAnyOrderElementsOf(POOL.subList(band * 10, band * 10 + 10));
+        }
+        assertThat(shuffled).isNotEqualTo(POOL);
+        assertThat(shuffled).isEqualTo(DailyShuffle.shuffleInBands(POOL, 10, "x"));
+    }
 }

@@ -337,13 +337,18 @@ public class MeilisearchService {
         );
     }
 
-    /** Ids of the courses matching a search, most popular first (up to `limit`): for lists that the caller re-orders. */
-    public List<Long> searchIds(String query, int limit, SearchFilters filters) {
+    /**
+     * Ids of the courses matching a search (up to `limit`): for lists that the caller re-orders. Most popular first, or
+     * nearest first when a point is given; the point only sorts, it never removes a course.
+     */
+    public List<Long> searchIds(String query, int limit, SearchFilters filters, Double sortLat, Double sortLng) {
         try {
             var request = SearchRequest.builder()
                     .q(query != null ? query : "")
                     .filter(SearchFilterBuilder.build(filters).toArray(new String[0]))
-                    .sort(new String[]{"popularityScore:desc"})
+                    .sort(sortLat != null && sortLng != null
+                            ? new String[]{String.format(java.util.Locale.ROOT, "_geoPoint(%s,%s):asc", sortLat, sortLng), "popularityScore:desc"}
+                            : new String[]{"popularityScore:desc"})
                     .attributesToRetrieve(new String[]{"id"})
                     .limit(limit)
                     .build();

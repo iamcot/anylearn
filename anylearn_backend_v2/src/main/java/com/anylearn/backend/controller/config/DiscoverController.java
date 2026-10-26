@@ -3,7 +3,6 @@ package com.anylearn.backend.controller.config;
 import com.anylearn.backend.dto.response.ApiResponse;
 import com.anylearn.backend.service.ConfigService;
 import com.anylearn.backend.service.MeilisearchService;
-import com.anylearn.backend.service.settings.OperationSettingsService;
 import com.anylearn.backend.service.search.DailyShuffle;
 import com.anylearn.backend.service.search.SearchFilters;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +16,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/** "Thử điều mới cho con": courses that fit the child and the area, in a random order that stays the same for the day. */
+/** "Thử điều mới cho con": courses that fit the child, nearer ones first, in a random order that stays the same for the day. */
 @RestController
 @RequestMapping("/api/discover")
 @RequiredArgsConstructor
@@ -25,10 +24,11 @@ public class DiscoverController {
 
     private static final int POOL_SIZE = 200;
     private static final int MAX_PAGE_SIZE = 24;
+    // Courses are shuffled inside groups of this size, nearest group first (two pages of 12).
+    private static final int BAND_SIZE = 24;
 
     private final MeilisearchService meilisearchService;
     private final ConfigService configService;
-    private final OperationSettingsService operationSettingsService;
 
     @GetMapping
     public ApiResponse<?> discover(@RequestParam(required = false) Integer ageFrom,
@@ -36,17 +36,16 @@ public class DiscoverController {
                                    @RequestParam(required = false) String location,
                                    @RequestParam(required = false) Double nearLat,
                                    @RequestParam(required = false) Double nearLng,
-                                   @RequestParam(required = false) Double radiusKm,
                                    @RequestParam(required = false) String seed,
                                    @RequestParam(defaultValue = "0") int page,
                                    @RequestParam(defaultValue = "12") int pageSize) {
+        // The position only orders the list (near first); it never hides a course.
         var filters = SearchFilters.Builder.empty().provinceCode(location).learnerAge(ageFrom, ageTo)
-                .near(nearLat, nearLng, radiusKm != null ? radiusKm : (double) operationSettingsService.nearRadiusKm())
                 .today(LocalDate.now()).build();
-        List<Long> pool = meilisearchService.searchIds("", POOL_SIZE, filters);
+        List<Long> pool = meilisearchService.searchIds("", POOL_SIZE, filters, nearLat, nearLng);
         // The same child sees the same list all day; tomorrow it is a new one.
         String dailySeed = LocalDate.now() + "|" + (seed == null ? "" : seed) + "|" + ageFrom + "|" + ageTo;
-        List<Long> shuffled = DailyShuffle.shuffle(pool, dailySeed);
+        List<Long> shuffled = DailyShuffle.shuffleInBands(pool, BAND_SIZE, dailySeed);
         List<Long> ids = DailyShuffle.page(shuffled, page, Math.min(Math.max(pageSize, 1), MAX_PAGE_SIZE));
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("items", configService.getItemsByIds(ids));

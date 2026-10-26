@@ -213,7 +213,7 @@ Thư mục `http/` chứa VS Code REST Client files cho mọi endpoint:
 ## Partner page, follows and discover
 
 - Public partner page `/partner/[id]` (FE) reads `GET /api/user/profile/{id}` plus `GET /api/partners/{id}/summary` (type, live course count, follower count, `following` for a logged-in caller, active branches). Follow: `POST`/`DELETE /api/partners/{id}/follow` (table `follows`, V29), `GET /api/partners/followed`. `FollowService.announceIfNewlyOpen(item, wasLive)` is called by `AdminItemController` on save/approve: a course that just became live (status 1 and user_status 1) notifies the partner's followers once (`follow_announcements`; type `new_course`, route `/pdp`).
-- `GET /api/discover` (`DiscoverController`): top 200 popular matching courses (`MeilisearchService.searchIds`), shuffled with a seed of date + child (`DailyShuffle`), paged. FE `/discover` (`components/home/DiscoverList`), button on the home page.
+- `GET /api/discover` (`DiscoverController`): up to 200 courses matching the age (`MeilisearchService.searchIds`; a position only sorts them nearest first, it is never a filter, otherwise popular first), shuffled inside groups of 24 with a seed of date + child (`DailyShuffle.shuffleInBands`), paged. FE `/discover` (`components/home/DiscoverList`), button on the home page.
 
 ## Sessions and expired logins
 

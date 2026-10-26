@@ -16,6 +16,19 @@ public final class DailyShuffle {
         return copy;
     }
 
+    /**
+     * Shuffles inside groups of `bandSize` and keeps the groups in order: the list stays roughly nearest-first (or
+     * best-first) but each group is random, so a day's list is not simply the top of the ranking.
+     */
+    public static <T> List<T> shuffleInBands(List<T> ordered, int bandSize, String seed) {
+        List<T> result = new ArrayList<>(ordered.size());
+        for (int from = 0; from < ordered.size(); from += bandSize) {
+            List<T> band = ordered.subList(from, Math.min(ordered.size(), from + bandSize));
+            result.addAll(shuffle(band, seed + "|" + from));
+        }
+        return result;
+    }
+
     /** One page of the shuffled list; a page past the end is empty. */
     public static <T> List<T> page(List<T> shuffled, int page, int pageSize) {
         int from = Math.max(0, page) * pageSize;

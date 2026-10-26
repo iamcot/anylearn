@@ -431,3 +431,6 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 
 ### 26/10/2026 – danh sách trường / chuyên gia thiếu người
 - Nguyên nhân: chỉ mục `users` cũ ghi nguyên giá trị `is_signed` (99) nhưng bộ lọc tìm kiếm đòi `isSigned = 1`, nên gần như không ai hiện. Code đã đổi sang ghi 1 khi hợp đồng "đã duyệt" (99) từ V27, nhưng nút/endpoint `POST /admin/reindex` chỉ dựng lại chỉ mục khóa học nên chỉ mục người dùng vẫn cũ (chỉ cập nhật lúc 5 giờ sáng hoặc khi sửa từng người). Nay `POST /admin/reindex` (nút "Cập nhật chỉ mục ngay") dựng cả chỉ mục người dùng.
+
+### 26/10/2026 – "Thử điều mới" dùng vị trí để sắp xếp
+- Vị trí không còn là bộ lọc (bán kính) của `/api/discover`: chỉ sắp gần nhà trước (sort `_geoPoint`), rồi xáo trong từng nhóm 24 khóa theo seed ngày + bé. Khóa không có tọa độ (online) xếp cuối. Chưa thử với Meilisearch thật.
