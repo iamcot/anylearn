@@ -85,4 +85,31 @@ class ItemSearchAttributesTest {
     void aWeeklyClassWithoutDatesIsOngoing() {
         assertThat(ItemSearchAttributes.nextStartDay(List.of(recurring("mon", "09:00", null, null)), null, TODAY)).isEqualTo((int) TODAY.toEpochDay());
     }
+
+    @Test
+    void aCourseWithoutAddressUsesThePartnerHeadOffice() {
+        var head = branch(7, "10.80", "106.70", "760");
+        head.setIsHead((byte) 1);
+        var attributes = ItemSearchAttributes.derive(course(), List.of(), List.of(),
+                List.of(branch(6, "10.10", "106.10", "761"), head), TODAY);
+        assertThat(attributes.locationFromPartner()).isTrue();
+        assertThat(attributes.geo()).containsEntry("lat", 10.80);
+        assertThat(attributes.locations()).hasSize(1);
+        assertThat(attributes.districtCodes()).containsExactly("760");
+    }
+
+    @Test
+    void ownAddressBeatsThePartnerFallback() {
+        var attributes = ItemSearchAttributes.derive(course(), List.of(), List.of(branch(2, "10.77", "106.69", "761")),
+                List.of(branch(7, "10.80", "106.70", "760")), TODAY);
+        assertThat(attributes.locationFromPartner()).isFalse();
+        assertThat(attributes.districtCodes()).containsExactly("761");
+    }
+
+    @Test
+    void partnerWithoutCoordinatesGivesNoFallback() {
+        var attributes = ItemSearchAttributes.derive(course(), List.of(), List.of(), List.of(branch(7, null, null, "760")), TODAY);
+        assertThat(attributes.locationFromPartner()).isFalse();
+        assertThat(attributes.geo()).isNull();
+    }
 }

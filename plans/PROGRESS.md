@@ -472,3 +472,5 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 - 09.4: bảng `review_reports` (V34). Đối tác của khóa bấm "Báo cáo" (lý do từ 10 ký tự, mỗi người một lần/đánh giá), admin nhận thông báo; trang "Tất cả đánh giá" có bộ lọc "Đối tác báo cáo, chờ xem" kèm lý do, nút "Giữ đánh giá" hoặc ẩn như thường (báo cáo tự đóng); số đỏ trên nút Xem tất cả đánh giá cộng cả báo cáo. Đối tác vẫn không ẩn/xóa được.
 - Chưa thử với MySQL thật (không có DB trong môi trường này); đã chạy test thuần và build FE/admin.
 
+### 26/10/2026 – "Gần tôi" cho khóa chưa có địa chỉ
+- Khóa không có địa chỉ riêng dùng hội sở của đối tác để index vị trí (`_geo`, `locations`, `districtCodes`), cờ `locationFromPartner` trong document, không hiện trên thẻ khóa. Cần chạy reindex một lần sau khi triển khai.
