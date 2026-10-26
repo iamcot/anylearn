@@ -1,4 +1,4 @@
-import { Alert, Button, Modal, Progress, Space, Table, Tag, Typography, message } from 'antd'
+import { Alert, Button, InputNumber, Modal, Progress, Space, Table, Tag, Typography, message } from 'antd'
 import { useRef, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import client from '../api/client'
@@ -18,6 +18,7 @@ const OUTCOME = {
 export default function ContractImportModal({ open, onClose, onOpenUser }) {
   const [rows, setRows] = useState({}) // userId -> {outcome, location, suggestions}
   const [running, setRunning] = useState(false)
+  const [limit, setLimit] = useState(null) // how many partners this run handles; empty = all
   const stop = useRef(false)
   const qc = useQueryClient()
 
@@ -29,6 +30,8 @@ export default function ContractImportModal({ open, onClose, onOpenUser }) {
   })
   const candidates = data?.candidates ?? []
   const done = candidates.filter(c => rows[c.userId] && rows[c.userId].outcome !== 'running').length
+  const remaining = candidates.length - done
+  const thisRun = limit ? Math.min(limit, remaining) : remaining
   const added = candidates.filter(c => rows[c.userId]?.outcome === 'added').length
 
   const set = (userId, value) => setRows(current => ({ ...current, [userId]: value }))
@@ -36,9 +39,11 @@ export default function ContractImportModal({ open, onClose, onOpenUser }) {
   const start = async () => {
     stop.current = false
     setRunning(true)
+    let handled = 0
     for (const c of candidates) {
-      if (stop.current) break
+      if (stop.current || (limit && handled >= limit)) break
       if (rows[c.userId] && rows[c.userId].outcome !== 'failed') continue
+      handled += 1
       set(c.userId, { outcome: 'running' })
       try {
         const res = await client.post(`/admin/locations/contract-import/${c.userId}`).then(r => r.data)
@@ -105,9 +110,11 @@ export default function ContractImportModal({ open, onClose, onOpenUser }) {
       </Typography.Paragraph>
       {data && !data.enabled && <Alert type="warning" showIcon style={{ marginBottom: 12 }} message="Chưa bật Google Maps (thiếu GOOGLE_MAPS_API_KEY), chưa thể nhập tự động." />}
       <Space style={{ marginBottom: 12 }} wrap>
+        <InputNumber min={1} max={Math.max(remaining, 1)} precision={0} value={limit} onChange={setLimit} disabled={running}
+          placeholder="Số lượng: để trống = tất cả" style={{ width: 200 }} />
         {!running
           ? <Button type="primary" disabled={!data?.enabled || candidates.length === 0 || done === candidates.length} onClick={start}>
-              {done === candidates.length && done > 0 ? 'Đã xong' : done > 0 ? 'Tiếp tục' : `Bắt đầu nhập (${candidates.length} đối tác)`}
+              {done === candidates.length && done > 0 ? 'Đã xong' : `${done > 0 ? 'Tiếp tục' : 'Bắt đầu nhập'} (${thisRun} đối tác)`}
             </Button>
           : <Button danger onClick={() => { stop.current = true }}>Dừng</Button>}
         {candidates.length > 0 && (
