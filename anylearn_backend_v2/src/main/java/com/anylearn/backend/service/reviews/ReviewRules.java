@@ -13,6 +13,7 @@ public final class ReviewRules {
     public static final int MAX_COMMENT_LENGTH = 2000;
     public static final int MAX_REPLY_LENGTH = 2000;
     public static final int MAX_MEDIA = 4;
+    public static final int MAX_REASON_LENGTH = 500;
     public static final String PUBLISHED = "published";
     public static final String HIDDEN = "hidden";
 
@@ -53,6 +54,11 @@ public final class ReviewRules {
             if (urls.size() == MAX_MEDIA) break;
         }
         return urls;
+    }
+
+    /** Null when hiding with this reason is fine; hiding needs a reason the author can act on. */
+    public static String hideReasonProblem(String reason) {
+        return cleanText(reason, MAX_REASON_LENGTH).isEmpty() ? "Nhập lý do ẩn để báo cho người viết" : null;
     }
 
     public static boolean isKnownStatus(String status) {

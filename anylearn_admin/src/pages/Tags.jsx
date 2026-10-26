@@ -2,6 +2,7 @@ import { Button, Card, Input, Modal, Select, Space, Switch, Table, Typography, m
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import client from '../api/client'
+import SlidePage from '../components/SlidePage'
 
 const UNSORTED = 'other'
 
@@ -67,7 +68,8 @@ export default function Tags() {
   ]
 
   return (
-    <Card title="Tags" style={{ margin: 24 }} extra={<Button type="primary" onClick={() => setAdding({ name: '', group: UNSORTED })}>+ Thêm tag</Button>}>
+    <SlidePage title="Tags">
+    <Card title="Tags" extra={<Button type="primary" onClick={() => setAdding({ name: '', group: UNSORTED })}>+ Thêm tag</Button>}>
       <Typography.Paragraph type="secondary" style={{ marginBottom: 12 }}>
         Danh mục tag dùng chung cho mọi khóa học. Nhóm &quot;Chưa phân loại&quot; là tag mới cần xếp nhóm. Hai tag trùng nghĩa thì dùng &quot;Gộp vào…&quot;: khóa học của tag bị gộp sẽ chuyển sang tag đích.
       </Typography.Paragraph>
@@ -92,5 +94,6 @@ export default function Tags() {
           options={(data?.tags ?? []).filter(t => t.id !== merging?.id).map(t => ({ value: t.id, label: t.name }))} />
       </Modal>
     </Card>
+    </SlidePage>
   )
 }

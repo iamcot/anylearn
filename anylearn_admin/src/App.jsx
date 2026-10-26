@@ -13,6 +13,7 @@ import Tags from './pages/Tags'
 import Collections from './pages/Collections'
 import OperationSettings from './pages/OperationSettings'
 import ItemGaps from './pages/ItemGaps'
+import AllReviews from './pages/AllReviews'
 import SearchInsights from './pages/SearchInsights'
 import NotificationRecipients from './pages/NotificationRecipients'
 import BankAccount from './pages/BankAccount'
@@ -97,6 +98,7 @@ export default function App() {
                   <Route path="collections" element={<Collections />} />
                   <Route path="operations" element={<OperationSettings />} />
                   <Route path="item-gaps" element={<ItemGaps />} />
+                  <Route path="reviews" element={<AllReviews />} />
                   <Route path="search-insights" element={<SearchInsights />} />
                   <Route path="settings" element={<Settings />} />
                   <Route path="transactions" element={<Transactions />} />

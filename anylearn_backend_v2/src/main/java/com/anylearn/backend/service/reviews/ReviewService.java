@@ -57,6 +57,7 @@ public class ReviewService {
         if (rating == 0) return new SaveResult("Vui lòng chọn số sao", 0);
 
         ItemUserAction action = actions.findRatingByItemAndUser(itemId, userId).orElseGet(ItemUserAction::new);
+        boolean wasHidden = action.getId() != null && isHidden(action.getId());
         action.setItemId(itemId);
         action.setUserId(userId);
         action.setType("rating");
@@ -75,8 +76,22 @@ public class ReviewService {
 
         meilisearchService.updateItemPopularityScoreAsync(item);
         int photoCount = jdbc.queryForObject("SELECT COUNT(*) FROM review_media WHERE review_id = ?", Integer.class, reviewId);
+        if (wasHidden) markResubmitted(reviewId, userId, item);
         int points = rewardService.grant(reviewId, userId, item.getTitle(), action.getExtraValue(), photoCount);
         return new SaveResult(null, points);
+    }
+
+    private boolean isHidden(Long reviewId) {
+        List<String> status = jdbc.queryForList("SELECT status FROM review_details WHERE review_id = ?", String.class, reviewId);
+        return !status.isEmpty() && ReviewRules.HIDDEN.equals(status.get(0));
+    }
+
+    /** The author changed a review that an admin hid: tell the back office it can be looked at again. */
+    private void markResubmitted(Long reviewId, Long userId, Item item) {
+        jdbc.update("UPDATE review_details SET resubmitted_at = NOW() WHERE review_id = ?", reviewId);
+        String name = userRepository.findById(userId).map(user -> user.getName()).orElse("Phụ huynh");
+        userRepository.findAdminNotificationRecipients().forEach(admin -> notificationService.createNotification(
+                admin.getId(), "system_notif", name + " đã chỉnh sửa đánh giá bị ẩn", item.getTitle(), "/admin/reviews?status=resubmitted", null));
     }
 
     private void replaceMedia(Long reviewId, List<String> urls) {
@@ -131,15 +146,31 @@ public class ReviewService {
         return null;
     }
 
-    /** Shows or hides a review (admin). A hidden review leaves the list and the averages. */
+    /** Shows or hides a review (admin). Hiding needs a reason that is sent to the author; a hidden review leaves the list and the averages. */
     @Transactional
-    public String setStatus(Long itemId, Long reviewId, String status) {
+    public String setStatus(Long itemId, Long reviewId, String status, String reason) {
         if (!ReviewRules.isKnownStatus(status)) return "Trạng thái không hợp lệ";
         Item item = itemRepository.findById(itemId).orElse(null);
-        if (item == null || reviewOf(itemId, reviewId) == null) return "Không tìm thấy đánh giá";
+        ItemUserAction review = item == null ? null : reviewOf(itemId, reviewId);
+        if (review == null) return "Không tìm thấy đánh giá";
+        boolean hide = ReviewRules.HIDDEN.equals(status);
+        if (hide) {
+            String problem = ReviewRules.hideReasonProblem(reason);
+            if (problem != null) return problem;
+        }
+        String cleanReason = ReviewRules.cleanText(reason, ReviewRules.MAX_REASON_LENGTH);
         jdbc.update("INSERT IGNORE INTO review_details (review_id) VALUES (?)", reviewId);
-        jdbc.update("UPDATE review_details SET status = ? WHERE review_id = ?", status, reviewId);
-        if (ReviewRules.HIDDEN.equals(status)) rewardService.revoke(reviewId);
+        if (hide) {
+            jdbc.update("UPDATE review_details SET status = ?, hidden_reason = ?, hidden_at = NOW(), resubmitted_at = NULL WHERE review_id = ?",
+                    status, cleanReason, reviewId);
+            notificationService.createNotification(review.getUserId(), "review_hidden", "Đánh giá của bạn đang bị ẩn",
+                    "Lý do: " + cleanReason + ". Bạn có thể chỉnh sửa đánh giá để anyLEARN xem lại.", "/pdp", String.valueOf(itemId));
+        } else {
+            jdbc.update("UPDATE review_details SET status = ?, hidden_reason = NULL, hidden_at = NULL, resubmitted_at = NULL WHERE review_id = ?",
+                    status, reviewId);
+            notificationService.createNotification(review.getUserId(), "review_shown", "Đánh giá của bạn đã được hiển thị",
+                    item.getTitle(), "/pdp", String.valueOf(itemId));
+        }
         meilisearchService.updateItemPopularityScoreAsync(item);
         return null;
     }
@@ -152,6 +183,13 @@ public class ReviewService {
         jdbc.update("DELETE FROM review_details WHERE review_id = ?", reviewId);
         actions.deleteById(reviewId);
         itemRepository.findById(itemId).ifPresent(meilisearchService::updateItemPopularityScoreAsync);
+    }
+
+    /** Whether an admin hid this review, with the reason; null for a shown review. */
+    public Map<String, Object> hiddenInfo(Long reviewId) {
+        List<Map<String, Object>> rows = jdbc.queryForList(
+                "SELECT hidden_reason, hidden_at, resubmitted_at FROM review_details WHERE review_id = ? AND status = 'hidden'", reviewId);
+        return rows.isEmpty() ? null : rows.get(0);
     }
 
     private ItemUserAction reviewOf(Long itemId, Long reviewId) {
@@ -171,12 +209,44 @@ public class ReviewService {
         return withExtras(jdbc.queryForList(sql.toString(), args.toArray()));
     }
 
+    /** Every review of every course for the back office. `filter`: all, published, hidden or resubmitted (hidden and changed by the author). */
+    public Map<String, Object> adminList(String filter, String keyword, int page, int size) {
+        StringBuilder where = new StringBuilder(" WHERE iua.type = 'rating'");
+        List<Object> args = new ArrayList<>();
+        switch (filter == null ? "all" : filter) {
+            case "published" -> where.append(" AND COALESCE(d.status, 'published') = 'published'");
+            case "hidden" -> where.append(" AND d.status = 'hidden'");
+            case "resubmitted" -> where.append(" AND d.status = 'hidden' AND d.resubmitted_at IS NOT NULL");
+            default -> { }
+        }
+        if (keyword != null && !keyword.isBlank()) {
+            where.append(" AND (i.title LIKE ? OR u.name LIKE ? OR u.phone LIKE ? OR iua.extra_value LIKE ?)");
+            String like = "%" + keyword.trim() + "%";
+            for (int index = 0; index < 4; index++) args.add(like);
+        }
+        String from = " FROM item_user_actions iua JOIN items i ON i.id = iua.item_id JOIN users u ON u.id = iua.user_id "
+                + "LEFT JOIN review_details d ON d.review_id = iua.id" + where;
+        long total = jdbc.queryForObject("SELECT COUNT(*)" + from, Long.class, args.toArray());
+        List<Object> pageArgs = new ArrayList<>(args);
+        pageArgs.add(size);
+        pageArgs.add((long) page * size);
+        List<Map<String, Object>> rows = jdbc.queryForList(REVIEW_SELECT.replace("d.resubmitted_at\n", "d.resubmitted_at, i.title AS item_title, i.id AS course_id\n")
+                        .replace("JOIN users u ON u.id = iua.user_id", "JOIN users u ON u.id = iua.user_id JOIN items i ON i.id = iua.item_id")
+                + where + " ORDER BY iua.id DESC LIMIT ? OFFSET ?", pageArgs.toArray());
+        return Map.of("content", withExtras(rows), "total", total);
+    }
+
+    public long resubmittedCount() {
+        Long count = jdbc.queryForObject("SELECT COUNT(*) FROM review_details WHERE status = 'hidden' AND resubmitted_at IS NOT NULL", Long.class);
+        return count == null ? 0 : count;
+    }
+
     private static final String REVIEW_SELECT = """
             SELECT iua.id, iua.item_id, iua.value, iua.extra_value, iua.created_at,
                    CASE WHEN u.name = 'Admin' THEN 'anyLEARN' ELSE u.name END AS user_name,
                    u.id AS user_id, u.image AS user_image,
                    COALESCE(d.is_verified, 0) AS is_verified, COALESCE(d.status, 'published') AS status,
-                   d.partner_reply, d.partner_replied_at
+                   d.partner_reply, d.partner_replied_at, d.hidden_reason, d.resubmitted_at
             FROM item_user_actions iua
             JOIN users u ON u.id = iua.user_id
             LEFT JOIN review_details d ON d.review_id = iua.id

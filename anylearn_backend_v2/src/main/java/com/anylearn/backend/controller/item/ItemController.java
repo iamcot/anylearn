@@ -128,6 +128,10 @@ public class ItemController {
             myRating.put("comment", r.getExtraValue() != null ? r.getExtraValue() : "");
             myRating.put("scores", mine.getOrDefault("scores", Map.of()));
             myRating.put("media", mine.getOrDefault("media", List.of()));
+            var hidden = reviewService.hiddenInfo(r.getId());
+            myRating.put("status", hidden == null ? "published" : "hidden");
+            myRating.put("hidden_reason", hidden == null ? null : hidden.get("hidden_reason"));
+            myRating.put("resubmitted", hidden != null && hidden.get("resubmitted_at") != null);
             res.put("my_rating", myRating);
         } else {
             res.put("my_rating", null);

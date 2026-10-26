@@ -1,10 +1,11 @@
 import { Avatar, Badge, Dropdown, Flex, Layout, List, Menu, Popover, Spin, Typography } from 'antd'
 import {
-  AppstoreOutlined, AuditOutlined, BankOutlined, BellOutlined, BookOutlined, CalendarOutlined, DashboardOutlined, DollarOutlined, WarningOutlined, TagsOutlined, FileTextOutlined,
+  AppstoreOutlined, AuditOutlined, BankOutlined, BellOutlined, BookOutlined, CalendarOutlined, DashboardOutlined, DollarOutlined, FileTextOutlined,
   CustomerServiceOutlined, FundOutlined, LineChartOutlined, SearchOutlined, LogoutOutlined, MailOutlined, ApiOutlined, OrderedListOutlined, SettingOutlined, SolutionOutlined, SwapOutlined,
   TeamOutlined, UserOutlined,
 } from '@ant-design/icons'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import client from '../api/client'
@@ -32,8 +33,6 @@ const NAV_GROUPS = [
     { key: '/items',            icon: <BookOutlined />,        label: 'Khóa học'   },
     { key: '/schedule-monitor', icon: <CalendarOutlined />,    label: 'Lịch học'   },
     { key: '/collections',      icon: <AppstoreOutlined />,    label: 'Bộ sưu tập' },
-    { key: '/tags',             icon: <TagsOutlined />,        label: 'Tags'       },
-    { key: '/item-gaps',        icon: <WarningOutlined />,     label: 'Thiếu thuộc tính' },
   ] },
   { key: 'g-content', type: 'group', label: 'Nội dung & phân tích', children: [
     { key: '/articles',         icon: <FileTextOutlined />,    label: 'Bài viết'   },
@@ -41,6 +40,30 @@ const NAV_GROUPS = [
   ] },
 ]
 const NAV_ITEMS = NAV_GROUPS.flatMap(group => group.children)
+
+// Pages opened from the course list belong to "Khóa học" in the menu.
+const COURSE_SUBPAGES = ['/tags', '/item-gaps', '/reviews']
+
+// The red number on a menu item: how many records wait for the team (key = path, value = field of GET /admin/badges).
+const BADGE_FIELDS = {
+  '/orders': 'orders',
+  '/transactions': 'transactions',
+  '/activities': 'activities',
+  '/schedule-requests': 'scheduleRequests',
+  '/course-requests': 'courseRequests',
+  '/price-reports': 'priceReports',
+}
+
+function withBadges(groups, counts) {
+  return groups.map(group => ({
+    ...group,
+    children: group.children.map(item => {
+      const count = counts?.[BADGE_FIELDS[item.key]] ?? 0
+      if (!count) return item
+      return { ...item, label: <Flex justify="space-between" align="center"><span>{item.label}</span><Badge count={count} overflowCount={999} size="small" /></Flex> }
+    }),
+  }))
+}
 
 const SETTINGS_MENU = [
   {
@@ -155,7 +178,18 @@ export default function AppShell() {
     ] },
   ]
 
-  const selectedKey = NAV_ITEMS.find(i => location.pathname.startsWith(i.key))?.key ?? '/dashboard'
+  const selectedKey = COURSE_SUBPAGES.some(path => location.pathname.startsWith(path))
+    ? '/items'
+    : NAV_ITEMS.find(i => location.pathname.startsWith(i.key))?.key ?? '/dashboard'
+
+  const { data: badgeCounts, refetch: refetchBadges } = useQuery({
+    queryKey: ['admin-badges'],
+    queryFn: () => client.get('/admin/badges').then(r => r.data?.data ?? {}),
+    refetchInterval: 60_000,
+    enabled: Boolean(user),
+  })
+  useEffect(() => { if (user) refetchBadges() }, [location.pathname]) // eslint-disable-line react-hooks/exhaustive-deps
+  const navGroups = useMemo(() => withBadges(NAV_GROUPS, badgeCounts), [badgeCounts])
 
   const userMenu = [
     { key: 'info', label: <Typography.Text type="secondary">{user?.name || user?.phone}</Typography.Text>, disabled: true },
@@ -264,7 +298,7 @@ export default function AppShell() {
           <div style={{ height: 'calc(100vh - 48px - 104px)', overflowY: 'auto', overflowX: 'hidden' }}>
             <Menu
               mode="inline" selectedKeys={[selectedKey]}
-              items={NAV_GROUPS}
+              items={navGroups}
               onClick={({ key }) => navigate(key)}
               style={{ borderRight: 'none', paddingTop: 8 }}
             />

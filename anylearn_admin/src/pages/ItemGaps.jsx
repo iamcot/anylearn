@@ -2,6 +2,7 @@ import { Alert, Card, Space, Table, Tag, Typography } from 'antd'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import client from '../api/client'
+import SlidePage from '../components/SlidePage'
 
 export default function ItemGaps() {
   const { data, isLoading } = useQuery({
@@ -28,7 +29,8 @@ export default function ItemGaps() {
   ]
 
   return (
-    <Card title="Khóa học thiếu thuộc tính tìm kiếm" style={{ margin: 24 }}>
+    <SlidePage title="Khóa học thiếu thuộc tính tìm kiếm">
+    <Card>
       <Typography.Paragraph type="secondary">
         Khóa thiếu thuộc tính sẽ ít xuất hiện khi khách lọc theo tuổi, khu vực, giờ học… Bấm tên khóa để bổ sung. &quot;Loại đối tác&quot; đặt ở trang Thành viên.
       </Typography.Paragraph>
@@ -42,5 +44,6 @@ export default function ItemGaps() {
       {data && data.items.length === 0 && <Alert type="success" showIcon message="Mọi khóa đang bán đều đủ thuộc tính." />}
       <Table rowKey="id" size="small" loading={isLoading} dataSource={data?.items ?? []} columns={columns} pagination={{ pageSize: 50, hideOnSinglePage: true }} />
     </Card>
+    </SlidePage>
   )
 }

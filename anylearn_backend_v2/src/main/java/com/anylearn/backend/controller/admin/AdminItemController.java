@@ -420,6 +420,8 @@ public class AdminItemController {
             m.put("verified", r.get("is_verified"));
             m.put("status", r.get("status"));
             m.put("partnerReply", r.get("partner_reply"));
+            m.put("hiddenReason", r.get("hidden_reason"));
+            m.put("resubmittedAt", r.get("resubmitted_at") != null ? r.get("resubmitted_at").toString() : null);
             m.put("scores", r.get("scores"));
             m.put("media", r.get("media"));
             return m;
@@ -464,7 +466,8 @@ public class AdminItemController {
     public ApiResponse<?> setReviewStatus(@AuthenticationPrincipal User user, @PathVariable Long id, @PathVariable Long reviewId,
                                           @RequestBody Map<String, Object> body) {
         if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
-        String problem = reviewService.setStatus(id, reviewId, body.get("status") instanceof String s ? s : "");
+        String problem = reviewService.setStatus(id, reviewId, body.get("status") instanceof String s ? s : "",
+                body.get("reason") instanceof String reason ? reason : "");
         return problem == null ? ApiResponse.ok("OK") : ApiResponse.fail(problem);
     }
 

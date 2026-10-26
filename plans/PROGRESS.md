@@ -448,3 +448,9 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 - FE: form review có dòng "+X anyPoint", sau khi gửi hiện "Bạn vừa nhận +X anyPoint", lịch sử anyPoint có nhãn mới, `/info/anypoint` thêm cách nhận "Viết đánh giá khóa học".
 - Thử bằng backend thật + MariaDB: nhận xét ngắn 0, đủ 50 ký tự +20, sửa lại 0, thêm ảnh +20, ẩn thu hồi 40, lưu lại sau khi ẩn 0. Job nhắc: xem dòng dưới.
 - Chưa làm: báo cáo review, lọc theo tuổi bé, tách review theo từng bé.
+
+### 26/10/2026 – kiểm duyệt review, menu admin
+- Ẩn review bắt buộc nhập lý do (V32), báo cho người viết; review bị ẩn hiện mờ kèm lý do ở trang khóa; người viết sửa thì admin nhận thông báo, admin bật lại bằng tay. Ẩn không thu hồi anyPoint, chỉ xóa mới thu hồi (đổi so với bản đầu).
+- Sửa lỗi: phụ huynh mua cho con không thấy nút review (đơn đứng tên cha mẹ, chi tiết đơn đứng tên con) và số dư anyPoint hiển thị cũ sau khi nhận thưởng; kiểm toán anyPoint tính thêm 2 loại giao dịch review.
+- Admin: Tags, Thiếu thuộc tính chuyển thành nút ở đầu trang Khóa học (trang trượt + nút Quay lại), thêm trang "Tất cả đánh giá"; số đỏ trên menu Đơn hàng, anyPoints, Hoạt động, Nghỉ/đổi lịch, Nhờ tìm khóa học, Báo giá rẻ hơn (`/admin/badges`).
+- Giả định mình chọn, cần chủ sản phẩm xác nhận: số đỏ "Đơn hàng" = đơn `pay_pending`; "anyPoints" = nạp/rút chờ duyệt; "Hoạt động" = đăng ký chưa duyệt.

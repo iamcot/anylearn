@@ -48,4 +48,11 @@ class ReviewRulesTest {
         assertThat(ReviewRules.isKnownStatus("hidden")).isTrue();
         assertThat(ReviewRules.isKnownStatus("pending")).isFalse();
     }
+
+    @Test
+    void hidingNeedsAReason() {
+        org.junit.jupiter.api.Assertions.assertNotNull(ReviewRules.hideReasonProblem(null));
+        org.junit.jupiter.api.Assertions.assertNotNull(ReviewRules.hideReasonProblem("   "));
+        org.junit.jupiter.api.Assertions.assertNull(ReviewRules.hideReasonProblem("Nội dung chưa nói về khóa học"));
+    }
 }

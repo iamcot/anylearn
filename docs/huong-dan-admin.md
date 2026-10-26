@@ -41,7 +41,7 @@ Mỗi bộ lọc chỉ chạy đúng khi khóa học có dữ liệu tương ứ
 | Lọc theo kỹ năng | Tags của khóa | Khóa học > tab Nội dung > Phân loại |
 | Giá mỗi buổi | Chu kỳ thanh toán + lịch học | Khóa học > tab Lịch học > Thời gian & ca học |
 
-Trang **Khóa học > Thiếu thuộc tính** liệt kê các khóa còn thiếu dữ liệu ở trên, kèm tên đối tác và số điện thoại để liên hệ bổ sung.
+Trang **Thiếu thuộc tính** (nút ở đầu trang Khóa học) liệt kê các khóa còn thiếu dữ liệu ở trên, kèm tên đối tác và số điện thoại để liên hệ bổ sung.
 Nên xử lý trang này đều đặn: đó là cách nhanh nhất để tìm kiếm trả kết quả tốt hơn.
 
 ---
@@ -118,7 +118,7 @@ Sau khi sửa **hàng loạt** ngoài giao diện sửa từng khóa (nhập đ�
 
 ## 4. Tags
 
-Trang **Khóa học > Tags**. Tag là danh mục kỹ năng/chủ đề có kiểm soát, **chỉ admin tạo**, khách và đối tác không tự thêm.
+Trang **Tags** (nút ở đầu trang Khóa học). Tag là danh mục kỹ năng/chủ đề có kiểm soát, **chỉ admin tạo**, khách và đối tác không tự thêm.
 
 - **Nhóm**: mỗi tag thuộc một nhóm (thể thao, ngoại ngữ...). Nhóm "Chưa phân loại" là tag mới chưa được xếp, nên rà và xếp nhóm đều đặn.
 - Tên tag không phân biệt hoa thường và dấu: tạo "Bóng đá" khi đã có "bong da" sẽ trả về tag cũ.
@@ -223,13 +223,16 @@ Trang khóa học hiện: điểm trung bình, số đánh giá, tỉ lệ từn
 
 **Đối tác trả lời ngay tại trang khóa học:** đối tác đăng nhập vào trang web (tài khoản chính của họ, không phải trang admin) và mở khóa của mình, sẽ thấy nút **Trả lời** dưới mỗi đánh giá; có thể sửa hoặc xóa câu trả lời. Phụ huynh nhận thông báo "{Đối tác} đã trả lời đánh giá của bạn". Đối tác chỉ trả lời được khóa do chính họ sở hữu (admin trả lời được mọi khóa) và **không xóa hay ẩn được đánh giá**.
 
-**Admin kiểm duyệt:** Khóa học > chọn khóa > tab **Đánh giá**: cột "Xác thực" cho biết đã học thật hay chưa, công tắc **Hiện** để ẩn hoặc hiện một đánh giá, nút xóa. Đánh giá bị ẩn biến khỏi trang khóa học, khỏi điểm trung bình của khóa và của đối tác (điểm xếp hạng cập nhật theo).
+**Admin kiểm duyệt:** có hai nơi. Trong từng khóa: Khóa học > chọn khóa > tab **Đánh giá**. Cho mọi khóa: trang **Khóa học**, nút **Xem tất cả đánh giá** (có bộ lọc Đang hiện / Đã ẩn / Đã ẩn và người viết đã sửa lại, và ô tìm theo khóa, người viết, nội dung). Cột "Xác thực" cho biết đã học thật hay chưa.
+- **Ẩn đánh giá:** tắt công tắc **Hiện**, hệ thống bắt buộc nhập **lý do** (ví dụ "nội dung chưa nói về khóa học"). Đánh giá biến khỏi trang khóa học, khỏi điểm trung bình của khóa và của đối tác. Người viết nhận thông báo kèm lý do; khi họ mở trang khóa, đánh giá của họ hiện **mờ**, kèm dòng "Đánh giá đang bị ẩn với lý do: …" và nút **Chỉnh sửa đánh giá**. Ẩn **không** thu hồi anyPoint.
+- **Người viết sửa lại:** admin nhận thông báo "{tên} đã chỉnh sửa đánh giá bị ẩn", dòng đó có nhãn cam "Người viết đã sửa lại, chờ xem" và nút **Xem tất cả đánh giá** hiện số đỏ. Admin xem lại và bật công tắc **Hiện** để mở lên (người viết nhận thông báo "đã được hiển thị"). Chưa đạt thì để nguyên hoặc ẩn lại với lý do mới.
+- **Xóa đánh giá:** xóa hẳn và **thu hồi anyPoint** đã thưởng (xem bên dưới).
 
 **Cần cấu hình:** ảnh đánh giá được lưu trên kho ảnh của hệ thống (biến `AWS_S3_BUCKET`, `AWS_ACCESS_KEY`... mục 11). Chưa cấu hình thì phụ huynh vẫn viết đánh giá được nhưng không tải ảnh lên được.
 
 **Nhắc viết đánh giá:** hệ thống mỗi giờ quét các đơn đã giao và gửi thông báo (trong app và push) cho người mua chưa đánh giá khóa đó, hai lần: khi bé học được **nửa khóa** và khi **khóa kết thúc**. Khóa không có ngày kết thúc được tính là kết thúc sau 30 ngày kể từ ngày bắt đầu. Mỗi mốc chỉ gửi một lần; không gửi cho khóa đã kết thúc quá 14 ngày (để lần chạy đầu không nhắn hàng loạt đơn cũ). Tắt/bật ở Cài đặt > Vận hành > Đánh giá khóa học.
 
-**Thưởng anyPoint khi đánh giá:** đánh giá có nhận xét từ **50 ký tự** được thưởng anyPoint, có ít nhất một ảnh được thưởng thêm (số anyPoint chỉnh ở Cài đặt > Vận hành, mặc định 20 và 20; nhập 0 để tắt). Mỗi đánh giá chỉ thưởng một lần: sửa lại không nhận thêm, chỉ thêm ảnh sau đó thì nhận phần thưởng ảnh. Phụ huynh thấy dòng "+X anyPoint" ngay trong form và nhận thông báo; lịch sử anyPoint ghi "Thưởng viết đánh giá". **Admin ẩn hoặc xóa đánh giá thì anyPoint đã thưởng bị thu hồi** (ghi "Thu hồi anyPoint thưởng đánh giá"); nếu phụ huynh đã tiêu bớt thì chỉ thu phần còn lại, số dư không âm. Đánh giá đã bị ẩn rồi hiện lại thì không được thưởng lần nữa. Giao dịch nằm ở Giao dịch với loại `review_reward` và `review_reward_revoke`.
+**Thưởng anyPoint khi đánh giá:** đánh giá có nhận xét từ **50 ký tự** được thưởng anyPoint, có ít nhất một ảnh được thưởng thêm (số anyPoint chỉnh ở Cài đặt > Vận hành, mặc định 20 và 20; nhập 0 để tắt). Mỗi đánh giá chỉ thưởng một lần: sửa lại không nhận thêm, chỉ thêm ảnh sau đó thì nhận phần thưởng ảnh. Phụ huynh thấy dòng "+X anyPoint" ngay trong form và nhận thông báo; lịch sử anyPoint ghi "Thưởng viết đánh giá". **Admin xóa đánh giá thì anyPoint đã thưởng bị thu hồi** (ghi "Thu hồi anyPoint thưởng đánh giá"); nếu phụ huynh đã tiêu bớt thì chỉ thu phần còn lại, số dư không âm. Chỉ ẩn thì không thu hồi. Giao dịch nằm ở trang anyPoints với loại `review_reward` và `review_reward_revoke`.
 
 **Chưa có:** nút "Báo cáo đánh giá" của đối tác, lọc theo tuổi của bé.
 
@@ -271,6 +274,7 @@ Mỗi lần khách tìm (chỉ trang kết quả đầu) được ghi lại theo
 - **Tài khoản ngân hàng** (Cài đặt > Thanh toán): tài khoản nhận tiền hiện trong mã QR ở trang đơn hàng. Chọn ngân hàng thì mã BIN tự điền. Nội dung chuyển khoản dạng `ALQR{mã đơn}` do hệ thống tạo, không sửa.
 - **Kiểm toán anyPoint**: kiểm tra số dư điểm của thành viên.
 - Luôn viết **anyPoint** (không viết "điểm"); giá trị quy đổi ghi "~120.000đ".
+- **Số đỏ trên menu:** các mục **Đơn hàng** (đơn khách đã bấm thanh toán, đang chờ), **anyPoints** (nạp/rút đang chờ duyệt), **Hoạt động** (đăng ký chưa duyệt), **Nghỉ / đổi lịch** (yêu cầu chờ xử lý), **Nhờ tìm khóa học** (yêu cầu mới) và **Báo giá rẻ hơn** (báo cáo mới) hiện số bản ghi chưa xử lý; số tự cập nhật mỗi phút và mỗi khi chuyển trang. Hết việc thì số biến mất.
 - **anyPoint khách nhìn thấy:** trang khóa học, giỏ hàng và đơn hàng hiện "+X anyPoint" (tính bằng đúng cách tính lúc tạo đơn, chỉnh ở cấu hình hoa hồng của khóa); ở bước thanh toán khách bật "Dùng anyPoint"; trang Tài khoản > anyPoint và `/info/anypoint` giải thích cách nhận và dùng. Mỗi khóa mỗi khác nên chữ chung không ghi số cụ thể.
 - **Đơn chờ thanh toán:** khách thấy thẻ "Đơn đang chờ thanh toán" ở `/today` và Tài khoản; đặt trùng khóa và bé thì được hỏi. Thời gian nhắc và tự hủy chỉnh ở mục 8. Số liệu đơn chờ, được nhắc, trả tiền sau nhắc, hết hạn nằm ở trang tổng quan.
 - **Cài app và thông báo đẩy:** website cài được như app (Android hiện nút cài, iPhone có hướng dẫn thêm vào màn hình chính). Thông báo đẩy cần `VAPID_*` (mục 11); khách bật ở Tài khoản > Thông báo.

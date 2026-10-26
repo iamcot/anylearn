@@ -71,14 +71,14 @@ Mở cửa sổ ẩn danh.
 ## B. Giai đoạn 2
 
 ### B1. Dữ liệu nền (admin)
-- [ ] **Tags**: trang Tags có nhóm; đổi nhóm cho vài tag "Chưa phân loại"; gõ tag mới ở khóa học thì được tạo; gộp hai tag
+- [ ] **Tags**: bấm nút Tags ở đầu trang Khóa học (mở trang mới, có nút Quay lại) có nhóm; đổi nhóm cho vài tag "Chưa phân loại"; gõ tag mới ở khóa học thì được tạo; gộp hai tag
 - [ ] **Loại đối tác**: ở Thành viên > chọn một đối tác, đặt loại (trường / trung tâm / CLB / gia sư / chuyên gia / app)
 - [ ] **Ký HĐ**: công tắc "Ký HĐ" bật thì đối tác hiện ở danh sách đối tác của khách (sau khi cập nhật chỉ mục)
 - [ ] **Địa chỉ đối tác**: Thành viên > đối tác > Cơ sở / Địa chỉ > Thêm địa chỉ; "Tìm tự động" ra gợi ý, lưu được, đặt hội sở được
 - [ ] Nút "Nhập địa chỉ từ hợp đồng": chạy thử vài đối tác, xem kết quả Đã lưu / Cần xem lại / Không tìm thấy; "Hoàn tác" hoạt động
 - [ ] **Khóa học**: lưu khóa offline mà đối tác chưa có địa chỉ thì bị chặn kèm nhắc; có một địa chỉ thì tự gán; nhiều địa chỉ thì phải chọn
 - [ ] Khóa online hoặc đối tác loại "app" lưu được không cần địa chỉ
-- [ ] Trang "Thiếu thuộc tính" liệt kê khóa thiếu dữ liệu; điền xong thì khóa biến mất khỏi danh sách
+- [ ] Nút "Thiếu thuộc tính" ở đầu trang Khóa học mở trang liệt kê khóa thiếu dữ liệu; điền xong thì khóa biến mất khỏi danh sách
 
 ### B2. Tìm kiếm và bộ lọc (khách)
 - [ ] /search có chip chọn người học (Tất cả / con / Tôi); chọn bé thì kết quả theo tuổi bé; lựa chọn được nhớ lần sau
@@ -120,7 +120,12 @@ Mở cửa sổ ẩn danh.
 - [ ] Lọc theo sao và "Có ảnh" hoạt động
 - [ ] Đối tác B đăng nhập, mở khóa của mình: có nút Trả lời dưới đánh giá; gửi, sửa, xóa được; B không ẩn hay xóa được đánh giá
 - [ ] A nhận thông báo "{Đối tác} đã trả lời đánh giá của bạn"
-- [ ] Admin > Khóa học > tab Đánh giá: tắt công tắc "Hiện": đánh giá biến mất ở trang khóa và điểm trung bình đổi; anyPoint thưởng bị thu hồi (Giao dịch có `review_reward_revoke`)
+- [ ] Admin: Khóa học > nút "Xem tất cả đánh giá" > tắt công tắc "Hiện" của đánh giá đó: hiện hộp bắt buộc nhập lý do; nhập lý do rồi bấm "Ẩn đánh giá"
+- [ ] Đánh giá biến khỏi trang khóa và điểm trung bình đổi; anyPoint **không** bị thu hồi
+- [ ] Phụ huynh A nhận thông báo kèm lý do; mở trang khóa thấy đánh giá của mình mờ, có dòng "bị ẩn với lý do: …" và nút "Chỉnh sửa đánh giá"
+- [ ] A sửa và gửi lại: admin nhận thông báo, dòng đánh giá có nhãn cam "Người viết đã sửa lại", nút "Xem tất cả đánh giá" có số đỏ
+- [ ] Admin bật lại "Hiện": đánh giá hiện lại ở trang khóa, A nhận thông báo "đã được hiển thị"
+- [ ] Admin xóa một đánh giá đã thưởng: anyPoint thưởng bị thu hồi (giao dịch `review_reward_revoke`)
 - [ ] Trang đối tác có tổng hợp đánh giá của mọi khóa
 - [ ] Nhắc viết đánh giá: bé đã học nửa khóa (hoặc hết khóa) mà chưa đánh giá thì nhận thông báo "Bé học thế nào rồi?" / "Khóa học đã kết thúc, bạn thấy sao?", bấm mở đúng khóa; chỉ nhận mỗi mốc một lần
 
@@ -133,6 +138,8 @@ Mở cửa sổ ẩn danh.
 ---
 
 ## C. Kiểm tra chung
+- [ ] Menu bên trái: Đơn hàng, anyPoints, Hoạt động, Nghỉ / đổi lịch, Nhờ tìm khóa học, Báo giá rẻ hơn hiện số đỏ khi có bản ghi chưa xử lý, hết thì mất số
+- [ ] Menu Khóa học không còn mục Tags và Thiếu thuộc tính; vào trang Tags hoặc Thiếu thuộc tính thì mục "Khóa học" vẫn sáng
 - [ ] Mọi nút chính màu xanh đặc, nút phụ nền trắng viền, ô chọn xanh nhạt; không còn nút xanh dương
 - [ ] Trang nào cũng không bị tràn ngang trên điện thoại
 - [ ] Trang admin mới (Bộ sưu tập, Vận hành, Tags, Thiếu thuộc tính) có lề, không dính sát mép

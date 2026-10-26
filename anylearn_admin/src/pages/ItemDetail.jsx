@@ -15,6 +15,7 @@ import LocationFormModal from '../components/LocationFormModal'
 import ScheduleFormModal from '../components/ScheduleFormModal'
 import UserLocationsModal from '../components/UserLocationsModal'
 import { useNavigate, useParams } from 'react-router-dom'
+import ReviewManager from '../components/ReviewManager'
 import client from '../api/client'
 import RichEditor from '../components/RichEditor'
 import { usePagination } from '../hooks/usePagination'
@@ -307,15 +308,6 @@ export default function ItemDetail() {
   const createReviewMutation = useMutation({
     mutationFn: (values) => client.post(`/admin/items/${id}/reviews`, values),
     onSuccess: () => { qc.invalidateQueries(['admin-item-reviews', id]); reviewForm.resetFields(); message.success('Đã thêm') },
-  })
-
-  const reviewStatusMutation = useMutation({
-    mutationFn: ({ rid, status }) => client.put(`/admin/items/${id}/reviews/${rid}/status`, { status }).then(r => r.data),
-    onSuccess: (res) => { if (res.resultCode !== 1) message.error(res.message); qc.invalidateQueries(['admin-item-reviews', id]) },
-  })
-  const deleteReviewMutation = useMutation({
-    mutationFn: (rid) => client.delete(`/admin/items/${id}/reviews/${rid}`),
-    onSuccess: () => qc.invalidateQueries(['admin-item-reviews', id]),
   })
 
   function handleReset() {
@@ -649,26 +641,7 @@ export default function ItemDetail() {
             </Button>
           </Space>
         </Form>
-        <Table size="small" dataSource={reviews ?? []} rowKey="id" pagination={false}
-          columns={[
-            { title: 'Người dùng', dataIndex: 'userName', render: (v, r) => v || r.userId },
-            { title: 'Đánh giá', dataIndex: 'rating', render: v => <Rate disabled defaultValue={v} allowHalf style={{ fontSize: 13 }} /> },
-            { title: 'Nội dung', dataIndex: 'comment', ellipsis: true,
-              render: (v, r) => (
-                <div>
-                  <div>{v}</div>
-                  {r.partnerReply && <div style={{ color: '#888', fontSize: 12 }}>Đối tác trả lời: {r.partnerReply}</div>}
-                  {r.media?.length > 0 && <div style={{ color: '#888', fontSize: 12 }}>{r.media.length} ảnh</div>}
-                </div>
-              ) },
-            { title: 'Xác thực', dataIndex: 'verified', width: 90, render: v => v ? <Tag color="green">Đã học</Tag> : <Tag>Chưa</Tag> },
-            { title: 'Ngày', dataIndex: 'createdAt', render: v => fmtDate(v), width: 100 },
-            { title: 'Hiện', dataIndex: 'status', width: 70,
-              render: (v, r) => <Switch size="small" checked={v !== 'hidden'} loading={reviewStatusMutation.isPending}
-                onChange={checked => reviewStatusMutation.mutate({ rid: r.id, status: checked ? 'published' : 'hidden' })} /> },
-            { width: 48, render: (_, r) => <Button size="small" danger icon={<DeleteOutlined />} onClick={() => deleteReviewMutation.mutate(r.id)} /> },
-          ]}
-        />
+        <ReviewManager itemId={id} />
       </div>
     )},
   ]

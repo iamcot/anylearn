@@ -43,7 +43,8 @@ export default function ReviewsSection({ itemId, authorId, authorName, initialRe
   useEffect(() => { reload() }, [reload])
 
   function handleSaved(saved: MyRating, pointsGiven: number) {
-    saveRating(saved)
+    const wasHidden = myRating?.status === 'hidden'
+    saveRating(wasHidden ? { ...saved, status: 'hidden', hiddenReason: myRating?.hiddenReason, resubmitted: true } : saved)
     setThanks(rewardThanks(pointsGiven))
     setEditing(false)
     reload()
@@ -77,7 +78,21 @@ export default function ReviewsSection({ itemId, authorId, authorName, initialRe
           </div>
         )}
 
-        {checked && hasPurchased && myRating && !editing && (
+        {checked && hasPurchased && myRating?.status === 'hidden' && !editing && (
+          <div className="rounded-xl border border-line bg-bg px-4 py-3">
+            <div className="opacity-50">
+              <div className="flex items-center gap-2"><StarRating value={myRating.value} /><span className="text-sm font-bold text-ink">Đánh giá của bạn</span></div>
+              {myRating.comment && <p className="m-0 mt-1.5 text-sm text-text">{myRating.comment}</p>}
+            </div>
+            <p className="m-0 mt-2 text-sm font-semibold text-red">Đánh giá đang bị ẩn với lý do: {myRating.hiddenReason || 'chưa đạt yêu cầu'}</p>
+            <p className="m-0 mt-1 text-xs text-muted">
+              {myRating.resubmitted ? 'Bạn đã chỉnh sửa, anyLEARN sẽ xem lại và hiển thị nếu phù hợp.' : 'Bạn chỉnh sửa lại để anyLEARN xem xét hiển thị.'}
+            </p>
+            <button type="button" onClick={startEdit} className="btn btn--outline mt-2 min-h-11 px-3 text-xs">Chỉnh sửa đánh giá</button>
+          </div>
+        )}
+
+        {checked && hasPurchased && myRating && myRating.status !== 'hidden' && !editing && (
           <div className="flex items-center gap-3 rounded-xl border border-green-line bg-green-soft px-4 py-3">
             <StarRating value={myRating.value} />
             <span className="flex-1 text-sm font-bold text-green-dark">Đánh giá của bạn</span>
