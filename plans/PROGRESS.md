@@ -461,3 +461,6 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 ### 26/10/2026 – quy tắc hiện khóa học
 - Khóa chỉ hiện cho khách khi khóa bật (status và user_status) VÀ đối tác hoạt động VÀ đã Ký HĐ (is_signed 99): một quy tắc `ItemVisibility` áp cho tìm kiếm (trường `authorLive` trong Meilisearch), trang chủ, danh mục, bộ sưu tập, trang đối tác, khóa liên quan, thông báo khóa mới và trang chi tiết khóa (admin, đối tác và người đã mua vẫn mở được).
 - Rủi ro khi triển khai: đối tác chưa bật Ký HĐ sẽ mất toàn bộ khóa trên site; cần rà công tắc Ký HĐ trước. Chưa thử với Meilisearch thật (chỉ thử phần SQL và trang chi tiết).
+
+### 26/10/2026 – "Gần tôi" cho khóa chưa có địa chỉ
+- Khóa không có địa chỉ riêng dùng hội sở của đối tác để index vị trí (`_geo`, `locations`, `districtCodes`), cờ `locationFromPartner` trong document, không hiện trên thẻ khóa. Cần chạy reindex một lần sau khi triển khai.

@@ -38,5 +38,7 @@ public record ItemSearchDocument(
         Long pricePerSession,
         Integer nextStartDay,
         // 1 when the partner is an active member with a signed contract, 0 otherwise (courses of others are never shown)
-        int authorLive
+        int authorLive,
+        // true when the course has no address of its own and the places above are the partner's head office
+        boolean locationFromPartner
 ) {}
