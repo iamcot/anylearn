@@ -24,19 +24,28 @@ CREATE TABLE `item_tags` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Existing tags become dictionary entries in group "other" for the team to sort. The unique name uses a
--- case and accent insensitive collation, so "Bóng rổ", "bong ro" and "BÓNG RỔ" become one entry.
-INSERT INTO `tags` (`name`, `created_at`, `updated_at`)
-SELECT MIN(TRIM(`tag`)), NOW(), NOW() FROM `tags_old`
-WHERE `type` = 'class' AND `status` = 1 AND TRIM(`tag`) <> '' AND CHAR_LENGTH(TRIM(`tag`)) <= 100
-GROUP BY TRIM(`tag`);
-
--- Tags typed in the back office only exist in the comma separated column.
+-- case and accent insensitive collation, so "Bóng rổ", "bong ro" and "BÓNG RỔ" become one entry (IGNORE covers the
+-- variants that a differently collated old column would keep apart).
 INSERT IGNORE INTO `tags` (`name`, `created_at`, `updated_at`)
-SELECT DISTINCT TRIM(jt.`tag`), NOW(), NOW()
-FROM `items` i,
-     JSON_TABLE(CONCAT('["', REPLACE(REPLACE(i.`tags`, '"', ''), ',', '","'), '"]'), '$[*]'
-                COLUMNS (`tag` varchar(255) PATH '$')) jt
-WHERE i.`tags` IS NOT NULL AND i.`tags` <> '' AND TRIM(jt.`tag`) <> '' AND CHAR_LENGTH(TRIM(jt.`tag`)) <= 100;
+SELECT TRIM(`tag`) COLLATE utf8mb4_unicode_ci, NOW(), NOW() FROM `tags_old`
+WHERE `type` = 'class' AND `status` = 1 AND TRIM(`tag`) <> '' AND CHAR_LENGTH(TRIM(`tag`)) <= 100
+GROUP BY TRIM(`tag`) COLLATE utf8mb4_unicode_ci;
+
+-- Tags typed in the back office only exist in the comma separated column. It is split with a small numbers table
+-- (no JSON functions: the free text may hold quotes, backslashes or line breaks). Up to 20 tags per course.
+CREATE TEMPORARY TABLE `tag_numbers` (`n` int NOT NULL PRIMARY KEY);
+INSERT INTO `tag_numbers` (`n`) VALUES (1),(2),(3),(4),(5),(6),(7),(8),(9),(10),(11),(12),(13),(14),(15),(16),(17),(18),(19),(20);
+
+CREATE TEMPORARY TABLE `item_csv_tags` (`item_id` bigint NOT NULL, `tag` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL);
+INSERT INTO `item_csv_tags` (`item_id`, `tag`)
+SELECT i.`id`, TRIM(REPLACE(REPLACE(SUBSTRING_INDEX(SUBSTRING_INDEX(i.`tags`, ',', nums.`n`), ',', -1), CHAR(10), ' '), CHAR(13), ' '))
+FROM `items` i
+JOIN `tag_numbers` nums ON nums.`n` <= 1 + CHAR_LENGTH(i.`tags`) - CHAR_LENGTH(REPLACE(i.`tags`, ',', ''))
+WHERE i.`tags` IS NOT NULL AND i.`tags` <> '';
+DELETE FROM `item_csv_tags` WHERE `tag` = '' OR CHAR_LENGTH(`tag`) > 100;
+
+INSERT IGNORE INTO `tags` (`name`, `created_at`, `updated_at`)
+SELECT DISTINCT `tag`, NOW(), NOW() FROM `item_csv_tags`;
 
 INSERT IGNORE INTO `item_tags` (`item_id`, `tag_id`)
 SELECT DISTINCT o.`item_id`, t.`id`
@@ -46,9 +55,9 @@ JOIN `items` i ON i.`id` = o.`item_id`
 WHERE o.`type` = 'class' AND o.`status` = 1;
 
 INSERT IGNORE INTO `item_tags` (`item_id`, `tag_id`)
-SELECT DISTINCT i.`id`, t.`id`
-FROM `items` i,
-     JSON_TABLE(CONCAT('["', REPLACE(REPLACE(i.`tags`, '"', ''), ',', '","'), '"]'), '$[*]'
-                COLUMNS (`tag` varchar(255) PATH '$')) jt
-JOIN `tags` t ON t.`name` = TRIM(jt.`tag`) COLLATE utf8mb4_unicode_ci
-WHERE i.`tags` IS NOT NULL AND i.`tags` <> '';
+SELECT DISTINCT c.`item_id`, t.`id`
+FROM `item_csv_tags` c
+JOIN `tags` t ON t.`name` = c.`tag`;
+
+DROP TEMPORARY TABLE `item_csv_tags`;
+DROP TEMPORARY TABLE `tag_numbers`;

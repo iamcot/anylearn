@@ -130,6 +130,11 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 
 ## Nhật ký
 
+### 27/10/2026 – sửa migration V22/V23 cho dữ liệu thật
+- `contextLoads` lỗi trên DB của chủ sản phẩm vì migration chạy trên dữ liệu portal "bẩn". Tái hiện được trên DB giả có dữ liệu bẩn: V22 dùng `JSON_TABLE` trên cột `items.tags` (có dấu nháy, gạch chéo, xuống dòng → "Character disallowed in JSON"); V23 `CAST` toạ độ chữ ("abc", "10,77", rỗng) trong `WHERE` không đảm bảo thứ tự.
+- Sửa: V22 tách chuỗi bằng bảng số (không dùng JSON), `INSERT IGNORE` + collation rõ ràng; V23 dùng `CASE` bảo vệ `CAST`. Kiểm tra lại: DB V21 có tag trùng khác dấu/hoa thường, CSV có ký tự đặc biệt, toạ độ rác (rỗng, chữ, đảo vĩ/kinh độ, 999) chạy tới V25 thành công; 276 test pass trên DB sạch.
+- DB đã chạy V22 lỗi dở thì phải khôi phục từ bản sao lưu (MySQL không rollback DDL): xem hướng dẫn trong báo cáo.
+
 ### 27/10/2026 – lưu khóa học bắt buộc có địa chỉ
 - Khóa dạy tại nơi (không phải Online / Mã code / Video) của đối tác không phải loại "Ứng dụng (bán mã code)" (`partner_type = app`, mức đối tác) phải có địa chỉ mới lưu được.
 - Khóa chưa có ca học: lưu địa chỉ vào `items.user_location_id`; có ca học: lưu theo từng ca. Đối tác 1 địa chỉ thì tự áp dụng; nhiều địa chỉ thì phải chọn (tạo ca học tick nhiều địa chỉ = mỗi địa chỉ một ca). Chưa có địa chỉ thì chặn và hiện dòng nhắc "Cập nhật địa chỉ của đối tác" mở popup quản lý.

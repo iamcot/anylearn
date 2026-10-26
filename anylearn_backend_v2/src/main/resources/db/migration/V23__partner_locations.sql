@@ -14,10 +14,14 @@ ALTER TABLE `user_locations`
   ADD COLUMN `ward_name` varchar(100) COLLATE utf8mb4_unicode_ci NULL,
   ADD KEY `user_locations_user_place_index` (`user_id`, `place_id`);
 
+-- The old text columns hold anything (empty, words, "10,77"); CASE keeps the CAST from running on a bad value.
 UPDATE `user_locations`
-SET `lat` = CAST(`latitude` AS DECIMAL(10,7)), `lng` = CAST(`longitude` AS DECIMAL(10,7))
-WHERE `latitude` REGEXP '^-?[0-9]+([.][0-9]+)?$' AND `longitude` REGEXP '^-?[0-9]+([.][0-9]+)?$'
-  AND CAST(`latitude` AS DECIMAL(12,7)) BETWEEN -90 AND 90 AND CAST(`longitude` AS DECIMAL(12,7)) BETWEEN -180 AND 180;
+SET `lat` = CASE WHEN `latitude` REGEXP '^-?[0-9]{1,3}([.][0-9]+)?$' AND `longitude` REGEXP '^-?[0-9]{1,3}([.][0-9]+)?$'
+                  THEN CASE WHEN CAST(`latitude` AS DECIMAL(12,7)) BETWEEN -90 AND 90 AND CAST(`longitude` AS DECIMAL(12,7)) BETWEEN -180 AND 180
+                            THEN CAST(`latitude` AS DECIMAL(10,7)) END END,
+    `lng` = CASE WHEN `latitude` REGEXP '^-?[0-9]{1,3}([.][0-9]+)?$' AND `longitude` REGEXP '^-?[0-9]{1,3}([.][0-9]+)?$'
+                  THEN CASE WHEN CAST(`latitude` AS DECIMAL(12,7)) BETWEEN -90 AND 90 AND CAST(`longitude` AS DECIMAL(12,7)) BETWEEN -180 AND 180
+                            THEN CAST(`longitude` AS DECIMAL(10,7)) END END;
 
 UPDATE `user_locations` ul JOIN `provinces` p ON p.`code` = ul.`province_code` SET ul.`province_name` = p.`name`;
 UPDATE `user_locations` ul JOIN `districts` d ON d.`code` = ul.`district_code` SET ul.`district_name` = d.`name`;
