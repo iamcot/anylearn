@@ -75,6 +75,33 @@ public class AdminLocationController {
         }
     }
 
+    /** Several places picked from the search list at once: {userId, placeIds: [...], headPlaceId}. */
+    @PostMapping("/bulk")
+    public ApiResponse<?> createFromPlaces(@AuthenticationPrincipal User user, @RequestBody Map<String, Object> body) {
+        if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
+        if (!(body.get("userId") instanceof Number userId)) return ApiResponse.fail("Thiếu người dùng");
+        if (!places.isEnabled()) return ApiResponse.fail("Chưa cấu hình Google Maps");
+        if (!(body.get("placeIds") instanceof List<?> ids) || ids.isEmpty()) return ApiResponse.fail("Chưa chọn địa chỉ nào");
+        try {
+            List<LocationInput> inputs = new java.util.ArrayList<>();
+            for (Object id : ids) {
+                ResolvedPlace place = places.details(String.valueOf(id), null);
+                if (place == null) continue;
+                String title = place.name() == null || place.name().isBlank() ? place.formattedAddress() : place.name();
+                inputs.add(new LocationInput(title, place.formattedAddress(), BigDecimal.valueOf(place.lat()), BigDecimal.valueOf(place.lng()),
+                        place.placeId(), null, place.provinceName(), place.districtName(), place.wardName(), false));
+            }
+            if (inputs.isEmpty()) return ApiResponse.fail("Không lấy được thông tin các địa chỉ đã chọn");
+            String headPlaceId = body.get("headPlaceId") instanceof String h ? h : null;
+            return ApiResponse.ok(locationService.createAll(userId.longValue(), inputs, headPlaceId).stream().map(AdminLocationController::view).toList());
+        } catch (IllegalArgumentException e) {
+            return ApiResponse.fail(e.getMessage());
+        } catch (RuntimeException e) {
+            log.warn("Google place details failed: {}", e.getMessage());
+            return ApiResponse.fail("Không lấy được toạ độ lúc này, vui lòng thử lại");
+        }
+    }
+
     @PutMapping("/{id}")
     public ApiResponse<?> update(@AuthenticationPrincipal User user, @PathVariable Long id, @RequestBody Map<String, Object> body) {
         if (!isAdmin(user)) return ApiResponse.fail("Forbidden");

@@ -677,8 +677,9 @@ export default function ItemDetail() {
       </div>
     </Form>
 
-    <LocationFormModal open={!!locationModal} partnerId={item?.userId} onClose={() => setLocationModal(null)}
-      onSaved={async (saved) => {
+    <LocationFormModal open={!!locationModal} userId={item?.userId} onClose={() => setLocationModal(null)}
+      onSaved={async (savedList) => {
+        const saved = savedList.find(l => l.head) ?? savedList[0]
         await refetchLocations()
         if (locationModal === 'schedule') scheduleForm.setFieldValue('userLocationId', saved.id)
         else { form.setFieldValue('userLocationId', saved.id); setDirty(true) }

@@ -130,6 +130,12 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 
 ## Nhật ký
 
+### 27/10/2026 – địa chỉ chuyển vào trang Thành viên
+- Bỏ trang/menu "Địa điểm" riêng (dùng không tiện). Mọi vai trò đều có địa chỉ: thành viên = địa chỉ nhà (ít nhất khu vực, cho "gần tôi"), đối tác = nhiều cơ sở, một hội sở mặc định.
+- Trang Thành viên > chi tiết > "Quản lý" mở popup danh sách (link bản đồ, sửa, ẩn, đặt làm hội sở, thêm địa chỉ).
+- Form thêm có nút "Tìm tự động": 1 kết quả thì điền luôn; nhiều kết quả thì liệt kê kèm link bản đồ, checkbox chọn lưu, radio chọn hội sở, lưu hàng loạt (`POST /admin/locations/bulk`).
+- Thử bằng server Places giả + Playwright: 1 kết quả điền ngay, 3 kết quả tick 2 và chọn hội sở lưu đúng, trùng `place_id` không lưu hai lần. Chưa thử với Google thật.
+
 ### 26/10/2026 – 03.3 cảnh báo thiếu thuộc tính
 - `ItemAttributeGaps` (thuần, có test): thiếu độ tuổi, lĩnh vực, tags, địa điểm có toạ độ (khóa offline/ngoại khóa/mầm non), lịch học có giờ và số buổi (trừ khóa mã code/video), loại đối tác.
 - `GET /admin/items/attribute-gaps` (thống kê + 300 khóa đầu), `GET /admin/items/{id}` trả `gaps`. Admin: trang "Thiếu thuộc tính" và thẻ cảnh báo vàng ở đầu trang khóa.

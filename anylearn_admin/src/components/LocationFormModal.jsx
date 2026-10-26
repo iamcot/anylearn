@@ -1,22 +1,25 @@
-import { Alert, Checkbox, Form, Input, InputNumber, Modal, Select, Space, Typography, message } from 'antd'
+import { Alert, Button, Checkbox, Form, Input, InputNumber, Modal, Radio, Space, Typography, message } from 'antd'
 import { useEffect, useRef, useState } from 'react'
 import client from '../api/client'
-
-const SEARCH_DELAY_MS = 350
+import { mapLink } from '../utils/maps'
 
 function newSessionToken() {
   return typeof crypto?.randomUUID === 'function' ? crypto.randomUUID() : String(Date.now())
 }
 
-// Add or edit one branch of a partner. Typing an address fills the coordinates and the area from Google.
-export default function LocationFormModal({ open, partnerId, location, onClose, onSaved }) {
+// Add or edit an address of a user: a member's home, or a branch of a partner.
+// "Tìm tự động": one result fills the form; several results are listed to pick from.
+export default function LocationFormModal({ open, userId, location, headLabel = 'Hội sở / địa chỉ mặc định', onClose, onSaved }) {
   const [form] = Form.useForm()
-  const [suggestions, setSuggestions] = useState([])
+  const [candidates, setCandidates] = useState([])
+  const [checked, setChecked] = useState([])
+  const [headId, setHeadId] = useState(null)
+  const [searching, setSearching] = useState(false)
   const [googleOn, setGoogleOn] = useState(true)
   const [saving, setSaving] = useState(false)
-  const timer = useRef(null)
-  const area = [Form.useWatch('wardName', form), Form.useWatch('districtName', form), Form.useWatch('provinceName', form)].filter(Boolean).join(', ')
   const session = useRef(newSessionToken())
+  const editing = !!location?.id
+  const area = [Form.useWatch('wardName', form), Form.useWatch('districtName', form), Form.useWatch('provinceName', form)].filter(Boolean).join(', ')
 
   useEffect(() => {
     if (!open) return
@@ -29,18 +32,9 @@ export default function LocationFormModal({ open, partnerId, location, onClose, 
     })
   }, [open, location, form])
 
-  const search = (text) => {
-    clearTimeout(timer.current)
-    if (text.trim().length < 3) return setSuggestions([])
-    timer.current = setTimeout(async () => {
-      const res = await client.get('/admin/locations/autocomplete', { params: { q: text, session: session.current } }).then(r => r.data)
-      if (res.resultCode !== 1) return message.warning(res.message)
-      setGoogleOn(res.data.enabled)
-      setSuggestions(res.data.suggestions ?? [])
-    }, SEARCH_DELAY_MS)
-  }
+  const reset = () => { setCandidates([]); setChecked([]); setHeadId(null) }
 
-  const pick = async (placeId) => {
+  const applyPlace = async (placeId) => {
     const res = await client.get('/admin/locations/place', { params: { placeId, session: session.current } }).then(r => r.data)
     if (res.resultCode !== 1) return message.error(res.message)
     const p = res.data
@@ -49,49 +43,110 @@ export default function LocationFormModal({ open, partnerId, location, onClose, 
       provinceName: p.provinceName, districtName: p.districtName, wardName: p.wardName,
       title: form.getFieldValue('title') || p.name,
     })
-    setSuggestions([])
-    session.current = newSessionToken()
+    reset()
   }
 
-  const submit = async (values) => {
+  const autoSearch = async () => {
+    const text = (form.getFieldValue('address') ?? '').trim()
+    if (text.length < 3) return message.warning('Nhập địa chỉ (ít nhất 3 ký tự) rồi bấm Tìm tự động')
+    setSearching(true)
+    try {
+      const res = await client.get('/admin/locations/autocomplete', { params: { q: text, session: session.current } }).then(r => r.data)
+      if (res.resultCode !== 1) return message.warning(res.message)
+      setGoogleOn(res.data.enabled)
+      const found = res.data.suggestions ?? []
+      if (found.length === 0) { reset(); return message.info('Không tìm thấy địa chỉ nào, bạn kiểm tra lại hoặc nhập toạ độ tay') }
+      if (found.length === 1) return applyPlace(found[0].placeId)
+      setCandidates(found)
+      setChecked([])
+      setHeadId(null)
+    } finally {
+      setSearching(false)
+    }
+  }
+
+  const toggle = (placeId, on) => setChecked(list => on ? [...list, placeId] : list.filter(id => id !== placeId))
+
+  const saveSelected = async () => {
+    if (checked.length === 0) return message.warning('Tick chọn ít nhất một địa chỉ')
     setSaving(true)
     try {
-      const body = { ...values, userId: partnerId }
-      const res = await (location?.id
-        ? client.put(`/admin/locations/${location.id}`, body)
-        : client.post('/admin/locations', body)).then(r => r.data)
+      const res = await client.post('/admin/locations/bulk', {
+        userId, placeIds: checked, headPlaceId: checked.includes(headId) ? headId : undefined,
+      }).then(r => r.data)
       if (res.resultCode !== 1) return message.error(res.message)
-      message.success('Đã lưu cơ sở')
+      message.success(`Đã lưu ${res.data.length} địa chỉ`)
       onSaved?.(res.data)
     } finally {
       setSaving(false)
     }
   }
 
+  const submit = async (values) => {
+    setSaving(true)
+    try {
+      const res = await (editing
+        ? client.put(`/admin/locations/${location.id}`, { ...values, userId })
+        : client.post('/admin/locations', { ...values, userId })).then(r => r.data)
+      if (res.resultCode !== 1) return message.error(res.message)
+      message.success('Đã lưu địa chỉ')
+      onSaved?.([res.data])
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const picking = candidates.length > 0 && !editing
+
   return (
-    <Modal open={open} title={location?.id ? 'Sửa cơ sở' : 'Thêm cơ sở'} okText="Lưu" cancelText="Hủy"
-      confirmLoading={saving} onCancel={onClose} onOk={() => form.submit()} destroyOnClose>
+    <Modal open={open} title={editing ? 'Sửa địa chỉ' : 'Thêm địa chỉ'} okText={picking ? `Lưu ${checked.length} địa chỉ đã chọn` : 'Lưu'} cancelText="Hủy"
+      confirmLoading={saving} onCancel={() => { reset(); onClose() }} onOk={() => (picking ? saveSelected() : form.submit())} destroyOnClose width={560}>
       <Form form={form} layout="vertical" onFinish={submit}>
         {!googleOn && <Alert type="info" showIcon style={{ marginBottom: 12 }}
           message="Chưa bật tìm địa chỉ tự động (thiếu GOOGLE_MAPS_API_KEY). Nhập địa chỉ và toạ độ bằng tay." />}
-        <Form.Item label="Tìm địa chỉ" extra="Gõ số nhà, đường, quận rồi chọn gợi ý: toạ độ và khu vực tự điền.">
-          <Select showSearch filterOption={false} placeholder="VD: 12 Nguyễn Huệ, Quận 1" onSearch={search} onSelect={pick}
-            value={null} notFoundContent={null}
-            options={suggestions.map(s => ({ value: s.placeId, label: s.text }))} />
+        <Form.Item label="Địa chỉ" required extra="Nhập số nhà, đường, quận rồi bấm Tìm tự động để lấy toạ độ và khu vực.">
+          <Space.Compact style={{ width: '100%' }}>
+            <Form.Item name="address" noStyle rules={[{ required: true, message: 'Nhập địa chỉ' }]}>
+              <Input placeholder="VD: 12 Nguyễn Huệ, Quận 1" onPressEnter={e => { e.preventDefault(); autoSearch() }} />
+            </Form.Item>
+            <Button type="primary" loading={searching} onClick={autoSearch}>Tìm tự động</Button>
+          </Space.Compact>
         </Form.Item>
-        <Form.Item name="title" label="Tên cơ sở" rules={[{ required: true, message: 'Nhập tên cơ sở' }]}>
-          <Input placeholder="VD: Cơ sở Quận 1" />
-        </Form.Item>
-        <Form.Item name="address" label="Địa chỉ" rules={[{ required: true, message: 'Nhập địa chỉ' }]}>
-          <Input />
-        </Form.Item>
-        {area && <Typography.Paragraph type="secondary" style={{ marginTop: -8 }}>Khu vực: {area}</Typography.Paragraph>}
-        <Space align="start">
-          <Form.Item name="lat" label="Vĩ độ"><InputNumber style={{ width: 150 }} step={0.0001} placeholder="10.7745" /></Form.Item>
-          <Form.Item name="lng" label="Kinh độ"><InputNumber style={{ width: 150 }} step={0.0001} placeholder="106.7032" /></Form.Item>
-        </Space>
-        <Form.Item name="phone" label="Số điện thoại cơ sở"><Input style={{ width: 200 }} /></Form.Item>
-        <Form.Item name="head" valuePropName="checked"><Checkbox>Cơ sở chính</Checkbox></Form.Item>
+
+        {candidates.length > 0 && (
+          <div style={{ border: '1px solid #f0f0f0', borderRadius: 8, padding: 8, marginBottom: 16 }}>
+            <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+              {editing ? 'Có nhiều kết quả, chọn một địa chỉ để điền vào form:' : `Có ${candidates.length} kết quả: tick địa chỉ cần lưu, chọn một nơi làm ${headLabel.toLowerCase()}.`}
+            </Typography.Text>
+            <Radio.Group value={headId} onChange={e => setHeadId(e.target.value)} style={{ width: '100%' }}>
+              {candidates.map(c => (
+                <div key={c.placeId} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: '1px solid #fafafa' }}>
+                  {!editing && <Checkbox checked={checked.includes(c.placeId)} onChange={e => toggle(c.placeId, e.target.checked)} />}
+                  <div style={{ flex: 1, fontSize: 13 }}>
+                    {c.text}{' '}
+                    <a href={mapLink({ address: c.text, placeId: c.placeId })} target="_blank" rel="noreferrer">Xem bản đồ</a>
+                  </div>
+                  {editing
+                    ? <Button size="small" onClick={() => applyPlace(c.placeId)}>Dùng địa chỉ này</Button>
+                    : <Radio value={c.placeId} disabled={!checked.includes(c.placeId)}>{headLabel.split(' / ')[0]}</Radio>}
+                </div>
+              ))}
+            </Radio.Group>
+          </div>
+        )}
+
+        <div style={{ display: picking ? 'none' : 'block' }}>
+          <Form.Item name="title" label="Tên địa chỉ" rules={[{ required: true, message: 'Nhập tên' }]}>
+            <Input placeholder="VD: Nhà, Cơ sở Quận 1, Hội sở" />
+          </Form.Item>
+          {area && <Typography.Paragraph type="secondary" style={{ marginTop: -8 }}>Khu vực: {area}</Typography.Paragraph>}
+          <Space align="start">
+            <Form.Item name="lat" label="Vĩ độ"><InputNumber style={{ width: 150 }} step={0.0001} placeholder="10.7745" /></Form.Item>
+            <Form.Item name="lng" label="Kinh độ"><InputNumber style={{ width: 150 }} step={0.0001} placeholder="106.7032" /></Form.Item>
+          </Space>
+          <Form.Item name="phone" label="Số điện thoại"><Input style={{ width: 200 }} /></Form.Item>
+          <Form.Item name="head" valuePropName="checked"><Checkbox>{headLabel}</Checkbox></Form.Item>
+        </div>
         <Form.Item name="placeId" hidden><Input /></Form.Item>
         <Form.Item name="provinceName" hidden><Input /></Form.Item>
         <Form.Item name="districtName" hidden><Input /></Form.Item>

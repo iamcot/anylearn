@@ -6,4 +6,8 @@ import java.math.BigDecimal;
 public record LocationInput(
         String title, String address, BigDecimal lat, BigDecimal lng, String placeId, String phone,
         String provinceName, String districtName, String wardName, Boolean head) {
+
+    public LocationInput asHead() {
+        return new LocationInput(title, address, lat, lng, placeId, phone, provinceName, districtName, wardName, true);
+    }
 }

@@ -5,6 +5,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import client from '../api/client'
 import { fmtVND, fmtDate, fmtDateTime } from '../utils/format'
 import { Field } from '../components/Field'
+import UserLocationsModal from '../components/UserLocationsModal'
+import { PARTNER_ROLES } from '../utils/roles'
 import RichEditor from '../components/RichEditor'
 import { message } from 'antd'
 
@@ -45,6 +47,12 @@ export default function Users() {
   const [sortDir, setSortDir] = useState('desc')
   const [sortBy, setSortBy] = useState('id')
   const [selected, setSelected] = useState(null)
+  const [locationsOpen, setLocationsOpen] = useState(false)
+  const { data: locations } = useQuery({
+    queryKey: ['admin-locations', selected?.id],
+    queryFn: () => client.get('/admin/locations', { params: { userId: selected.id } }).then(r => r.data?.data ?? []),
+    enabled: !!selected?.id,
+  })
   const [editing, setEditing] = useState(false)
   const [form] = Form.useForm()
   const [resetModal, setResetModal] = useState(false)
@@ -245,6 +253,15 @@ export default function Users() {
             }
             editing={editing}
           />
+          <Field label={PARTNER_ROLES.includes(selected?.role) ? 'Cơ sở' : 'Địa chỉ'}
+            viewValue={
+              <Space>
+                <span>{(locations ?? []).length === 0 ? 'Chưa có' : `${locations.length} địa chỉ${locations.find(l => l.head) ? ` · chính: ${locations.find(l => l.head).title}` : ''}`}</span>
+                <Button size="small" onClick={() => setLocationsOpen(true)}>Quản lý</Button>
+              </Space>
+            }
+            editing={false}
+          />
           <Field label="Loại đối tác" viewValue={PARTNER_TYPES[selected?.partnerType] ?? '—'}
             editContent={<Form.Item name="partnerType" noStyle><Select size="small" allowClear placeholder="Chọn loại đối tác" style={{ width: 220 }}
               options={Object.entries(PARTNER_TYPES).map(([value, label]) => ({ value, label }))} /></Form.Item>}
@@ -272,6 +289,7 @@ export default function Users() {
           />
         </Form>
       </Drawer>
+      <UserLocationsModal open={locationsOpen} user={selected} onClose={() => setLocationsOpen(false)} />
 
       <Modal
         title="Reset mật khẩu"

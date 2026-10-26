@@ -46,6 +46,17 @@ public class LocationService {
         return locations.save(fill(location, input));
     }
 
+    /** Saves several places picked from the address search; the one in `headPlaceId` becomes the head office. */
+    @Transactional
+    public List<UserLocation> createAll(Long userId, List<LocationInput> inputs, String headPlaceId) {
+        List<UserLocation> saved = new java.util.ArrayList<>();
+        for (LocationInput input : inputs) {
+            boolean head = headPlaceId != null && headPlaceId.equals(input.placeId());
+            saved.add(create(userId, head ? input.asHead() : input));
+        }
+        return saved;
+    }
+
     @Transactional
     public UserLocation update(Long id, LocationInput input) {
         requireValid(input);
