@@ -271,6 +271,11 @@ Mỗi lần khách tìm (chỉ trang kết quả đầu) được ghi lại theo
 - **Tài khoản ngân hàng** (Cài đặt > Thanh toán): tài khoản nhận tiền hiện trong mã QR ở trang đơn hàng. Chọn ngân hàng thì mã BIN tự điền. Nội dung chuyển khoản dạng `ALQR{mã đơn}` do hệ thống tạo, không sửa.
 - **Kiểm toán anyPoint**: kiểm tra số dư điểm của thành viên.
 - Luôn viết **anyPoint** (không viết "điểm"); giá trị quy đổi ghi "~120.000đ".
+- **anyPoint khách nhìn thấy:** trang khóa học, giỏ hàng và đơn hàng hiện "+X anyPoint" (tính bằng đúng cách tính lúc tạo đơn, chỉnh ở cấu hình hoa hồng của khóa); ở bước thanh toán khách bật "Dùng anyPoint"; trang Tài khoản > anyPoint và `/info/anypoint` giải thích cách nhận và dùng. Mỗi khóa mỗi khác nên chữ chung không ghi số cụ thể.
+- **Đơn chờ thanh toán:** khách thấy thẻ "Đơn đang chờ thanh toán" ở `/today` và Tài khoản; đặt trùng khóa và bé thì được hỏi. Thời gian nhắc và tự hủy chỉnh ở mục 8. Số liệu đơn chờ, được nhắc, trả tiền sau nhắc, hết hạn nằm ở trang tổng quan.
+- **Cài app và thông báo đẩy:** website cài được như app (Android hiện nút cài, iPhone có hướng dẫn thêm vào màn hình chính). Thông báo đẩy cần `VAPID_*` (mục 11); khách bật ở Tài khoản > Thông báo.
+- **Khách chưa đăng nhập:** được hỏi "Tìm cho ai?" (lưu tên và năm sinh của bé trên máy), khi đăng ký thì bé được tạo trong tài khoản. Thanh toán bắt buộc có ngày sinh đầy đủ của bé.
+- **Lời hứa anyLEARN:** nội dung nằm ở `anylearn_v2/src/config/promise.ts` (nhờ lập trình viên sửa); trang `/info/why-anylearn`.
 
 ---
 
