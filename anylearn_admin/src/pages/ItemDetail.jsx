@@ -223,6 +223,7 @@ export default function ItemDetail() {
 
   const [locationModal, setLocationModal] = useState(null) // null | 'default' | 'schedule'
   const [partnerLocationsOpen, setPartnerLocationsOpen] = useState(false)
+  const isFeeOnly = !!Form.useWatch('isPaymentfee', form)
   const { data: partnerLocations, refetch: refetchLocations } = useQuery({
     queryKey: ['admin-item-locations', id],
     queryFn: () => client.get(`/admin/items/${id}/locations`).then(r => r.data?.data ?? []),
@@ -415,23 +416,6 @@ export default function ItemDetail() {
                 options={(categories ?? []).map(c => ({ value: c.id, label: c.title }))} />
             </Form.Item>
           </FieldRow>
-          {item?.addressRequired && (
-            <FieldRow label="Địa chỉ học">
-              {(itemSchedules ?? []).length > 0
-                ? <span style={{ color: '#888' }}>Khóa có ca học: địa chỉ chọn riêng cho từng ca ở tab Lịch học.</span>
-                : (partnerLocations ?? []).length === 1
-                  ? <span>Tự áp dụng: {partnerLocations[0].title} — {partnerLocations[0].address}</span>
-                  : (
-                    <Space>
-                      <Form.Item name="userLocationId" noStyle>
-                        <Select placeholder="Chọn địa chỉ của đối tác" style={{ width: 320 }} onChange={() => setDirty(true)}
-                          options={(partnerLocations ?? []).map(l => ({ value: l.id, label: `${l.title} — ${l.address}` }))} />
-                      </Form.Item>
-                      <Button onClick={() => setPartnerLocationsOpen(true)}>Quản lý địa chỉ</Button>
-                    </Space>
-                  )}
-            </FieldRow>
-          )}
           <FieldRow label="Tags">
             <Form.Item name="tagIds" noStyle>
               <Select mode="multiple" placeholder="Chọn tag" style={{ width: '100%' }} optionFilterProp="label"
@@ -472,7 +456,40 @@ export default function ItemDetail() {
 
     { key: 'schedule', label: 'Lịch học', children: (
       <div style={{ maxWidth: 640, paddingBottom: 32 }}>
-        <SectionCard title="Thời gian">
+        <SectionCard title="Hình thức khóa học">
+          <FieldRow label="Thu hộ học phí">
+            <Space direction="vertical" size={2}>
+              <Form.Item name="isPaymentfee" noStyle {...switchItemProps}>
+                <Switch onChange={() => setDirty(true)} />
+              </Form.Item>
+              <Typography.Text type="secondary" style={{ fontSize: 12 }}>Bật nếu đây là khóa chỉ thu hộ học phí: không có ca học và không cần địa chỉ.</Typography.Text>
+            </Space>
+          </FieldRow>
+          {!isFeeOnly && item?.addressRequired && (
+            <FieldRow label="Địa chỉ học">
+              <Space direction="vertical" size={4} style={{ width: '100%' }}>
+                {(itemSchedules ?? []).length > 0
+                  ? <span style={{ color: '#888' }}>Khóa có ca học: mỗi ca dùng địa chỉ chọn riêng cho ca đó.</span>
+                  : (partnerLocations ?? []).length === 0
+                    ? <span style={{ color: '#cf1322' }}>Đối tác chưa có địa chỉ.</span>
+                  : (partnerLocations ?? []).length === 1
+                    ? <span>Tự áp dụng: {partnerLocations[0].title} — {partnerLocations[0].address}</span>
+                    : (
+                      <Form.Item name="userLocationId" noStyle>
+                        <Select placeholder="Chọn địa chỉ của đối tác" style={{ width: 320 }} onChange={() => setDirty(true)}
+                          options={(partnerLocations ?? []).map(l => ({ value: l.id, label: `${l.title} — ${l.address}` }))} />
+                      </Form.Item>
+                    )}
+                <Space size={8}>
+                  <Button size="small" onClick={() => setPartnerLocationsOpen(true)}>Quản lý địa chỉ của đối tác</Button>
+                  <Typography.Text type="secondary" style={{ fontSize: 12 }}>Nếu khóa có ca học thì dùng địa chỉ cài đặt cho ca học.</Typography.Text>
+                </Space>
+              </Space>
+            </FieldRow>
+          )}
+        </SectionCard>
+
+        <SectionCard title="Thời gian & ca học">
           <FieldRow label="Chiêu sinh liên tục">
             <Form.Item name="nolimitTime" noStyle valuePropName="checked">
               <Switch checkedChildren="Liên tục" unCheckedChildren="Có hạn" onChange={() => setDirty(true)} />
@@ -486,7 +503,7 @@ export default function ItemDetail() {
           </FieldRow>
 
           {/* Ca học — inline in Thời gian */}
-          {!isNew && (
+          {!isNew && !isFeeOnly && (
             <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid #f0f0f0' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                 <Typography.Text strong style={{ fontSize: 13 }}>Ca học</Typography.Text>
@@ -546,17 +563,6 @@ export default function ItemDetail() {
 
     { key: 'finance', label: 'Tài chính', children: (
       <div style={{ maxWidth: 640, paddingBottom: 32 }}>
-        <SectionCard title="Cài đặt thanh toán">
-          <FieldRow label="Thu hộ học phí">
-            <Space direction="vertical" size={2}>
-              <Form.Item name="isPaymentfee" noStyle {...switchItemProps}>
-                <Switch onChange={() => setDirty(true)} />
-              </Form.Item>
-              <Typography.Text type="secondary" style={{ fontSize: 12 }}>Bật nếu đây là khóa chỉ thu hộ học phí</Typography.Text>
-            </Space>
-          </FieldRow>
-        </SectionCard>
-
         <SectionCard title="Hoa hồng đối tác">
           <FieldRow label="Tỉ lệ HH đối tác">
             <Space direction="vertical" size={2}>

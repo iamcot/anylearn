@@ -559,8 +559,14 @@ public class AdminItemController {
     }
 
     private boolean addressRequired(Item item) {
+        if (isFeeOnly(item)) return false;
         String partnerType = userRepository.findById(item.getUserId()).map(User::getPartnerType).orElse(null);
         return ItemAddressRules.requiresAddress(item.getSubtype(), partnerType);
+    }
+
+    /** A fee-collection item only collects tuition: no classes and no place. */
+    private static boolean isFeeOnly(Item item) {
+        return item.getIsPaymentfee() != null && item.getIsPaymentfee() == 1;
     }
 
     private static List<Long> tickedAddresses(Map<String, Object> body) {

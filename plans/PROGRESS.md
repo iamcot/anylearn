@@ -130,6 +130,10 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 
 ## Nhật ký
 
+### 27/10/2026 – gom lại tab Lịch học của trang khóa học
+- Tab "Lịch học" còn 2 khối: (1) **Hình thức khóa học**: công tắc "Thu hộ học phí" (chuyển từ tab Tài chính) + địa chỉ học và nút quản lý địa chỉ đối tác (chuyển từ tab Tổng quan), có ghi chú "khóa có ca học thì dùng địa chỉ của ca"; (2) **Thời gian & ca học**: chiêu sinh liên tục, chu kỳ thanh toán và danh sách ca học.
+- Bật "Thu hộ học phí" thì ẩn địa chỉ và danh sách ca học; backend không bắt địa chỉ và không báo thiếu địa điểm/lịch/số buổi cho khóa thu hộ.
+
 ### 27/10/2026 – sửa migration V22/V23 cho dữ liệu thật
 - `contextLoads` lỗi trên DB của chủ sản phẩm vì migration chạy trên dữ liệu portal "bẩn". Tái hiện được trên DB giả có dữ liệu bẩn: V22 dùng `JSON_TABLE` trên cột `items.tags` (có dấu nháy, gạch chéo, xuống dòng → "Character disallowed in JSON"); V23 `CAST` toạ độ chữ ("abc", "10,77", rỗng) trong `WHERE` không đảm bảo thứ tự.
 - Sửa: V22 tách chuỗi bằng bảng số (không dùng JSON), `INSERT IGNORE` + collation rõ ràng; V23 dùng `CASE` bảo vệ `CAST`. Kiểm tra lại: DB V21 có tag trùng khác dấu/hoa thường, CSV có ký tự đặc biệt, toạ độ rác (rỗng, chữ, đảo vĩ/kinh độ, 999) chạy tới V25 thành công; 276 test pass trên DB sạch.
