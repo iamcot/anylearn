@@ -33,6 +33,8 @@ function AvatarUpload({ value, onChange }) {
   )
 }
 
+const PARTNER_TYPES = { school: 'Trường học', center: 'Trung tâm', club: 'Câu lạc bộ', tutor: 'Gia sư', expert: 'Chuyên gia' }
+
 export default function Users() {
   const qc = useQueryClient()
   const [q, setQ] = useState('')
@@ -63,6 +65,7 @@ export default function Users() {
   const mutation = useMutation({
     mutationFn: (values) => client.put(`/admin/users/${selected.id}`, {
       ...values,
+      partnerType: values.partnerType ?? null,
       status: Number(values.status),
       commissionRate: Number(values.commissionRate) / 100,
     }),
@@ -82,7 +85,7 @@ export default function Users() {
   useEffect(() => {
     if (selected && editing) form.setFieldsValue({
       name: selected.name, phone: selected.phone, email: selected.email,
-      role: selected.role, status: String(selected.status),
+      role: selected.role, status: String(selected.status), partnerType: selected.partnerType || undefined,
       commissionRate: ((selected.commissionRate ?? 0) * 100).toFixed(0),
       introduce: selected.introduce,
       fullContent: selected.fullContent,
@@ -240,6 +243,11 @@ export default function Users() {
                 <Switch checkedChildren="Hoạt động" unCheckedChildren="Khoá" />
               </Form.Item>
             }
+            editing={editing}
+          />
+          <Field label="Loại đối tác" viewValue={PARTNER_TYPES[selected?.partnerType] ?? '—'}
+            editContent={<Form.Item name="partnerType" noStyle><Select size="small" allowClear placeholder="Chọn loại đối tác" style={{ width: 220 }}
+              options={Object.entries(PARTNER_TYPES).map(([value, label]) => ({ value, label }))} /></Form.Item>}
             editing={editing}
           />
           <Field label="Hoa hồng" viewValue={`${((selected?.commissionRate ?? 0) * 100).toFixed(0)}%`}

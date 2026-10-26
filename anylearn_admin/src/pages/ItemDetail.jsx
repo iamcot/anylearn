@@ -407,11 +407,6 @@ export default function ItemDetail() {
                 options={(categories ?? []).map(c => ({ value: c.id, label: c.title }))} />
             </Form.Item>
           </FieldRow>
-          <FieldRow label="Hình thức">
-            <Form.Item name="locationType" noStyle>
-              <Select allowClear placeholder="Online / Offline / Kết hợp" style={{ width: 240 }} onChange={() => setDirty(true)} options={LOCATION_TYPES} />
-            </Form.Item>
-          </FieldRow>
           <FieldRow label="Địa điểm mặc định">
             <Space>
               <Form.Item name="userLocationId" noStyle>

@@ -38,6 +38,10 @@ public class User {
     @Column(nullable = false, length = 20)
     private String role;
 
+    /** school, center, club, tutor or expert (see PartnerTypes); only set for partners. */
+    @Column(name = "partner_type")
+    private String partnerType;
+
     @Column(nullable = false)
     private Byte status;
 

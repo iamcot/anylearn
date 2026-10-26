@@ -1,6 +1,7 @@
 package com.anylearn.backend.controller.admin;
 
 import com.anylearn.backend.dto.response.ApiResponse;
+import com.anylearn.backend.entity.PartnerTypes;
 import com.anylearn.backend.entity.User;
 import com.anylearn.backend.repository.UserRepository;
 import com.anylearn.backend.service.MeilisearchService;
@@ -55,7 +56,7 @@ public class AdminUserController {
         @SuppressWarnings("unchecked")
         List<Object[]> rows = em.createNativeQuery(
                 "SELECT u.id, u.name, u.phone, u.email, u.role, u.status, u.image, u.wallet_m, u.wallet_c, u.commission_rate, u.created_at, " +
-                "u.introduce, u.full_content, u.user_id, ru.name AS refName, u.is_signed, u.popularity_score " +
+                "u.introduce, u.full_content, u.user_id, ru.name AS refName, u.is_signed, u.popularity_score, u.partner_type " +
                 "FROM users u LEFT JOIN users ru ON u.user_id = ru.id " +
                 "WHERE 1=1" + conditions + " ORDER BY " + safeSortCol + " " + safeSort + " LIMIT " + size + " OFFSET " + (long) page * size)
                 .getResultList();
@@ -74,6 +75,7 @@ public class AdminUserController {
             m.put("refName", r[14] != null ? r[14] : "");
             m.put("isSigned", r[15]);
             m.put("popularityScore", r[16] != null ? r[16] : 0);
+            m.put("partnerType", r[17]);
             return m;
         }).toList();
 
@@ -104,6 +106,11 @@ public class AdminUserController {
             if (body.containsKey("email")) u.setEmail((String) body.get("email"));
             if (body.containsKey("role")) u.setRole((String) body.get("role"));
             if (body.containsKey("status")) u.setStatus(toNumber(body.get("status")).byteValue());
+            if (body.containsKey("partnerType")) {
+                String type = body.get("partnerType") instanceof String t && !t.isBlank() ? t : null;
+                if (type != null && !PartnerTypes.isValid(type)) return ApiResponse.fail("Loại đối tác không hợp lệ");
+                u.setPartnerType(type);
+            }
             if (body.containsKey("commissionRate")) u.setCommissionRate(toNumber(body.get("commissionRate")).doubleValue());
             if (body.get("image") != null) u.setImage(String.valueOf(body.get("image")));
             if (body.get("introduce") != null) u.setIntroduce(String.valueOf(body.get("introduce")));

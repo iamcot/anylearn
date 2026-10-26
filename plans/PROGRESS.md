@@ -16,6 +16,7 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 26/10/2026 | Phase 2: không khảo sát dữ liệu thực tế, chuẩn hoá và làm dễ nhập trước, hướng dẫn đối tác sau. Portal PHP đã tắt nên được dọn bảng cũ. |
 | 26/10/2026 | Tags là danh mục do admin quản lý (nhóm, gộp, ẩn); đối tác/admin chỉ chọn từ danh mục. |
 | 26/10/2026 | Địa chỉ → toạ độ + tỉnh/quận/phường dùng Google Places (chủ sản phẩm có key). |
+| 26/10/2026 | Giữ: video bài giảng, hỏi đáp, mã code + phụ kiện, knowledge (helpcenter). Bỏ: contracts, sale_activities, activitybonuses, spms, migrations, password_resets, hồ sơ chuyên môn (specs) và user_reviews. Loại đối tác lưu ở đối tác; học thử dùng cờ cũ; số buổi lấy từ `cycle_type`/`cycle_amount`. |
 | 26/10/2026 | Bảng portal cũ không còn dùng: đổi tên thành `<tên>_old`, 1–2 tháng sau mới xoá hẳn. |
 | 25/10/2026 | Đồng ý thêm thư viện Java `nl.martijndwars:web-push` (+ BouncyCastle) cho Web Push (plan 13.4). |
 | 25/10/2026 | App cũ trên store đã bị xoá, lượt tải không đáng kể → **chỉ làm PWA**, làm trước (plan 13). Push dùng Web Push thuần, không FCM. |
@@ -23,8 +24,7 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 
 ## Câu hỏi đang chờ chủ sản phẩm
 
-- [ ] Danh sách bảng portal cũ định đổi tên `_old` (plan 03.2d), chờ chủ sản phẩm xác nhận từng bảng.
-- [ ] Khóa học cho người lớn: có `audience` (trẻ em / thiếu niên / người lớn / mọi lứa tuổi) hay chỉ dùng độ tuổi? (plan 03.2c)
+- [ ] Bảng `class_plans`, `social_posts`, `i18n_contents`, `participations` chưa rõ còn dùng không: tạm giữ (plan 03.2d).
 
 - [ ] VNPay: luật "giảm 1%" và "trên 100 triệu" là gì? Backend không áp dụng cả hai, nên chữ đã bỏ khỏi checkout (plan 12.5).
 - [ ] Thời hạn điểm (gợi ý 12 tháng) và ngày bắt đầu áp dụng (plan 02.5).
@@ -72,8 +72,8 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 03.1 | Khảo sát độ đầy đủ dữ liệu khóa học | skip | Chủ sản phẩm: không khảo sát, chuẩn hoá trước rồi hướng dẫn đối tác sau |
 | 03.2a | Bảng tags: danh mục chuẩn + `item_tags` | done | V22; sửa lỗi tag lưu ở `items.tags` không vào search |
 | 03.2b | Địa điểm / chi nhánh của đối tác (Google Places) | done | V23; cần `GOOGLE_MAPS_API_KEY` (Places API New) trên server |
-| 03.2c | Thuộc tính còn lại (loại đối tác, số buổi, học thử, đối tượng) | todo | Xem câu hỏi chờ |
-| 03.2d | Dọn bảng portal cũ (đổi tên `_old`) | todo | |
+| 03.2c | Thuộc tính còn lại (loại đối tác, số buổi, học thử) | done | `users.partner_type` (V25) chọn ở trang Thành viên; học thử dùng `activiyTrial`; số buổi suy ra từ `cycle_type`/`cycle_amount` khi lập chỉ mục (03.4) |
+| 03.2d | Dọn bảng portal cũ (đổi tên `_old`) | done | V24 đổi tên 11 bảng; xoá entity/repository tương ứng |
 | 03.3 | Admin nhập liệu + cảnh báo thiếu | todo | |
 | 03.4 | Index MeiliSearch | todo | |
 | 03.5 | API search bộ lọc mới | todo | |
@@ -130,9 +130,14 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 
 ## Nhật ký
 
+### 26/10/2026 – 03.2c/03.2d loại đối tác và dọn bảng
+- V24 đổi tên thành `*_old`: contracts, sale_activities, activitybonuses, spms, user_specs, user_spec_links, item_specs, item_spec_links, user_reviews, migrations, password_resets (xoá hẳn sau 1–2 tháng chạy ổn). Xoá 9 entity + repository không còn dùng.
+- V25 `users.partner_type` (school/center/club/tutor/expert, `PartnerTypes`); trang Thành viên có ô "Loại đối tác".
+- Không thêm cột `audience`: khóa người lớn dùng khoảng tuổi (`ages_min` ≥ 18) hoặc để trống = mọi lứa tuổi.
+
 ### 26/10/2026 – 03.2b địa điểm / chi nhánh
 - Cách cũ: cơ sở (`user_locations`) chỉ do portal tạo, v2 chỉ có ô chọn; mã tỉnh/quận/phường bắt buộc; toạ độ là chuỗi.
-- Cách mới: một đối tác nhiều cơ sở; khóa học có **địa điểm mặc định** (`items.user_location_id`) + hình thức online/offline/hybrid;
+- Cách mới: một đối tác nhiều cơ sở; khóa học có **địa điểm mặc định** (`items.user_location_id`) (hình thức đã có ở `items.subtype`, không thêm cột mới);
   mỗi lịch học để trống thì dùng mặc định, chỉ chọn riêng khi khác. Thêm cơ sở ngay trong trang khóa học ("+ Thêm cơ sở") hoặc ở trang "Địa điểm".
 - Nhập: gõ địa chỉ → gợi ý Google Places (New) → chọn → tự điền địa chỉ, toạ độ, tỉnh/quận/phường (khớp mã bằng tên, bỏ qua chữ "Quận/Phường…").
   Không có key thì nhập tay địa chỉ + toạ độ. Toạ độ ngoài Việt Nam bị chặn (hay gặp nhập ngược vĩ/kinh độ).

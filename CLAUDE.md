@@ -180,9 +180,14 @@ Thư mục `http/` chứa VS Code REST Client files cho mọi endpoint:
 ## Partner locations (branches)
 
 - A partner has many branches in `user_locations` (V23: numeric `lat`/`lng`, `place_id`, `phone`, province/district/ward names; the codes are optional). Back office page "Địa điểm" (`/admin/locations`, `AdminLocationController`, `LocationService`) lists, adds, edits and hides branches; the same form (`components/LocationFormModal.jsx`) opens from the course page ("+ Thêm cơ sở"), so nobody leaves the course to create a branch.
-- A course has a default branch (`items.user_location_id`) and a `locationType` (online / offline / hybrid); a schedule may override it (`item_schedules.user_location_id`), empty means the course default (`SessionViewBuilder.locationIdOf`).
+- The course format is `items.subtype` (online, offline, digital, extra, video, preschool); an offline-style course has a default branch (`items.user_location_id`); a schedule may override it (`item_schedules.user_location_id`), empty means the course default (`SessionViewBuilder.locationIdOf`).
 - Address search: `GooglePlacesClient` (Places API (New): autocomplete + details, key `GOOGLE_MAPS_API_KEY`, kept on the server; blank key = off and the form asks for typed address and coordinates). `AdministrativeMatcher` maps Google's names to our `provinces`/`districts`/`wards` codes (type words ignored, so "Quận 1" ≠ "Quận 12"); names that do not match leave the code empty. Coordinates outside Vietnam are rejected (`LocationRules`).
 - `latitude`/`longitude` (text, from the old portal) are no longer read; V23 copied valid ones into `lat`/`lng`.
+
+## Retired portal tables and partner type
+
+- V24 renamed tables of the old portal that no code reads (`contracts`, `sale_activities`, `activitybonuses`, `spms`, `user_specs`, `user_spec_links`, `item_specs`, `item_spec_links`, `user_reviews`, `migrations`, `password_resets`) to `*_old`; drop them by hand once nothing broke. Do not add entities for them.
+- `users.partner_type` (V25: school / center / club / tutor / expert, `PartnerTypes`) is set per partner in the back office user page; courses inherit it for search.
 
 ## Growth roadmap
 
