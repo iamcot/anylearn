@@ -186,6 +186,12 @@ Content-Type: application/json
   "route": ""
 }
 
+### send test order notif
+POST {{baseUrl}}/admin/notification/send?api_token={{$dotenv ADMIN_TOKEN}}
+Content-Type: application/json
+
+{ "phone": "0395359198", "type": "order", "title": "Test email anyLEARN", "content": "Thư thử" }
+
 ### ── ZNS (Zalo Token Setup) ─────────────────────────────────────────────────
 
 ### Bước 1: Lấy Zalo OAuth URL (mở URL này trong browser)
