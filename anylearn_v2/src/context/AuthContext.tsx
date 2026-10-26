@@ -5,6 +5,7 @@ import { AuthUser, loginApi, registerApi, getCart } from '@/lib/api'
 import { API_BASE } from '@/lib/apiBase'
 import { parseStoredUser, readStoredUserRaw, subscribeUser, writeStoredUser } from '@/lib/auth/userStore'
 import { forgetPushDevice } from '@/components/pwa/pushDevice'
+import { installSessionGuard } from '@/lib/auth/sessionGuard'
 import { importGuestLearners } from '@/components/guest/importGuestLearners'
 
 const subscribeNever = () => () => {}
@@ -75,6 +76,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } catch {}
   }, [])
+
+  useEffect(() => { installSessionGuard() }, [])
 
   // Refresh profile on every page load so wallet_c and other fields are always current
   useEffect(() => {

@@ -2,6 +2,7 @@ package com.anylearn.backend.config;
 
 import com.anylearn.backend.security.ApiTokenFilter;
 import com.anylearn.backend.security.JwtFilter;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -71,6 +72,12 @@ public class SecurityConfig {
                 // Everything else requires auth
                 .anyRequest().authenticated()
             )
+            // Not signed in, or the token expired: 401 so the apps can send the person to the login page.
+            .exceptionHandling(e -> e.authenticationEntryPoint((request, response, ex) -> {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType("application/json;charset=UTF-8");
+                response.getWriter().write("{\"resultCode\":0,\"message\":\"Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại\",\"data\":null,\"code\":\"UNAUTHORIZED\"}");
+            }))
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
             .addFilterAfter(apiTokenFilter, JwtFilter.class);
 
