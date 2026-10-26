@@ -1,5 +1,8 @@
 package com.anylearn.backend.controller.admin;
 
+import com.anylearn.backend.service.search.ItemAttributeGaps;
+import com.anylearn.backend.service.search.ItemSearchAttributes;
+
 import com.anylearn.backend.dto.response.ApiResponse;
 import com.anylearn.backend.entity.Item;
 import com.anylearn.backend.entity.ItemSchedule;
@@ -34,6 +37,8 @@ public class AdminItemController {
     private final UserRepository userRepository;
     private final MeilisearchService meilisearchService;
     private final EntityManager em;
+
+    private static final int GAP_LIST_LIMIT = 300;
 
     private boolean isAdmin(User user) {
         return user != null && "admin".equals(user.getRole());
@@ -167,6 +172,7 @@ public class AdminItemController {
             m.put("cycleType", item.getCycleType()); m.put("cycleAmount", item.getCycleAmount());
             m.put("locationType", item.getLocationType()); m.put("location", item.getLocation());
             m.put("userLocationId", item.getUserLocationId());
+            m.put("gaps", gapsOf(item));
             // enrollment flags (note typo: activiy not activity)
             m.put("agesMin", item.getAgesMin()); m.put("agesMax", item.getAgesMax());
             m.put("seats", item.getSeats());
@@ -192,6 +198,44 @@ public class AdminItemController {
             m.put("categories", itemCategoryRepository.findCategoriesByItemId(id));
             return ApiResponse.ok(m);
         }).orElse(ApiResponse.fail("Not found"));
+    }
+
+    // ── Missing search attributes ─────────────────────────────────────────────
+
+    @GetMapping("/attribute-gaps")
+    public ApiResponse<?> attributeGaps(@AuthenticationPrincipal User user) {
+        if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
+        Map<String, Integer> summary = new java.util.LinkedHashMap<>();
+        ItemAttributeGaps.LABELS.keySet().forEach(key -> summary.put(key, 0));
+        List<Map<String, Object>> rows = new java.util.ArrayList<>();
+        int checked = 0;
+        for (Item item : itemRepository.findAll()) {
+            if (item.getStatus() == null || item.getStatus() != 1 || item.getUserStatus() == null || item.getUserStatus() != 1) continue;
+            checked++;
+            List<String> gaps = gapsOf(item);
+            gaps.forEach(key -> summary.merge(key, 1, Integer::sum));
+            if (!gaps.isEmpty() && rows.size() < GAP_LIST_LIMIT) {
+                Map<String, Object> row = new java.util.LinkedHashMap<>();
+                row.put("id", item.getId());
+                row.put("title", item.getTitle());
+                row.put("userId", item.getUserId());
+                row.put("gaps", gaps);
+                rows.add(row);
+            }
+        }
+        return ApiResponse.ok(Map.of("checked", checked, "summary", summary, "labels", ItemAttributeGaps.LABELS, "items", rows));
+    }
+
+    private List<String> gapsOf(Item item) {
+        var schedules = itemScheduleRepository.findByItemIdAndStatus(item.getId(), (byte) 1);
+        var branches = ItemSearchAttributes.activeBranchesOf(item, schedules, userLocationRepository::findAllById);
+        boolean partnerTypeKnown = userRepository.findById(item.getUserId()).map(u -> u.getPartnerType() != null).orElse(false);
+        return ItemAttributeGaps.of(item, new ItemAttributeGaps.Facts(
+                itemCategoryRepository.findAllCategoryUrlsByItemId(item.getId()).size(),
+                tagService.tagsOfItem(item.getId()).size(),
+                (int) schedules.stream().filter(s -> s.getTimeStart() != null && !s.getTimeStart().isBlank()).count(),
+                (int) branches.stream().filter(b -> b.getLat() != null && b.getLng() != null).count(),
+                partnerTypeKnown));
     }
 
     // ── Update ────────────────────────────────────────────────────────────────

@@ -1,5 +1,5 @@
 import {
-  App, Button, Checkbox, DatePicker, Form, Input, InputNumber, Modal,
+  Alert, App, Button, Checkbox, DatePicker, Form, Input, InputNumber, Modal,
   Popover, Rate, Select, Space, Switch, Table, Tabs, Tag, TimePicker, Tooltip,
   Typography, Upload,
 } from 'antd'
@@ -25,6 +25,10 @@ const SUBTYPES = [
   { value: 'offline', label: 'Học Tại Trường' }, { value: 'extra', label: 'Ngoại khóa' },
   { value: 'video', label: 'Video' }, { value: 'preschool', label: 'Mầm non' },
 ]
+const GAP_LABELS = {
+  ages: 'độ tuổi', category: 'lĩnh vực', tags: 'tags', location: 'địa điểm có toạ độ',
+  schedule: 'lịch học có giờ', sessions: 'số buổi', partnerType: 'loại đối tác (đặt ở trang Thành viên)',
+}
 const CYCLE_TYPES = [
   { value: 'session', label: 'Buổi' }, { value: 'day', label: 'Ngày' },
   { value: 'week', label: 'Tuần' }, { value: 'month', label: 'Tháng' }, { value: 'year', label: 'Năm' },
@@ -317,6 +321,10 @@ export default function ItemDetail() {
 
     { key: 'overview', label: 'Tổng quan', children: (
       <div style={{ maxWidth: 700, paddingBottom: 32 }}>
+        {(item?.gaps ?? []).length > 0 && (
+          <Alert type="warning" showIcon style={{ marginBottom: 16 }}
+            message={`Khóa này thiếu: ${item.gaps.map(key => GAP_LABELS[key] ?? key).join(', ')}. Khách lọc theo các mục này sẽ ít thấy khóa.`} />
+        )}
         <SectionCard title="Tiêu đề">
           <FieldRow label="Đối tác">
             <Form.Item name="userId" noStyle rules={[{ required: true, message: 'Chọn đối tác' }]}>

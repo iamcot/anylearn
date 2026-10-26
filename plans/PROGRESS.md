@@ -74,7 +74,7 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 03.2b | Địa điểm / chi nhánh của đối tác (Google Places) | done | V23; cần `GOOGLE_MAPS_API_KEY` (Places API New) trên server |
 | 03.2c | Thuộc tính còn lại (loại đối tác, số buổi, học thử) | done | `users.partner_type` (V25) chọn ở trang Thành viên; học thử dùng `activiyTrial`; số buổi suy ra từ `cycle_type`/`cycle_amount` khi lập chỉ mục (03.4) |
 | 03.2d | Dọn bảng portal cũ (đổi tên `_old`) | done | V24 đổi tên 11 bảng; xoá entity/repository tương ứng |
-| 03.3 | Admin nhập liệu + cảnh báo thiếu | todo | |
+| 03.3 | Admin nhập liệu + cảnh báo thiếu | done | Cảnh báo ở trang khóa + trang "Thiếu thuộc tính"; tiêu chí xong chờ chủ sản phẩm nhập liệu |
 | 03.4 | Index MeiliSearch | done | Thử trên Meilisearch 1.12 thật; cần `POST /admin/reindex` sau khi deploy |
 | 03.5 | API search bộ lọc mới | done | Chưa có `ageFor=<learnerId>`: FE gửi `ageFrom/ageTo` (xem ghi chú nhật ký) |
 | 04.1 | Chip chọn người học | todo | |
@@ -129,6 +129,11 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 13.8 | Thay app cũ trên store bằng bản bọc web (TWA / Capacitor), cùng package/bundle id | todo | Theo kết quả 13.0; có thể kéo lên sớm |
 
 ## Nhật ký
+
+### 26/10/2026 – 03.3 cảnh báo thiếu thuộc tính
+- `ItemAttributeGaps` (thuần, có test): thiếu độ tuổi, lĩnh vực, tags, địa điểm có toạ độ (khóa offline/ngoại khóa/mầm non), lịch học có giờ và số buổi (trừ khóa mã code/video), loại đối tác.
+- `GET /admin/items/attribute-gaps` (thống kê + 300 khóa đầu), `GET /admin/items/{id}` trả `gaps`. Admin: trang "Thiếu thuộc tính" và thẻ cảnh báo vàng ở đầu trang khóa.
+- Tiêu chí "≥ 90% khóa có tuổi, khu vực, hình thức, tag" đo bằng chính trang này sau khi đội vận hành nhập liệu.
 
 ### 26/10/2026 – 03.4/03.5 chỉ mục và bộ lọc tìm kiếm
 - Thêm vào document: quận, `_geo`, danh sách cơ sở, khung giờ, loại đối tác, học thử, đang giảm giá, tag, giá/buổi, ngày khai giảng gần nhất.
