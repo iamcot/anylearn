@@ -18,6 +18,7 @@ import java.util.*;
 @Slf4j
 public class UserService {
 
+    private final com.anylearn.backend.service.interests.LearnerInterestService learnerInterestService;
     private final UserRepository userRepository;
     private final UserDocumentRepository userDocumentRepository;
     private final OrderRepository orderRepository;
@@ -199,6 +200,7 @@ public class UserService {
             throw new IllegalArgumentException("Không thể xóa tài khoản đã có khóa học. Vui lòng liên hệ hỗ trợ.");
         }
         userRepository.delete(child);
+        learnerInterestService.clear(childId);
         log.info("deleteChild: deleted child {} for user {}", childId, user.getId());
     }
 

@@ -9,6 +9,7 @@ import com.anylearn.backend.service.MeilisearchService;
 import com.anylearn.backend.service.NotificationService;
 import com.anylearn.backend.service.S3Service;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
  * Reviews of courses (plan 09). The rating itself stays a row of `item_user_actions` (type 'rating') because search,
  * popularity and the partner's score already read it; `review_details`, `review_scores` and `review_media` hold the rest.
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ReviewService {
@@ -146,6 +148,44 @@ public class ReviewService {
         return null;
     }
 
+    /** The partner of the course asks the team to look at a review. They cannot hide or delete it themselves. Returns the problem, or null when sent. */
+    @Transactional
+    public String report(Long reporterId, Long itemId, Long reviewId, String reason) {
+        Item item = itemRepository.findById(itemId).orElse(null);
+        if (item == null) return "Không tìm thấy khóa học";
+        if (!item.getUserId().equals(reporterId)) return "Chỉ đối tác của khóa học này mới báo cáo được";
+        if (reviewOf(itemId, reviewId) == null) return "Không tìm thấy đánh giá";
+        String problem = ReviewRules.reportReasonProblem(reason);
+        if (problem != null) return problem;
+        Integer already = jdbc.queryForObject("SELECT COUNT(*) FROM review_reports WHERE review_id = ? AND reporter_id = ?", Integer.class, reviewId, reporterId);
+        if (already != null && already > 0) return "Bạn đã báo cáo đánh giá này, anyLEARN sẽ xem xét";
+        jdbc.update("INSERT INTO review_reports (review_id, item_id, reporter_id, reason) VALUES (?, ?, ?, ?)",
+                reviewId, itemId, reporterId, ReviewRules.cleanText(reason, ReviewRules.MAX_REASON_LENGTH));
+        String partnerName = userRepository.findById(reporterId).map(user -> user.getName()).orElse("Đối tác");
+        for (var admin : userRepository.findAdminNotificationRecipients()) {
+            try {
+                notificationService.createNotification(admin.getId(), "system_notif", partnerName + " báo cáo một đánh giá",
+                        item.getTitle(), "/admin/reviews", null);
+            } catch (Exception e) {
+                log.warn("[review-report] admin {} not notified: {}", admin.getId(), e.getMessage());
+            }
+        }
+        return null;
+    }
+
+    /** Admin keeps the reported review as it is; the open reports of it are closed. */
+    @Transactional
+    public String keepReported(Long itemId, Long reviewId) {
+        if (reviewOf(itemId, reviewId) == null) return "Không tìm thấy đánh giá";
+        jdbc.update("UPDATE review_reports SET status = 'kept', handled_at = NOW() WHERE review_id = ? AND status = 'new'", reviewId);
+        return null;
+    }
+
+    public long reportedCount() {
+        Long count = jdbc.queryForObject("SELECT COUNT(DISTINCT review_id) FROM review_reports WHERE status = 'new'", Long.class);
+        return count == null ? 0 : count;
+    }
+
     /** Shows or hides a review (admin). Hiding needs a reason that is sent to the author; a hidden review leaves the list and the averages. */
     @Transactional
     public String setStatus(Long itemId, Long reviewId, String status, String reason) {
@@ -171,6 +211,9 @@ public class ReviewService {
             notificationService.createNotification(review.getUserId(), "review_shown", "Đánh giá của bạn đã được hiển thị",
                     item.getTitle(), "/pdp", String.valueOf(itemId));
         }
+        if (hide) {
+            jdbc.update("UPDATE review_reports SET status = 'hidden', handled_at = NOW() WHERE review_id = ? AND status = 'new'", reviewId);
+        }
         meilisearchService.updateItemPopularityScoreAsync(item);
         return null;
     }
@@ -181,6 +224,7 @@ public class ReviewService {
         jdbc.update("DELETE FROM review_scores WHERE review_id = ?", reviewId);
         jdbc.update("DELETE FROM review_media WHERE review_id = ?", reviewId);
         jdbc.update("DELETE FROM review_details WHERE review_id = ?", reviewId);
+        jdbc.update("DELETE FROM review_reports WHERE review_id = ?", reviewId);
         actions.deleteById(reviewId);
         itemRepository.findById(itemId).ifPresent(meilisearchService::updateItemPopularityScoreAsync);
     }
@@ -217,6 +261,7 @@ public class ReviewService {
             case "published" -> where.append(" AND COALESCE(d.status, 'published') = 'published'");
             case "hidden" -> where.append(" AND d.status = 'hidden'");
             case "resubmitted" -> where.append(" AND d.status = 'hidden' AND d.resubmitted_at IS NOT NULL");
+            case "reported" -> where.append(" AND EXISTS (SELECT 1 FROM review_reports rr WHERE rr.review_id = iua.id AND rr.status = 'new')");
             default -> { }
         }
         if (keyword != null && !keyword.isBlank()) {
@@ -233,7 +278,30 @@ public class ReviewService {
         List<Map<String, Object>> rows = jdbc.queryForList(REVIEW_SELECT.replace("d.resubmitted_at\n", "d.resubmitted_at, i.title AS item_title, i.id AS course_id\n")
                         .replace("JOIN users u ON u.id = iua.user_id", "JOIN users u ON u.id = iua.user_id JOIN items i ON i.id = iua.item_id")
                 + where + " ORDER BY iua.id DESC LIMIT ? OFFSET ?", pageArgs.toArray());
-        return Map.of("content", withExtras(rows), "total", total);
+        return Map.of("content", withReports(withExtras(rows)), "total", total);
+    }
+
+    /** Adds the open report of a review (reason, who and when) for the back office list. */
+    private List<Map<String, Object>> withReports(List<Map<String, Object>> rows) {
+        if (rows.isEmpty()) return rows;
+        List<Long> ids = rows.stream().map(row -> ((Number) row.get("id")).longValue()).toList();
+        String in = ids.stream().map(id -> "?").collect(Collectors.joining(","));
+        Map<Long, Map<String, Object>> reports = new HashMap<>();
+        jdbc.query("SELECT r.review_id, r.reason, r.created_at, u.name FROM review_reports r JOIN users u ON u.id = r.reporter_id "
+                + "WHERE r.status = 'new' AND r.review_id IN (" + in + ") ORDER BY r.id", rs -> {
+            Map<String, Object> report = new LinkedHashMap<>();
+            report.put("reason", rs.getString("reason"));
+            report.put("by", rs.getString("name"));
+            report.put("at", String.valueOf(rs.getTimestamp("created_at")));
+            reports.putIfAbsent(rs.getLong("review_id"), report);
+        }, ids.toArray());
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Map<String, Object> row : rows) {
+            Map<String, Object> review = new LinkedHashMap<>(row);
+            review.put("report", reports.get(((Number) row.get("id")).longValue()));
+            result.add(review);
+        }
+        return result;
     }
 
     public long resubmittedCount() {

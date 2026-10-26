@@ -92,6 +92,22 @@ export async function saveChild(
   })
 }
 
+export interface ChildInterests {
+  likes: string[]
+  wants: string[]
+  budget: string | null
+}
+
+export async function getChildInterests(childId: number, token: string): Promise<ChildInterests | null> {
+  const { data } = await authFetch<ChildInterests>(`/user/children/${childId}/interests`, token)
+  return data ?? null
+}
+
+export async function saveChildInterests(childId: number, answers: ChildInterests, token: string): Promise<{ error?: string }> {
+  const { error } = await authFetch(`/user/children/${childId}/interests`, token, { method: 'PUT', body: JSON.stringify(answers) })
+  return { error }
+}
+
 export async function deleteChild(
   childId: number,
   token: string

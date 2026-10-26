@@ -76,6 +76,11 @@ export async function deleteReviewReply(itemId: number, reviewId: number, token:
   return error ?? null
 }
 
+export async function reportReview(itemId: number, reviewId: number, reason: string, token: string): Promise<string | null> {
+  const { error } = await authFetch(`/item/${itemId}/reviews/${reviewId}/report`, token, { method: 'POST', body: JSON.stringify({ reason }) })
+  return error ?? null
+}
+
 export interface PartnerReviews extends ReviewSummary {
   latest: PdpReview[]
 }

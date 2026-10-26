@@ -178,7 +178,7 @@ export default function Items() {
         <Space wrap>
           <Button icon={<TagsOutlined />} onClick={() => navigate('/tags')}>Tags</Button>
           <Button icon={<WarningOutlined />} onClick={() => navigate('/item-gaps')}>Thiếu thuộc tính</Button>
-          <Badge count={badges?.reviewsResubmitted ?? 0} size="small" offset={[-4, 4]}>
+          <Badge count={(badges?.reviewsResubmitted ?? 0) + (badges?.reviewsReported ?? 0)} size="small" offset={[-4, 4]}>
             <Button icon={<StarOutlined />} onClick={() => navigate('/reviews')}>Xem tất cả đánh giá</Button>
           </Badge>
         </Space>

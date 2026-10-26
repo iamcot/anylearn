@@ -12,6 +12,10 @@ export function rewardLabel(points: number, vndValue = points * POINT_VALUE_VND)
   return `Nhận +${formatPoints(points)} anyPoint (~${formatVndAmount(vndValue)})`
 }
 
+export function cardPointsLabel(points?: number): string | null {
+  return points && points > 0 ? `+${formatPoints(points)} anyPoint` : null
+}
+
 export function cartRewardLabel(points: number): string {
   return `Đơn này bạn sẽ nhận +${formatPoints(points)} anyPoint (~${formatVndAmount(points * POINT_VALUE_VND)})`
 }

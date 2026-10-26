@@ -2,6 +2,17 @@
 @apiToken = {{$dotenv API_TOKEN}}
 @jwtToken = {{$dotenv JWT_TOKEN}}
 
+### Interest survey of a child (optional)
+PUT {{baseUrl}}/user/children/1/interests
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{ "likes": ["chess", "art"], "wants": ["english"], "budget": "500_1000" }
+
+###
+GET {{baseUrl}}/user/children/1/interests
+Authorization: Bearer {{jwtToken}}
+
 ### Get my profile (api_token)
 GET {{baseUrl}}/user?api_token={{apiToken}}
 

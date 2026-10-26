@@ -61,6 +61,14 @@ public final class ReviewRules {
         return cleanText(reason, MAX_REASON_LENGTH).isEmpty() ? "Nhập lý do ẩn để báo cho người viết" : null;
     }
 
+    public static final int MIN_REPORT_REASON_LENGTH = 10;
+
+    /** Null when a report with this reason is fine; the team needs enough words to judge. */
+    public static String reportReasonProblem(String reason) {
+        return cleanText(reason, MAX_REASON_LENGTH).length() < MIN_REPORT_REASON_LENGTH
+                ? "Nhập lý do báo cáo (ít nhất " + MIN_REPORT_REASON_LENGTH + " ký tự) để anyLEARN xem xét" : null;
+    }
+
     public static boolean isKnownStatus(String status) {
         return PUBLISHED.equals(status) || HIDDEN.equals(status);
     }

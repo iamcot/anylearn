@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { getChildren, saveChild, deleteChild, type ChildUser } from '@/lib/api'
 import AccountCard from '@/components/account/AccountCard'
+import ChildInterestsModal from '@/components/ChildInterestsModal'
 import ChildFormModal, { type ChildDraft } from '@/components/ChildFormModal'
 import { ListSkeleton } from '@/components/PageSkeleton'
 import { useToast } from '@/components/ToastProvider'
@@ -18,6 +19,7 @@ export default function ChildrenPage() {
   const [loading, setLoading] = useState(true)
   const [draft, setDraft] = useState<ChildDraft | null>(null)
   const [saving, setSaving] = useState(false)
+  const [interestsFor, setInterestsFor] = useState<ChildUser | null>(null)
   const [confirmingDeleteId, setConfirmingDeleteId] = useState<number | null>(null)
 
   useEffect(() => {
@@ -39,6 +41,8 @@ export default function ChildrenPage() {
     if (error || !data) { toast({ kind: 'error', text: error || 'Lỗi lưu thông tin' }); return }
     setChildren(prev => (values.id ? prev.map(child => (child.id === data.id ? data : child)) : [...prev, data]))
     setDraft(null)
+    // A new child gets the optional survey right away; it can be skipped and reopened with "Sở thích".
+    if (!values.id) setInterestsFor(data)
   }
 
   const handleDelete = async (childId: number) => {
@@ -57,6 +61,16 @@ export default function ChildrenPage() {
       action={<button type="button" onClick={() => setDraft({ name: '', dob: '' })} className="btn btn--green min-h-11 px-4 py-2 text-sm">+ Thêm tài khoản</button>}
     >
       {draft && <ChildFormModal initial={draft} saving={saving} dobRequired={false} onSave={handleSave} onClose={() => setDraft(null)} />}
+
+      {interestsFor && token && (
+        <ChildInterestsModal
+          childId={interestsFor.id}
+          childName={interestsFor.name}
+          token={token}
+          onClose={() => setInterestsFor(null)}
+          onSaved={() => { setInterestsFor(null); toast({ kind: 'success', text: 'Đã lưu sở thích' }) }}
+        />
+      )}
 
       <div className="p-4 sm:p-5">
         {loading ? (
@@ -77,6 +91,7 @@ export default function ChildrenPage() {
                   {child.dob && <div className="text-xs text-muted">{new Date(child.dob).toLocaleDateString('vi-VN')}</div>}
                 </div>
                 <div className="flex shrink-0 gap-1">
+                  <button type="button" onClick={() => setInterestsFor(child)} className={`${TEXT_BUTTON} text-green-dark`}>Sở thích</button>
                   <button type="button" onClick={() => setDraft({ id: child.id, name: child.name, dob: child.dob ?? '' })} className={`${TEXT_BUTTON} text-blue`}>Sửa</button>
                   <button type="button" onClick={() => handleDelete(child.id)} className={`${TEXT_BUTTON} text-red`}>
                     {confirmingDeleteId === child.id ? 'Bấm lần nữa để xoá' : 'Xóa'}

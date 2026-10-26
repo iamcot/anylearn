@@ -33,6 +33,7 @@ public class AdminBadgeController {
         counts.put("courseRequests", count("SELECT COUNT(*) FROM course_requests WHERE status <> 'closed'"));
         counts.put("priceReports", count("SELECT COUNT(*) FROM price_reports WHERE status NOT IN ('fixed', 'rejected')"));
         counts.put("reviewsResubmitted", reviewService.resubmittedCount());
+        counts.put("reviewsReported", reviewService.reportedCount());
         return ApiResponse.ok(counts);
     }
 

@@ -79,6 +79,12 @@ Content-Type: application/json
 
 { "comment": "Giáo viên rất nhiệt tình", "scores": { "teacher": 5, "value": 4 }, "media": [] }
 ###
+POST {{baseUrl}}/item/1693/reviews/570/report
+Authorization: Bearer {{$dotenv JWT_TOKEN}}
+Content-Type: application/json
+
+{ "reason": "Người này chưa từng học ở trung tâm" }
+###
 POST {{baseUrl}}/item/1693/reviews/570/reply
 Authorization: Bearer {{$dotenv JWT_TOKEN}}
 Content-Type: application/json

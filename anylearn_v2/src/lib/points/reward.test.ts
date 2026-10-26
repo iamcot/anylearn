@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { cartRewardLabel, earnedLabel, rewardLabel, sumCartPoints } from './reward'
+import { cardPointsLabel, cartRewardLabel, earnedLabel, rewardLabel, sumCartPoints } from './reward'
 
 describe('rewardLabel', () => {
   it('shows the points and what they are worth', () => {
@@ -28,5 +28,16 @@ describe('earnedLabel', () => {
 describe('cartRewardLabel', () => {
   it('speaks about the whole order', () => {
     expect(cartRewardLabel(200)).toBe('Đơn này bạn sẽ nhận +200 anyPoint (~200.000đ)')
+  })
+})
+
+describe('cardPointsLabel', () => {
+  it('is short and has no money value', () => {
+    expect(cardPointsLabel(1200)).toBe('+1.200 anyPoint')
+  })
+
+  it('is empty without points', () => {
+    expect(cardPointsLabel(0)).toBeNull()
+    expect(cardPointsLabel(undefined)).toBeNull()
   })
 })

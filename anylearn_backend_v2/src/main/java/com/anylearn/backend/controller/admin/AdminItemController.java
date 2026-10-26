@@ -471,6 +471,14 @@ public class AdminItemController {
         return problem == null ? ApiResponse.ok("OK") : ApiResponse.fail(problem);
     }
 
+    /** The team keeps a review a partner reported (closes the report without hiding it). */
+    @PutMapping("/{id:\\d+}/reviews/{reviewId:\\d+}/keep")
+    public ApiResponse<?> keepReportedReview(@AuthenticationPrincipal User user, @PathVariable Long id, @PathVariable Long reviewId) {
+        if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
+        String problem = reviewService.keepReported(id, reviewId);
+        return problem == null ? ApiResponse.ok("OK") : ApiResponse.fail(problem);
+    }
+
     // ── Item Schedules CRUD ───────────────────────────────────────────────────
 
     @GetMapping("/{id:\\d+}/schedules")

@@ -48,6 +48,7 @@ public class AdminReviewController {
             m.put("partnerReply", review.get("partner_reply"));
             m.put("hiddenReason", review.get("hidden_reason"));
             m.put("resubmittedAt", review.get("resubmitted_at") != null ? review.get("resubmitted_at").toString() : null);
+            m.put("report", review.get("report"));
             m.put("scores", review.get("scores"));
             m.put("media", review.get("media"));
             rows.add(m);

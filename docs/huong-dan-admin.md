@@ -243,7 +243,9 @@ Trang khóa học hiện: điểm trung bình, số đánh giá, tỉ lệ từn
 
 **Thưởng anyPoint khi đánh giá:** đánh giá có nhận xét từ **50 ký tự** được thưởng anyPoint, có ít nhất một ảnh được thưởng thêm (số anyPoint chỉnh ở Cài đặt > Vận hành, mặc định 20 và 20; nhập 0 để tắt). Mỗi đánh giá chỉ thưởng một lần: sửa lại không nhận thêm, chỉ thêm ảnh sau đó thì nhận phần thưởng ảnh. Phụ huynh thấy dòng "+X anyPoint" ngay trong form và nhận thông báo; lịch sử anyPoint ghi "Thưởng viết đánh giá". **Admin xóa đánh giá thì anyPoint đã thưởng bị thu hồi** (ghi "Thu hồi anyPoint thưởng đánh giá"); nếu phụ huynh đã tiêu bớt thì chỉ thu phần còn lại, số dư không âm. Chỉ ẩn thì không thu hồi. Giao dịch nằm ở trang anyPoints với loại `review_reward` và `review_reward_revoke`.
 
-**Chưa có:** nút "Báo cáo đánh giá" của đối tác, lọc theo tuổi của bé.
+**Đối tác báo cáo đánh giá:** đối tác đăng nhập, mở trang khóa của mình, bấm **Báo cáo** dưới một đánh giá và nhập lý do (ít nhất 10 ký tự, ví dụ "người này chưa từng học ở trung tâm"). Đối tác không tự ẩn hay xóa được. Admin (và các thành viên nhận thông báo) nhận thông báo "{đối tác} báo cáo một đánh giá"; số đỏ trên nút **Xem tất cả đánh giá** cộng cả đánh giá đã sửa lại và đánh giá bị báo cáo. Vào **Tất cả đánh giá**, chọn bộ lọc **Đối tác báo cáo, chờ xem**: mỗi dòng hiện lý do. Chọn **Giữ đánh giá** (báo cáo đóng, đánh giá vẫn hiện) hoặc tắt công tắc **Hiện** để ẩn kèm lý do (báo cáo tự đóng). Mỗi đối tác báo cáo một đánh giá một lần; người viết không biết ai báo cáo.
+
+**Chưa có:** lọc đánh giá theo tuổi của bé.
 
 ---
 

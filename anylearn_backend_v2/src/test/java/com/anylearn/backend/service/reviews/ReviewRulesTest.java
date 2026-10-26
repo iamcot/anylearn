@@ -55,4 +55,11 @@ class ReviewRulesTest {
         org.junit.jupiter.api.Assertions.assertNotNull(ReviewRules.hideReasonProblem("   "));
         org.junit.jupiter.api.Assertions.assertNull(ReviewRules.hideReasonProblem("Nội dung chưa nói về khóa học"));
     }
+
+    @Test
+    void reportingNeedsEnoughWords() {
+        org.junit.jupiter.api.Assertions.assertNotNull(ReviewRules.reportReasonProblem(null));
+        org.junit.jupiter.api.Assertions.assertNotNull(ReviewRules.reportReasonProblem(" ngắn "));
+        org.junit.jupiter.api.Assertions.assertNull(ReviewRules.reportReasonProblem("Người này chưa từng học ở trung tâm"));
+    }
 }

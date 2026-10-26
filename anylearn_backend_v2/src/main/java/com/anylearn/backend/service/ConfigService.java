@@ -24,6 +24,7 @@ public class ConfigService {
     private final ObjectMapper objectMapper;
     private final com.anylearn.backend.repository.UserRepository userRepository;
     private final ItemUserActionRepository itemUserActionRepository;
+    private final com.anylearn.backend.service.points.ItemPointsResolver itemPointsResolver;
 
     public Map<String, Object> homeV2(String role) {
         Map<String, Object> result = new LinkedHashMap<>();
@@ -151,6 +152,13 @@ public class ConfigService {
         m.put("isHot",        item.getIsHot());
         m.put("rating",       itemUserActionRepository.avgRating(item.getId()));
         m.put("num_favorite", itemUserActionRepository.countFav(item.getId()));
+        // anyPoint the buyer earns, for the "+X anyPoint" badge on list cards (same resolver as the order).
+        try {
+            long points = itemPointsResolver.buyerPoints(item);
+            if (points > 0) m.put("points", points);
+        } catch (RuntimeException e) {
+            log.warn("Points preview failed for item {}: {}", item.getId(), e.getMessage());
+        }
         userRepository.findById(item.getUserId()).ifPresent(u -> {
             m.put("authorName",  u.getName());
             m.put("authorImage", u.getImage());
