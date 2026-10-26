@@ -26,7 +26,7 @@ describe('hotNearBlock', () => {
   it('needs a position', () => {
     expect(hotNearBlock({})).toBeNull()
     const block = hotNearBlock({ near: { lat: 10.78, lng: 106.7 } })
-    expect(block?.extra).toEqual([['nearLat', '10.78'], ['nearLng', '106.7'], ['radiusKm', '15']])
+    expect(block?.extra).toEqual([['nearLat', '10.78'], ['nearLng', '106.7']])
   })
 })
 

@@ -22,7 +22,6 @@ export interface HomeBlock {
   seeAllHref: string
 }
 
-const HOME_RADIUS_KM = 15
 const BASE_STATE: SearchState = { q: '', mode: 'class', sort: 'popular', page: 0, filters: DEFAULT_FILTERS, adv: DEFAULT_ADVANCED }
 
 function learnerExtra(learner: HomeLearner): [string, string][] {
@@ -54,11 +53,11 @@ export function forYouBlock(ctx: HomeContext): HomeBlock {
 export function hotNearBlock(ctx: HomeContext): HomeBlock | null {
   if (!ctx.near) return null
   const near = ctx.near
-  const state: SearchState = { ...BASE_STATE, adv: { ...DEFAULT_ADVANCED, near, radiusKm: HOME_RADIUS_KM } }
+  const state: SearchState = { ...BASE_STATE, adv: { ...DEFAULT_ADVANCED, near } }
   return {
     title: 'Đang hot gần bạn',
     sort: 'popular',
-    extra: [['nearLat', String(near.lat)], ['nearLng', String(near.lng)], ['radiusKm', String(HOME_RADIUS_KM)]],
+    extra: [['nearLat', String(near.lat)], ['nearLng', String(near.lng)]],
     seeAllHref: buildSearchUrl(state),
   }
 }

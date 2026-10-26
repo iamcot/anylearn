@@ -217,6 +217,11 @@ Thư mục `http/` chứa VS Code REST Client files cho mọi endpoint:
 - FE `lib/auth/sessionGuard.ts` (installed once by `AuthProvider`) wraps `fetch` for every API call: a 401 to a request that carried the stored token clears the session and, on pages that need an account (`/account`, `/checkout`, `/order`, `/today`…), goes to `/login?expired=1&redirect=…`; a refreshed token replaces the stored one. Do not handle 401 per call. Admin: `api/client.js` does the same with `admin_token`; `components/ErrorBoundary.jsx` shows "Tải lại / Đăng xuất" instead of a white page.
 - After a deploy an open tab may ask for script files of the old build: `app/error.tsx` and `app/global-error.tsx` reload the page once (`lib/errors/chunkReload.ts`, 30 s cooldown); the admin `ErrorBoundary` does the same.
 
+## Admin guide (keep it current)
+
+- `docs/huong-dan-admin.md` is the manual for the back office team (Vietnamese): what data to enter, how search, home page, collections and settings use it, what to do after a change. **Whenever a task adds or changes something an admin enters, configures or sees the effect of (a new field, filter, setting, menu page, env variable, default value), update that file in the same change**, following the pattern in its last section.
+- Operation settings editable by the team (no developer): back office "Cài đặt" > "Vận hành" (`/admin/settings`, `OperationSettingsService`, rules in `SettingsRules`): `search/near_radius_km` (default 10, 1 to 100, used by `/api/search` when `radiusKm` is not sent and by the home row "Đang hot gần bạn"), `order/remind_hours`, `order/auto_cancel_hours`, `order/auto_cancel_enabled`; the same page has the button that runs `POST /admin/reindex`.
+
 ## Growth roadmap
 
 Feature plans live in `plans/` (start with `plans/00-overview.md`); progress, owner decisions and open questions in `plans/PROGRESS.md`. Update PROGRESS.md after every task.

@@ -237,6 +237,8 @@ export async function searchItems(q: string, page = 0, pageSize = 20, options: S
 export interface SearchOptions {
   districts: { code: string; name: string }[]
   tags: { id: number; name: string; group: string }[]
+  // How far "Gần tôi" reaches, set in the back office
+  nearRadiusKm?: number
 }
 
 export async function getSearchOptions(province?: string): Promise<SearchOptions> {

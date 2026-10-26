@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { SearchOptions } from '@/lib/api'
 import {
-  FILTER_ALL, NEAR_RADIUS_KM, PRICE_PRESETS, PROVINCE_OPTIONS, QUICK_CHIPS, TIME_SLOT_OPTIONS, type QuickChipId,
+  FILTER_ALL, PRICE_PRESETS, PROVINCE_OPTIONS, QUICK_CHIPS, TIME_SLOT_OPTIONS, type QuickChipId,
 } from '@/config/searchFilters'
 import { districtChipLabel, priceChipLabel, slotChipLabel } from '@/lib/search/chipLabels'
 import { isQuickChipOn, toggleQuickChip } from '@/lib/search/quickFilters'
@@ -62,7 +62,7 @@ export default function FilterBar({ state, apply, options, total, loading, onOpe
       return
     }
     const point = await locate()
-    if (point) apply({ adv: { ...adv, near: point, radiusKm: NEAR_RADIUS_KM }, sort: state.sort === 'popular' ? 'nearest' : state.sort })
+    if (point) apply({ adv: { ...adv, near: point }, sort: state.sort === 'popular' ? 'nearest' : state.sort })
   }
 
   const autoLocated = useRef(false)

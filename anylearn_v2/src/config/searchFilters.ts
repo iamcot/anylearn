@@ -63,7 +63,6 @@ export const START_WITHIN_OPTIONS = [
 export const PRICE_SLIDER_MAX = 10_000_000
 export const PRICE_SLIDER_STEP = 500_000
 
-export const NEAR_RADIUS_KM = 10
 export const TAG_CHIP_LIMIT = 24
 
 // Chips under the search box that switch one filter on and off. `near` asks for the position first.

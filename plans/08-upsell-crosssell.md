@@ -22,8 +22,10 @@ Giai đoạn 3. Trụ cột D. Cần plan 03 (thuộc tính) để gợi ý chí
 ## Task
 
 ### 08.1 Lộ trình khóa học
-- Bảng `item_next_steps (item_id, next_item_id, sort, note)`; admin/đối tác khai báo.
-- API `GET /v2/api/items/{id}/next`.
+Chủ sản phẩm chốt 26/10/2026: **admin** tạo lộ trình (không phải đối tác), khác bộ sưu tập (04.4) vì có thứ tự và tiến độ theo từng bé.
+- Bảng `pathways (id, slug, title, subtitle, cover, partner_id, is_active)` và `pathway_steps (pathway_id, item_id, step_no, note)`; trang admin dựng bằng khung "tìm khóa + tick + mũi tên" đã có ở bộ sưu tập (`CollectionCoursePicker`).
+- Tiến độ của bé suy ra từ đơn đã mua và lớp đã học (`user_course_enrollments`), không lưu riêng: "Bin ở bước 2/4, bước tiếp theo là …".
+- API `GET /v2/api/items/{id}/pathway` (khóa này thuộc lộ trình nào, bước mấy) và `GET /v2/api/pathways/{slug}`.
 
 ### 08.2 Engine gợi ý theo luật
 - Service `RecommendationService` với các nguồn trên, mỗi nguồn trả `{itemId, reasonCode, reasonText, score}`.

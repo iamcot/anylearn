@@ -146,6 +146,9 @@ export default function AppShell() {
       ),
       { key: 'notification-recipients', icon: <BellOutlined />, label: 'Người nhận thông báo admin', onClick: () => navigate('/notification-recipients') },
     ] },
+    { key: 'g-ops', type: 'group', label: 'Vận hành', children: [
+      { key: 'operations', icon: <SettingOutlined />, label: 'Cấu hình tìm kiếm & đơn hàng', onClick: () => navigate('/operations') },
+    ] },
     { key: 'g-money', type: 'group', label: 'Thanh toán', children: [
       { key: 'bank-account', icon: <BankOutlined />, label: 'Tài khoản ngân hàng', onClick: () => navigate('/bank-account') },
       { key: 'audit', icon: <AuditOutlined />, label: 'Kiểm toán anyPoint', onClick: () => navigate('/audit') },

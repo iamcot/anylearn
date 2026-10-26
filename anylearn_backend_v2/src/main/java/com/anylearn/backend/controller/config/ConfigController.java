@@ -31,6 +31,7 @@ public class ConfigController {
     private final ConfigService configService;
     private final MeilisearchService meilisearchService;
     private final SearchLogService searchLogService;
+    private final com.anylearn.backend.service.settings.OperationSettingsService operationSettingsService;
     private final VoucherRepository voucherRepository;
     private final VoucherGroupRepository voucherGroupRepository;
     private final ConfigurationRepository configurationRepository;
@@ -85,7 +86,7 @@ public class ConfigController {
                                   @AuthenticationPrincipal User user) {
         var filters = SearchFilters.Builder.empty().category(category).authorId(authorId).ageBucket(age).priceBucket(priceRange)
                 .provinceCode(location).mode(mode).districtCode(district).learnerAge(ageFrom, ageTo)
-                .near(nearLat, nearLng, radiusKm).timeSlots(timeSlot == null ? List.of() : timeSlot).partnerType(partnerType)
+                .near(nearLat, nearLng, radiusKm != null ? radiusKm : (double) operationSettingsService.nearRadiusKm()).timeSlots(timeSlot == null ? List.of() : timeSlot).partnerType(partnerType)
                 .tags(tag == null ? List.of() : tag).price(priceMin, priceMax).startWithin(startWithin).today(java.time.LocalDate.now());
         if (freeTrial) filters.freeTrial();
         if (onSale) filters.onSale();
@@ -109,7 +110,9 @@ public class ConfigController {
 
     @GetMapping("/search/options")
     public ApiResponse<?> searchOptions(@RequestParam(required = false) String province) {
-        return ApiResponse.ok(configService.searchOptions(province));
+        var options = new java.util.LinkedHashMap<>(configService.searchOptions(province));
+        options.put("nearRadiusKm", operationSettingsService.nearRadiusKm());
+        return ApiResponse.ok(options);
     }
 
     @GetMapping("/search-tags")

@@ -11,6 +11,7 @@ import CourseRequests from './pages/CourseRequests'
 import PriceReports from './pages/PriceReports'
 import Tags from './pages/Tags'
 import Collections from './pages/Collections'
+import OperationSettings from './pages/OperationSettings'
 import ItemGaps from './pages/ItemGaps'
 import SearchInsights from './pages/SearchInsights'
 import NotificationRecipients from './pages/NotificationRecipients'
@@ -94,6 +95,7 @@ export default function App() {
                   <Route path="price-reports" element={<PriceReports />} />
                   <Route path="tags" element={<Tags />} />
                   <Route path="collections" element={<Collections />} />
+                  <Route path="operations" element={<OperationSettings />} />
                   <Route path="item-gaps" element={<ItemGaps />} />
                   <Route path="search-insights" element={<SearchInsights />} />
                   <Route path="settings" element={<Settings />} />
