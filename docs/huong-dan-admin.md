@@ -161,7 +161,7 @@ Trang chủ có các khối: tìm kiếm + chip, **Dành cho {tên bé}**, **Đa
 - **Dành cho {bé}**: khóa phổ biến nhất hợp tuổi bé đang chọn. Khách chưa đăng nhập: dùng độ tuổi khách đã khai; chưa khai thì hiện "Khóa học được quan tâm nhiều".
 - **Đang hot gần bạn**: chỉ hiện với tài khoản có **địa chỉ nhà đã lưu có tọa độ** (dùng bán kính "Gần tôi").
 - **Bộ sưu tập**: xem mục 7. Không có bộ nào đang bật thì khối ẩn.
-- **Chuyên gia và đối tác nổi bật**: tự động lấy 4 trường và 4 giáo viên được tìm nhiều nhất, bấm vào mở trang đối tác (mục 7b). Muốn đưa ai lên cao hơn thì tăng điểm ưu tiên của họ.
+- **Chuyên gia và đối tác nổi bật**: tự động lấy 4 trường và 4 giáo viên được tìm nhiều nhất trong số đối tác **đã ký hợp đồng** (công tắc Ký HĐ bật, mục 2.2), bấm vào mở trang đối tác (mục 7b). Muốn đưa ai lên cao hơn thì tăng điểm ưu tiên của họ.
 - Khối **Thử điều mới cho con** là một thẻ nổi bật giải thích ngắn: chọn theo tuổi bé, ưu tiên gần nhà (cần địa chỉ nhà trong tài khoản), mỗi ngày một danh sách mới. Bấm "Khám phá hôm nay" để mở danh sách (mục 7b).
 - Khối nào không có dữ liệu thì tự ẩn, không để lại chỗ trống.
 
@@ -222,7 +222,7 @@ Menu **Cài đặt (bánh răng) > Vận hành > Cấu hình tìm kiếm & đơn
 | Nhắc thanh toán sau (giờ) | Các mốc nhắc đơn chưa thanh toán, cách nhau dấu phẩy. Mốc đầu: thông báo trong app và push. Từ mốc 2: thêm email | 2, 24 |
 | Tự hủy đơn quá hạn | Bật/tắt việc tự hủy đơn chưa thanh toán | Bật |
 | Hủy đơn sau (giờ) | Đơn chưa thanh toán bị hủy sau thời gian này kể từ lúc đặt. Điểm anyPoint đã dùng được hoàn lại | 72 giờ |
-| Cập nhật chỉ mục ngay | Chạy lại toàn bộ chỉ mục tìm kiếm (mất vài phút) | |
+| Cập nhật chỉ mục ngay | Chạy lại toàn bộ chỉ mục tìm kiếm, gồm cả khóa học và danh sách trường / chuyên gia (mất vài phút) | |
 
 Đơn bị hủy do quá hạn mà khách vẫn chuyển khoản: tiền được ghi lại ở mục cần kiểm tra và admin nhận thông báo để xử lý, không mất tiền.
 Khách có đơn của cùng khóa và cùng bé đã thanh toán ở đơn khác thì không bị nhắc.
@@ -276,6 +276,7 @@ Dành cho người cài đặt hệ thống; team admin chỉ cần biết để
 | Khách bị đăng xuất | Đăng nhập hết hạn (30 ngày không dùng) | Đăng nhập lại |
 | Người theo dõi không nhận thông báo khóa mới | Khóa đã báo một lần, hoặc khóa đã bật sẵn từ trước | Chỉ khóa chuyển từ tắt sang bật mới báo; tạo khóa ở trạng thái tắt rồi bật khi sẵn sàng |
 | "Thử điều mới" trống | Không có khóa nào khớp tuổi và khu vực | Kiểm tra độ tuổi và tọa độ cơ sở của khóa |
+| Danh sách trường / chuyên gia (trang anySCHOOL, anyPROFESSOR, khối đối tác nổi bật) thiếu người | Chỉ đối tác đã bật **Ký HĐ** mới được liệt kê; hoặc danh sách chưa cập nhật sau khi bật Ký HĐ hàng loạt | Bật Ký HĐ cho đối tác (Thành viên), rồi bấm Cập nhật chỉ mục ngay |
 | Bộ sưu tập không hiện trên trang chủ | Đang tắt, ngoài khoảng ngày, hoặc không còn khóa nào đang mở | Kiểm tra công tắc Hiện, khoảng ngày và danh sách khóa |
 
 ---

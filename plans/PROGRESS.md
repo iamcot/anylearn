@@ -428,3 +428,6 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 - `/api/discover` + `/discover`: ngẫu nhiên theo ngày và bé (200 khóa phổ biến khớp tuổi/khu vực, xáo bằng seed), nút ở trang chủ.
 - Chưa thử với Meilisearch thật (sandbox không tải được): `searchIds` và danh sách discover chỉ kiểm tra tới chỗ trả rỗng; xáo và phân trang có test.
 - Task 04 xong (04.6 so sánh khóa học thuộc giai đoạn 4).
+
+### 26/10/2026 – danh sách trường / chuyên gia thiếu người
+- Nguyên nhân: chỉ mục `users` cũ ghi nguyên giá trị `is_signed` (99) nhưng bộ lọc tìm kiếm đòi `isSigned = 1`, nên gần như không ai hiện. Code đã đổi sang ghi 1 khi hợp đồng "đã duyệt" (99) từ V27, nhưng nút/endpoint `POST /admin/reindex` chỉ dựng lại chỉ mục khóa học nên chỉ mục người dùng vẫn cũ (chỉ cập nhật lúc 5 giờ sáng hoặc khi sửa từng người). Nay `POST /admin/reindex` (nút "Cập nhật chỉ mục ngay") dựng cả chỉ mục người dùng.

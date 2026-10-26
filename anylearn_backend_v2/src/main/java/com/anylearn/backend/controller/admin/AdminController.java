@@ -83,6 +83,8 @@ public class AdminController {
     public ApiResponse<?> reindex(@AuthenticationPrincipal User user) {
         if (user == null || !"admin".equals(user.getRole())) return ApiResponse.fail("Forbidden");
         meilisearchService.reindexAll();
+        // The school and teacher lists read the users index, so it is rebuilt together with the courses.
+        meilisearchService.reindexAllUsers();
         return ApiResponse.ok("Reindex complete");
     }
 
