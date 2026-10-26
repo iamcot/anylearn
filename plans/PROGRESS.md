@@ -130,6 +130,10 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 
 ## Nhật ký
 
+### 27/10/2026 – gom nhóm menu admin
+- Menu trái chia 5 nhóm: Tổng quan · **Đơn hàng** (Đơn hàng, anyPoints, Tài chính) · **Khóa học** (Khóa học, Lịch học, Tags, Thiếu thuộc tính) · **Yêu cầu của thành viên** (Hoạt động = học thử/test/tham quan, Nghỉ / đổi lịch, Nhờ tìm khóa học, Báo giá rẻ hơn) · **Thành viên & nội dung** (Thành viên, Bài viết, Xu hướng nhu cầu). Menu "Cài đặt" ở đáy chia 2 nhóm: Thông báo (email, Zalo OA, người nhận thông báo) và Thanh toán (tài khoản ngân hàng, kiểm toán anyPoint).
+- Danh sách dài hơn màn hình thì cuộn riêng, nút Cài đặt không bị đẩy mất.
+
 ### 27/10/2026 – nhập hàng loạt địa chỉ từ hợp đồng
 - Nút "Nhập địa chỉ từ hợp đồng" ở trang Thành viên mở cửa sổ liệt kê đối tác có hợp đồng đã ký/đã duyệt, chưa có địa chỉ (tối đa 500); bấm "Bắt đầu nhập" thì xử lý lần lượt từng người, hiện địa chỉ trong hợp đồng, địa chỉ mới (kèm khu vực) và kết quả; có thanh tiến độ, nút Dừng/Tiếp tục.
 - Chỉ lưu (làm "Hội sở") khi Google có đúng 1 gợi ý chứa số nhà và tên đường của hợp đồng; nhiều gợi ý hoặc không khớp → "Cần xem lại" kèm gợi ý, không có → "Không tìm thấy"; cả hai có link "Xử lý tay". Mỗi dòng đã nhập có "Hoàn tác".

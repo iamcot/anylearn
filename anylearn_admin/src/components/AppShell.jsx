@@ -11,23 +11,35 @@ import client from '../api/client'
 import logo from '/LogoanyLEARN.svg'
 import '../styles/themes.css'
 
-const NAV_ITEMS = [
-  { key: '/dashboard',        icon: <DashboardOutlined />,   label: 'Tổng quan'  },
-  { key: '/items',            icon: <BookOutlined />,        label: 'Khóa học'   },
-  { key: '/item-gaps',        icon: <WarningOutlined />,     label: 'Thiếu thuộc tính' },
-  { key: '/tags',             icon: <TagsOutlined />,        label: 'Tags'       },
-  { key: '/users',            icon: <TeamOutlined />,        label: 'Thành viên' },
-  { key: '/orders',           icon: <OrderedListOutlined />, label: 'Đơn hàng'  },
-  { key: '/activities',       icon: <SolutionOutlined />,    label: 'Hoạt động'  },
-  { key: '/schedule-monitor', icon: <CalendarOutlined />,    label: 'Lịch học'   },
-  { key: '/schedule-requests', icon: <CustomerServiceOutlined />, label: 'Yêu cầu nghỉ / đổi lịch' },
-  { key: '/course-requests', icon: <SearchOutlined />, label: 'Nhờ tìm khóa học' },
-  { key: '/price-reports', icon: <DollarOutlined />, label: 'Báo giá rẻ hơn' },
-  { key: '/search-insights', icon: <LineChartOutlined />, label: 'Xu hướng nhu cầu' },
-  { key: '/transactions',     icon: <SwapOutlined />,        label: 'anyPoints'  },
-  { key: '/finance',          icon: <FundOutlined />,        label: 'Tài chính'  },
-  { key: '/articles',         icon: <FileTextOutlined />,    label: 'Bài viết'   },
+// Grouped by what the team does: orders and money first, then courses, then what members ask for, then the rest.
+const NAV_GROUPS = [
+  { key: 'g-home', type: 'group', label: null, children: [
+    { key: '/dashboard',        icon: <DashboardOutlined />,   label: 'Tổng quan'  },
+  ] },
+  { key: 'g-orders', type: 'group', label: 'Đơn hàng', children: [
+    { key: '/orders',           icon: <OrderedListOutlined />, label: 'Đơn hàng'  },
+    { key: '/transactions',     icon: <SwapOutlined />,        label: 'anyPoints'  },
+    { key: '/finance',          icon: <FundOutlined />,        label: 'Tài chính'  },
+  ] },
+  { key: 'g-courses', type: 'group', label: 'Khóa học', children: [
+    { key: '/items',            icon: <BookOutlined />,        label: 'Khóa học'   },
+    { key: '/schedule-monitor', icon: <CalendarOutlined />,    label: 'Lịch học'   },
+    { key: '/tags',             icon: <TagsOutlined />,        label: 'Tags'       },
+    { key: '/item-gaps',        icon: <WarningOutlined />,     label: 'Thiếu thuộc tính' },
+  ] },
+  { key: 'g-requests', type: 'group', label: 'Yêu cầu của thành viên', children: [
+    { key: '/activities',       icon: <SolutionOutlined />,    label: 'Hoạt động' },
+    { key: '/schedule-requests', icon: <CustomerServiceOutlined />, label: 'Nghỉ / đổi lịch' },
+    { key: '/course-requests',  icon: <SearchOutlined />,      label: 'Nhờ tìm khóa học' },
+    { key: '/price-reports',    icon: <DollarOutlined />,      label: 'Báo giá rẻ hơn' },
+  ] },
+  { key: 'g-people', type: 'group', label: 'Thành viên & nội dung', children: [
+    { key: '/users',            icon: <TeamOutlined />,        label: 'Thành viên' },
+    { key: '/articles',         icon: <FileTextOutlined />,    label: 'Bài viết'   },
+    { key: '/search-insights',  icon: <LineChartOutlined />,   label: 'Xu hướng nhu cầu' },
+  ] },
 ]
+const NAV_ITEMS = NAV_GROUPS.flatMap(group => group.children)
 
 const SETTINGS_MENU = [
   {
@@ -127,13 +139,16 @@ export default function AppShell() {
   }
 
   const settingsMenu = [
-    ...SETTINGS_MENU.map(item =>
-      item.key === 'email-settings' ? { ...item, onClick: () => navigate('/settings') } : item
-    ),
-    { key: 'bank-account', icon: <BankOutlined />, label: 'Tài khoản ngân hàng', onClick: () => navigate('/bank-account') },
-    { key: 'notification-recipients', icon: <BellOutlined />, label: 'Người nhận thông báo admin', onClick: () => navigate('/notification-recipients') },
-    { type: 'divider' },
-    { key: 'audit', icon: <AuditOutlined />, label: 'Kiểm toán anyPoint', onClick: () => navigate('/audit') },
+    { key: 'g-notify', type: 'group', label: 'Thông báo', children: [
+      ...SETTINGS_MENU.map(item =>
+        item.key === 'email-settings' ? { ...item, onClick: () => navigate('/settings') } : item
+      ),
+      { key: 'notification-recipients', icon: <BellOutlined />, label: 'Người nhận thông báo admin', onClick: () => navigate('/notification-recipients') },
+    ] },
+    { key: 'g-money', type: 'group', label: 'Thanh toán', children: [
+      { key: 'bank-account', icon: <BankOutlined />, label: 'Tài khoản ngân hàng', onClick: () => navigate('/bank-account') },
+      { key: 'audit', icon: <AuditOutlined />, label: 'Kiểm toán anyPoint', onClick: () => navigate('/audit') },
+    ] },
   ]
 
   const selectedKey = NAV_ITEMS.find(i => location.pathname.startsWith(i.key))?.key ?? '/dashboard'
@@ -242,10 +257,10 @@ export default function AppShell() {
           style={{ borderRight: '1px solid #f0f0f0', position: 'sticky', top: 48, height: 'calc(100vh - 48px)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
         >
           {/* Nav menu — scrollable, takes all available space */}
-          <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>
+          <div style={{ height: 'calc(100vh - 48px - 104px)', overflowY: 'auto', overflowX: 'hidden' }}>
             <Menu
               mode="inline" selectedKeys={[selectedKey]}
-              items={NAV_ITEMS}
+              items={NAV_GROUPS}
               onClick={({ key }) => navigate(key)}
               style={{ borderRight: 'none', paddingTop: 8 }}
             />
