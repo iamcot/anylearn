@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { getCategories, getUserProfile, type Category, type PublicUserProfile } from '@/lib/api'
-import { SORT_OPTIONS } from '@/config/searchFilters'
+import { FILTER_ALL, SORT_OPTIONS } from '@/config/searchFilters'
 import {
   DEFAULT_FILTERS, SEARCH_PAGE_SIZE, buildSearchUrl, parseSearchParams, type SearchMode, type SearchState,
 } from '@/lib/search/query'
@@ -14,9 +14,15 @@ import { MobileFilters, SearchFiltersPanel } from '@/components/search/SearchFil
 import AuthorProfileCard from '@/components/search/AuthorProfileCard'
 import { CourseResultCard, UserResultCard } from '@/components/search/ResultCards'
 import Pagination from '@/components/search/Pagination'
-import { NoResults } from '@/components/search/SearchMessages'
+import { NoResults, RequestHelpLine } from '@/components/search/SearchMessages'
+import { currentSearchRef } from '@/components/search/searchTracking'
+import { provinceFromFilter } from '@/lib/search/courseRequest'
+import type { CourseRequestDefaults } from '@/components/search/CourseRequestModal'
 import { useSearchHistory } from '@/components/search/useSearchHistory'
 import { ResultRowsSkeleton } from '@/components/PageSkeleton'
+import GuestLearnerChips from '@/components/guest/GuestLearnerChips'
+import { createSearchTracking } from '@/components/search/searchTracking'
+import { takeGuestAutoAge } from '@/components/guest/takeGuestAutoAge'
 
 interface FetchedResults extends SearchResults {
   url: string
@@ -36,8 +42,15 @@ function SearchPageInner() {
   const headingRef = useRef<HTMLHeadingElement>(null)
 
   useEffect(() => {
+    // A visitor who said who the courses are for gets their age filter first: apply it and wait for the next render
+    // instead of fetching an unfiltered search that would be replaced at once.
+    const guestAge = takeGuestAutoAge(state.filters.age)
+    if (guestAge) {
+      window.history.replaceState(null, '', buildSearchUrl({ ...state, page: 0, filters: { ...state.filters, age: guestAge } }))
+      return
+    }
     let cancelled = false
-    fetchSearchResults(state).then(data => { if (!cancelled) setFetched({ ...data, url }) })
+    fetchSearchResults(state, createSearchTracking()).then(data => { if (!cancelled) setFetched({ ...data, url }) })
     return () => { cancelled = true }
   }, [state, url])
 
@@ -54,6 +67,7 @@ function SearchPageInner() {
     window.history.replaceState(null, '', buildSearchUrl({ ...state, page: 0, ...patch }))
   }
 
+  const pickAge = (ageFilter: string | null) => apply({ filters: { ...state.filters, age: ageFilter ?? FILTER_ALL } })
   const changeMode = (mode: SearchMode) => apply({ mode, q: '', category: undefined, authorId: undefined, filters: DEFAULT_FILTERS })
   const submitQuery = (q: string) => { if (q) remember(q); apply({ q, authorId: undefined }) }
   const pickHistory = (term: string) => { remember(term); apply({ q: term, authorId: undefined }) }
@@ -67,6 +81,12 @@ function SearchPageInner() {
   const total = results?.total ?? 0
   const hasResults = !!results && (results.items.length > 0 || results.users.length > 0)
   const authorProfile = profile && profile.id === state.authorId && state.mode === 'class' ? profile : null
+  // The form opens with what the visitor just searched for.
+  const requestDefaults: CourseRequestDefaults = {
+    subject: state.q,
+    provinceCode: provinceFromFilter(state.filters.location),
+    sourceRef: currentSearchRef(),
+  }
   const filterProps = {
     state,
     categories,
@@ -87,6 +107,8 @@ function SearchPageInner() {
         onPickHistory={pickHistory}
         onClearHistory={clearHistory}
       />
+
+      {state.mode === 'class' && <GuestLearnerChips activeAge={state.filters.age} onPickAge={pickAge} />}
 
       <section className="section py-6 lg:py-10">
         <div className={`container grid items-start gap-7 ${state.mode === 'class' ? 'lg:grid-cols-[300px_1fr]' : ''}`}>
@@ -137,7 +159,8 @@ function SearchPageInner() {
               <Pagination currentPage={state.page} totalPages={Math.ceil(total / SEARCH_PAGE_SIZE)} onChange={changePage} />
             )}
 
-            {!loading && results && !hasResults && <NoResults />}
+            {!loading && results && !hasResults && <NoResults requestDefaults={requestDefaults} />}
+            {!loading && hasResults && state.mode === 'class' && <RequestHelpLine requestDefaults={requestDefaults} />}
           </div>
         </div>
       </section>

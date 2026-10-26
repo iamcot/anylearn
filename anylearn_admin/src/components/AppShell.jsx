@@ -1,7 +1,7 @@
 import { Avatar, Badge, Dropdown, Flex, Layout, List, Menu, Popover, Spin, Typography } from 'antd'
 import {
-  AuditOutlined, BankOutlined, BellOutlined, BookOutlined, CalendarOutlined, DashboardOutlined, FileTextOutlined,
-  CustomerServiceOutlined, FundOutlined, LogoutOutlined, MailOutlined, ApiOutlined, OrderedListOutlined, SettingOutlined, SolutionOutlined, SwapOutlined,
+  AuditOutlined, BankOutlined, BellOutlined, BookOutlined, CalendarOutlined, DashboardOutlined, DollarOutlined, FileTextOutlined,
+  CustomerServiceOutlined, FundOutlined, LineChartOutlined, SearchOutlined, LogoutOutlined, MailOutlined, ApiOutlined, OrderedListOutlined, SettingOutlined, SolutionOutlined, SwapOutlined,
   TeamOutlined, UserOutlined,
 } from '@ant-design/icons'
 import { useEffect, useRef, useState } from 'react'
@@ -19,6 +19,9 @@ const NAV_ITEMS = [
   { key: '/activities',       icon: <SolutionOutlined />,    label: 'Hoạt động'  },
   { key: '/schedule-monitor', icon: <CalendarOutlined />,    label: 'Lịch học'   },
   { key: '/schedule-requests', icon: <CustomerServiceOutlined />, label: 'Yêu cầu nghỉ / đổi lịch' },
+  { key: '/course-requests', icon: <SearchOutlined />, label: 'Nhờ tìm khóa học' },
+  { key: '/price-reports', icon: <DollarOutlined />, label: 'Báo giá rẻ hơn' },
+  { key: '/search-insights', icon: <LineChartOutlined />, label: 'Xu hướng nhu cầu' },
   { key: '/transactions',     icon: <SwapOutlined />,        label: 'anyPoints'  },
   { key: '/finance',          icon: <FundOutlined />,        label: 'Tài chính'  },
   { key: '/articles',         icon: <FileTextOutlined />,    label: 'Bài viết'   },
@@ -54,6 +57,7 @@ export default function AppShell() {
   const [notifItems, setNotifItems] = useState([])
   const [notifLoading, setNotifLoading] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
   const esRef = useRef(null)
 
   // Drag-to-scroll for all horizontal tables
@@ -125,6 +129,7 @@ export default function AppShell() {
       item.key === 'email-settings' ? { ...item, onClick: () => navigate('/settings') } : item
     ),
     { key: 'bank-account', icon: <BankOutlined />, label: 'Tài khoản ngân hàng', onClick: () => navigate('/bank-account') },
+    { key: 'notification-recipients', icon: <BellOutlined />, label: 'Người nhận thông báo admin', onClick: () => navigate('/notification-recipients') },
     { type: 'divider' },
     { key: 'audit', icon: <AuditOutlined />, label: 'Kiểm toán anyPoint', onClick: () => navigate('/audit') },
   ]
@@ -245,7 +250,13 @@ export default function AppShell() {
           </div>
 
           {/* Settings — always at bottom, never overlaps nav items */}
-          <Popover content={<Menu items={settingsMenu} style={{ border: 'none' }} />} trigger="click" placement="rightBottom">
+          <Popover
+            content={<Menu items={settingsMenu} style={{ border: 'none' }} onClick={() => setSettingsOpen(false)} />}
+            trigger="click"
+            placement="rightBottom"
+            open={settingsOpen}
+            onOpenChange={setSettingsOpen}
+          >
             <Flex
               align="center" gap={10}
               className="sider-settings"

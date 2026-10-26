@@ -105,9 +105,7 @@ public class UserService {
             user.setTitle(body.get("title") != null ? body.get("title").toString() : null);
         if (body.containsKey("fullContent"))
             user.setFullContent(body.get("fullContent") != null ? body.get("fullContent").toString() : null);
-        if (body.containsKey("dob") && body.get("dob") != null) {
-            try { user.setDob(LocalDate.parse(body.get("dob").toString())); } catch (Exception ignored) {}
-        }
+        applyDob(user, body);
         if (body.containsKey("sex"))
             user.setSex(body.get("sex") != null ? body.get("sex").toString() : null);
         user.setUpdatedAt(LocalDateTime.now());
@@ -130,6 +128,16 @@ public class UserService {
 
     // ── Children ──────────────────────────────────────────────────────────────
 
+    /** Saves "dob" (yyyy-MM-dd); with "dobYearOnly": true the date is only a placeholder for the birth year. */
+    static void applyDob(User target, Map<String, Object> body) {
+        Object raw = body.get("dob");
+        if (raw == null) return;
+        try {
+            target.setDob(LocalDate.parse(raw.toString()));
+            target.setDobYearOnly(Boolean.TRUE.equals(body.get("dobYearOnly")));
+        } catch (Exception ignored) {}
+    }
+
     public List<UserInfoResponse> getChildren(User user) {
         return userRepository.findByUserIdAndIsChild(user.getId(), (byte) 1)
                 .stream().map(UserInfoResponse::new).toList();
@@ -146,11 +154,15 @@ public class UserService {
             if (!user.getId().equals(child.getUserId()) || child.getIsChild() == null || child.getIsChild() != 1) {
                 throw new IllegalArgumentException("Không có quyền chỉnh sửa tài khoản này");
             }
-            if (body.containsKey("name") && body.get("name") != null)
-                child.setName(body.get("name").toString());
-            if (body.containsKey("dob") && body.get("dob") != null) {
-                try { child.setDob(LocalDate.parse(body.get("dob").toString())); } catch (Exception ignored) {}
+            if (body.containsKey("name") && body.get("name") != null) {
+                String newName = body.get("name").toString();
+                // Only a real rename is checked, so an old family that already has twins can still edit other fields.
+                if (!PersonNames.sameName(child.getName(), newName))
+                    PersonNames.requireUniqueChildName(
+                            userRepository.findByUserIdAndIsChild(user.getId(), (byte) 1), newName, childId);
+                child.setName(newName);
             }
+            applyDob(child, body);
             child.setUpdatedAt(LocalDateTime.now());
             userRepository.save(child);
             return new UserInfoResponse(child);
@@ -158,6 +170,8 @@ public class UserService {
             // Create new child
             User child = new User();
             child.setName(body.get("name") != null ? body.get("name").toString() : "Con " + (user.getName()));
+            PersonNames.requireUniqueChildName(
+                    userRepository.findByUserIdAndIsChild(user.getId(), (byte) 1), child.getName(), null);
             child.setPhone(user.getPhone() + System.currentTimeMillis() % 10000);
             child.setRefcode(child.getPhone());
             child.setPassword(passwordEncoder.encode(user.getPhone()));
@@ -166,9 +180,7 @@ public class UserService {
             child.setIsChild((byte) 1);
             child.setUserId(user.getId());
             child.setApiToken(UUID.randomUUID().toString().replace("-", ""));
-            if (body.containsKey("dob") && body.get("dob") != null) {
-                try { child.setDob(LocalDate.parse(body.get("dob").toString())); } catch (Exception ignored) {}
-            }
+            applyDob(child, body);
             child.setCreatedAt(LocalDateTime.now());
             child.setUpdatedAt(LocalDateTime.now());
             userRepository.save(child);
@@ -257,6 +269,7 @@ public class UserService {
 
     public List<Map<String, Object>> getWalletCHistory(User user) {
         var txns = transactionRepository.findByUserIdAndTypeIn(user.getId(), WALLET_C_TYPES);
+        Map<Long, Long> orderOfDetail = orderIdsOfBuyerRewards(txns);
         var result = new ArrayList<Map<String, Object>>();
         for (var t : txns) {
             var row = new LinkedHashMap<String, Object>();
@@ -266,9 +279,29 @@ public class UserService {
             row.put("status", t.getStatus());
             row.put("content", t.getContent());
             row.put("createdAt", t.getCreatedAt());
+            row.put("orderId", orderIdOf(t, orderOfDetail));
             result.add(row);
         }
         return result;
+    }
+
+    /** The user's own reward is stored against the order line; map the lines to their orders in one query. */
+    private Map<Long, Long> orderIdsOfBuyerRewards(List<com.anylearn.backend.entity.Transaction> txns) {
+        List<Long> detailIds = txns.stream().filter(this::isBuyerReward)
+                .map(com.anylearn.backend.entity.Transaction::getOrderId).filter(java.util.Objects::nonNull).distinct().toList();
+        Map<Long, Long> orderOfDetail = new java.util.HashMap<>();
+        if (!detailIds.isEmpty()) orderDetailRepository.findAllById(detailIds).forEach(d -> orderOfDetail.put(d.getId(), d.getOrderId()));
+        return orderOfDetail;
+    }
+
+    // Referral rewards come from a friend's order, which this user cannot open, so they get no order link.
+    private boolean isBuyerReward(com.anylearn.backend.entity.Transaction t) {
+        return "commission".equals(t.getType()) && t.getRefUserId() == null;
+    }
+
+    private Long orderIdOf(com.anylearn.backend.entity.Transaction t, Map<Long, Long> orderOfDetail) {
+        if ("exchange".equals(t.getType()) || "exchange_refund".equals(t.getType())) return t.getOrderId();
+        return isBuyerReward(t) ? orderOfDetail.get(t.getOrderId()) : null;
     }
 
     // ── Update image URL (after S3 upload) ───────────────────────────────────

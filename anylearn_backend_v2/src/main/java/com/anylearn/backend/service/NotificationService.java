@@ -3,6 +3,7 @@ package com.anylearn.backend.service;
 import com.anylearn.backend.entity.Notification;
 import com.anylearn.backend.repository.NotificationRepository;
 import com.anylearn.backend.repository.UserRepository;
+import com.anylearn.backend.service.push.WebPushService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +22,8 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class NotificationService {
 
-    private static final List<String> EXCLUDED_TYPES = List.of("sms", "zalo");
+    // Types handled by other channels (SMS, Zalo ZNS): never shown in the bell or sent as push.
+    public static final List<String> EXCLUDED_TYPES = List.of("sms", "zalo");
 
     private final NotificationRepository notificationRepository;
     private final NotificationSseService sseService;
@@ -30,6 +32,9 @@ public class NotificationService {
 
     @Autowired(required = false)
     private EmailTemplateService emailTemplateService;
+
+    @Autowired(required = false)
+    private WebPushService webPushService;
 
     public Notification createNotification(Long userId, String type, String title, String content, String route) {
         return createNotification(userId, type, title, content, route, null);
@@ -48,6 +53,7 @@ public class NotificationService {
         n.setUpdatedAt(LocalDateTime.now());
         notificationRepository.save(n);
         pushToBrowser(userId);
+        pushToDevices(n);
         tryEmailForNotification(userId, type, title, content);
         return n;
     }
@@ -55,14 +61,24 @@ public class NotificationService {
     // The browser refetches its notifications as soon as it gets the event, so inside a transaction the event
     // must wait for the commit, otherwise the refetch misses the new row and the bell stays stale until reload.
     void pushToBrowser(Long userId) {
+        runAfterCommit(() -> sseService.notifyUser(userId));
+    }
+
+    // Web Push reaches phones with the app closed. Same commit rule: a rolled back notification is never sent.
+    void pushToDevices(Notification notification) {
+        if (webPushService == null || EXCLUDED_TYPES.contains(notification.getType())) return;
+        runAfterCommit(() -> webPushService.sendNotification(notification));
+    }
+
+    private static void runAfterCommit(Runnable action) {
         if (!TransactionSynchronizationManager.isSynchronizationActive()) {
-            sseService.notifyUser(userId);
+            action.run();
             return;
         }
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
-                sseService.notifyUser(userId);
+                action.run();
             }
         });
     }
@@ -103,6 +119,7 @@ public class NotificationService {
         var due = notificationRepository.findBySendBeforeAndIsSend(LocalDateTime.now(), (byte) 0);
         for (Notification n : due) {
             pushToBrowser(n.getUserId());
+            pushToDevices(n);
             n.setIsSend((byte) 1);
             n.setUpdatedAt(LocalDateTime.now());
             notificationRepository.save(n);

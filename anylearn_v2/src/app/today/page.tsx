@@ -1,5 +1,6 @@
 'use client'
 
+import PendingOrdersCard from '@/components/orders/PendingOrdersCard'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
@@ -16,6 +17,7 @@ import { ExtraCard, LaterTodayCard, NextSessionCard } from '@/components/today/S
 import type { ActionContext } from '@/components/today/SessionButtons'
 import SlotCard from '@/components/today/SlotCard'
 import WeekStrip from '@/components/today/WeekStrip'
+import AppPromptCard from '@/components/pwa/AppPromptCard'
 
 const ORDER = ['order-1', 'order-2', 'order-3', 'order-4', 'order-5', 'order-6', 'order-7', 'order-8']
 
@@ -42,7 +44,7 @@ function EmptyState() {
     <PageFrame>
       <h1 className="text-2xl font-black">Chưa có khóa học đang học</h1>
       <p className="mt-2 text-muted">Khi bạn đăng ký khóa học, lịch học sẽ hiện ở đây mỗi ngày.</p>
-      <Link href={BROWSE_HOME_URL} className="mt-5 inline-flex min-h-11 items-center rounded-full bg-blue px-5 text-[15px] font-black text-white">
+      <Link href={BROWSE_HOME_URL} className="mt-5 inline-flex min-h-11 items-center rounded-full bg-green px-5 text-[15px] font-black text-white">
         Tìm khóa học mới
       </Link>
     </PageFrame>
@@ -97,6 +99,7 @@ function TodayContent() {
 
   return (
     <PageFrame>
+      <div className="mb-4 empty:hidden"><PendingOrdersCard /></div>
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <h1 className="text-2xl font-black lg:text-3xl">{titleFor(selected.self)}</h1>
         <LearnerChips
@@ -126,6 +129,7 @@ function TodayContent() {
               </div>
             </Area>
             <Area order={7}><SlotCard now={now} /></Area>
+            <Area order={8}><AppPromptCard context="today" /></Area>
           </div>
         </div>
       ) : (

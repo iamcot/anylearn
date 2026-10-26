@@ -22,6 +22,7 @@ public class UserInfoResponse {
     private final String title;
     private final String address;
     private final LocalDate dob;
+    private final Boolean dobYearOnly;
     private final String sex;
     private final Long walletM;
     private final Long walletC;
@@ -44,6 +45,7 @@ public class UserInfoResponse {
         this.title = user.getTitle();
         this.address = user.getAddress();
         this.dob = user.getDob();
+        this.dobYearOnly = Boolean.TRUE.equals(user.getDobYearOnly());
         this.sex = user.getSex();
         this.walletM = user.getWalletM();
         this.walletC = user.getWalletC();

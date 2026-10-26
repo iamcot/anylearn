@@ -94,7 +94,7 @@ public class AuditService {
         String summary = discrepancies.size() + " user(s) có số dư anyPoint sai lệch. IDs: " +
                 discrepancies.stream().map(d -> d.userId() + "(Δ" + d.delta() + ")").toList();
 
-        userRepository.findByRole("admin").forEach(admin -> {
+        userRepository.findAdminNotificationRecipients().forEach(admin -> {
             try {
                 notificationService.createNotification(
                         admin.getId(), "system_notif",

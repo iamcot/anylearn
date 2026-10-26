@@ -70,7 +70,7 @@ function KpiTab() {
         <Col xs={24} sm={12} lg={8}>
           <KpiCard loading={isLoading} icon={<RiseOutlined />} color="#52c41a"
             title="Doanh thu ròng công ty" value={d.companyRevenueVnd} suffix="VND"
-            sub="Phần hệ thống giữ lại sau khi phân phối hết điểm"
+            sub="Phần hệ thống giữ lại sau khi phân phối hết anyPoint"
           />
         </Col>
         <Col xs={24} sm={12} lg={8}>

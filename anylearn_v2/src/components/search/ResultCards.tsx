@@ -3,6 +3,7 @@ import { getCourseUrl, type Item, type UserResult } from '@/lib/api'
 import { formatPrice } from '@/lib/format/price'
 import { SUBTYPE_LABELS } from '@/config/itemLabels'
 import ChevronLabel from '@/components/ChevronLabel'
+import { trackSearchClick } from '@/components/search/searchTracking'
 import { BookIcon, HeartIcon, SchoolIcon, StarIcon, UserIcon } from '@/components/icons'
 
 const CARD_CLASS = 'relative grid grid-cols-[112px_1fr] overflow-hidden rounded-2xl border border-line bg-white shadow-card md:grid-cols-[160px_1fr]'
@@ -14,7 +15,7 @@ export function CourseResultCard({ item }: { item: Item }) {
 
   return (
     <article className={CARD_CLASS}>
-      <Link href={getCourseUrl(item)} className="absolute inset-0 z-10" aria-label={item.title} />
+      <Link href={getCourseUrl(item)} onClick={() => trackSearchClick(item.id)} className="absolute inset-0 z-10" aria-label={item.title} />
       <div className={IMAGE_CLASS}>
         {item.image
           // eslint-disable-next-line @next/next/no-img-element

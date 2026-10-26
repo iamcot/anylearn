@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { TODAY_NAV, isNavActive, type TodayNavItem } from '@/lib/today/nav'
+import CountBadge from '@/components/header/CountBadge'
+import { usePendingOrders } from '@/components/orders/usePendingOrders'
 
 const ACCOUNT_HREF = '/account/profile'
 
@@ -30,14 +32,16 @@ function UserAvatar({ active }: { active: boolean }) {
   )
 }
 
-function Tab({ item, active }: { item: TodayNavItem; active: boolean }) {
+function Tab({ item, active, pendingCount }: { item: TodayNavItem; active: boolean; pendingCount: number }) {
   return (
     <Link
       href={item.href}
       aria-current={active ? 'page' : undefined}
-      className={`flex min-h-14 flex-col items-center justify-center gap-0.5 text-[11px] font-semibold no-underline ${active ? 'text-blue' : 'text-muted'}`}
+      className={`flex min-h-[3.75rem] flex-col items-center justify-center gap-0.5 text-[11px] font-semibold no-underline ${active ? 'text-blue' : 'text-muted'}`}
     >
-      {item.href === ACCOUNT_HREF ? <UserAvatar active={active} /> : <TabIcon path={item.icon} />}
+      {item.href === ACCOUNT_HREF
+        ? <span className="relative"><UserAvatar active={active} /><CountBadge count={pendingCount} /></span>
+        : <TabIcon path={item.icon} />}
       {item.label}
     </Link>
   )
@@ -45,12 +49,13 @@ function Tab({ item, active }: { item: TodayNavItem; active: boolean }) {
 
 export default function AppTabs() {
   const pathname = usePathname()
+  const pendingCount = usePendingOrders().length
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-line bg-white pb-[env(safe-area-inset-bottom)] lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-line bg-white px-1 pb-[var(--app-tabs-pad)] lg:hidden"
       aria-label="Menu chính"
     >
-      {TODAY_NAV.map(item => <Tab key={item.href} item={item} active={isNavActive(pathname, item.href)} />)}
+      {TODAY_NAV.map(item => <Tab key={item.href} item={item} active={isNavActive(pathname, item.href)} pendingCount={pendingCount} />)}
     </nav>
   )
 }

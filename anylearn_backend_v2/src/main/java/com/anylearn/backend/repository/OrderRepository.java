@@ -4,6 +4,7 @@ import com.anylearn.backend.entity.Order;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -11,6 +12,8 @@ import java.util.Optional;
 public interface OrderRepository extends JpaRepository<Order, Long> {
 
     Optional<Order> findByIdAndUserId(Long id, Long userId);
+
+    List<Order> findByStatusInAndCreatedAtBeforeOrderByIdAsc(List<String> statuses, LocalDateTime createdBefore);
 
     List<Order> findByUserIdAndStatusInOrderByIdDesc(Long userId, List<String> statuses);
 }

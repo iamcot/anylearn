@@ -201,3 +201,28 @@ export const PackageIcon = (props: IconProps) => (
 export const AlertIcon = (props: IconProps) => (
   <Icon {...props}><path d="M12 4 2.5 20h19zM12 10v4M12 17h.01" /></Icon>
 )
+
+export const ShareIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M12 3v12M8 7l4-4 4 4M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1" />
+  </Icon>
+)
+
+export const PlusSquareIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <rect x="4" y="4" width="16" height="16" rx="3" />
+    <path d="M12 8v8M8 12h8" />
+  </Icon>
+)
+
+export const DownloadIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M12 4v11M7 10l5 5 5-5M5 20h14" />
+  </Icon>
+)
+
+export const RefreshIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M20 11a8 8 0 0 0-14.9-3M4 5v4h4M4 13a8 8 0 0 0 14.9 3M20 19v-4h-4" />
+  </Icon>
+)

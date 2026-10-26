@@ -88,7 +88,7 @@ const unitOf = (type) => VND_TYPES.has(type) ? 'VND' : 'anyPoint'
     <div style={{ padding: 24 }}>
       <div className="page-header">
         <div className="page-title">Giao dịch anyPoint</div>
-        <span className="page-subtitle">Duyệt và quản lý giao dịch điểm</span>
+        <span className="page-subtitle">Duyệt và quản lý giao dịch anyPoint</span>
       </div>
       <div className="page-content">
       <Space style={{ marginBottom: 16, flexWrap: 'wrap', width: '100%', justifyContent: 'space-between' }}>

@@ -195,3 +195,20 @@ Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
 ### Bước 2: Zalo tự redirect về /admin/zns/callback?code=... (không cần gọi thủ công)
 # Nếu cần test: GET {{baseUrl}}/admin/zns/callback?code=CODE_FROM_ZALO
 
+
+
+### Orders waiting for payment: waiting now, reminded, paid after a reminder, expired (admin)
+GET http://localhost:8080/v2/admin/dashboard/pending-orders?from=2026-10-01&to=2026-10-31
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+
+### Price reports sent by visitors (admin) and one update
+GET http://localhost:8080/v2/admin/price-reports
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+###
+PUT http://localhost:8080/v2/admin/price-reports/1
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+Content-Type: application/json
+
+{ "status": "fixed", "adminNote": "Đã chỉnh giá theo đối tác" }

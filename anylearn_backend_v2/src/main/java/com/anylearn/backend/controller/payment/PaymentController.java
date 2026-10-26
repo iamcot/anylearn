@@ -8,6 +8,10 @@ import com.anylearn.backend.entity.OrderStatus;
 import com.anylearn.backend.entity.ItemConstants;
 import com.anylearn.backend.entity.User;
 import com.anylearn.backend.repository.ItemRepository;
+import com.anylearn.backend.repository.ItemUserActionRepository;
+import com.anylearn.backend.service.order.OrderFollowUpSettings;
+import com.anylearn.backend.service.order.PendingOrderRules;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.anylearn.backend.repository.OrderDetailRepository;
 import com.anylearn.backend.repository.OrderRepository;
 import com.anylearn.backend.service.payment.MomoService;
@@ -46,6 +50,9 @@ public class PaymentController {
     private final OrderRepository orderRepository;
     private final OrderDetailRepository orderDetailRepository;
     private final ItemRepository itemRepository;
+    private final ItemUserActionRepository itemUserActionRepository;
+    private final OrderFollowUpSettings followUpSettings;
+    private final ObjectMapper objectMapper;
     private final PaymentConfig paymentConfig;
     private final SepayWebhookService sepayWebhookService;
     private final BankAccountService bankAccountService;
@@ -104,6 +111,7 @@ public class PaymentController {
             boolean hasInactiveItem = false;
             var items = new ArrayList<Map<String, Object>>();
 
+            Map<Long, Long> scheduleOfItem = scheduleIdsByItem(order);
             for (OrderDetail d : details) {
                 var optItem = itemRepository.findById(d.getItemId());
                 if (optItem.isEmpty()) {
@@ -125,6 +133,9 @@ public class PaymentController {
                 row.put("itemId", item.getId());
                 row.put("title", item.getTitle());
                 row.put("image", item.getImage() != null ? item.getImage() : "");
+                // who attends and which slot: the app uses them to spot a second order for the same course
+                row.put("learnerId", d.getUserId());
+                row.put("scheduleId", scheduleOfItem.get(item.getId()));
                 items.add(row);
             }
 
@@ -142,9 +153,27 @@ public class PaymentController {
             row.put("paymentMethod", order.getPayment() != null ? order.getPayment() : "");
             row.put("status", order.getStatus());
             row.put("items", items);
+            if (order.getCreatedAt() != null) {
+                row.put("createdAt", order.getCreatedAt().toString());
+                row.put("expiresAt", PendingOrderRules.expiresAt(order.getCreatedAt(), followUpSettings.autoCancelHours()).toString());
+            }
             result.add(row);
         }
         return ApiResponse.ok(result);
+    }
+
+    /** itemId → chosen schedule, read from the order's pending registration rows. */
+    private Map<Long, Long> scheduleIdsByItem(Order order) {
+        Map<Long, Long> scheduleOfItem = new HashMap<>();
+        itemUserActionRepository.findRegsByOrderId(order.getUserId(), String.valueOf(order.getId())).forEach(reg -> {
+            try {
+                Object scheduleId = objectMapper.readValue(reg.getExtraValue(), Map.class).get("scheduleId");
+                if (scheduleId != null) scheduleOfItem.put(reg.getItemId(), Long.parseLong(String.valueOf(scheduleId)));
+            } catch (Exception ignored) {
+                // a reg row without readable extra just has no schedule
+            }
+        });
+        return scheduleOfItem;
     }
 
     // ── Initiate payment ─────────────────────────────────────────────────────

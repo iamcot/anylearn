@@ -66,6 +66,18 @@ body {
   overflow-x: hidden;
 }
 
+/* Height of the bottom tabs (AppTabs). The installed app (standalone) gets more room below the labels: curved screen
+   corners and the gesture bar hide the lowest ~12px of the screen, and env(safe-area-inset-bottom) is 0 on most Android phones. */
+@layer base {
+  :root {
+    --app-tabs-pad: max(env(safe-area-inset-bottom), 0.5rem);
+    --app-tabs-h: calc(3.75rem + 1px + var(--app-tabs-pad));
+  }
+  @media (display-mode: standalone) {
+    :root { --app-tabs-pad: max(env(safe-area-inset-bottom), 1.25rem); }
+  }
+}
+
 /* In @layer base so Tailwind's min-w-* utilities can override the reset. */
 @layer base {
   *,
@@ -109,10 +121,11 @@ body {
     box-shadow: 0 12px 24px rgba(15, 23, 42, 0.12);
   }
   .btn--green  { background: var(--color-green); color: #fff; }
-  .btn--blue   { background: var(--color-blue); color: #fff; }
-  .btn--yellow { background: var(--color-yellow); color: var(--color-ink); }
-  .btn--white  { background: #fff; color: var(--color-blue); border: 1px solid var(--color-blue-line); }
-  .btn--outline { background: transparent; color: var(--color-blue); border: 1px solid var(--color-blue-line); }
+  /* One system: primary = solid green, secondary = white with a thin line border. The old names stay as aliases. */
+  .btn--blue   { background: var(--color-green); color: #fff; }
+  .btn--yellow { background: var(--color-green); color: #fff; }
+  .btn--white  { background: #fff; color: var(--color-ink); border: 1px solid var(--color-line); }
+  .btn--outline { background: #fff; color: var(--color-ink); border: 1px solid var(--color-line); }
 
   /* ── Section helpers ── */
   .section {
@@ -301,8 +314,8 @@ body {
 
   /* ── Room for the bottom tabs (AppTabs, shown below lg) ── */
   @media (max-width: 1023.98px) {
-    .has-app-tabs { padding-bottom: calc(60px + env(safe-area-inset-bottom)); }
-    .has-app-tabs .zalo-chat-widget { bottom: calc(72px + env(safe-area-inset-bottom)) !important; }
+    .has-app-tabs { padding-bottom: var(--app-tabs-h); }
+    .has-app-tabs .zalo-chat-widget { bottom: calc(var(--app-tabs-h) + 12px) !important; }
   }
 }
 

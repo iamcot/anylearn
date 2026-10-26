@@ -48,6 +48,41 @@ public class AdminDashboardController {
         return ApiResponse.ok(data);
     }
 
+    /** Orders that wait for payment: how many now, how many got a reminder and paid after it, how many expired. */
+    @GetMapping("/pending-orders")
+    public ApiResponse<?> pendingOrders(
+            @AuthenticationPrincipal User user,
+            @RequestParam(required = false) String from,
+            @RequestParam(required = false) String to) {
+        if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
+
+        LocalDateTime start = from != null ? LocalDate.parse(from).atStartOfDay() : LocalDateTime.now().minusMonths(1);
+        LocalDateTime end   = to   != null ? LocalDate.parse(to).atTime(23, 59, 59) : LocalDateTime.now();
+        String inPeriod = "o.created_at BETWEEN ?1 AND ?2";
+
+        long created = count("SELECT COUNT(*) FROM orders o WHERE " + inPeriod, start, end);
+        long reminded = count("SELECT COUNT(DISTINCT f.order_id) FROM order_followups f JOIN orders o ON o.id = f.order_id "
+                + "WHERE f.kind = 'remind' AND " + inPeriod, start, end);
+        long paidAfterRemind = count("SELECT COUNT(DISTINCT f.order_id) FROM order_followups f JOIN orders o ON o.id = f.order_id "
+                + "WHERE f.kind = 'remind' AND o.status IN ('paid','delivered') AND " + inPeriod, start, end);
+        long expired = count("SELECT COUNT(DISTINCT f.order_id) FROM order_followups f JOIN orders o ON o.id = f.order_id "
+                + "WHERE f.kind = 'expire' AND " + inPeriod, start, end);
+
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("pendingNow", count("SELECT COUNT(*) FROM orders WHERE status IN ('new','pay_pending')"));
+        data.put("created", created);
+        data.put("reminded", reminded);
+        data.put("paidAfterRemind", paidAfterRemind);
+        data.put("expired", expired);
+        data.put("paidAfterRemindRate", rate(paidAfterRemind, reminded));
+        data.put("expiredRate", rate(expired, created));
+        return ApiResponse.ok(data);
+    }
+
+    private static double rate(long part, long whole) {
+        return whole == 0 ? 0.0 : Math.round(part * 1000.0 / whole) / 10.0;
+    }
+
     @GetMapping("/chart/users")
     public ApiResponse<?> chartUsers(
             @AuthenticationPrincipal User user,

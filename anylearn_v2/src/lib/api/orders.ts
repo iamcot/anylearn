@@ -5,7 +5,19 @@ export interface PendingOrder {
   amount: number
   paymentMethod: string
   status: string
-  items: { itemId: number; title: string; image?: string }[]
+  createdAt?: string
+  // When the system gives up on the order if it is still unpaid
+  expiresAt?: string
+  items: PendingOrderItem[]
+}
+
+export interface PendingOrderItem {
+  itemId: number
+  title: string
+  image?: string
+  // Who attends and which slot was chosen: used to spot a second order for the same course
+  learnerId?: number | null
+  scheduleId?: number | null
 }
 
 export async function getPendingOrders(token: string): Promise<PendingOrder[]> {

@@ -17,7 +17,13 @@ import RadioOption from '@/components/RadioOption'
 import ActivityFields from '@/components/ActivityFields'
 import ChildFormModal, { type ChildDraft } from '@/components/ChildFormModal'
 import { useToast } from '@/components/ToastProvider'
-import { BookIcon, CalendarIcon, GiftIcon, UserIcon } from '@/components/icons'
+import { BookIcon, CalendarIcon, GiftIcon, PencilIcon, UserIcon } from '@/components/icons'
+import { takePendingChildId } from '@/components/guest/guestLearnerStore'
+import { useChildrenVersion } from '@/components/guest/useGuestLearners'
+import DuplicateOrderModal from '@/components/orders/DuplicateOrderModal'
+import { usePendingOrders } from '@/components/orders/usePendingOrders'
+import { findDuplicatePendingOrder } from '@/lib/orders/pendingOrders'
+import type { PendingOrder } from '@/lib/api/orders'
 
 const ACTIVITY_ROW_LABELS: Record<ActivityType, string> = { trial: 'Học thử', test: 'Đăng ký thi đầu vào', visit: 'Tham quan trường' }
 const BILLING_CYCLES = ['month', 'year', 'week', 'day']
@@ -53,6 +59,7 @@ export default function Add2CartPage() {
   const [activities, setActivities] = useState<ActivitySelection>(EMPTY_SELECTION)
   const [startMonth, setStartMonth] = useState('')
 
+  const childrenVersion = useChildrenVersion()
   const [childDraft, setChildDraft] = useState<ChildDraft | null>(null)
   const [savingChild, setSavingChild] = useState(false)
 
@@ -71,11 +78,28 @@ export default function Add2CartPage() {
       // Links from /today can preselect the child and the start month.
       const params = new URLSearchParams(window.location.search)
       const childId = Number(params.get('child'))
-      if (childId && info?.children?.some(c => c.id === childId)) setSelectedStudent(childId)
+      // The child created from what the visitor told us before registering is picked unless a link chose another one.
+      const pendingChildId = takePendingChildId()
+      const preselected = childId || pendingChildId
+      if (preselected && info?.children?.some(c => c.id === preselected)) setSelectedStudent(preselected)
       const start = params.get('start')
       if (start && /^\d{4}-\d{2}$/.test(start)) setStartMonth(start)
     })
   }, [isAuthLoading, user, token, itemId]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Children added (or matched) right after a login while this page was already open: refresh only the list and the
+  // choice, so the plan and schedule picked meanwhile stay as they are.
+  useEffect(() => {
+    if (!token || childrenVersion === 0) return
+    let cancelled = false
+    getCartInfo(Number(itemId), token).then(info => {
+      if (cancelled || !info) return
+      setData(prev => (prev ? { ...prev, children: info.children } : prev))
+      const pendingChildId = takePendingChildId()
+      if (pendingChildId && info.children.some(child => child.id === pendingChildId)) setSelectedStudent(pendingChildId)
+    })
+    return () => { cancelled = true }
+  }, [childrenVersion, token, itemId])
 
   async function handleSaveChild(draft: ChildDraft) {
     if (!token) return
@@ -89,13 +113,22 @@ export default function Add2CartPage() {
       const children = draft.id ? prev.children.map(c => (c.id === draft.id ? { ...c, ...child } : c)) : [...prev.children, child]
       return { ...prev, children }
     })
+    if (!draft.id) setSelectedStudent(saved.id)
     setChildDraft(null)
   }
 
   const updateActivity = (type: ActivityType, choice: ActivityChoice) => setActivities(prev => ({ ...prev, [type]: choice }))
 
-  const handleAddToCart = async () => {
-    if (!token || !data) return
+  const pendingOrders = usePendingOrders()
+  const [duplicateOrder, setDuplicateOrder] = useState<PendingOrder | null>(null)
+
+  const handleAddToCart = async (ignoreDuplicate = false) => {
+    if (!token || !data || !user) return
+    const duplicate = findDuplicatePendingOrder(pendingOrders, {
+      itemId: Number(itemId), learnerId: selectedStudent ?? user.id, scheduleId: selectedSchedule,
+    })
+    if (duplicate && !ignoreDuplicate) { setDuplicateOrder(duplicate); return }
+    setDuplicateOrder(null)
     setSubmitting(true)
     setError('')
 
@@ -150,7 +183,7 @@ export default function Add2CartPage() {
           title="Bạn đang đăng ký cho"
           action={
             <button type="button" onClick={() => setChildDraft({ name: '', dob: '' })}
-              className="min-h-11 cursor-pointer rounded-full border border-blue bg-white px-3 text-xs font-bold text-blue hover:bg-blue-soft">
+              className="min-h-11 cursor-pointer rounded-full border border-line bg-white px-3 text-xs font-medium text-ink hover:bg-bg">
               + Thêm con
             </button>
           }
@@ -169,8 +202,9 @@ export default function Add2CartPage() {
                   />
                 </div>
                 <button type="button" onClick={() => setChildDraft({ id: child.id, name: child.name, dob: child.dob ?? '' })}
-                  className="min-h-11 cursor-pointer border-0 bg-transparent px-2 text-xs text-muted hover:text-ink">
-                  Sửa
+                  aria-label={`Sửa thông tin ${child.name}`} title="Sửa"
+                  className="grid w-11 shrink-0 cursor-pointer place-items-center rounded-xl border border-line bg-white text-ink hover:bg-bg">
+                  <PencilIcon className="size-[18px]" />
                 </button>
               </div>
             ))}
@@ -262,9 +296,12 @@ export default function Add2CartPage() {
 
         {error && <div className="mb-4 rounded-xl border border-red-line bg-red-soft px-4 py-3 text-red">{error}</div>}
 
-        <button type="button" onClick={handleAddToCart} className="btn btn--green mb-3 w-full p-4 text-[17px]" disabled={submitting}>
+        <button type="button" onClick={() => handleAddToCart()} className="btn btn--green mb-3 w-full p-4 text-[17px]" disabled={submitting}>
           {submitting ? 'Đang thêm...' : 'Thêm vào giỏ hàng'}
         </button>
+        {duplicateOrder && (
+          <DuplicateOrderModal order={duplicateOrder} onCreateNew={() => handleAddToCart(true)} onClose={() => setDuplicateOrder(null)} />
+        )}
         <button type="button" onClick={() => router.back()} className="btn btn--outline w-full">Quay lại</button>
       </div>
     </div>

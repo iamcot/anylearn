@@ -50,8 +50,8 @@ export default async function ArticlesPage({
             href={buildUrl(0, t)}
             className={`inline-flex min-h-11 items-center rounded-full border px-4 text-sm font-semibold no-underline transition-colors ${
               type === t
-                ? 'bg-blue text-white border-blue'
-                : 'bg-white text-blue border-blue-line hover:border-blue'
+                ? 'border-green bg-green-soft text-green-dark'
+                : 'border-line bg-white text-ink hover:border-green'
             }`}
           >
             {t ? <ArticleTypeLabel type={t} /> : 'Tất cả'}
@@ -99,7 +99,7 @@ export default async function ArticlesPage({
           {totalPages > 1 && (
             <div className="flex gap-2 justify-center mt-10 flex-wrap">
               {page > 0 && (
-                <Link href={buildUrl(page - 1, type)} className="inline-flex min-h-11 items-center gap-1 rounded-lg border border-blue-line px-4 text-sm font-semibold text-blue no-underline hover:bg-blue-soft">
+                <Link href={buildUrl(page - 1, type)} className="inline-flex min-h-11 items-center gap-1 rounded-lg border border-line bg-white px-4 text-sm font-medium text-ink no-underline hover:bg-bg">
                   <ChevronLeftIcon className="size-4" /> Trước
                 </Link>
               )}
@@ -109,15 +109,15 @@ export default async function ArticlesPage({
                   href={buildUrl(i, type)}
                   className={`inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-sm font-semibold no-underline ${
                     i === page
-                      ? 'bg-blue text-white'
-                      : 'border border-blue-line text-blue hover:bg-blue-soft'
+                      ? 'border-green bg-green-soft text-green-dark border'
+                      : 'border border-line text-ink hover:bg-bg'
                   }`}
                 >
                   {i + 1}
                 </Link>
               ))}
               {page < totalPages - 1 && (
-                <Link href={buildUrl(page + 1, type)} className="inline-flex min-h-11 items-center gap-1 rounded-lg border border-blue-line px-4 text-sm font-semibold text-blue no-underline hover:bg-blue-soft">
+                <Link href={buildUrl(page + 1, type)} className="inline-flex min-h-11 items-center gap-1 rounded-lg border border-line bg-white px-4 text-sm font-medium text-ink no-underline hover:bg-bg">
                   Tiếp <ChevronRightIcon className="size-4" />
                 </Link>
               )}

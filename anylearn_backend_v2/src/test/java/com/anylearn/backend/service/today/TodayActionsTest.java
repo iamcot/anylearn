@@ -54,7 +54,7 @@ class TodayActionsTest {
     void setUpChildWithOnsiteAndOnlineClassOnTuesday() {
         parent = TodayTestData.user(PARENT_ID, "Mẹ");
         when(users.findByUserIdAndIsChild(PARENT_ID, (byte) 1)).thenReturn(List.of(TodayTestData.user(CHILD_ID, "Bin")));
-        when(users.findByRole("admin")).thenReturn(List.of(TodayTestData.user(50L, "Admin")));
+        when(users.findAdminNotificationRecipients()).thenReturn(List.of(TodayTestData.user(50L, "Admin")));
     }
 
     @Test

@@ -1,10 +1,11 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import type { AuthUser } from '@/lib/api'
 import { ChevronDownIcon, CoinIcon } from '@/components/icons'
+import { useDismissOnOutside } from '@/components/useDismissOnOutside'
 import { ACCOUNT_MENU } from './constants'
 
 export default function AccountMenu({ user }: { user: AuthUser }) {
@@ -12,13 +13,8 @@ export default function AccountMenu({ user }: { user: AuthUser }) {
   const [open, setOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    const closeOnOutsideClick = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) setOpen(false)
-    }
-    document.addEventListener('mousedown', closeOnOutsideClick)
-    return () => document.removeEventListener('mousedown', closeOnOutsideClick)
-  }, [])
+  const close = useCallback(() => setOpen(false), [])
+  useDismissOnOutside(containerRef, open, close)
 
   return (
     <div className="relative" ref={containerRef}>

@@ -259,7 +259,7 @@ public class ItemController {
             };
             String date = ia.getDate() != null ? " · " + ia.getDate() : "";
             final String content = buyerName + " đăng ký " + typeLabel + " · " + itemTitle + date;
-            userRepository.findByRole("admin").forEach(admin -> {
+            userRepository.findAdminNotificationRecipients().forEach(admin -> {
                 try {
                     notificationService.createNotification(admin.getId(), "activity_registration",
                             "Đăng ký hoạt động mới", content, "/admin/activities", null);
@@ -288,7 +288,7 @@ public class ItemController {
             };
             String buyerName = user.getName() != null ? user.getName() : user.getPhone();
             final String content = buyerName + " hủy đăng ký " + typeLabel + " · " + itemTitle;
-            userRepository.findByRole("admin").forEach(admin -> {
+            userRepository.findAdminNotificationRecipients().forEach(admin -> {
                 try {
                     notificationService.createNotification(admin.getId(), "activity_registration",
                             "Hủy đăng ký hoạt động", content, "/admin/activities", null);

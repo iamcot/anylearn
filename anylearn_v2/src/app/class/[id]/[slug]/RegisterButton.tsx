@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useIsClient } from '@/components/useIsClient'
+import GuestLearnerPicker from '@/components/guest/GuestLearnerPicker'
 
 export default function RegisterButton({ itemId }: { itemId: number }) {
   const { user, openAuthModal } = useAuth()
@@ -33,7 +34,7 @@ export default function RegisterButton({ itemId }: { itemId: number }) {
   }
 
   // Logged-in people have the bottom tabs below lg, so the bar sits above them.
-  const bottomClass = user ? 'bottom-[calc(4.5rem+env(safe-area-inset-bottom))] lg:bottom-4' : 'bottom-4'
+  const bottomClass = user ? 'bottom-[calc(var(--app-tabs-h)+0.5rem)] lg:bottom-4' : 'bottom-4'
 
   const stickyBar = sticky ? (
     <div className={`fixed left-1/2 z-[45] flex w-[min(calc(100vw-32px),1180px)] -translate-x-1/2 justify-center rounded-[18px] bg-white px-4 py-3 shadow-raised ${bottomClass}`}>
@@ -45,6 +46,7 @@ export default function RegisterButton({ itemId }: { itemId: number }) {
 
   return (
     <>
+      <GuestLearnerPicker />
       <div ref={sentinelRef} />
       <button type="button" onClick={handleRegister} className="btn btn--green w-full px-6 py-4 text-[17px]">
         Đăng ký ngay

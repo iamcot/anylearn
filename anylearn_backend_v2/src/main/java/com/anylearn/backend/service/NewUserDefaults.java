@@ -27,5 +27,6 @@ final class NewUserDefaults {
         user.setUpdateDoc((byte) 0);
         user.setSalePriority(0);
         user.setGetRefSeller(false);
+        user.setDobYearOnly(false);
     }
 }

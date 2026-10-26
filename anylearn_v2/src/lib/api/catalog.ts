@@ -2,6 +2,7 @@ import { API_BASE } from '@/lib/apiBase'
 import { Article } from './articles'
 import { ItemSchedule } from './cart'
 import { apiFetch } from './client'
+import { trackingQuery, type SearchTracking } from '@/lib/search/searchTracking'
 
 export interface Item {
   id: number
@@ -196,7 +197,14 @@ export interface SearchResult {
   pageSize: number
 }
 
-export async function searchItems(q: string, page = 0, pageSize = 20, category?: string, sort?: string, authorId?: number, age?: string, priceRange?: string, location?: string, mode?: string): Promise<SearchResult> {
+// Only the first page of a search is logged by the server; the ref lets a later click name its search.
+function withTracking(path: string, page: number, tracking?: SearchTracking): [string, RequestInit?] {
+  if (!tracking || page > 0) return [path]
+  const options: RequestInit | undefined = tracking.token ? { headers: { Authorization: `Bearer ${tracking.token}` } } : undefined
+  return [path + trackingQuery(tracking), options]
+}
+
+export async function searchItems(q: string, page = 0, pageSize = 20, category?: string, sort?: string, authorId?: number, age?: string, priceRange?: string, location?: string, mode?: string, tracking?: SearchTracking): Promise<SearchResult> {
   let path = `/search?q=${encodeURIComponent(q)}&page=${page}&pageSize=${pageSize}`
   if (category) path += `&category=${encodeURIComponent(category)}`
   if (sort) path += `&sort=${encodeURIComponent(sort)}`
@@ -205,7 +213,7 @@ export async function searchItems(q: string, page = 0, pageSize = 20, category?:
   if (priceRange) path += `&priceRange=${encodeURIComponent(priceRange)}`
   if (location) path += `&location=${encodeURIComponent(location)}`
   if (mode) path += `&mode=${encodeURIComponent(mode)}`
-  const result = await apiFetch<SearchResult>(path)
+  const result = await apiFetch<SearchResult>(...withTracking(path, page, tracking))
   return result ?? { items: [], total: 0, page, pageSize }
 }
 
@@ -215,10 +223,10 @@ export async function searchTags(q?: string): Promise<string[]> {
   return result ?? []
 }
 
-export async function searchUsers(q: string, role: string, page = 0, pageSize = 20, sort?: string, authorId?: number): Promise<UserSearchResult> {
+export async function searchUsers(q: string, role: string, page = 0, pageSize = 20, sort?: string, authorId?: number, tracking?: SearchTracking): Promise<UserSearchResult> {
   let path = `/search/users?q=${encodeURIComponent(q)}&role=${encodeURIComponent(role)}&page=${page}&pageSize=${pageSize}`
   if (sort) path += `&sort=${encodeURIComponent(sort)}`
   if (authorId) path += `&authorId=${authorId}`
-  const result = await apiFetch<UserSearchResult>(path)
+  const result = await apiFetch<UserSearchResult>(...withTracking(path, page, tracking))
   return result ?? { items: [], total: 0, page, pageSize }
 }

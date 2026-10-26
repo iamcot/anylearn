@@ -13,7 +13,7 @@ interface Props {
 }
 
 const SEGMENT_BASE = 'min-h-11 cursor-pointer border-0 px-3 text-xs font-medium'
-const segment = (active: boolean) => `${SEGMENT_BASE} ${active ? 'bg-blue text-white' : 'bg-white text-muted'}`
+const segment = (active: boolean) => `${SEGMENT_BASE} ${active ? 'bg-green-soft text-green-dark' : 'bg-white text-muted'}`
 const NAV_BUTTON = 'grid size-11 cursor-pointer place-items-center rounded-lg border border-line bg-white text-ink'
 
 export default function ScheduleToolbar({ period, viewMode, label, onPeriodChange, onViewModeChange, onNavigate }: Props) {

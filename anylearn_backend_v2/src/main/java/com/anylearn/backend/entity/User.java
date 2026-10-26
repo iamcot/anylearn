@@ -93,6 +93,10 @@ public class User {
     private String sex;
     private java.time.LocalDate dob;
 
+    // True while only the birth year is known (dob is then January 1st of that year).
+    @Column(name = "dob_year_only", nullable = false)
+    private Boolean dobYearOnly = false;
+
     @Column(columnDefinition = "TEXT")
     private String address;
 

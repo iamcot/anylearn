@@ -1,6 +1,7 @@
 package com.anylearn.backend.service;
 
 import com.anylearn.backend.service.payment.bank.TransferNote;
+import com.anylearn.backend.exception.LearnerDobRequiredException;
 import com.anylearn.backend.entity.Item;
 import com.anylearn.backend.entity.ItemActivity;
 import com.anylearn.backend.entity.ItemSchedule;
@@ -12,6 +13,9 @@ import com.anylearn.backend.entity.Transaction;
 import com.anylearn.backend.entity.User;
 import com.anylearn.backend.repository.*;
 import com.anylearn.backend.service.points.CommissionConfig;
+import com.anylearn.backend.service.order.OrderFollowUpSettings;
+import com.anylearn.backend.service.order.PendingOrderRules;
+import com.anylearn.backend.service.points.ItemPointsResolver;
 import com.anylearn.backend.service.points.PointsBreakdown;
 import com.anylearn.backend.service.points.PointsEngine;
 import com.anylearn.backend.service.NotificationService;
@@ -40,9 +44,10 @@ public class CartService {
     private final OrderRepository orderRepository;
     private final OrderDetailRepository orderDetailRepository;
     private final TransactionRepository transactionRepository;
-    private final ConfigurationRepository configurationRepository;
     private final ConfigService configService;
     private final PointsEngine pointsEngine;
+    private final ItemPointsResolver itemPointsResolver;
+    private final OrderFollowUpSettings orderFollowUpSettings;
     private final NotificationService notificationService;
     private final ObjectMapper objectMapper;
     private final ItemTrackingService itemTrackingService;
@@ -69,6 +74,7 @@ public class CartService {
             m.put("name", c.getName() != null ? c.getName() : "");
             m.put("image", c.getImage());
             m.put("dob", c.getDob());
+            m.put("dobYearOnly", Boolean.TRUE.equals(c.getDobYearOnly()));
             return m;
         }).toList();
 
@@ -155,11 +161,8 @@ public class CartService {
                     .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy thông tin học sinh."));
             if (student.getDob() == null)
                 throw new IllegalArgumentException("Vui lòng cập nhật ngày sinh cho học sinh để kiểm tra độ tuổi.");
-            int age = java.time.Period.between(student.getDob(), java.time.LocalDate.now()).getYears();
-            if (item.getAgesMin() != null && age < item.getAgesMin())
-                throw new IllegalArgumentException("Học sinh chưa đủ tuổi (tối thiểu " + item.getAgesMin() + " tuổi).");
-            if (item.getAgesMax() != null && age > item.getAgesMax())
-                throw new IllegalArgumentException("Học sinh vượt quá độ tuổi (tối đa " + item.getAgesMax() + " tuổi).");
+            // A learner with only a birth year is checked again with the full date at checkout.
+            requireAgeInRange(item, student);
         }
 
         // Rule 4: Fee period must not overlap a paid or waiting one
@@ -228,8 +231,10 @@ public class CartService {
             row.put("image", item.getImage());
             row.put("price", item.getPrice());
             row.put("orgPrice", item.getOrgPrice());
+            row.put("points", itemPointsResolver.buyerPoints(item));
             row.put("dateStart", item.getDateStart());
             userRepository.findById(item.getUserId()).ifPresent(u -> row.put("authorName", u.getName()));
+            putLearner(row, action, currentUser);
             try {
                 if (action.getExtraValue() != null) {
                     Map<?, ?> extra = objectMapper.readValue(action.getExtraValue(), Map.class);
@@ -255,6 +260,58 @@ public class CartService {
         return result;
     }
 
+    /** The learner of a cart line: the chosen child, or the account itself. */
+    private Long learnerIdOf(ItemUserAction action, User currentUser) {
+        try {
+            if (action.getExtraValue() != null) {
+                Object sid = objectMapper.readValue(action.getExtraValue(), Map.class).get("studentId");
+                if (sid != null) return Long.parseLong(String.valueOf(sid));
+            }
+        } catch (Exception ignored) {}
+        return currentUser.getId();
+    }
+
+    private void putLearner(Map<String, Object> row, ItemUserAction action, User currentUser) {
+        Long learnerId = learnerIdOf(action, currentUser);
+        row.put("studentId", learnerId.equals(currentUser.getId()) ? null : learnerId);
+        row.put("learnerId", learnerId);
+        userRepository.findById(learnerId).ifPresent(learner -> {
+            row.put("learnerName", learner.getName());
+            row.put("dobComplete", LearnerDob.isComplete(learner));
+            row.put("learnerDobYear", learner.getDob() != null ? learner.getDob().getYear() : null);
+        });
+    }
+
+    private void requireAgeInRange(Item item, User learner) {
+        switch (LearnerDob.checkAge(learner, item.getAgesMin(), item.getAgesMax(), java.time.LocalDate.now())) {
+            case TOO_YOUNG -> throw new IllegalArgumentException(
+                    "Học sinh chưa đủ tuổi (tối thiểu " + item.getAgesMin() + " tuổi).");
+            case TOO_OLD -> throw new IllegalArgumentException(
+                    "Học sinh vượt quá độ tuổi (tối đa " + item.getAgesMax() + " tuổi).");
+            case OK -> { }
+        }
+    }
+
+    /**
+     * Checkout needs the full date of birth of every learner in the cart (a guest may have given only the birth year).
+     * With the exact date the age limit of each course is checked once more.
+     */
+    private void requireFullDobForLearners(List<ItemUserAction> cartItems, User currentUser) {
+        Map<Long, User> learners = new LinkedHashMap<>();
+        for (ItemUserAction action : cartItems) {
+            Long learnerId = learnerIdOf(action, currentUser);
+            userRepository.findById(learnerId).ifPresent(learner -> learners.put(learnerId, learner));
+        }
+        List<Long> missing = learners.values().stream().filter(learner -> !LearnerDob.isComplete(learner)).map(User::getId).toList();
+        if (!missing.isEmpty()) throw new LearnerDobRequiredException(missing);
+
+        for (ItemUserAction action : cartItems) {
+            User learner = learners.get(learnerIdOf(action, currentUser));
+            Item item = itemRepository.findById(action.getItemId()).orElse(null);
+            if (learner != null && item != null) requireAgeInRange(item, learner);
+        }
+    }
+
     public void removeCartItem(Long actionId, User currentUser) {
         ItemUserAction action = itemUserActionRepository.findById(actionId)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy item giỏ hàng"));
@@ -267,6 +324,7 @@ public class CartService {
                                          Integer pointsUsed, User currentUser) {
         List<ItemUserAction> cartItems = findCartItems(currentUser.getId());
         if (cartItems.isEmpty()) throw new IllegalArgumentException("Giỏ hàng trống");
+        requireFullDobForLearners(cartItems, currentUser);
 
         // Build item list and calculate total
         long totalAmount = 0;
@@ -417,7 +475,7 @@ public class CartService {
                 .orElse("") + (orderedItems.size() > 2 ? " +" + (orderedItems.size() - 2) + " khác" : "");
         String content = "Đơn #" + order.getId() + " · " + (buyer.getName() != null ? buyer.getName() : buyer.getPhone())
                 + " · " + itemNames;
-        userRepository.findByRole("admin").forEach(admin -> {
+        userRepository.findAdminNotificationRecipients().forEach(admin -> {
             try {
                 notificationService.createNotification(admin.getId(), "system_notif",
                         "Đơn hàng mới cần duyệt", content, "/admin/orders", null);
@@ -448,7 +506,7 @@ public class CartService {
                     };
                     String content = buyerName + " đăng ký " + typeLabel + " · " + itemTitle
                             + (date != null ? " · " + date : "");
-                    userRepository.findByRole("admin").forEach(admin -> {
+                    userRepository.findAdminNotificationRecipients().forEach(admin -> {
                         try {
                             notificationService.createNotification(admin.getId(), "activity_registration",
                                     "Đăng ký hoạt động mới", content, "/admin/activities", null);
@@ -505,35 +563,31 @@ public class CartService {
                 items.add(row);
             });
         }
-        return Map.of(
-                "orderId", orderId,
-                "items", items,
-                "paymentMethod", order.getPayment() != null ? order.getPayment() : "",
-                "status", order.getStatus(),
-                "amount", order.getAmount(),
-                "transferNote", TransferNote.forOrder(order.getId())
-        );
+        List<Long> detailIds = details.stream().map(OrderDetail::getId).toList();
+        long pointsEarned = detailIds.isEmpty() ? 0L
+                : transactionRepository.sumBuyerPointsForDetails(detailIds, currentUser.getId());
+        Map<String, Object> view = new LinkedHashMap<>();
+        view.put("orderId", orderId);
+        view.put("items", items);
+        view.put("paymentMethod", order.getPayment() != null ? order.getPayment() : "");
+        view.put("status", order.getStatus());
+        view.put("amount", order.getAmount());
+        view.put("transferNote", TransferNote.forOrder(order.getId()));
+        view.put("pointsEarned", pointsEarned);
+        if (order.getCreatedAt() != null) {
+            view.put("expiresAt", PendingOrderRules.expiresAt(order.getCreatedAt(), orderFollowUpSettings.autoCancelHours()).toString());
+        }
+        return view;
     }
 
     private void createPendingCommissions(Order order, OrderDetail detail, Item item, User buyer) {
         long price = item.getPrice() != null ? item.getPrice() : 0L;
         if (price <= 0) return;
 
-        // Load global config
-        Map<String, String> configMap = new java.util.HashMap<>();
-        configurationRepository.findAll().forEach(c -> configMap.put(c.getKey(), c.getValue()));
-        CommissionConfig baseConfig = CommissionConfig.fromMap(configMap);
-
-        // Merge per-item company_commission JSON overrides
-        CommissionConfig config = pointsEngine.mergeCompanyCommission(baseConfig, item.getCompanyCommission());
-
-        // Resolve effective commission rate: item > author > system default
-        User author = userRepository.findById(item.getUserId()).orElse(null);
-        double commRate = pointsEngine.resolveCommissionRate(
-                item.getCommissionRate(),
-                author != null ? author.getCommissionRate() : null,
-                config.commission()
-        );
+        ItemPointsResolver.ItemPoints resolved = itemPointsResolver.resolve(item);
+        CommissionConfig config = resolved.config();
+        User author = resolved.author();
+        double commRate = resolved.commissionRate();
 
         // Count buyer's referral chain depth
         int referralDepth = 0;
@@ -569,7 +623,7 @@ public class CartService {
                             .map(u -> " [" + u.getName() + "]").orElse("");
                 }
                 saveTx(buyer.getId(), null, "commission", bd.buyerPoints(), "wallet_c", detail.getId(),
-                        "Nhận điểm từ khóa học đã mua: " + label);
+                        "Nhận anyPoint từ khóa học đã mua: " + label);
             }
 
             // 3. Referral chain → wallet_c pending (one transaction per level)
@@ -580,7 +634,7 @@ public class CartService {
                 if (refUser == null) break;
                 if (refAmt > 0) {
                     saveTx(currentUserId, buyer.getId(), "commission", refAmt, "wallet_c", detail.getId(),
-                            "Nhận điểm từ " + buyer.getName() + " mua khóa học: " + item.getTitle());
+                            "Nhận anyPoint từ " + buyer.getName() + " mua khóa học: " + item.getTitle());
                 }
                 currentUserId = refUser.getUserId();
             }

@@ -25,7 +25,7 @@ export default function Pagination({ currentPage, totalPages, onChange }: Props)
             aria-current={currentPage === item ? 'page' : undefined}
             onClick={() => onChange(item)}
             className={`h-11 min-w-11 cursor-pointer rounded-full border text-sm font-medium ${
-              currentPage === item ? 'border-blue bg-blue text-white' : 'border-line bg-white text-text'
+              currentPage === item ? 'border-green bg-green-soft text-green-dark' : 'border-line bg-white text-text'
             }`}
           >
             {item + 1}

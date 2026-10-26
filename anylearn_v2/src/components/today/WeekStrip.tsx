@@ -45,9 +45,9 @@ export default function WeekStrip({ week, now }: { week: WeekDayView[]; now: Dat
             <button
               key={day.date} type="button" onClick={() => setSelected(day.date)} aria-pressed={isSelected}
               aria-label={`${weekdayShort(day.date)} ngày ${Number(day.date.slice(8))}`}
-              className={`flex min-h-16 flex-col items-center justify-center rounded-xl py-2 ${isSelected ? 'bg-blue text-white' : 'text-ink hover:bg-bg'}`}
+              className={`flex min-h-16 flex-col items-center justify-center rounded-xl py-2 ${isSelected ? 'border-green bg-green-soft text-green-dark border' : 'text-ink hover:bg-bg'}`}
             >
-              <span className={`text-xs ${isSelected ? 'text-white/80' : 'text-muted'}`}>{weekdayShort(day.date)}</span>
+              <span className={`text-xs ${isSelected ? 'text-green-dark' : 'text-muted'}`}>{weekdayShort(day.date)}</span>
               <span className="text-sm font-black">{Number(day.date.slice(8))}</span>
               <span className="mt-1 flex h-1.5 gap-0.5" aria-hidden="true">
                 {day.hasClass && <span className={`h-1.5 w-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-green'}`} />}

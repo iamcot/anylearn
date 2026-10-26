@@ -9,10 +9,14 @@ import PaymentMethodSelector from '@/components/PaymentMethodSelector'
 import CheckCircle from '@/components/CheckCircle'
 import OrderLine from '@/components/cart/OrderLine'
 import { FormPageSkeleton, ListSkeleton } from '@/components/PageSkeleton'
-import { ClockIcon, CloseIcon } from '@/components/icons'
+import { ClockIcon, CloseIcon, CoinIcon } from '@/components/icons'
 import BankTransferPanel from '@/components/payment/BankTransferPanel'
 import { orderTransferNote } from '@/lib/vietqr/payload'
 import { useOrderStatus } from '@/components/payment/useOrderStatus'
+import AppPromptCard from '@/components/pwa/AppPromptCard'
+import { earnedLabel } from '@/lib/points/reward'
+import { formatHoldUntil } from '@/lib/orders/deadline'
+import { refreshPendingOrders } from '@/components/orders/pendingOrdersStore'
 
 const GATEWAY_WAIT_STEPS = ['Giao dịch đang được xử lý. Vui lòng kiểm tra email xác nhận.']
 
@@ -40,7 +44,7 @@ function InstructionBox({ title, children }: { title: string; children: React.Re
   )
 }
 
-function OrderHeading({ awaitingPayment, paid }: { awaitingPayment: boolean; paid: boolean }) {
+function OrderHeading({ awaitingPayment, paid, holdUntil }: { awaitingPayment: boolean; paid: boolean; holdUntil: string | null }) {
   if (awaitingPayment) {
     return (
       <>
@@ -48,6 +52,7 @@ function OrderHeading({ awaitingPayment, paid }: { awaitingPayment: boolean; pai
         <h1 className="mb-2 text-[28px] font-extrabold text-ink">Vui lòng thanh toán để hoàn tất đăng ký</h1>
         <p className="mb-8 mt-0 text-muted">
           Đơn hàng đã được ghi nhận. Quét mã QR hoặc chuyển khoản theo thông tin bên dưới để hoàn tất đăng ký.
+          {holdUntil && ` anyLEARN giữ chỗ đến ${holdUntil}.`}
         </p>
       </>
     )
@@ -65,12 +70,21 @@ function OrderHeading({ awaitingPayment, paid }: { awaitingPayment: boolean; pai
   )
 }
 
+function PointsEarnedNote({ pointsEarned, balance }: { pointsEarned: number; balance?: number }) {
+  return (
+    <p className="mb-5 mt-0 flex items-center justify-center gap-1.5 text-sm font-medium text-green-dark">
+      <CoinIcon className="size-4 text-green" />
+      {earnedLabel(pointsEarned, balance)}
+    </p>
+  )
+}
+
 const AWAITING_PAYMENT_STATUSES = ['new', 'pay_pending']
 
 const STEP_CLASS = 'mb-1 text-sm leading-[1.7] text-text'
 
 export default function OrderPage() {
-  const { user, token, isAuthLoading } = useAuth()
+  const { user, token, isAuthLoading, refreshUser } = useAuth()
   const router = useRouter()
   const { orderId } = useParams<{ orderId: string }>()
   const searchParams = useSearchParams()
@@ -122,6 +136,15 @@ export default function OrderPage() {
   useEffect(() => {
     if (orderStatus === 'delivered' && isAwaitingBankTransfer) router.replace(`/order/${orderId}?status=success`)
   }, [orderStatus, isAwaitingBankTransfer, orderId, router])
+
+  const isApproved = paymentStatus === 'success' || order?.status === 'delivered' || orderStatus === 'delivered'
+  useEffect(() => {
+    if (!token || !isApproved) return
+    // The points are credited when the order is approved: read the order and the balance again
+    getOrder(orderId, token).then(fresh => fresh && setOrder(fresh))
+    refreshUser()
+    refreshPendingOrders(token, true)
+  }, [token, isApproved, orderId, refreshUser])
 
   if (isAuthLoading) return <FormPageSkeleton />
   if (!user) return null
@@ -179,7 +202,7 @@ export default function OrderPage() {
           </>
         ) : (
           <>
-            <OrderHeading awaitingPayment={isAwaitingBankTransfer} paid={paymentStatus === 'success'} />
+            <OrderHeading awaitingPayment={isAwaitingBankTransfer} paid={paymentStatus === 'success'} holdUntil={formatHoldUntil(order.expiresAt)} />
 
             <section className="mb-5 overflow-hidden rounded-card border border-line bg-white text-left">
               <h2 className="m-0 border-b border-line bg-bg px-5 py-3 text-base font-extrabold text-ink">Khóa học đã đặt</h2>
@@ -190,6 +213,10 @@ export default function OrderPage() {
               </ul>
             </section>
 
+            {isApproved && (order.pointsEarned ?? 0) > 0 && (
+              <PointsEarnedNote pointsEarned={order.pointsEarned ?? 0} balance={user.walletC} />
+            )}
+
             {isAwaitingBankTransfer && bankInfo && (
               <BankTransferPanel note={order.transferNote ?? orderTransferNote(orderId)} amount={order.amount ?? 0} bank={bankInfo} />
             )}
@@ -199,6 +226,8 @@ export default function OrderPage() {
                 {instructions.steps.map((step, index) => <li key={index} className={STEP_CLASS}>{step}</li>)}
               </InstructionBox>
             )}
+
+            {(paymentStatus === 'success' || isAwaitingBankTransfer) && <div className="mb-5"><AppPromptCard context="order" /></div>}
 
             <div className="flex flex-wrap justify-center gap-3">
               <Link href="/" className="btn btn--outline no-underline">Về trang chủ</Link>

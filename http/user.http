@@ -42,6 +42,27 @@ GET {{baseUrl}}/user/pending-orders?api_token={{apiToken}}
 ### List children accounts
 GET {{baseUrl}}/user/children?api_token={{apiToken}}
 
+### Add a child with only the birth year (dob = January 1st, dobYearOnly = true; checkout asks the full date)
+POST {{baseUrl}}/user/children
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{ "name": "Bin", "dob": "2015-01-01", "dobYearOnly": true }
+
+### Give a child the full date of birth (clears dobYearOnly)
+POST {{baseUrl}}/user/children
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{ "id": 123, "name": "Bin", "dob": "2015-03-02", "dobYearOnly": false }
+
+### Own date of birth (the account owner as learner)
+POST {{baseUrl}}/user/edit
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{ "dob": "1988-05-20" }
+
 ### Change password
 POST {{baseUrl}}/user/changepass?api_token={{apiToken}}
 Content-Type: application/json

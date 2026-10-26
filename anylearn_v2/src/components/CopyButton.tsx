@@ -41,7 +41,7 @@ export default function CopyButton({ text, label = 'Sao chép' }: { text: string
     <button
       type="button"
       onClick={handleClick}
-      className="min-h-11 shrink-0 cursor-pointer rounded-lg border border-line bg-white px-3 text-sm font-semibold text-blue active:bg-surface"
+      className="min-h-11 shrink-0 cursor-pointer rounded-lg border border-line bg-white px-3 text-sm font-semibold text-ink active:bg-surface"
     >
       {copied ? 'Đã sao chép' : label}
     </button>

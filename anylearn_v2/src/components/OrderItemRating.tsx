@@ -31,7 +31,7 @@ export default function OrderItemRating({ itemId }: { itemId: number }) {
         ) : (
           <button
             onClick={() => setOpen(true)}
-            className="inline-flex min-h-11 cursor-pointer items-center gap-1 rounded-full border border-blue bg-white px-3 text-xs font-semibold text-blue hover:bg-blue-soft">
+            className="inline-flex min-h-11 cursor-pointer items-center gap-1 rounded-full border border-line bg-white px-3 text-xs font-medium text-ink hover:bg-bg">
             <StarIcon className="size-3.5" /> Đánh giá
           </button>
         )}

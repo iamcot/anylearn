@@ -54,7 +54,7 @@ class SepayWebhookServiceTest {
 
         User admin = new User();
         admin.setId(1L);
-        when(userRepository.findByRole("admin")).thenReturn(List.of(admin));
+        when(userRepository.findAdminNotificationRecipients()).thenReturn(List.of(admin));
 
         order = new Order();
         order.setId(ORDER_ID);

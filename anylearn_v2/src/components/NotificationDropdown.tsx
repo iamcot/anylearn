@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getNotifications, markNotificationRead, markAllNotificationsRead, AppNotification } from '@/lib/api'
+import { resolveNotificationRoute } from '@/lib/notifications/route'
 import { BellIcon, CardIcon, CartIcon, ClipboardIcon, GiftIcon, MegaphoneIcon } from './icons'
 
 interface Props {
@@ -12,23 +13,6 @@ interface Props {
 }
 
 const SKIP_TYPES = new Set(['sms', 'zalo'])
-
-function resolveRoute(route?: string, extraContent?: string): string | null {
-  if (!route) return null
-  if (route.startsWith('/admin')) return null   // admin-only routes — not navigable on user frontend
-  switch (route) {
-    case '/pdp':              return extraContent ? `/class/${extraContent}/khoa-hoc` : null
-    case '/account':
-    case '/account/edit':     return '/account/profile'
-    case '/account/calendar': return '/account/schedule'
-    case '/account/friends':
-    case '/transaction':
-    case '/foundation':       return '/account/anypoint'
-    case '/orders':           return '/account/orders'
-    case '/article':          return extraContent ? `/article/${extraContent}/bai-viet.html` : '/article'
-    default:                  return null
-  }
-}
 
 function TypeIcon({ type }: { type: string }) {
   switch (type) {
@@ -101,7 +85,7 @@ export default function NotificationDropdown({ token, onClose, onUnreadChange }:
 
     await markRead(notif)
 
-    const dest = resolveRoute(notif.route, notif.extraContent)
+    const dest = resolveNotificationRoute(notif.route, notif.extraContent)
     if (dest) router.push(dest)
     onClose()
   }
@@ -145,7 +129,7 @@ export default function NotificationDropdown({ token, onClose, onUnreadChange }:
           visibleItems.map(notif => {
             const isCopyVoucher = notif.type === 'voucher_partner_sent' && notif.extraContent === 'copy'
             const isUnread = !notif.read
-            const hasDest = isCopyVoucher || !!resolveRoute(notif.route, notif.extraContent)
+            const hasDest = isCopyVoucher || !!resolveNotificationRoute(notif.route, notif.extraContent)
 
             return (
               <button key={notif.id} onClick={() => handleClick(notif)}
