@@ -19,7 +19,7 @@ export default function DiscoverCard({ childName, near }: Props) {
       <div className="container">
         <div className="flex flex-col gap-5 rounded-card border border-green-line bg-gradient-to-br from-green-soft to-white p-5 shadow-card lg:flex-row lg:items-center lg:justify-between lg:gap-8 lg:p-8">
           <div className="min-w-0 lg:max-w-xl">
-            <span className="mb-2 inline-flex rounded-full bg-green px-3 py-1 text-xs font-medium text-white">Gợi ý mỗi ngày</span>
+            <span className="mb-1 block text-xs font-medium uppercase tracking-[0.06em] text-green-dark">Gợi ý mỗi ngày</span>
             <h2 className="m-0 mb-2 text-xl font-extrabold text-ink lg:text-2xl">Thử điều mới cho {who}</h2>
             <p className="m-0 text-muted">Chưa biết cho {who} học gì tiếp? Mở danh sách hôm nay để khám phá những môn mới, hợp tuổi và dễ đi học.</p>
           </div>

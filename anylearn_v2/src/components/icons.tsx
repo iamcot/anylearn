@@ -238,3 +238,11 @@ export const TagIcon = (props: IconProps) => (
 export const MonitorIcon = (props: IconProps) => (
   <Icon {...props}><rect x="3" y="4" width="18" height="12" rx="2" /><path d="M8 20h8M12 16v4" /></Icon>
 )
+
+export const CameraIcon = (props: IconProps) => (
+  <Icon {...props}><path d="M4 8h3l1.5-2h7L17 8h3v11H4z" /><circle cx="12" cy="13" r="3.5" /></Icon>
+)
+
+export const ShieldCheckIcon = (props: IconProps) => (
+  <Icon {...props}><path d="M12 3 5 6v5c0 4.5 3 8 7 10 4-2 7-5.5 7-10V6z" /><path d="m9 12 2 2 4-4" /></Icon>
+)

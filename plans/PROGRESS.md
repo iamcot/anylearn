@@ -83,9 +83,9 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 04.4 | Bộ sưu tập | done | Chọn tay + gợi ý theo bộ lọc, không dùng `filter_json`; mùa là khoảng ngày tuyệt đối (năm sau phải sửa tay). Tìm gợi ý cần Meilisearch nên chưa thử với Meilisearch thật trong sandbox (chỉ thử CRUD thật + gợi ý giả lập) |
 | 04.5 | Trang chuyên gia + "Ngẫu nhiên" | done | Trang `/partner/[id]` (giới thiệu, khóa đang mở, cơ sở, theo dõi), `/discover`. Chưa có phần review (chờ plan 09) và "thành tích" (chưa có dữ liệu) |
 | 01.5 | Khảo sát sở thích khi thêm con | todo | |
-| 09.1 | Review xác thực | todo | |
-| 09.2 | Review tiêu chí + ảnh | todo | |
-| 09.3 | Hiển thị review PDP/đối tác | todo | |
+| 09.1 | Review xác thực | done | Nhãn "Đã học tại anyLEARN", ẩn/hiện (admin), một review/khóa/người (theo tài khoản, chưa tách theo bé) |
+| 09.2 | Review tiêu chí + ảnh | done | 4 tiêu chí, cụm gợi ý, tối đa 4 ảnh; ảnh cần S3 (chưa thử upload thật) |
+| 09.3 | Hiển thị review PDP/đối tác | done | Tóm tắt, lọc có ảnh/theo sao, trang đối tác tổng hợp. Chưa lọc theo tuổi bé |
 
 ### Giai đoạn 3 – giữ chân
 
@@ -108,7 +108,7 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 06.5 | Ưu đãi gom một chỗ | todo | |
 | 02.5 | Hạn điểm cho member (lô điểm) | todo | Chờ chốt thời hạn |
 | 02.6 | Nhắc điểm sắp hết hạn | todo | |
-| 09.4 | Đối tác trả lời + báo cáo review | todo | |
+| 09.4 | Đối tác trả lời + báo cáo review | partial | Đối tác trả lời ngay trên trang khóa học (theo yêu cầu 26/10); chưa có nút "Báo cáo review" |
 | 09.5 | Nhắc viết review | todo | |
 | 09.6 | Thưởng điểm review | todo | |
 | 11.1 | Chat MVP backend | todo | |
@@ -434,3 +434,8 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 
 ### 26/10/2026 – "Thử điều mới" dùng vị trí để sắp xếp
 - Vị trí không còn là bộ lọc (bán kính) của `/api/discover`: chỉ sắp gần nhà trước (sort `_geoPoint`), rồi xáo trong từng nhóm 24 khóa theo seed ngày + bé. Khóa không có tọa độ (online) xếp cuối. Chưa thử với Meilisearch thật.
+
+### 26/10/2026 – plan 09 (review)
+- Giữ nguyên nơi lưu điểm (`item_user_actions`), thêm bảng chi tiết V30 thay vì chuyển sang bảng `item_reviews` cũ (rỗng, mọi truy vấn điểm/độ phổ biến đang đọc `item_user_actions`).
+- Đối tác trả lời trực tiếp trên trang khóa học khi đăng nhập bằng tài khoản sở hữu khóa (chưa cần trang admin cho đối tác). Thông báo cho người viết.
+- Chưa làm: 09.5 nhắc viết review, 09.6 thưởng điểm, báo cáo review, lọc theo tuổi bé.

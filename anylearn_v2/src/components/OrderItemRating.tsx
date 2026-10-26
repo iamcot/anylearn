@@ -47,6 +47,8 @@ export default function OrderItemRating({ itemId }: { itemId: number }) {
             itemId={itemId}
             existingRating={myRating?.value}
             existingComment={myRating?.comment}
+            existingScores={myRating?.scores}
+            existingMedia={myRating?.media}
             onSaved={handleSaved}
           />
           <button onClick={() => setOpen(false)}

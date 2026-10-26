@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { API_BASE } from '@/lib/apiBase'
 
-export interface MyRating { value: number; comment: string }
+export interface MyRating { value: number; comment: string; scores?: Record<string, number>; media?: string[] }
 
 interface LoadedStatus {
   itemId: number
@@ -13,12 +13,12 @@ interface LoadedStatus {
   myRating: MyRating | null
 }
 
-function parseStatus(json: { resultCode?: number; data?: { has_purchased?: boolean; my_rating?: { value: number | string; comment?: string } | null } }) {
+function parseStatus(json: { resultCode?: number; data?: { has_purchased?: boolean; my_rating?: { value: number | string; comment?: string; scores?: Record<string, number>; media?: string[] } | null } }) {
   if (json.resultCode !== 1 || !json.data) return { hasPurchased: false, myRating: null }
   const rating = json.data.my_rating
   return {
     hasPurchased: Boolean(json.data.has_purchased),
-    myRating: rating ? { value: Number(rating.value), comment: rating.comment ?? '' } : null,
+    myRating: rating ? { value: Number(rating.value), comment: rating.comment ?? '', scores: rating.scores, media: rating.media } : null,
   }
 }
 

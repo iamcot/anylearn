@@ -15,6 +15,8 @@ import com.anylearn.backend.service.ItemTrackingService;
 import com.anylearn.backend.service.MeilisearchService;
 import com.anylearn.backend.service.NotificationService;
 import com.anylearn.backend.service.S3Service;
+import com.anylearn.backend.service.reviews.ReviewRules;
+import com.anylearn.backend.service.reviews.ReviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -30,6 +32,7 @@ import java.util.Map;
 public class ItemController {
 
     private final ItemService itemService;
+    private final ReviewService reviewService;
     private final ItemRepository itemRepository;
     private final S3Service s3Service;
     private final ItemTrackingService itemTrackingService;
@@ -48,8 +51,48 @@ public class ItemController {
     }
 
     @GetMapping("/item/{itemId}/reviews")
-    public ApiResponse<?> reviews(@PathVariable Long itemId) {
-        return ApiResponse.ok(itemUserActionRepository.findReviewsByItemId(itemId));
+    public ApiResponse<?> reviews(@PathVariable Long itemId,
+                                  @RequestParam(required = false) Integer stars,
+                                  @RequestParam(defaultValue = "false") boolean photos) {
+        return ApiResponse.ok(reviewService.list(itemId, false, stars, photos));
+    }
+
+    @GetMapping("/item/{itemId}/review-summary")
+    public ApiResponse<?> reviewSummary(@PathVariable Long itemId) {
+        return ApiResponse.ok(reviewService.summary(itemId));
+    }
+
+    @PostMapping("/item/{itemId}/review-media")
+    public ApiResponse<?> uploadReviewMedia(@PathVariable Long itemId,
+                                            @RequestParam("file") MultipartFile file,
+                                            @AuthenticationPrincipal User currentUser) {
+        if (currentUser == null) return ApiResponse.fail("Unauthorized");
+        if (reviewService.deliveredOrderId(currentUser.getId(), itemId) == null) return ApiResponse.fail("Chỉ phụ huynh đã đăng ký khóa này mới gửi ảnh được");
+        String type = file.getContentType();
+        if (type == null || !type.startsWith("image/")) return ApiResponse.fail("Chỉ nhận ảnh");
+        try {
+            return ApiResponse.ok(Map.of("url", s3Service.uploadImage(file, "reviews/" + itemId)));
+        } catch (Exception e) {
+            return ApiResponse.fail("Upload ảnh thất bại: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/item/{itemId}/reviews/{reviewId}/reply")
+    public ApiResponse<?> replyToReview(@PathVariable Long itemId, @PathVariable Long reviewId,
+                                        @RequestBody Map<String, Object> body,
+                                        @AuthenticationPrincipal User currentUser) {
+        if (currentUser == null) return ApiResponse.fail("Unauthorized");
+        String problem = reviewService.reply(currentUser.getId(), "admin".equals(currentUser.getRole()), itemId, reviewId,
+                body.get("text") instanceof String text ? text : "");
+        return problem == null ? ApiResponse.ok("OK") : ApiResponse.fail(problem);
+    }
+
+    @DeleteMapping("/item/{itemId}/reviews/{reviewId}/reply")
+    public ApiResponse<?> deleteReviewReply(@PathVariable Long itemId, @PathVariable Long reviewId,
+                                            @AuthenticationPrincipal User currentUser) {
+        if (currentUser == null) return ApiResponse.fail("Unauthorized");
+        String problem = reviewService.deleteReply(currentUser.getId(), "admin".equals(currentUser.getRole()), itemId, reviewId);
+        return problem == null ? ApiResponse.ok("OK") : ApiResponse.fail(problem);
     }
 
     @GetMapping("/item/{itemId}/is-fav")
@@ -70,10 +113,14 @@ public class ItemController {
         res.put("num_favorite", itemUserActionRepository.countFav(itemId));
         if (existingRating.isPresent()) {
             var r = existingRating.get();
-            res.put("my_rating", Map.of(
-                "value", r.getValue(),
-                "comment", r.getExtraValue() != null ? r.getExtraValue() : ""
-            ));
+            var mine = reviewService.list(itemId, true, null, false).stream()
+                    .filter(review -> r.getId().equals(((Number) review.get("id")).longValue())).findFirst().orElse(Map.of());
+            var myRating = new java.util.LinkedHashMap<String, Object>();
+            myRating.put("value", r.getValue());
+            myRating.put("comment", r.getExtraValue() != null ? r.getExtraValue() : "");
+            myRating.put("scores", mine.getOrDefault("scores", Map.of()));
+            myRating.put("media", mine.getOrDefault("media", List.of()));
+            res.put("my_rating", myRating);
         } else {
             res.put("my_rating", null);
         }
@@ -113,31 +160,14 @@ public class ItemController {
                                      @RequestBody Map<String, Object> body,
                                      @AuthenticationPrincipal User currentUser) {
         if (currentUser == null) return ApiResponse.fail("Unauthorized");
-        if (orderDetailRepository.existsDeliveredByUserIdAndItemId(currentUser.getId(), itemId) == 0) {
-            return ApiResponse.fail("Bạn chưa mua khóa học này");
-        }
-        Item item = itemRepository.findById(itemId).orElse(null);
-        if (item == null) return ApiResponse.fail("Không tìm thấy khóa học");
-
-        int rating = body.get("rating") instanceof Number n ? n.intValue() : 0;
-        String comment = body.get("comment") instanceof String s ? s : "";
-        if (rating < 1 || rating > 5) return ApiResponse.fail("Rating phải từ 1 đến 5");
-
-        // Upsert: find existing rating by this user for this item
-        ItemUserAction action = itemUserActionRepository
-                .findRatingByItemAndUser(itemId, currentUser.getId())
-                .orElseGet(ItemUserAction::new);
-        action.setItemId(itemId);
-        action.setUserId(currentUser.getId());
-        action.setType("rating");
-        action.setValue(String.valueOf(rating));
-        action.setExtraValue(comment);
-        action.setUpdatedAt(LocalDateTime.now());
-        if (action.getCreatedAt() == null) action.setCreatedAt(LocalDateTime.now());
-        itemUserActionRepository.save(action);
-
-        meilisearchService.updateItemPopularityScoreAsync(item);
-        return ApiResponse.ok(Map.of("ok", true));
+        Integer rating = body.get("rating") instanceof Number n ? n.intValue() : null;
+        if (rating != null && (rating < 1 || rating > 5)) return ApiResponse.fail("Rating phải từ 1 đến 5");
+        var scores = ReviewRules.cleanScores(body.get("scores") instanceof Map<?, ?> map ? map : null);
+        List<String> media = body.containsKey("media")
+                ? ReviewRules.cleanMedia(body.get("media") instanceof List<?> list ? list : null, reviewService::isOwnUrl) : null;
+        String problem = reviewService.save(currentUser.getId(), itemId,
+                new ReviewService.Submission(rating, body.get("comment") instanceof String text ? text : "", scores, media));
+        return problem == null ? ApiResponse.ok(Map.of("ok", true)) : ApiResponse.fail(problem);
     }
 
     @GetMapping("/user/{userId}/items")

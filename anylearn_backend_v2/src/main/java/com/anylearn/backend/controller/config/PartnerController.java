@@ -22,6 +22,7 @@ public class PartnerController {
     private final FollowService followService;
     private final UserLocationRepository userLocationRepository;
     private final JdbcTemplate jdbc;
+    private final com.anylearn.backend.service.reviews.ReviewService reviewService;
     private final com.anylearn.backend.repository.UserRepository userRepository;
 
     @GetMapping("/{id}/summary")
@@ -47,6 +48,14 @@ public class PartnerController {
             return place;
         }).toList());
         return ApiResponse.ok(map);
+    }
+
+    /** Reviews of every course of the partner: the numbers and the latest ones (partner page). */
+    @GetMapping("/{id}/reviews")
+    public ApiResponse<?> reviews(@PathVariable Long id) {
+        Map<String, Object> result = new LinkedHashMap<>(reviewService.partnerSummary(id));
+        result.put("latest", reviewService.partnerLatest(id, 6));
+        return ApiResponse.ok(result);
     }
 
     @PostMapping("/{id}/follow")

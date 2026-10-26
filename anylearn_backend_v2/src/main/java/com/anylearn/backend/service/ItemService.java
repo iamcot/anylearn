@@ -17,6 +17,7 @@ public class ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
     private final ItemUserActionRepository itemUserActionRepository;
+    private final com.anylearn.backend.service.reviews.ReviewService reviewService;
     private final ItemSchedulePlanRepository itemSchedulePlanRepository;
     private final ItemScheduleRepository itemScheduleRepository;
     private final ClassTeacherRepository classTeacherRepository;
@@ -117,6 +118,6 @@ public class ItemService {
 
     private List<Map<String, Object>> getReviews(Long itemId) {
         // Using raw query via ItemUserActionRepository for join with users
-        return itemUserActionRepository.findReviewsByItemId(itemId);
+        return reviewService.list(itemId, false, null, false);
     }
 }

@@ -130,12 +130,21 @@ export interface PdpAuthor {
 }
 
 export interface PdpReview {
+  id?: number
   user_id: number
   user_name: string
   user_image?: string
   value: string
   extra_value?: string
   created_at: string
+  // Reviews plan 09
+  is_verified?: boolean
+  scores?: Record<string, number>
+  media?: string[]
+  partner_reply?: string | null
+  partner_replied_at?: string | null
+  item_title?: string
+  item_id?: number
 }
 
 export interface PdpCategory {

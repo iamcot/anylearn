@@ -15,6 +15,7 @@ Cập nhật lần cuối: 26/10/2026.
 6. [Trang chủ cá nhân hóa](#6-trang-chủ)
 7. [Bộ sưu tập](#7-bộ-sưu-tập)
 7b. [Trang đối tác, theo dõi, thử điều mới](#7b-trang-đối-tác-theo-dõi-và-thử-điều-mới-cho-con)
+7c. [Đánh giá của phụ huynh](#7c-đánh-giá-của-phụ-huynh)
 8. [Cấu hình vận hành](#8-cấu-hình-vận-hành)
 9. [Nhu cầu của khách: nhờ tìm khóa, báo giá rẻ hơn, xu hướng tìm kiếm](#9-nhu-cầu-của-khách)
 10. [Thông báo cho team và thanh toán](#10-thông-báo-và-thanh-toán)
@@ -213,6 +214,23 @@ Dữ liệu nhập ở **Thành viên > chọn đối tác**:
 
 ---
 
+## 7c. Đánh giá của phụ huynh
+
+**Ai đánh giá được:** chỉ tài khoản đã có đơn **đã giao** (đã thanh toán và kích hoạt) của khóa đó. Mỗi đánh giá hiện nhãn **"Đã học tại anyLEARN"**. Mỗi người một đánh giá cho mỗi khóa và có thể sửa lại. Đánh giá do admin thêm tay (tab Đánh giá của khóa) không có nhãn này.
+
+**Phụ huynh nhập gì:** số sao (bắt buộc), điểm 1 đến 5 cho từng tiêu chí (Giáo viên, Cơ sở vật chất, Tiến bộ của con, Đúng giá trị; không bắt buộc), nội dung (có các cụm gợi ý bấm để thêm nhanh) và tối đa 4 ảnh.
+Trang khóa học hiện: điểm trung bình, số đánh giá, tỉ lệ từng mức sao, điểm trung bình từng tiêu chí, ảnh từ phụ huynh; có bộ lọc "Có ảnh" và theo số sao. Trang đối tác tổng hợp đánh giá của mọi khóa của đối tác đó.
+
+**Đối tác trả lời ngay tại trang khóa học:** đối tác đăng nhập vào trang web (tài khoản chính của họ, không phải trang admin) và mở khóa của mình, sẽ thấy nút **Trả lời** dưới mỗi đánh giá; có thể sửa hoặc xóa câu trả lời. Phụ huynh nhận thông báo "{Đối tác} đã trả lời đánh giá của bạn". Đối tác chỉ trả lời được khóa do chính họ sở hữu (admin trả lời được mọi khóa) và **không xóa hay ẩn được đánh giá**.
+
+**Admin kiểm duyệt:** Khóa học > chọn khóa > tab **Đánh giá**: cột "Xác thực" cho biết đã học thật hay chưa, công tắc **Hiện** để ẩn hoặc hiện một đánh giá, nút xóa. Đánh giá bị ẩn biến khỏi trang khóa học, khỏi điểm trung bình của khóa và của đối tác (điểm xếp hạng cập nhật theo).
+
+**Cần cấu hình:** ảnh đánh giá được lưu trên kho ảnh của hệ thống (biến `AWS_S3_BUCKET`, `AWS_ACCESS_KEY`... mục 11). Chưa cấu hình thì phụ huynh vẫn viết đánh giá được nhưng không tải ảnh lên được.
+
+**Chưa có:** nhắc phụ huynh viết đánh giá, thưởng anyPoint khi đánh giá, nút "Báo cáo đánh giá" của đối tác, lọc theo tuổi của bé.
+
+---
+
 ## 8. Cấu hình vận hành
 
 Menu **Cài đặt (bánh răng) > Vận hành > Cấu hình tìm kiếm & đơn hàng**. Thay đổi có hiệu lực ngay.
@@ -259,6 +277,7 @@ Dành cho người cài đặt hệ thống; team admin chỉ cần biết để
   - `SEPAY_API_KEY`: webhook nhận tiền chuyển khoản.
   - `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`: thông báo đẩy trên điện thoại. Tạo một lần và không đổi.
   - `JWT_EXPIRATION_MS`: thời gian đăng nhập (mặc định 30 ngày).
+  - `AWS_S3_BUCKET`, `AWS_ACCESS_KEY`, `AWS_SECRET_KEY`, `AWS_CDN_URL`: kho ảnh (ảnh đại diện, ảnh đánh giá).
 - Sau mỗi lần cập nhật phiên bản có thêm thuộc tính tìm kiếm: bấm **Cập nhật chỉ mục ngay** (mục 8) một lần.
 - Các bảng cũ của portal PHP đã đổi tên thành `*_old`; xóa tay khi chắc chắn không còn dùng.
 
@@ -275,6 +294,9 @@ Dành cho người cài đặt hệ thống; team admin chỉ cần biết để
 | Không lưu được khóa, báo thiếu địa chỉ | Hình thức cần địa chỉ mà đối tác chưa có | Thêm địa chỉ cho đối tác (bấm dòng cảnh báo đỏ) hoặc đổi loại đối tác sang "App / bán mã code" nếu đúng bản chất |
 | Nút Tìm tự động không có kết quả | Chưa có key Google hoặc địa chỉ quá chung chung | Nhờ người cài đặt kiểm tra key; nhập thêm số nhà và tên đường |
 | Khách bị đăng xuất | Đăng nhập hết hạn (30 ngày không dùng) | Đăng nhập lại |
+| Phụ huynh không viết được đánh giá | Tài khoản chưa có đơn đã giao của khóa đó | Kiểm tra đơn ở mục Đơn hàng; đơn chưa thanh toán chưa được tính |
+| Không tải được ảnh đánh giá | Chưa cấu hình kho ảnh (AWS) | Nhờ người cài đặt (mục 11) |
+| Đối tác không thấy nút Trả lời | Không đăng nhập bằng tài khoản sở hữu khóa | Đăng nhập đúng tài khoản đối tác, mở khóa của họ |
 | Người theo dõi không nhận thông báo khóa mới | Khóa đã báo một lần, hoặc khóa đã bật sẵn từ trước | Chỉ khóa chuyển từ tắt sang bật mới báo; tạo khóa ở trạng thái tắt rồi bật khi sẵn sàng |
 | "Thử điều mới" trống | Không có khóa nào khớp tuổi và khu vực | Kiểm tra độ tuổi và tọa độ cơ sở của khóa |
 | Danh sách trường / chuyên gia (trang anySCHOOL, anyPROFESSOR, khối đối tác nổi bật) thiếu người | Chỉ đối tác đã bật **Ký HĐ** mới được liệt kê; hoặc danh sách chưa cập nhật sau khi bật Ký HĐ hàng loạt | Bật Ký HĐ cho đối tác (Thành viên), rồi bấm Cập nhật chỉ mục ngay |

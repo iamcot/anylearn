@@ -253,7 +253,7 @@ export default async function PdpPage({ params }: Props) {
         <div className="container">
           <h2 className="section-kicker mb-5">Đánh giá từ học viên</h2>
 
-          <ReviewsSection itemId={item.id} initialReviews={reviews} initialRating={rating} />
+          <ReviewsSection itemId={item.id} authorId={author?.id} authorName={author?.name} initialReviews={reviews} />
         </div>
       </section>
 

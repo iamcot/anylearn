@@ -1,10 +1,12 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { getPartnerSummary, getUserProfile, searchItems } from '@/lib/api'
+import { getPartnerReviews, getPartnerSummary, getUserProfile, searchItems } from '@/lib/api'
 import { PARTNER_TYPE_LABELS } from '@/config/itemLabels'
 import BackLink from '@/components/BackLink'
 import CourseCard from '@/components/CourseCard'
 import FollowButton from '@/components/partner/FollowButton'
+import ReviewItem from '@/components/reviews/ReviewItem'
+import ReviewSummaryCard from '@/components/reviews/ReviewSummaryCard'
 import { PinIcon, SchoolIcon, UserIcon } from '@/components/icons'
 
 interface Props {
@@ -27,10 +29,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function PartnerPage({ params }: Props) {
   const id = Number((await params).id)
   if (!Number.isInteger(id) || id <= 0) notFound()
-  const [profile, summary, courses] = await Promise.all([
+  const [profile, summary, courses, reviews] = await Promise.all([
     getUserProfile(id),
     getPartnerSummary(id),
     searchItems('', 0, COURSES_SHOWN, { authorId: id, sort: 'popular' }),
+    getPartnerReviews(id),
   ])
   if (!profile || !summary) notFound()
 
@@ -77,6 +80,18 @@ export default async function PartnerPage({ params }: Props) {
           <p className="m-0 text-muted">Hiện chưa có khóa nào đang mở. Theo dõi để được báo khi có khóa mới.</p>
         )}
       </section>
+
+      {reviews && reviews.count > 0 && (
+        <section className="mb-8">
+          <h2 className="mb-3 mt-0 text-lg font-extrabold text-ink lg:text-2xl">Đánh giá từ phụ huynh</h2>
+          <ReviewSummaryCard summary={reviews} />
+          <div className="divide-y divide-line">
+            {reviews.latest.map(review => (
+              <ReviewItem key={review.id} review={review} itemId={review.item_id ?? 0} partnerName={profile.name} showCourse />
+            ))}
+          </div>
+        </section>
+      )}
 
       {summary.locations.length > 0 && (
         <section>

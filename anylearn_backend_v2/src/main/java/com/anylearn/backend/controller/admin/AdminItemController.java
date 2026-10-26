@@ -36,6 +36,7 @@ public class AdminItemController {
     private final UserLocationRepository userLocationRepository;
     private final com.anylearn.backend.service.tags.TagService tagService;
     private final FollowService followService;
+    private final com.anylearn.backend.service.reviews.ReviewService reviewService;
     private final com.anylearn.backend.service.location.LocationService locationService;
     private final OrderDetailRepository orderDetailRepository;
     private final UserRepository userRepository;
@@ -407,7 +408,7 @@ public class AdminItemController {
     @GetMapping("/{id:\\d+}/reviews")
     public ApiResponse<?> reviews(@AuthenticationPrincipal User user, @PathVariable Long id) {
         if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
-        var reviews = itemUserActionRepository.findReviewsByItemId(id);
+        var reviews = reviewService.list(id, true, null, false);
         var result = reviews.stream().map(r -> {
             var m = new LinkedHashMap<String, Object>();
             m.put("id",        r.get("id"));
@@ -416,6 +417,11 @@ public class AdminItemController {
             m.put("rating",    r.get("value"));
             m.put("comment",   r.get("extra_value"));
             m.put("createdAt", r.get("created_at") != null ? r.get("created_at").toString() : "");
+            m.put("verified", r.get("is_verified"));
+            m.put("status", r.get("status"));
+            m.put("partnerReply", r.get("partner_reply"));
+            m.put("scores", r.get("scores"));
+            m.put("media", r.get("media"));
             return m;
         }).toList();
         return ApiResponse.ok(result);
@@ -450,9 +456,16 @@ public class AdminItemController {
             @PathVariable Long id,
             @PathVariable Long reviewId) {
         if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
-        itemUserActionRepository.deleteById(reviewId);
-        itemRepository.findById(id).ifPresent(meilisearchService::updateItemPopularityScoreAsync);
+        reviewService.delete(id, reviewId);
         return ApiResponse.ok("Deleted");
+    }
+
+    @PutMapping("/{id:\\d+}/reviews/{reviewId:\\d+}/status")
+    public ApiResponse<?> setReviewStatus(@AuthenticationPrincipal User user, @PathVariable Long id, @PathVariable Long reviewId,
+                                          @RequestBody Map<String, Object> body) {
+        if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
+        String problem = reviewService.setStatus(id, reviewId, body.get("status") instanceof String s ? s : "");
+        return problem == null ? ApiResponse.ok("OK") : ApiResponse.fail(problem);
     }
 
     // ── Item Schedules CRUD ───────────────────────────────────────────────────
