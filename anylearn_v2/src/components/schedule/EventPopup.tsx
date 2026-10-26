@@ -6,6 +6,7 @@ import { getCourseUrl } from '@/lib/api'
 import { ACTIVITY_LABELS, WEEKDAY_LABELS } from '@/config/itemLabels'
 import type { CalendarEvent, Enrollment } from '@/lib/schedule/calendar'
 import ChevronLabel from '@/components/ChevronLabel'
+import OrderItemRating from '@/components/OrderItemRating'
 import { CloseIcon } from '@/components/icons'
 
 const POPOVER_WIDTH = 360
@@ -94,10 +95,13 @@ export default function EventPopup({ event, position, onClose, onCancelActivity 
         </div>
 
         <div className="flex flex-col gap-[7px] text-[13px]">
+          {event.data.learnerName && <DetailRow label="Người học">{event.data.learnerName}</DetailRow>}
           {event.kind === 'enrollment' && <EnrollmentDetails enrollment={event.data} />}
           {activity?.date && <DetailRow label="Ngày">{activity.date}</DetailRow>}
           {activity?.note && <DetailRow label="Ghi chú">{activity.note}</DetailRow>}
         </div>
+
+        {event.kind === 'enrollment' && <OrderItemRating itemId={event.data.itemId} />}
 
         <div className="mt-4 flex items-center justify-between gap-2">
           {activity ? (

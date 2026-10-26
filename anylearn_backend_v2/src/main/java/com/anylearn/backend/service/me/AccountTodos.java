@@ -10,12 +10,11 @@ public final class AccountTodos {
 
     private AccountTodos() {}
 
-    public static List<Todo> build(int pendingOrders, int learnersWithoutFullDob, int reviewsToWrite, int unreadNotifications) {
+    public static List<Todo> build(int pendingOrders, int learnersWithoutFullDob, int reviewsToWrite) {
         List<Todo> todos = new ArrayList<>();
         if (pendingOrders > 0) todos.add(new Todo("orders", pendingOrders + " đơn hàng chờ thanh toán", "/account/orders?tab=pending", pendingOrders));
         if (learnersWithoutFullDob > 0) todos.add(new Todo("dob", learnersWithoutFullDob + " bé chưa có ngày sinh đầy đủ", "/account/children", learnersWithoutFullDob));
         if (reviewsToWrite > 0) todos.add(new Todo("reviews", reviewsToWrite + " khóa học chờ bạn đánh giá", "/account/schedule", reviewsToWrite));
-        if (unreadNotifications > 0) todos.add(new Todo("notifications", unreadNotifications + " thông báo chưa đọc", "/notifications", unreadNotifications));
         return todos;
     }
 }

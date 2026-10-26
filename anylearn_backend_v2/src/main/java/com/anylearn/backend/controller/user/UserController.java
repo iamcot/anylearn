@@ -159,9 +159,27 @@ public class UserController {
     @GetMapping("/user/schedule")
     public ApiResponse<?> schedule(@AuthenticationPrincipal User user) {
         if (user == null) return ApiResponse.fail("Unauthorized");
-        var enrollments = enrollmentRepository.findEnrollmentsWithScheduleByUserId(user.getId());
-        var activities  = itemActivityRepository.findByUserIdWithItemInfo(user.getId());
-        return ApiResponse.ok(java.util.Map.of("enrollments", enrollments, "activities", activities));
+        // The account itself plus its children: each row says whose it is (learner_id, learner_name).
+        var learners = new java.util.LinkedHashMap<Long, String>();
+        learners.put(user.getId(), "Bạn");
+        for (var child : userService.getChildren(user)) learners.put(child.getId(), child.getName());
+
+        var enrollments = new java.util.ArrayList<java.util.Map<String, Object>>();
+        var activities = new java.util.ArrayList<java.util.Map<String, Object>>();
+        learners.forEach((learnerId, learnerName) -> {
+            for (var row : enrollmentRepository.findEnrollmentsWithScheduleByUserId(learnerId)) enrollments.add(withLearner(row, learnerId, learnerName));
+            for (var row : itemActivityRepository.findByUserIdWithItemInfo(learnerId)) activities.add(withLearner(row, learnerId, learnerName));
+        });
+        var learnerList = learners.entrySet().stream()
+                .map(e -> java.util.Map.<String, Object>of("id", e.getKey(), "name", e.getValue())).toList();
+        return ApiResponse.ok(java.util.Map.of("enrollments", enrollments, "activities", activities, "learners", learnerList));
+    }
+
+    private static java.util.Map<String, Object> withLearner(java.util.Map<String, Object> row, Long learnerId, String learnerName) {
+        var copy = new java.util.LinkedHashMap<String, Object>(row);
+        copy.put("learner_id", learnerId);
+        copy.put("learner_name", learnerName);
+        return copy;
     }
 
     @GetMapping("/user/upcoming")

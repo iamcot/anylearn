@@ -48,7 +48,7 @@ public class MeSummaryService {
         result.put("pendingOrders", pendingOrders);
         result.put("unreadNotifications", unread);
         result.put("children", children);
-        result.put("todos", AccountTodos.build(pendingOrders, noDob, toReview, unread));
+        result.put("todos", AccountTodos.build(pendingOrders, noDob, toReview));
         result.put("walletC", user.getWalletC());
         return result;
     }
