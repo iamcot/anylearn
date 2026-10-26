@@ -1,6 +1,6 @@
 import {
-  Alert, App, Button, Checkbox, DatePicker, Form, Input, InputNumber, Modal,
-  Popover, Rate, Select, Space, Switch, Table, Tabs, Tag, TimePicker, Tooltip,
+  Alert, App, Button, DatePicker, Form, Input, InputNumber, Modal,
+  Popover, Rate, Select, Space, Switch, Table, Tabs, Tag, Tooltip,
   Typography, Upload,
 } from 'antd'
 import {
@@ -12,6 +12,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import { useEffect, useRef, useState } from 'react'
 import LocationFormModal from '../components/LocationFormModal'
+import ScheduleFormModal from '../components/ScheduleFormModal'
 import UserLocationsModal from '../components/UserLocationsModal'
 import { useNavigate, useParams } from 'react-router-dom'
 import client from '../api/client'
@@ -715,24 +716,9 @@ export default function ItemDetail() {
         setLocationModal(null)
       }} />
 
-    {/* Schedule Modal — outside Form/Tabs to avoid nesting issues */}
-    <Modal
-      title={scheduleModal === 'new' ? 'Thêm lịch học' : 'Sửa lịch học'}
-      open={!!scheduleModal}
-      onCancel={() => setScheduleModal(null)}
-      footer={null}
-      destroyOnClose
-    >
-      <Form form={scheduleForm} layout="vertical" onFinish={async (vals) => {
-        const body = {
-          ...vals,
-          weekdays: Array.isArray(vals.weekdays) ? vals.weekdays.join(',') : vals.weekdays,
-          eventDate: vals.eventDate?.format('YYYY-MM-DD') ?? null,
-          dateStart: vals.dateStart?.format('YYYY-MM-DD') ?? null,
-          dateEnd: vals.dateEnd?.format('YYYY-MM-DD') ?? null,
-          timeStart: vals.timeStart?.format('HH:mm') ?? null,
-          timeEnd: vals.timeEnd?.format('HH:mm') ?? null,
-        }
+    <ScheduleFormModal open={!!scheduleModal} form={scheduleForm} editing={scheduleModal !== 'new' && !!scheduleModal} item={item}
+      locations={partnerLocations ?? []} onAddLocation={() => setLocationModal('schedule')} onClose={() => setScheduleModal(null)}
+      onSubmit={async (body) => {
         const res = await (scheduleModal === 'new'
           ? client.post(`/admin/items/${id}/schedules`, body)
           : client.put(`/admin/items/${id}/schedules/${scheduleModal.id}`, body))
@@ -740,69 +726,7 @@ export default function ItemDetail() {
         refetchSchedules()
         qc.invalidateQueries(['admin-item-detail', id])
         setScheduleModal(null)
-      }}>
-        <Form.Item name="scheduleType" label="Loại lịch" initialValue="recurring">
-          <Select options={[{value:'recurring',label:'Lớp cố định (có ngày khai giảng)'},{value:'event',label:'Một buổi (1 ngày cụ thể)'},{value:'open',label:'Khai giảng linh hoạt (học sinh chọn ngày)'}]} />
-        </Form.Item>
-        <Form.Item noStyle shouldUpdate={(p, c) => p.scheduleType !== c.scheduleType}>
-          {({ getFieldValue }) => {
-            const t = getFieldValue('scheduleType')
-            return <>
-              {t === 'event' && <Form.Item name="eventDate" label="Ngày tổ chức"><DatePicker format="DD/MM/YYYY" style={{ width: '100%' }} /></Form.Item>}
-              {(t === 'recurring' || t === 'open') && (
-                <Form.Item name="weekdays" label="Ngày trong tuần">
-                  <Checkbox.Group options={[{label:'T2',value:'mon'},{label:'T3',value:'tue'},{label:'T4',value:'wed'},{label:'T5',value:'thu'},{label:'T6',value:'fri'},{label:'T7',value:'sat'},{label:'CN',value:'sun'}]} />
-                </Form.Item>
-              )}
-              {t === 'recurring' && <>
-                <Form.Item name="dateStart" label="Ngày bắt đầu"><DatePicker format="DD/MM/YYYY" style={{ width: '100%' }} /></Form.Item>
-                <Form.Item name="dateEnd" label="Ngày kết thúc (tuỳ chọn)"><DatePicker format="DD/MM/YYYY" style={{ width: '100%' }} /></Form.Item>
-              </>}
-            </>
-          }}
-        </Form.Item>
-        <Space>
-          <Form.Item name="timeStart" label="Giờ bắt đầu">
-            <TimePicker format="HH:mm" minuteStep={5} style={{ width: 110 }} placeholder="08:30" />
-          </Form.Item>
-          <Form.Item name="timeEnd" label="Giờ kết thúc">
-            <TimePicker format="HH:mm" minuteStep={5} style={{ width: 110 }} placeholder="10:00" />
-          </Form.Item>
-        </Space>
-        <Form.Item name="title" label="Tên lịch (tuỳ chọn)"><Input placeholder="VD: Ca chiều T3-T5" /></Form.Item>
-        {item?.addressRequired && (
-          <Form.Item label="Địa chỉ học" required
-            extra={scheduleModal === 'new' && (partnerLocations ?? []).length > 1 ? 'Tick nhiều địa chỉ để tạo mỗi địa chỉ một ca học cùng giờ.' : undefined}>
-            {(partnerLocations ?? []).length === 1
-              ? <span>Tự áp dụng: {partnerLocations[0].title} — {partnerLocations[0].address}</span>
-              : scheduleModal === 'new'
-                ? (
-                  <Form.Item name="userLocationIds" noStyle rules={[{ required: true, message: 'Chọn ít nhất một địa chỉ' }]}>
-                    <Checkbox.Group style={{ display: 'flex', flexDirection: 'column', gap: 4 }}
-                      options={(partnerLocations ?? []).map(l => ({ value: l.id, label: `${l.title} — ${l.address}` }))} />
-                  </Form.Item>
-                )
-                : (
-                  <Form.Item name="userLocationId" noStyle rules={[{ required: true, message: 'Chọn địa chỉ' }]}>
-                    <Select placeholder="Chọn địa chỉ của đối tác"
-                      options={(partnerLocations ?? []).map(l => ({ value: l.id, label: `${l.title} — ${l.address}` }))} />
-                  </Form.Item>
-                )}
-          </Form.Item>
-        )}
-        <Form.Item name="locationNote" label="Phòng học / Ghi chú"><Input placeholder="VD: Phòng A203, tầng 2" /></Form.Item>
-        <Form.Item name="meetingUrl" label="Link học online (Zoom...)"><Input placeholder="https://zoom.us/j/..." /></Form.Item>
-        <Space>
-          <Form.Item name="meetingId" label="Meeting ID"><Input style={{ width: 170 }} /></Form.Item>
-          <Form.Item name="meetingPasscode" label="Mật khẩu"><Input style={{ width: 170 }} /></Form.Item>
-        </Space>
-        <Space>
-          <Form.Item name="gatherTime" label="Giờ tập trung (ngoại khóa)"><Input placeholder="07:30" style={{ width: 170 }} /></Form.Item>
-        </Space>
-        <Form.Item name="bringItems" label="Cần mang theo (ngoại khóa)"><Input placeholder="VD: Nước uống, nón, giày thể thao" /></Form.Item>
-        <Form.Item><Button type="primary" htmlType="submit" block>Lưu</Button></Form.Item>
-      </Form>
-    </Modal>
+      }} />
     </div>
   )
 }

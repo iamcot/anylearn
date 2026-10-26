@@ -130,6 +130,10 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 
 ## Nhật ký
 
+### 27/10/2026 – form thêm/sửa ca học gọn lại
+- Modal tách thành `components/ScheduleFormModal.jsx`, chia mục: Tên + loại lịch (3 nút chọn nhanh, có mô tả) → **Thời gian** (các thứ; "khai giảng → kết thúc" và "giờ học" mỗi cặp một hàng) → **Địa điểm** (chỉ hiện khi khóa cần địa chỉ: chọn địa chỉ + phòng học) → **Học online** (chỉ hiện với khóa online, hoặc khi bấm "+ Thêm link học online", hoặc ca đã có link) → **Ngoại khóa** (chỉ hiện với khóa ngoại khóa).
+- Thử: tick 2 địa chỉ khi thêm ca tạo đúng 2 ca. Lưu ý: bấm Enter trong ô giờ cũng gửi form.
+
 ### 27/10/2026 – bỏ logic riêng cho "Thu hộ học phí"
 - Công tắc "Thu hộ học phí" về lại tab Tài chính; không còn ẩn ca học hay miễn kiểm tra nào theo công tắc này (khóa thu hộ cũng cần địa chỉ như khóa khác). Tab Lịch học chỉ còn 2 khối: "Địa chỉ học" (chỉ hiện khi khóa cần địa chỉ) và "Thời gian & ca học".
 - Sửa giao diện ô chọn nhiều địa chỉ tràn khỏi thẻ (lưới `1fr` → `minmax(0, 1fr)`).
