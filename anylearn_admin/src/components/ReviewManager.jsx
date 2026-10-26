@@ -1,4 +1,4 @@
-import { App, Button, Input, Modal, Popconfirm, Rate, Select, Space, Switch, Table, Tag, Typography } from 'antd'
+import { App, Button, Image, Input, Modal, Popconfirm, Rate, Select, Space, Switch, Table, Tag, Typography } from 'antd'
 import { DeleteOutlined } from '@ant-design/icons'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
@@ -63,7 +63,13 @@ export default function ReviewManager({ itemId }) {
       render: (v, r) => (
         <div>
           <div>{v}</div>
-          {r.media?.length > 0 && <div style={{ color: '#888', fontSize: 12 }}>{r.media.length} ảnh</div>}
+          {r.media?.length > 0 && (
+            <Image.PreviewGroup>
+              <Space size={6} wrap style={{ marginTop: 6 }}>
+                {r.media.map(url => <Image key={url} src={url} width={56} height={56} style={{ objectFit: 'cover', borderRadius: 6 }} />)}
+              </Space>
+            </Image.PreviewGroup>
+          )}
           {r.partnerReply && <div style={{ color: '#888', fontSize: 12 }}>Đối tác trả lời: {r.partnerReply}</div>}
           {r.status === 'hidden' && <div style={{ color: '#cf1322', fontSize: 12 }}>Lý do ẩn: {r.hiddenReason || '—'}</div>}
           {r.resubmittedAt && <Tag color="orange" style={{ marginTop: 4 }}>Người viết đã sửa lại, chờ xem</Tag>}
