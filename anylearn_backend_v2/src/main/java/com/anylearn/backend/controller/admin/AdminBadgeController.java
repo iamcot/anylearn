@@ -30,8 +30,8 @@ public class AdminBadgeController {
         counts.put("transactions", count("SELECT COUNT(*) FROM transactions WHERE status = 0 AND type IN ('withdraw', 'deposit')"));
         counts.put("activities", count("SELECT COUNT(*) FROM item_activities WHERE status IS NULL OR status = 0"));
         counts.put("scheduleRequests", count("SELECT COUNT(*) FROM schedule_requests WHERE status = 'pending'"));
-        counts.put("courseRequests", count("SELECT COUNT(*) FROM course_requests WHERE status = 'new'"));
-        counts.put("priceReports", count("SELECT COUNT(*) FROM price_reports WHERE status = 'new'"));
+        counts.put("courseRequests", count("SELECT COUNT(*) FROM course_requests WHERE status <> 'closed'"));
+        counts.put("priceReports", count("SELECT COUNT(*) FROM price_reports WHERE status NOT IN ('fixed', 'rejected')"));
         counts.put("reviewsResubmitted", reviewService.resubmittedCount());
         return ApiResponse.ok(counts);
     }
