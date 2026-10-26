@@ -81,7 +81,7 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 04.2 | Chip lọc nhanh + bộ lọc đầy đủ | done | Chip: Gần tôi/Cuối tuần/Tối trong tuần/Học thử/Giảm giá/Online; panel thêm quận, khung giờ, đối tác, giá tối đa (thanh trượt), khai giảng, tag; thẻ có khoảng cách/giờ/Học thử/Giảm giá. Chưa có "+X anyPoint" trên thẻ |
 | 04.3 | Trang chủ mobile gọn | done | Còn 5 khối: hero (tìm kiếm + chip bé + chip nhanh), Dành cho {bé}, Đang hot gần bạn (cần địa chỉ đã lưu), chuyên gia/đối tác nổi bật, CTA nhờ tìm giúp + 3 bài viết. Chưa có khối bộ sưu tập (04.4) và nút "Thử điều mới" (04.5); PromoSlider giữ lại tới khi có bộ sưu tập. Chưa đo trước/sau |
 | 04.4 | Bộ sưu tập | done | Chọn tay + gợi ý theo bộ lọc, không dùng `filter_json`; mùa là khoảng ngày tuyệt đối (năm sau phải sửa tay). Tìm gợi ý cần Meilisearch nên chưa thử với Meilisearch thật trong sandbox (chỉ thử CRUD thật + gợi ý giả lập) |
-| 04.5 | Trang chuyên gia + "Ngẫu nhiên" | todo | |
+| 04.5 | Trang chuyên gia + "Ngẫu nhiên" | done | Trang `/partner/[id]` (giới thiệu, khóa đang mở, cơ sở, theo dõi), `/discover`. Chưa có phần review (chờ plan 09) và "thành tích" (chưa có dữ liệu) |
 | 01.5 | Khảo sát sở thích khi thêm con | todo | |
 | 09.1 | Review xác thực | todo | |
 | 09.2 | Review tiêu chí + ảnh | todo | |
@@ -422,3 +422,9 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 - Tạo `docs/huong-dan-admin.md` (hướng dẫn cấu hình cho team admin). Quy tắc: thêm/đổi chức năng có phần cài đặt hoặc nhập dữ liệu thì cập nhật file này cùng lúc (ghi vào `CLAUDE.md`).
 - Bán kính "Gần tôi" cấu hình được: trang admin "Cài đặt > Vận hành" (`/admin/settings`), key `search/near_radius_km`, mặc định 10 km (1 đến 100). FE không còn gửi `radiusKm`, server tự lấy từ cấu hình. Trang này cũng sửa được các mốc nhắc/tự hủy đơn chờ thanh toán (trước đây chỉ sửa được trong DB) và có nút cập nhật chỉ mục tìm kiếm.
 - Chốt: lộ trình do admin tạo, tách khỏi bộ sưu tập (chuỗi có thứ tự + tiến độ theo bé). Plan 08.1 đổi thành `pathways` + `pathway_steps`, tiến độ suy từ đơn/lớp đã học.
+
+### 26/10/2026 – 04.5 trang đối tác, theo dõi, thử điều mới
+- V29 `follows`, `follow_announcements`. Theo dõi đối tác; admin bật khóa mới (tắt→bật, hoặc Duyệt) thì báo một lần cho người theo dõi (in-app + push). Trang công khai `/partner/[id]`; mọi link tới tác giả (thẻ khóa, kết quả, PDP, đối tác nổi bật) giờ vào trang này.
+- `/api/discover` + `/discover`: ngẫu nhiên theo ngày và bé (200 khóa phổ biến khớp tuổi/khu vực, xáo bằng seed), nút ở trang chủ.
+- Chưa thử với Meilisearch thật (sandbox không tải được): `searchIds` và danh sách discover chỉ kiểm tra tới chỗ trả rỗng; xáo và phân trang có test.
+- Task 04 xong (04.6 so sánh khóa học thuộc giai đoạn 4).

@@ -210,6 +210,11 @@ Thư mục `http/` chứa VS Code REST Client files cho mọi endpoint:
 - A collection is a hand-picked list of courses (V28: `collections` with slug, title, subtitle, cover, `season_from`/`season_to`, sort order, active; `collection_items` with the admin's order). Back office page "Bộ sưu tập" (`/admin/collections`, `AdminCollectionController`, `CollectionService`, rules in `CollectionRules`): create/edit in a drawer, courses are added from `GET /admin/collections/course-search` (the visitors' search with the same filters: keyword, age, tags, partner type, time slots, price, free trial, sale; only live courses) by ticking results ("Gợi ý theo bộ lọc" is the same call with filters), reordered with arrows, and saved with `itemIds`. A course id that does not exist is dropped on save.
 - Visitors: `GET /api/collections` (active, in season, at least one live course) and `GET /api/collections/{slug}`; FE `/collections/[slug]` and the home row `CollectionsRow`. A course that is switched off disappears from the list by itself.
 
+## Partner page, follows and discover
+
+- Public partner page `/partner/[id]` (FE) reads `GET /api/user/profile/{id}` plus `GET /api/partners/{id}/summary` (type, live course count, follower count, `following` for a logged-in caller, active branches). Follow: `POST`/`DELETE /api/partners/{id}/follow` (table `follows`, V29), `GET /api/partners/followed`. `FollowService.announceIfNewlyOpen(item, wasLive)` is called by `AdminItemController` on save/approve: a course that just became live (status 1 and user_status 1) notifies the partner's followers once (`follow_announcements`; type `new_course`, route `/pdp`).
+- `GET /api/discover` (`DiscoverController`): top 200 popular matching courses (`MeilisearchService.searchIds`), shuffled with a seed of date + child (`DailyShuffle`), paged. FE `/discover` (`components/home/DiscoverList`), button on the home page.
+
 ## Sessions and expired logins
 
 - JWT lives 30 days (`JWT_EXPIRATION_MS`, default 2592000000). While a token is past half of its life, the next API call answers with a new one in the `X-Refreshed-Token` header (`JwtFilter`, `JwtService.shouldRefresh`), so people who keep using the app are never signed out.

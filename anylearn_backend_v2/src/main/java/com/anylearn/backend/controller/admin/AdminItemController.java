@@ -1,6 +1,7 @@
 package com.anylearn.backend.controller.admin;
 
 import com.anylearn.backend.service.location.ItemAddressRules;
+import com.anylearn.backend.service.partners.FollowService;
 import com.anylearn.backend.service.search.ItemAttributeGaps;
 import com.anylearn.backend.service.search.ItemSearchAttributes;
 
@@ -34,6 +35,7 @@ public class AdminItemController {
     private final ItemScheduleRepository itemScheduleRepository;
     private final UserLocationRepository userLocationRepository;
     private final com.anylearn.backend.service.tags.TagService tagService;
+    private final FollowService followService;
     private final com.anylearn.backend.service.location.LocationService locationService;
     private final OrderDetailRepository orderDetailRepository;
     private final UserRepository userRepository;
@@ -258,6 +260,7 @@ public class AdminItemController {
             @RequestBody Map<String, Object> body) {
         if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
         return itemRepository.findById(id).map(item -> {
+            boolean wasLive = FollowService.isLive(item);
             if (body.containsKey("title")) item.setTitle((String) body.get("title"));
             if (body.containsKey("userId")) item.setUserId(toNum(body.get("userId")).longValue());
             if (body.containsKey("subtype")) item.setSubtype((String) body.get("subtype"));
@@ -303,6 +306,7 @@ public class AdminItemController {
             if (body.get("tagIds") instanceof java.util.List<?> tagIds)
                 tagService.setItemTags(id, tagIds.stream().filter(Number.class::isInstance).map(n -> ((Number) n).longValue()).toList());
             meilisearchService.indexItem(id);
+            followService.announceIfNewlyOpen(item, wasLive);
             return ApiResponse.ok(item);
         }).orElse(ApiResponse.fail("Not found"));
     }
@@ -313,9 +317,11 @@ public class AdminItemController {
     public ApiResponse<?> approve(@AuthenticationPrincipal User user, @PathVariable Long id) {
         if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
         return itemRepository.findById(id).map(item -> {
+            boolean wasLive = FollowService.isLive(item);
             item.setUserStatus((byte) 1);
             itemRepository.save(item);
             meilisearchService.indexItem(id);
+            followService.announceIfNewlyOpen(item, wasLive);
             return ApiResponse.ok("Approved");
         }).orElse(ApiResponse.fail("Not found"));
     }

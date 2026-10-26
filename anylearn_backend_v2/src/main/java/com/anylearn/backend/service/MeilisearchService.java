@@ -337,6 +337,24 @@ public class MeilisearchService {
         );
     }
 
+    /** Ids of the courses matching a search, most popular first (up to `limit`): for lists that the caller re-orders. */
+    public List<Long> searchIds(String query, int limit, SearchFilters filters) {
+        try {
+            var request = SearchRequest.builder()
+                    .q(query != null ? query : "")
+                    .filter(SearchFilterBuilder.build(filters).toArray(new String[0]))
+                    .sort(new String[]{"popularityScore:desc"})
+                    .attributesToRetrieve(new String[]{"id"})
+                    .limit(limit)
+                    .build();
+            SearchResult result = (SearchResult) meilisearchClient.index("items").search(request);
+            return result.getHits().stream().map(hit -> ((Number) hit.get("id")).longValue()).collect(Collectors.toList());
+        } catch (Exception e) {
+            log.warn("Meilisearch id search failed: {}", e.getMessage());
+            return Collections.emptyList();
+        }
+    }
+
     private static final List<String> CARD_ATTRIBUTES = List.of("hasFreeTrial", "onSale", "timeSlots", "pricePerSession");
 
     /** What a result card shows about a course ("Học thử", when it runs) comes from the index, nothing is looked up twice. */

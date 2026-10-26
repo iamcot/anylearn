@@ -58,3 +58,13 @@ GET http://localhost:8080/v2/api/search?q=&ageFrom=6&ageTo=7&nearLat=10.7745&nea
 
 ### Search filter options (districts of a province, tags with ids)
 GET {{baseUrl}}/search/options?province=79
+
+
+### Partner page data (public) and follow (needs login)
+GET {{baseUrl}}/partners/14416/summary
+###
+POST {{baseUrl}}/partners/14416/follow
+Authorization: Bearer {{$dotenv JWT_TOKEN}}
+
+### Random list for the day ("Thử điều mới cho con")
+GET {{baseUrl}}/discover?ageFrom=8&ageTo=9&seed=c7

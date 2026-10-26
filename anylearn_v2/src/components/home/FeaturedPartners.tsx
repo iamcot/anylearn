@@ -11,7 +11,7 @@ export default function FeaturedPartners({ partners }: { partners: UserResult[] 
         <h2 className="mb-3 mt-0 text-lg font-extrabold text-ink lg:text-2xl">Chuyên gia và đối tác nổi bật</h2>
         <div className="flex gap-4 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {partners.map(partner => (
-            <Link key={partner.id} href={`/search?mode=class&authorId=${partner.id}`} className="flex w-24 shrink-0 flex-col items-center gap-1.5 text-center no-underline lg:w-32">
+            <Link key={partner.id} href={`/partner/${partner.id}`} className="flex w-24 shrink-0 flex-col items-center gap-1.5 text-center no-underline lg:w-32">
               <span className="relative grid size-16 place-items-center overflow-hidden rounded-full bg-gradient-to-br from-green-soft to-blue-soft text-blue/50 lg:size-24">
                 {partner.image
                   // eslint-disable-next-line @next/next/no-img-element

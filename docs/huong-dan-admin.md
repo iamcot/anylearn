@@ -14,6 +14,7 @@ Cập nhật lần cuối: 26/10/2026.
 5. [Tìm kiếm của khách hoạt động thế nào](#5-tìm-kiếm-của-khách)
 6. [Trang chủ cá nhân hóa](#6-trang-chủ)
 7. [Bộ sưu tập](#7-bộ-sưu-tập)
+7b. [Trang đối tác, theo dõi, thử điều mới](#7b-trang-đối-tác-theo-dõi-và-thử-điều-mới-cho-con)
 8. [Cấu hình vận hành](#8-cấu-hình-vận-hành)
 9. [Nhu cầu của khách: nhờ tìm khóa, báo giá rẻ hơn, xu hướng tìm kiếm](#9-nhu-cầu-của-khách)
 10. [Thông báo cho team và thanh toán](#10-thông-báo-và-thanh-toán)
@@ -160,7 +161,8 @@ Trang chủ có các khối: tìm kiếm + chip, **Dành cho {tên bé}**, **Đa
 - **Dành cho {bé}**: khóa phổ biến nhất hợp tuổi bé đang chọn. Khách chưa đăng nhập: dùng độ tuổi khách đã khai; chưa khai thì hiện "Khóa học được quan tâm nhiều".
 - **Đang hot gần bạn**: chỉ hiện với tài khoản có **địa chỉ nhà đã lưu có tọa độ** (dùng bán kính "Gần tôi").
 - **Bộ sưu tập**: xem mục 7. Không có bộ nào đang bật thì khối ẩn.
-- **Chuyên gia và đối tác nổi bật**: tự động lấy 4 trường và 4 giáo viên được tìm nhiều nhất. Muốn đưa ai lên cao hơn thì tăng điểm ưu tiên của họ.
+- **Chuyên gia và đối tác nổi bật**: tự động lấy 4 trường và 4 giáo viên được tìm nhiều nhất, bấm vào mở trang đối tác (mục 7b). Muốn đưa ai lên cao hơn thì tăng điểm ưu tiên của họ.
+- Nút **Thử điều mới cho con** mở danh sách ngẫu nhiên theo ngày (mục 7b).
 - Khối nào không có dữ liệu thì tự ẩn, không để lại chỗ trống.
 
 ---
@@ -184,6 +186,29 @@ Trang **Khóa học > Bộ sưu tập**: danh sách khóa do biên tập chọn,
 - Bộ không còn khóa nào đang mở thì không hiện cho khách dù đang bật.
 - Danh sách chỉ lưu những khóa tồn tại.
 - Đường dẫn của khách là `/collections/{đường-dẫn}`.
+
+---
+
+## 7b. Trang đối tác, "Theo dõi" và "Thử điều mới cho con"
+
+**Trang đối tác** (`/partner/{mã}`): khách bấm tên trường hoặc chuyên gia ở thẻ khóa học, kết quả tìm kiếm, trang chi tiết khóa hoặc khối "Chuyên gia và đối tác nổi bật" sẽ vào trang này.
+Trang hiển thị: ảnh đại diện, ảnh bìa, tên, chức danh, loại đối tác, số khóa đang mở, số người theo dõi, phần giới thiệu, các khóa đang mở và các cơ sở kèm link bản đồ.
+
+Dữ liệu nhập ở **Thành viên > chọn đối tác**:
+- Ảnh đại diện, ảnh bìa, tên, **Chức danh**, **Giới thiệu ngắn**, **Giới thiệu đầy đủ** (nội dung có định dạng), **Loại đối tác**.
+- Cơ sở: mục "Cơ sở / Địa chỉ" (mục 2.3). Chỉ cơ sở đang hiện mới được công bố.
+- Phần "Khóa đang mở" tự lấy các khóa đang bật của đối tác, phổ biến trước.
+- Đối tác thiếu ảnh hoặc giới thiệu thì trang vẫn hiện nhưng trống và kém hấp dẫn: nên bổ sung cho các đối tác chính.
+
+**Theo dõi:** thành viên đã đăng nhập bấm **Theo dõi**. Khi admin bật một khóa mới của đối tác đó (đổi khóa từ tắt sang bật, hoặc bấm Duyệt), người theo dõi nhận thông báo trong app và trên điện thoại: "{Đối tác} vừa mở khóa mới".
+- Mỗi khóa chỉ báo **một lần**, kể cả khi tắt rồi bật lại.
+- Khóa đang bật sẵn từ trước không báo. Chỉ khóa chuyển từ tắt sang bật mới báo.
+- Tạo khóa mới ở trạng thái tắt, soạn xong mới bật: người theo dõi chỉ nhận thông báo lúc bật.
+
+**Thử điều mới cho con** (`/discover`, nút ở cuối các khối cá nhân của trang chủ): danh sách khóa hợp tuổi bé đang chọn và gần nhà (nếu tài khoản có địa chỉ nhà), sắp theo thứ tự ngẫu nhiên.
+- Cùng một bé xem trong cùng một ngày sẽ thấy cùng một danh sách; qua ngày đổi danh sách mới. Bé khác nhau có danh sách khác nhau.
+- Danh sách lấy từ 200 khóa phổ biến nhất khớp tuổi và khu vực, rồi xáo ngẫu nhiên. Không có thao tác cấu hình riêng.
+- Muốn khóa xuất hiện: nhập độ tuổi đúng, bật khóa và để đối tác có cơ sở có tọa độ.
 
 ---
 
@@ -249,6 +274,8 @@ Dành cho người cài đặt hệ thống; team admin chỉ cần biết để
 | Không lưu được khóa, báo thiếu địa chỉ | Hình thức cần địa chỉ mà đối tác chưa có | Thêm địa chỉ cho đối tác (bấm dòng cảnh báo đỏ) hoặc đổi loại đối tác sang "App / bán mã code" nếu đúng bản chất |
 | Nút Tìm tự động không có kết quả | Chưa có key Google hoặc địa chỉ quá chung chung | Nhờ người cài đặt kiểm tra key; nhập thêm số nhà và tên đường |
 | Khách bị đăng xuất | Đăng nhập hết hạn (30 ngày không dùng) | Đăng nhập lại |
+| Người theo dõi không nhận thông báo khóa mới | Khóa đã báo một lần, hoặc khóa đã bật sẵn từ trước | Chỉ khóa chuyển từ tắt sang bật mới báo; tạo khóa ở trạng thái tắt rồi bật khi sẵn sàng |
+| "Thử điều mới" trống | Không có khóa nào khớp tuổi và khu vực | Kiểm tra độ tuổi và tọa độ cơ sở của khóa |
 | Bộ sưu tập không hiện trên trang chủ | Đang tắt, ngoài khoảng ngày, hoặc không còn khóa nào đang mở | Kiểm tra công tắc Hiện, khoảng ngày và danh sách khóa |
 
 ---

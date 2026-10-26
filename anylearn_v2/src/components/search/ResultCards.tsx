@@ -55,7 +55,7 @@ export function CourseResultCard({ item }: { item: Item }) {
               : <span className="grid size-4 shrink-0 place-items-center rounded-full bg-blue-soft text-blue"><UserIcon className="size-2.5" /></span>
             }
             <Link
-              href={`/search?mode=class&authorId=${item.authorId}`}
+              href={`/partner/${item.authorId}`}
               className="relative z-20 truncate text-xs font-bold text-muted no-underline"
             >
               {item.authorName}
@@ -94,7 +94,7 @@ export function CourseResultCard({ item }: { item: Item }) {
 export function UserResultCard({ user, mode }: { user: UserResult; mode: 'school' | 'teacher' }) {
   return (
     <article className={CARD_CLASS}>
-      <Link href={`/search?mode=class&authorId=${user.id}`} className="absolute inset-0 z-10" aria-label={user.name} />
+      <Link href={`/partner/${user.id}`} className="absolute inset-0 z-10" aria-label={user.name} />
       <div className={IMAGE_CLASS}>
         {user.image
           // eslint-disable-next-line @next/next/no-img-element
