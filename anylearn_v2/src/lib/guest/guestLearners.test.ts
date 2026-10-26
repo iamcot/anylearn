@@ -189,14 +189,14 @@ describe('guestPeople', () => {
   it('lists each child with the search age bucket', () => {
     const people = guestPeople(store({ audience: 'child', learners: [BIN, SU] }), NOW)
     expect(people).toEqual([
-      { key: 'a1', label: 'Bin · 11t', age: 11, ageFilter: '11-15', localId: 'a1' },
-      { key: 'b2', label: 'Su · 9t', age: 9, ageFilter: '6-10', localId: 'b2' },
+      { key: 'a1', name: 'Bin', label: 'Bin · 11t', age: 11, ageFilter: '11-15', localId: 'a1' },
+      { key: 'b2', name: 'Su', label: 'Su · 9t', age: 9, ageFilter: '6-10', localId: 'b2' },
     ])
   })
 
   it('lists the visitor when they gave a birth year', () => {
     expect(guestPeople(store({ audience: 'self', selfBirthYear: 1990 }), NOW))
-      .toEqual([{ key: 'self', label: 'Tôi · 36t', age: 36, ageFilter: '16+' }])
+      .toEqual([{ key: 'self', name: 'Tôi', label: 'Tôi · 36t', age: 36, ageFilter: '16+' }])
   })
 
   it('lists nobody without a birth year or an answer', () => {
