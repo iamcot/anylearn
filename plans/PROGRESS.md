@@ -131,7 +131,7 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 ## Nhật ký
 
 ### 27/10/2026 – gom nhóm menu admin
-- Menu trái chia 5 nhóm: Tổng quan · **Đơn hàng** (Đơn hàng, anyPoints, Tài chính) · **Khóa học** (Khóa học, Lịch học, Tags, Thiếu thuộc tính) · **Quản lý thành viên** (Thành viên, Hoạt động = học thử/test/tham quan, Nghỉ / đổi lịch, Nhờ tìm khóa học, Báo giá rẻ hơn) · **Nội dung & phân tích** (Bài viết, Xu hướng nhu cầu). Menu "Cài đặt" ở đáy chia 2 nhóm: Thông báo (email, Zalo OA, người nhận thông báo) và Thanh toán (tài khoản ngân hàng, kiểm toán anyPoint).
+- Menu trái chia 5 nhóm: Tổng quan · **Đơn hàng** (Đơn hàng, anyPoints, Tài chính) · **Quản lý thành viên** (Thành viên, Hoạt động = học thử/test/tham quan, Nghỉ / đổi lịch, Nhờ tìm khóa học, Báo giá rẻ hơn) · **Khóa học** (Khóa học, Lịch học, Tags, Thiếu thuộc tính) · **Nội dung & phân tích** (Bài viết, Xu hướng nhu cầu). Menu "Cài đặt" ở đáy chia 2 nhóm: Thông báo (email, Zalo OA, người nhận thông báo) và Thanh toán (tài khoản ngân hàng, kiểm toán anyPoint).
 - Danh sách dài hơn màn hình thì cuộn riêng, nút Cài đặt không bị đẩy mất.
 
 ### 27/10/2026 – nhập hàng loạt địa chỉ từ hợp đồng

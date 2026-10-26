@@ -11,7 +11,7 @@ import client from '../api/client'
 import logo from '/LogoanyLEARN.svg'
 import '../styles/themes.css'
 
-// Grouped by what the team does: orders and money first, then courses, then members and what they ask for, then content and insights.
+// Grouped by what the team does: orders and money first, then members and what they ask for, then courses, then content and insights.
 const NAV_GROUPS = [
   { key: 'g-home', type: 'group', label: null, children: [
     { key: '/dashboard',        icon: <DashboardOutlined />,   label: 'Tổng quan'  },
@@ -21,18 +21,18 @@ const NAV_GROUPS = [
     { key: '/transactions',     icon: <SwapOutlined />,        label: 'anyPoints'  },
     { key: '/finance',          icon: <FundOutlined />,        label: 'Tài chính'  },
   ] },
-  { key: 'g-courses', type: 'group', label: 'Khóa học', children: [
-    { key: '/items',            icon: <BookOutlined />,        label: 'Khóa học'   },
-    { key: '/schedule-monitor', icon: <CalendarOutlined />,    label: 'Lịch học'   },
-    { key: '/tags',             icon: <TagsOutlined />,        label: 'Tags'       },
-    { key: '/item-gaps',        icon: <WarningOutlined />,     label: 'Thiếu thuộc tính' },
-  ] },
   { key: 'g-requests', type: 'group', label: 'Quản lý thành viên', children: [
     { key: '/users',            icon: <TeamOutlined />,        label: 'Thành viên' },
     { key: '/activities',       icon: <SolutionOutlined />,    label: 'Hoạt động' },
     { key: '/schedule-requests', icon: <CustomerServiceOutlined />, label: 'Nghỉ / đổi lịch' },
     { key: '/course-requests',  icon: <SearchOutlined />,      label: 'Nhờ tìm khóa học' },
     { key: '/price-reports',    icon: <DollarOutlined />,      label: 'Báo giá rẻ hơn' },
+  ] },
+  { key: 'g-courses', type: 'group', label: 'Khóa học', children: [
+    { key: '/items',            icon: <BookOutlined />,        label: 'Khóa học'   },
+    { key: '/schedule-monitor', icon: <CalendarOutlined />,    label: 'Lịch học'   },
+    { key: '/tags',             icon: <TagsOutlined />,        label: 'Tags'       },
+    { key: '/item-gaps',        icon: <WarningOutlined />,     label: 'Thiếu thuộc tính' },
   ] },
   { key: 'g-content', type: 'group', label: 'Nội dung & phân tích', children: [
     { key: '/articles',         icon: <FileTextOutlined />,    label: 'Bài viết'   },
