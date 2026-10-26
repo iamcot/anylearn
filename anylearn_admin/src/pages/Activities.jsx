@@ -1,4 +1,4 @@
-import { Button, Card, Input, Select, Space, Table, Tag, Typography } from 'antd'
+import { App, Button, Card, Input, Modal, Select, Space, Table, Tag, Tooltip, Typography } from 'antd'
 import { CalendarOutlined, SearchOutlined } from '@ant-design/icons'
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -7,7 +7,7 @@ import { fmtDateTime } from '../utils/format'
 
 const TYPE_LABEL = { trial: 'Học thử', test: 'Test đầu vào', visit: 'Tham quan' }
 const TYPE_COLOR = { trial: 'blue', test: 'purple', visit: 'green' }
-const STATUS_TAG = { '-1': ['Đã hủy', 'error'], '0': ['Chờ duyệt', 'warning'], '1': ['Đã duyệt', 'success'] }
+const STATUS_TAG = { '-1': ['Đã từ chối', 'error'], '0': ['Chờ duyệt', 'warning'], '1': ['Đã duyệt', 'success'] }
 
 export default function Activities() {
   const [typeFilter, setTypeFilter] = useState(null)
@@ -16,6 +16,9 @@ export default function Activities() {
   const [searchVal, setSearchVal] = useState('')
   const [page, setPage] = useState(1)
   const qc = useQueryClient()
+  const { message } = App.useApp()
+  const [deciding, setDeciding] = useState(null) // { row, decision }
+  const [note, setNote] = useState('')
 
   const { data: partners } = useQuery({
     queryKey: ['admin-partners'],
@@ -30,9 +33,15 @@ export default function Activities() {
     }).then(r => r.data?.data ?? { content: [] }),
   })
 
-  const approveMutation = useMutation({
-    mutationFn: (id) => client.put(`/admin/activities/${id}/approve`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-activities'] }),
+  const decideMutation = useMutation({
+    mutationFn: ({ row, decision, text }) => client.put(`/admin/activities/${row.id}/decision`, { decision, message: text }).then(r => r.data),
+    onSuccess: (res) => {
+      if (res.resultCode !== 1) { message.error(res.message); return }
+      setDeciding(null)
+      setNote('')
+      qc.invalidateQueries({ queryKey: ['admin-activities'] })
+      qc.invalidateQueries({ queryKey: ['admin-badges'] })
+    },
   })
 
   const columns = [
@@ -67,13 +76,19 @@ export default function Activities() {
       render: v => <span style={{ fontSize: 12, color: '#888' }}>{v || '—'}</span>,
     },
     {
-      title: 'Trạng thái', dataIndex: 'status', key: 'status', width: 120,
+      title: 'Trạng thái', dataIndex: 'status', key: 'status', width: 170,
       render: (v, r) => {
         const s = String(v)
-        if (s === '1') return <Tag color="success">Đã duyệt</Tag>
-        if (s === '-1') return <Tag color="error">Đã hủy</Tag>
-        return <Button size="small" type="primary" loading={approveMutation.isPending}
-          onClick={() => approveMutation.mutate(r.id)}>Duyệt</Button>
+        if (s === '1' || s === '-1') {
+          const [label, color] = STATUS_TAG[s]
+          return <Tooltip title={r.adminNote || null}><Tag color={color}>{label}</Tag>{r.adminNote && <div style={{ fontSize: 11, color: '#888' }}>{r.adminNote}</div>}</Tooltip>
+        }
+        return (
+          <Space size={6}>
+            <Button size="small" type="primary" onClick={() => setDeciding({ row: r, decision: 'approve' })}>Duyệt</Button>
+            <Button size="small" danger onClick={() => setDeciding({ row: r, decision: 'reject' })}>Từ chối</Button>
+          </Space>
+        )
       },
     },
     {
@@ -130,6 +145,25 @@ export default function Activities() {
           }}
         />
       </Card>
+
+      <Modal
+        open={Boolean(deciding)}
+        title={deciding?.decision === 'approve' ? 'Duyệt đăng ký' : 'Từ chối đăng ký'}
+        okText={deciding?.decision === 'approve' ? 'Duyệt và báo khách' : 'Từ chối và báo khách'}
+        okButtonProps={{ danger: deciding?.decision === 'reject', disabled: deciding?.decision === 'reject' && !note.trim(), loading: decideMutation.isPending }}
+        cancelText="Hủy"
+        onCancel={() => { setDeciding(null); setNote('') }}
+        onOk={() => decideMutation.mutate({ row: deciding.row, decision: deciding.decision, text: note })}
+      >
+        <Typography.Paragraph type="secondary">
+          {deciding?.row.userName} đăng ký {TYPE_LABEL[deciding?.row.trialType] ?? ''} khóa &quot;{deciding?.row.itemTitle}&quot;.{' '}
+          {deciding?.decision === 'approve'
+            ? 'Có thể ghi thêm giờ, địa điểm, đồ cần mang. Nội dung được gửi cho khách qua thông báo.'
+            : 'Lý do được gửi cho khách qua thông báo.'}
+        </Typography.Paragraph>
+        <Input.TextArea rows={3} maxLength={500} showCount style={{ marginBottom: 24 }} value={note} onChange={e => setNote(e.target.value)}
+          placeholder={deciding?.decision === 'approve' ? 'Ví dụ: Mời bạn đến lớp 9h sáng thứ Bảy, mang theo vở và bút' : 'Ví dụ: Lớp học thử tuần này đã đủ chỗ, mời bạn đăng ký tuần sau'} />
+      </Modal>
     </div>
   )
 }

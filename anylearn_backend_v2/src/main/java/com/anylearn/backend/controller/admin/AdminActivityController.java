@@ -3,6 +3,9 @@ package com.anylearn.backend.controller.admin;
 import com.anylearn.backend.dto.response.ApiResponse;
 import com.anylearn.backend.entity.User;
 import com.anylearn.backend.repository.ItemActivityRepository;
+import com.anylearn.backend.repository.ItemRepository;
+import com.anylearn.backend.repository.UserRepository;
+import com.anylearn.backend.service.NotificationService;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -20,6 +23,11 @@ public class AdminActivityController {
 
     private final EntityManager em;
     private final ItemActivityRepository itemActivityRepository;
+    private final ItemRepository itemRepository;
+    private final UserRepository userRepository;
+    private final NotificationService notificationService;
+
+    private static final Map<String, String> TYPE_LABELS = Map.of("trial", "học thử", "test", "test đầu vào", "visit", "tham quan");
 
     private boolean isAdmin(User user) {
         return user != null && "admin".equals(user.getRole());
@@ -51,7 +59,7 @@ public class AdminActivityController {
                 SELECT ia.id, ia.item_id, i.title AS item_title,
                        ia.user_id, u.name AS user_name, u.phone AS user_phone,
                        ia.type, ia.date, ia.note, ia.status, ia.created_at,
-                       pu.name AS partner_name
+                       pu.name AS partner_name, ia.admin_note
                 FROM item_activities ia
                 JOIN items i ON i.id = ia.item_id
                 JOIN users u ON u.id = ia.user_id
@@ -74,20 +82,49 @@ public class AdminActivityController {
             m.put("status", r[9]);
             m.put("createdAt", r[10] != null ? r[10].toString() : "");
             m.put("partnerName", r[11] != null ? r[11] : "");
+            m.put("adminNote", r[12] != null ? r[12] : "");
             return m;
         }).toList();
 
         return ApiResponse.ok(Map.of("content", data, "page", page, "size", size));
     }
 
+    /** Approves or declines a registration and tells the family. Declining needs a reason; approving may carry details (time, place, what to bring). */
+    @PutMapping("/{id}/decision")
+    public ApiResponse<?> decide(@AuthenticationPrincipal User user, @PathVariable Long id, @RequestBody Map<String, Object> body) {
+        if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
+        boolean approve = "approve".equals(body.get("decision"));
+        boolean reject = "reject".equals(body.get("decision"));
+        if (!approve && !reject) return ApiResponse.fail("Quyết định không hợp lệ");
+        String message = body.get("message") instanceof String text ? text.trim() : "";
+        if (message.length() > 500) message = message.substring(0, 500);
+        if (reject && message.isEmpty()) return ApiResponse.fail("Nhập lý do từ chối để báo cho khách");
+
+        var activity = itemActivityRepository.findById(id).orElse(null);
+        if (activity == null) return ApiResponse.fail("Không tìm thấy");
+        activity.setStatus((byte) (approve ? 1 : -1));
+        activity.setAdminNote(message.isEmpty() ? null : message);
+        activity.setHandledAt(LocalDateTime.now());
+        activity.setUpdatedAt(LocalDateTime.now());
+        itemActivityRepository.save(activity);
+        notifyFamily(activity, approve, message);
+        return ApiResponse.ok(approve ? "Đã duyệt" : "Đã từ chối");
+    }
+
     @PutMapping("/{id}/approve")
     public ApiResponse<?> approve(@AuthenticationPrincipal User user, @PathVariable Long id) {
-        if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
-        return itemActivityRepository.findById(id).map(ia -> {
-            ia.setStatus((byte) 1);
-            ia.setUpdatedAt(LocalDateTime.now());
-            itemActivityRepository.save(ia);
-            return ApiResponse.ok("Đã duyệt");
-        }).orElse(ApiResponse.fail("Không tìm thấy"));
+        return decide(user, id, Map.of("decision", "approve"));
+    }
+
+    /** The registered person is told; a child has no login, so the parent is told. */
+    private void notifyFamily(com.anylearn.backend.entity.ItemActivity activity, boolean approve, String message) {
+        Long recipientId = userRepository.findById(activity.getUserId())
+                .map(person -> person.getIsChild() != null && person.getIsChild() == 1 && person.getUserId() != null ? person.getUserId() : person.getId())
+                .orElse(activity.getUserId());
+        String course = itemRepository.findById(activity.getItemId()).map(item -> item.getTitle()).orElse("khóa học");
+        String what = TYPE_LABELS.getOrDefault(activity.getType(), "tham gia");
+        String title = approve ? "Đăng ký " + what + " đã được duyệt" : "Đăng ký " + what + " chưa được chấp nhận";
+        String content = course + (message.isEmpty() ? "" : ". " + (approve ? "" : "Lý do: ") + message);
+        notificationService.createNotification(recipientId, "activity_result", title, content, "/pdp", String.valueOf(activity.getItemId()));
     }
 }

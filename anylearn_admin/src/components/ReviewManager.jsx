@@ -109,7 +109,7 @@ export default function ReviewManager({ itemId }) {
         <Typography.Paragraph type="secondary">
           Lý do được gửi cho {hiding?.userName || 'người viết'} và hiện ngay tại đánh giá của họ để họ chỉnh sửa. Họ sửa xong bạn sẽ nhận thông báo để mở lại.
         </Typography.Paragraph>
-        <Input.TextArea rows={3} maxLength={500} showCount value={reason} onChange={e => setReason(e.target.value)}
+        <Input.TextArea rows={3} maxLength={500} showCount style={{ marginBottom: 24 }} value={reason} onChange={e => setReason(e.target.value)}
           placeholder="Ví dụ: Nội dung chưa nói về khóa học, vui lòng mô tả trải nghiệm thực tế" />
       </Modal>
     </div>

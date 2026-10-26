@@ -454,3 +454,6 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 - Sửa lỗi: phụ huynh mua cho con không thấy nút review (đơn đứng tên cha mẹ, chi tiết đơn đứng tên con) và số dư anyPoint hiển thị cũ sau khi nhận thưởng; kiểm toán anyPoint tính thêm 2 loại giao dịch review.
 - Admin: Tags, Thiếu thuộc tính chuyển thành nút ở đầu trang Khóa học (trang trượt + nút Quay lại), thêm trang "Tất cả đánh giá"; số đỏ trên menu Đơn hàng, anyPoints, Hoạt động, Nghỉ/đổi lịch, Nhờ tìm khóa học, Báo giá rẻ hơn (`/admin/badges`).
 - Giả định mình chọn, cần chủ sản phẩm xác nhận: số đỏ "Đơn hàng" = đơn `pay_pending`; "anyPoints" = nạp/rút chờ duyệt; "Hoạt động" = đăng ký chưa duyệt.
+
+### 26/10/2026 – duyệt / từ chối hoạt động
+- Trang Hoạt động có thêm nút Từ chối; cả hai nút mở hộp nhập nội dung gửi khách (từ chối bắt buộc lý do). Thông báo `activity_result` gửi cho người đăng ký, nếu là bé thì gửi phụ huynh. V33 thêm `admin_note`, `handled_at`. Sửa lỗi hộp "Ẩn đánh giá": bộ đếm ký tự đè lên nút.

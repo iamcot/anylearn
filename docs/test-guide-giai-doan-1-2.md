@@ -135,6 +135,12 @@ Mở cửa sổ ẩn danh.
 - [ ] Nhập giá trị sai (ví dụ 0 km hoặc 200 km) thì báo lỗi, không lưu
 - [ ] Nút "Cập nhật chỉ mục ngay" chạy xong báo thành công
 
+### B8. Đăng ký hoạt động (admin)
+- [ ] Khách đăng ký học thử / test / tham quan một khóa; menu Hoạt động hiện số đỏ
+- [ ] Dòng chờ duyệt có hai nút "Duyệt" (xanh) và "Từ chối" (viền đỏ)
+- [ ] Bấm "Duyệt": hộp nhập nội dung (không bắt buộc), bấm "Duyệt và báo khách": dòng chuyển "Đã duyệt" kèm nội dung; khách (hoặc phụ huynh nếu là bé) nhận thông báo
+- [ ] Bấm "Từ chối": để trống thì không bấm được nút xác nhận; nhập lý do rồi gửi: dòng chuyển "Đã từ chối", khách nhận thông báo kèm lý do
+
 ---
 
 ## C. Kiểm tra chung
