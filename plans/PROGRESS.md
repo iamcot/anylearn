@@ -130,6 +130,12 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 
 ## Nhật ký
 
+### 27/10/2026 – sửa nhầm bảng contracts, "Ký HĐ" = 99, địa chỉ từ hợp đồng
+- V24 đã đổi tên nhầm `contracts` (vẫn đang dùng, quan trọng). V27 đổi tên lại nếu bảng đang là `contracts_old` (chạy lặp lại an toàn, không đổi V24 nên không lệch checksum); khôi phục entity `Contract` + repository, hằng số trạng thái 0/1/10/99.
+- "Ký HĐ" trước đây coi `is_signed = 1` là đã ký (công tắc, bộ lọc, chỉ mục tìm đối tác), trong khi portal ghi 99 → nay "đã ký" là `is_signed = 99`; công tắc ghi 99/0. Dòng nào v2 từng bật thành 1 sẽ hiện chưa ký (1 = hợp đồng mới) và cần bật lại.
+- Form địa chỉ đối tác gợi ý địa chỉ trên hợp đồng (nút "Dùng địa chỉ này"); "Tìm tự động" để trống thì tìm theo địa chỉ hợp đồng rồi mới theo tên. Chưa làm: nhập hàng loạt địa chỉ hợp đồng cho mọi đối tác (cần quyết định vì tốn lượt gọi Google).
+- Đổi chữ "Tự áp dụng" thành "Đối tác chỉ có 1 địa chỉ, hệ thống dùng luôn: …".
+
 ### 27/10/2026 – form thêm/sửa ca học gọn lại
 - Modal tách thành `components/ScheduleFormModal.jsx`, chia mục: Tên + loại lịch (3 nút chọn nhanh, có mô tả) → **Thời gian** (các thứ; "khai giảng → kết thúc" và "giờ học" mỗi cặp một hàng) → **Địa điểm** (chỉ hiện khi khóa cần địa chỉ: chọn địa chỉ + phòng học) → **Học online** (chỉ hiện với khóa online, hoặc khi bấm "+ Thêm link học online", hoặc ca đã có link) → **Ngoại khóa** (chỉ hiện với khóa ngoại khóa).
 - Thử: tick 2 địa chỉ khi thêm ca tạo đúng 2 ca. Lưu ý: bấm Enter trong ô giờ cũng gửi form.

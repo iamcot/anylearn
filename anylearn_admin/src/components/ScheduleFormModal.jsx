@@ -32,7 +32,7 @@ function AddressPicker({ isNew, locations, onAddLocation }) {
   const options = locations.map(l => ({ value: l.id, label: `${l.title} — ${l.address}` }))
   return (
     <Space direction="vertical" size={4} style={{ width: '100%' }}>
-      {locations.length === 1 && <span>Tự áp dụng: {locations[0].title} — {locations[0].address}</span>}
+      {locations.length === 1 && <span>Đối tác chỉ có 1 địa chỉ, hệ thống dùng luôn: {locations[0].title} — {locations[0].address}</span>}
       {locations.length > 1 && isNew && (
         <Form.Item name="userLocationIds" noStyle rules={[{ required: true, message: 'Chọn ít nhất một địa chỉ' }]}>
           <Checkbox.Group style={{ display: 'flex', flexDirection: 'column', gap: 4 }} options={options} />

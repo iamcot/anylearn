@@ -1,6 +1,7 @@
 package com.anylearn.backend.controller.admin;
 
 import com.anylearn.backend.dto.response.ApiResponse;
+import com.anylearn.backend.entity.Contract;
 import com.anylearn.backend.entity.PartnerTypes;
 import com.anylearn.backend.entity.User;
 import com.anylearn.backend.repository.UserRepository;
@@ -54,7 +55,7 @@ public class AdminUserController {
                 (role != null && !role.isBlank() ? " AND u.role='" + role.replace("'", "") + "'" : "") +
                 (status != null ? " AND u.status=" + status : "") +
                 (statusFilter != null ? " AND u.status=" + statusFilter : "") +
-                (isSigned != null ? " AND u.is_signed=" + isSigned : "") +
+                (isSigned != null ? (isSigned == 1 ? " AND u.is_signed=" : " AND u.is_signed<>") + Contract.APPROVED : "") +
                 (hasLocation != null ? (hasLocation ? " AND " : " AND NOT ") + ACTIVE_LOCATION_EXISTS : "") +
                 (q != null && !q.isBlank() ? " AND (u.name LIKE '%" + q.replace("'","''") + "%' OR u.phone LIKE '%" + q.replace("'","''") + "%' OR u.email LIKE '%" + q.replace("'","''") + "%')" : "");
 
@@ -79,7 +80,7 @@ public class AdminUserController {
             m.put("fullContent", r[12] != null ? r[12] : "");
             m.put("refUserId", r[13]);
             m.put("refName", r[14] != null ? r[14] : "");
-            m.put("isSigned", r[15]);
+            m.put("isSigned", r[15] instanceof Number n && n.intValue() == Contract.APPROVED ? 1 : 0);
             m.put("popularityScore", r[16] != null ? r[16] : 0);
             m.put("partnerType", r[17]);
             m.put("locationCount", r[18]);
@@ -154,11 +155,11 @@ public class AdminUserController {
     public ApiResponse<?> toggleSigned(@AuthenticationPrincipal User admin, @PathVariable Long id) {
         if (!isAdmin(admin)) return ApiResponse.fail("Forbidden");
         return userRepository.findById(id).map(user -> {
-            byte newVal = (byte)(user.getIsSigned() != null && user.getIsSigned() == 1 ? 0 : 1);
+            byte newVal = user.hasApprovedContract() ? 0 : Contract.APPROVED;
             user.setIsSigned(newVal);
             userRepository.save(user);
             meilisearchService.indexUser(id);
-            return ApiResponse.ok(Map.of("isSigned", newVal));
+            return ApiResponse.ok(Map.of("isSigned", newVal == Contract.APPROVED ? 1 : 0));
         }).orElse(ApiResponse.fail("Not found"));
     }
 

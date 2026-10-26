@@ -187,8 +187,13 @@ Thư mục `http/` chứa VS Code REST Client files cho mọi endpoint:
 
 ## Retired portal tables and partner type
 
-- V24 renamed tables of the old portal that no code reads (`contracts`, `sale_activities`, `activitybonuses`, `spms`, `user_specs`, `user_spec_links`, `item_specs`, `item_spec_links`, `user_reviews`, `migrations`, `password_resets`) to `*_old`; drop them by hand once nothing broke. Do not add entities for them.
+- V24 renamed tables of the old portal that no code reads (`sale_activities`, `activitybonuses`, `spms`, `user_specs`, `user_spec_links`, `item_specs`, `item_spec_links`, `user_reviews`, `migrations`, `password_resets`) to `*_old`; drop them by hand once nothing broke. Do not add entities for them. (`contracts` was renamed by mistake and put back by V27: it is in use.)
 - `users.partner_type` (V25: school / center / club / tutor / expert / app, `PartnerTypes`; `app` = sells codes or online products, needs no address) is set per partner in the back office user page; courses inherit it for search.
+
+## Contracts and "signed" partners
+
+- `contracts` (entity `Contract`) holds a partner's contract; status as in the old portal: `DELETED 0`, `NEW 1`, `SIGNED 10`, `APPROVED 99`. `users.is_signed` mirrors the status, and **99 means "signed"** everywhere in the back office (switch "Ký HĐ", filter, user search index `isSigned`): `User.hasApprovedContract()`. The API returns `isSigned` as 1/0; `PUT /admin/users/{id}/toggle-signed` writes 99 or 0 (it does not create a contract row).
+- `contracts.address` is raw text. The address form of a partner shows it ("Địa chỉ trên hợp đồng … Dùng địa chỉ này", `GET /admin/locations/contract-address?userId`, approved contract first) and "Tìm tự động" with an empty field searches it before falling back to the partner's name.
 
 ## Course search attributes
 

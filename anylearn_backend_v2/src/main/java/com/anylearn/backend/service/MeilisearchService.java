@@ -458,7 +458,7 @@ public class MeilisearchService {
         Double rating = itemUserActionRepository.avgRatingByOwner(user.getId());
         int isHot    = user.getIsHot()          != null ? user.getIsHot()          : 0;
         int boost    = user.getBoostScore()       != null ? user.getBoostScore()       : 0;
-        int isSigned = user.getIsSigned()         != null ? user.getIsSigned()         : 0;
+        int isSigned = user.hasApprovedContract() ? 1 : 0;
         int score    = user.getPopularityScore()  != null ? user.getPopularityScore()  : 0;
 
         return new UserSearchDocument(

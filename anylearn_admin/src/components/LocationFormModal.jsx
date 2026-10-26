@@ -1,5 +1,6 @@
 import { Alert, Button, Checkbox, Form, Input, InputNumber, Modal, Radio, Space, Typography, message } from 'antd'
 import { useEffect, useRef, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import client from '../api/client'
 import { mapLink } from '../utils/maps'
 
@@ -19,6 +20,11 @@ export default function LocationFormModal({ open, userId, userName, location, he
   const [saving, setSaving] = useState(false)
   const session = useRef(newSessionToken())
   const editing = !!location?.id
+  const { data: contract } = useQuery({
+    queryKey: ['admin-contract-address', userId],
+    queryFn: () => client.get('/admin/locations/contract-address', { params: { userId } }).then(r => r.data?.data ?? null),
+    enabled: open && !!userId && !editing,
+  })
   const area = [Form.useWatch('wardName', form), Form.useWatch('districtName', form), Form.useWatch('provinceName', form)].filter(Boolean).join(', ')
 
   useEffect(() => {
@@ -47,8 +53,8 @@ export default function LocationFormModal({ open, userId, userName, location, he
   }
 
   const autoSearch = async () => {
-    // Nothing typed: look the person or school up by name, so a known school needs no typing at all.
-    const text = (form.getFieldValue('address') ?? '').trim() || (userName ?? '').trim()
+    // Nothing typed: use the address on the partner's contract, else look the person or school up by name.
+    const text = (form.getFieldValue('address') ?? '').trim() || (contract?.address ?? '').trim() || (userName ?? '').trim()
     if (text.length < 3) return message.warning('Nhập địa chỉ (ít nhất 3 ký tự) rồi bấm Tìm tự động')
     setSearching(true)
     try {
@@ -105,7 +111,7 @@ export default function LocationFormModal({ open, userId, userName, location, he
       <Form form={form} layout="vertical" onFinish={submit}>
         {!googleOn && <Alert type="info" showIcon style={{ marginBottom: 12 }}
           message="Chưa bật tìm địa chỉ tự động (thiếu GOOGLE_MAPS_API_KEY). Nhập địa chỉ và toạ độ bằng tay." />}
-        <Form.Item label="Địa chỉ" required extra={userName ? `Nhập số nhà, đường, quận rồi bấm Tìm tự động. Để trống thì tìm theo tên "${userName}".` : 'Nhập số nhà, đường, quận rồi bấm Tìm tự động để lấy toạ độ và khu vực.'}>
+        <Form.Item label="Địa chỉ" required extra={userName ? `Nhập số nhà, đường, quận rồi bấm Tìm tự động. Để trống thì tìm theo địa chỉ hợp đồng hoặc tên "${userName}".` : 'Nhập số nhà, đường, quận rồi bấm Tìm tự động để lấy toạ độ và khu vực.'}>
           <Space.Compact style={{ width: '100%' }}>
             <Form.Item name="address" noStyle rules={[{ required: true, message: 'Nhập địa chỉ hoặc bấm Tìm tự động' }]}>
               <Input placeholder={userName ? `VD: 12 Nguyễn Huệ, Quận 1 (hoặc để trống)` : 'VD: 12 Nguyễn Huệ, Quận 1'} onPressEnter={e => { e.preventDefault(); autoSearch() }} />
@@ -113,6 +119,13 @@ export default function LocationFormModal({ open, userId, userName, location, he
             <Button type="primary" loading={searching} onClick={autoSearch}>Tìm tự động</Button>
           </Space.Compact>
         </Form.Item>
+
+        {contract?.address && !editing && (
+          <div style={{ marginTop: -8, marginBottom: 12, fontSize: 12 }}>
+            <Typography.Text type="secondary">Địa chỉ trên hợp đồng: {contract.address} </Typography.Text>
+            <a onClick={() => form.setFieldValue('address', contract.address)}>Dùng địa chỉ này</a>
+          </div>
+        )}
 
         {candidates.length > 0 && (
           <div style={{ border: '1px solid #f0f0f0', borderRadius: 8, padding: 8, marginBottom: 16 }}>

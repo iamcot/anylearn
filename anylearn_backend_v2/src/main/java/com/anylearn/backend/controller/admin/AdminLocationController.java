@@ -28,11 +28,21 @@ public class AdminLocationController {
 
     private final LocationService locationService;
     private final GooglePlacesClient places;
+    private final com.anylearn.backend.repository.ContractRepository contracts;
 
     @GetMapping
     public ApiResponse<?> list(@AuthenticationPrincipal User user, @RequestParam Long userId) {
         if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
         return ApiResponse.ok(locationService.activeLocationsOf(userId).stream().map(AdminLocationController::view).toList());
+    }
+
+    /** The address written on the partner's contract (raw text), to prefill or search with when adding a branch. */
+    @GetMapping("/contract-address")
+    public ApiResponse<?> contractAddress(@AuthenticationPrincipal User user, @RequestParam Long userId) {
+        if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
+        return contracts.findWithAddress(userId, org.springframework.data.domain.PageRequest.of(0, 1)).stream().findFirst()
+                .map(c -> ApiResponse.ok(Map.of("address", c.getAddress().trim(), "status", c.getStatus())))
+                .orElse(ApiResponse.ok(null));
     }
 
     @GetMapping("/autocomplete")

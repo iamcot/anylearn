@@ -465,7 +465,7 @@ export default function ItemDetail() {
                   : (partnerLocations ?? []).length === 0
                     ? <span style={{ color: '#cf1322' }}>Đối tác chưa có địa chỉ.</span>
                   : (partnerLocations ?? []).length === 1
-                    ? <span>Tự áp dụng: {partnerLocations[0].title} — {partnerLocations[0].address}</span>
+                    ? <span>Đối tác chỉ có 1 địa chỉ, hệ thống dùng luôn: {partnerLocations[0].title} — {partnerLocations[0].address}</span>
                     : (
                       <Form.Item name="userLocationIds" noStyle>
                         <Select mode="multiple" placeholder="Chọn một hoặc nhiều địa chỉ của đối tác" style={{ width: '100%' }} optionFilterProp="label" onChange={() => setDirty(true)}

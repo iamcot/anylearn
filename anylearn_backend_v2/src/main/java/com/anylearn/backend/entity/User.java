@@ -48,6 +48,11 @@ public class User {
     @Column(name = "is_signed", nullable = false)
     private Byte isSigned;
 
+    /** Contract status "approved" (Contract.APPROVED): the value of is_signed that means "signed" for the back office and search. */
+    public boolean hasApprovedContract() {
+        return isSigned != null && isSigned == Contract.APPROVED;
+    }
+
     @Column(name = "user_category_id", nullable = false)
     private Integer userCategoryId;
 
