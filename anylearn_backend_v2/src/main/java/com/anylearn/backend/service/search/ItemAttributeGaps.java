@@ -26,7 +26,7 @@ public final class ItemAttributeGaps {
     private static final Set<String> NEEDS_NO_SCHEDULE = Set.of("digital", "video");
 
     /** What is known about the course; counts come from the database. */
-    public record Facts(int categories, int tags, int schedulesWithTime, int branchesWithCoordinates, boolean partnerTypeKnown) {}
+    public record Facts(int categories, int tags, int schedulesWithTime, int branchesWithCoordinates, boolean partnerTypeKnown, boolean placeExempt) {}
 
     private ItemAttributeGaps() {}
 
@@ -36,7 +36,7 @@ public final class ItemAttributeGaps {
         if (facts.categories() == 0) gaps.add("category");
         if (facts.tags() == 0) gaps.add("tags");
         String format = item.getSubtype();
-        if (format != null && NEEDS_PLACE.contains(format) && facts.branchesWithCoordinates() == 0) gaps.add("location");
+        if (!facts.placeExempt() && format != null && NEEDS_PLACE.contains(format) && facts.branchesWithCoordinates() == 0) gaps.add("location");
         if (!NEEDS_NO_SCHEDULE.contains(format == null ? "" : format) && facts.schedulesWithTime() == 0) gaps.add("schedule");
         if (!NEEDS_NO_SCHEDULE.contains(format == null ? "" : format)
                 && (item.getCycleType() == null || item.getCycleAmount() == null || item.getCycleAmount() <= 0)) gaps.add("sessions");

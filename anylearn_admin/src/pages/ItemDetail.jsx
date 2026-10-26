@@ -12,6 +12,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import { useEffect, useRef, useState } from 'react'
 import LocationFormModal from '../components/LocationFormModal'
+import UserLocationsModal from '../components/UserLocationsModal'
 import { useNavigate, useParams } from 'react-router-dom'
 import client from '../api/client'
 import RichEditor from '../components/RichEditor'
@@ -221,6 +222,7 @@ export default function ItemDetail() {
   })
 
   const [locationModal, setLocationModal] = useState(null) // null | 'default' | 'schedule'
+  const [partnerLocationsOpen, setPartnerLocationsOpen] = useState(false)
   const { data: partnerLocations, refetch: refetchLocations } = useQuery({
     queryKey: ['admin-item-locations', id],
     queryFn: () => client.get(`/admin/items/${id}/locations`).then(r => r.data?.data ?? []),
@@ -273,10 +275,12 @@ export default function ItemDetail() {
         }
         return newId
       }
-      await Promise.all([
+      const [saved] = await Promise.all([
         client.put(`/admin/items/${id}`, itemBody),
         client.put(`/admin/items/${id}/categories`, { categoryIds: categoryIds ?? [] }),
       ])
+      // The API answers 200 with resultCode 0 for a rule it refuses (e.g. a course at a place with no address)
+      if (saved.data?.resultCode === 0) throw new Error(saved.data.message)
       return null
     },
     onSuccess: (newId) => {
@@ -291,7 +295,7 @@ export default function ItemDetail() {
         message.success('Đã lưu')
       }
     },
-    onError: (e) => message.error(`Lưu thất bại: ${e.response?.data?.message ?? e.message}`),
+    onError: (e) => message.error(`Lưu thất bại: ${e.response?.data?.message ?? e.message}`, 6),
   })
 
   const approveMutation = useMutation({
@@ -321,6 +325,11 @@ export default function ItemDetail() {
 
     { key: 'overview', label: 'Tổng quan', children: (
       <div style={{ maxWidth: 700, paddingBottom: 32 }}>
+        {item?.addressRequired && item.partnerAddressCount === 0 && (
+          <Alert type="error" showIcon style={{ marginBottom: 16 }}
+            message="Đối tác chưa có địa chỉ, không lưu được khóa học này."
+            description={<a onClick={() => setPartnerLocationsOpen(true)}>Cập nhật địa chỉ của đối tác</a>} />
+        )}
         {(item?.gaps ?? []).length > 0 && (
           <Alert type="warning" showIcon style={{ marginBottom: 16 }}
             message={`Khóa này thiếu: ${item.gaps.map(key => GAP_LABELS[key] ?? key).join(', ')}. Khách lọc theo các mục này sẽ ít thấy khóa.`} />
@@ -415,15 +424,23 @@ export default function ItemDetail() {
                 options={(categories ?? []).map(c => ({ value: c.id, label: c.title }))} />
             </Form.Item>
           </FieldRow>
-          <FieldRow label="Địa điểm mặc định">
-            <Space>
-              <Form.Item name="userLocationId" noStyle>
-                <Select allowClear placeholder="Cơ sở của đối tác" style={{ width: 320 }} onChange={() => setDirty(true)}
-                  options={(partnerLocations ?? []).map(l => ({ value: l.id, label: `${l.title} — ${l.address}` }))} />
-              </Form.Item>
-              {!isNew && <Button onClick={() => setLocationModal('default')}>+ Thêm cơ sở</Button>}
-            </Space>
-          </FieldRow>
+          {item?.addressRequired && (
+            <FieldRow label="Địa chỉ học">
+              {(itemSchedules ?? []).length > 0
+                ? <span style={{ color: '#888' }}>Khóa có ca học: địa chỉ chọn riêng cho từng ca ở tab Lịch học.</span>
+                : (partnerLocations ?? []).length === 1
+                  ? <span>Tự áp dụng: {partnerLocations[0].title} — {partnerLocations[0].address}</span>
+                  : (
+                    <Space>
+                      <Form.Item name="userLocationId" noStyle>
+                        <Select placeholder="Chọn địa chỉ của đối tác" style={{ width: 320 }} onChange={() => setDirty(true)}
+                          options={(partnerLocations ?? []).map(l => ({ value: l.id, label: `${l.title} — ${l.address}` }))} />
+                      </Form.Item>
+                      <Button onClick={() => setPartnerLocationsOpen(true)}>Quản lý địa chỉ</Button>
+                    </Space>
+                  )}
+            </FieldRow>
+          )}
           <FieldRow label="Tags">
             <Form.Item name="tagIds" noStyle>
               <Select mode="multiple" placeholder="Chọn tag" style={{ width: '100%' }} optionFilterProp="label"
@@ -677,6 +694,8 @@ export default function ItemDetail() {
       </div>
     </Form>
 
+    <UserLocationsModal open={partnerLocationsOpen} user={{ id: item?.userId, name: item?.ownerName, role: 'school' }}
+      onClose={() => { setPartnerLocationsOpen(false); refetchLocations(); qc.invalidateQueries(['admin-item-detail', id]) }} />
     <LocationFormModal open={!!locationModal} userId={item?.userId} onClose={() => setLocationModal(null)}
       onSaved={async (savedList) => {
         const saved = savedList.find(l => l.head) ?? savedList[0]
@@ -704,9 +723,12 @@ export default function ItemDetail() {
           timeStart: vals.timeStart?.format('HH:mm') ?? null,
           timeEnd: vals.timeEnd?.format('HH:mm') ?? null,
         }
-        if (scheduleModal === 'new') await client.post(`/admin/items/${id}/schedules`, body)
-        else await client.put(`/admin/items/${id}/schedules/${scheduleModal.id}`, body)
+        const res = await (scheduleModal === 'new'
+          ? client.post(`/admin/items/${id}/schedules`, body)
+          : client.put(`/admin/items/${id}/schedules/${scheduleModal.id}`, body))
+        if (res.data?.resultCode === 0) return message.error(res.data.message, 6)
         refetchSchedules()
+        qc.invalidateQueries(['admin-item-detail', id])
         setScheduleModal(null)
       }}>
         <Form.Item name="scheduleType" label="Loại lịch" initialValue="recurring">
@@ -738,15 +760,26 @@ export default function ItemDetail() {
           </Form.Item>
         </Space>
         <Form.Item name="title" label="Tên lịch (tuỳ chọn)"><Input placeholder="VD: Ca chiều T3-T5" /></Form.Item>
-        <Form.Item label="Cơ sở học" extra="Để trống thì dùng địa điểm mặc định của khóa học.">
-          <Space.Compact style={{ width: '100%' }}>
-            <Form.Item name="userLocationId" noStyle>
-              <Select allowClear placeholder="Dùng địa điểm mặc định" style={{ width: '100%' }}
-                options={(partnerLocations ?? []).map(l => ({ value: l.id, label: `${l.title} — ${l.address}` }))} />
-            </Form.Item>
-            <Button onClick={() => setLocationModal('schedule')}>+ Thêm</Button>
-          </Space.Compact>
-        </Form.Item>
+        {item?.addressRequired && (
+          <Form.Item label="Địa chỉ học" required
+            extra={scheduleModal === 'new' && (partnerLocations ?? []).length > 1 ? 'Tick nhiều địa chỉ để tạo mỗi địa chỉ một ca học cùng giờ.' : undefined}>
+            {(partnerLocations ?? []).length === 1
+              ? <span>Tự áp dụng: {partnerLocations[0].title} — {partnerLocations[0].address}</span>
+              : scheduleModal === 'new'
+                ? (
+                  <Form.Item name="userLocationIds" noStyle rules={[{ required: true, message: 'Chọn ít nhất một địa chỉ' }]}>
+                    <Checkbox.Group style={{ display: 'flex', flexDirection: 'column', gap: 4 }}
+                      options={(partnerLocations ?? []).map(l => ({ value: l.id, label: `${l.title} — ${l.address}` }))} />
+                  </Form.Item>
+                )
+                : (
+                  <Form.Item name="userLocationId" noStyle rules={[{ required: true, message: 'Chọn địa chỉ' }]}>
+                    <Select placeholder="Chọn địa chỉ của đối tác"
+                      options={(partnerLocations ?? []).map(l => ({ value: l.id, label: `${l.title} — ${l.address}` }))} />
+                  </Form.Item>
+                )}
+          </Form.Item>
+        )}
         <Form.Item name="locationNote" label="Phòng học / Ghi chú"><Input placeholder="VD: Phòng A203, tầng 2" /></Form.Item>
         <Form.Item name="meetingUrl" label="Link học online (Zoom...)"><Input placeholder="https://zoom.us/j/..." /></Form.Item>
         <Space>

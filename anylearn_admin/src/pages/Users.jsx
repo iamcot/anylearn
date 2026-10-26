@@ -35,7 +35,7 @@ function AvatarUpload({ value, onChange }) {
   )
 }
 
-const PARTNER_TYPES = { school: 'Trường học', center: 'Trung tâm', club: 'Câu lạc bộ', tutor: 'Gia sư', expert: 'Chuyên gia' }
+const PARTNER_TYPES = { school: 'Trường học', center: 'Trung tâm', club: 'Câu lạc bộ', tutor: 'Gia sư', expert: 'Chuyên gia', app: 'Ứng dụng (bán mã code)' }
 
 export default function Users() {
   const qc = useQueryClient()

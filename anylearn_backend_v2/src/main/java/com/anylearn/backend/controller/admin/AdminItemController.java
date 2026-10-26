@@ -1,5 +1,6 @@
 package com.anylearn.backend.controller.admin;
 
+import com.anylearn.backend.service.location.ItemAddressRules;
 import com.anylearn.backend.service.search.ItemAttributeGaps;
 import com.anylearn.backend.service.search.ItemSearchAttributes;
 
@@ -173,6 +174,8 @@ public class AdminItemController {
             m.put("locationType", item.getLocationType()); m.put("location", item.getLocation());
             m.put("userLocationId", item.getUserLocationId());
             m.put("gaps", gapsOf(item));
+            m.put("addressRequired", addressRequired(item));
+            m.put("partnerAddressCount", partnerAddressIds(item).size());
             // enrollment flags (note typo: activiy not activity)
             m.put("agesMin", item.getAgesMin()); m.put("agesMax", item.getAgesMax());
             m.put("seats", item.getSeats());
@@ -229,13 +232,13 @@ public class AdminItemController {
     private List<String> gapsOf(Item item) {
         var schedules = itemScheduleRepository.findByItemIdAndStatus(item.getId(), (byte) 1);
         var branches = ItemSearchAttributes.activeBranchesOf(item, schedules, userLocationRepository::findAllById);
-        boolean partnerTypeKnown = userRepository.findById(item.getUserId()).map(u -> u.getPartnerType() != null).orElse(false);
+        String partnerType = userRepository.findById(item.getUserId()).map(User::getPartnerType).orElse(null);
         return ItemAttributeGaps.of(item, new ItemAttributeGaps.Facts(
                 itemCategoryRepository.findAllCategoryUrlsByItemId(item.getId()).size(),
                 tagService.tagsOfItem(item.getId()).size(),
                 (int) schedules.stream().filter(s -> s.getTimeStart() != null && !s.getTimeStart().isBlank()).count(),
                 (int) branches.stream().filter(b -> b.getLat() != null && b.getLng() != null).count(),
-                partnerTypeKnown));
+                partnerType != null, "app".equals(partnerType)));
     }
 
     // ── Update ────────────────────────────────────────────────────────────────
@@ -285,6 +288,8 @@ public class AdminItemController {
             if (body.containsKey("seoTitle")) item.setSeoTitle((String) body.get("seoTitle"));
             if (body.containsKey("seoUrl")) item.setSeoUrl((String) body.get("seoUrl"));
             if (body.containsKey("seoDesc")) item.setSeoDesc((String) body.get("seoDesc"));
+            String addressProblem = applyAddressRules(item);
+            if (addressProblem != null) return ApiResponse.fail(addressProblem);
             itemRepository.save(item);
             if (body.get("tagIds") instanceof java.util.List<?> tagIds)
                 tagService.setItemTags(id, tagIds.stream().filter(Number.class::isInstance).map(n -> ((Number) n).longValue()).toList());
@@ -448,11 +453,27 @@ public class AdminItemController {
                                          @PathVariable Long id,
                                          @RequestBody Map<String, Object> body) {
         if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
-        ItemSchedule s = buildSchedule(body);
-        s.setItemId(id);
-        s.setCreatedAt(LocalDateTime.now());
-        s.setUpdatedAt(LocalDateTime.now());
-        return ApiResponse.ok(itemScheduleRepository.save(s));
+        var item = itemRepository.findById(id).orElse(null);
+        if (item == null) return ApiResponse.fail("Not found");
+        List<Long> addressIds = addressRequired(item) ? partnerAddressIds(item) : null;
+        List<Long> places;
+        try {
+            places = addressIds == null ? java.util.Collections.singletonList(null) : ItemAddressRules.chosenForNewClass(addressIds, tickedAddresses(body));
+        } catch (IllegalArgumentException e) {
+            return ApiResponse.fail(e.getMessage());
+        }
+        // One class per ticked address: the same hours at another branch is another class.
+        List<ItemSchedule> saved = new java.util.ArrayList<>();
+        for (Long place : places) {
+            ItemSchedule s = buildSchedule(body);
+            if (addressIds != null) s.setUserLocationId(place);
+            s.setItemId(id);
+            s.setCreatedAt(LocalDateTime.now());
+            s.setUpdatedAt(LocalDateTime.now());
+            saved.add(itemScheduleRepository.save(s));
+        }
+        meilisearchService.indexItem(id);
+        return ApiResponse.ok(saved);
     }
 
     @GetMapping("/{id:\\d+}/locations")
@@ -474,11 +495,19 @@ public class AdminItemController {
         return itemScheduleRepository.findById(sid).map(s -> {
             if (!s.getItemId().equals(id)) return ApiResponse.fail("Not found");
             ItemSchedule updated = buildSchedule(body);
+            var owner = itemRepository.findById(id).orElse(null);
+            if (owner != null && addressRequired(owner)) {
+                var place = ItemAddressRules.resolve(partnerAddressIds(owner), updated.getUserLocationId(), "ca học");
+                if (!place.ok()) return ApiResponse.fail(place.problem());
+                updated.setUserLocationId(place.id());
+            }
             updated.setId(sid);
             updated.setItemId(id);
             updated.setCreatedAt(s.getCreatedAt());
             updated.setUpdatedAt(LocalDateTime.now());
-            return ApiResponse.ok(itemScheduleRepository.save(updated));
+            var result = ApiResponse.ok(itemScheduleRepository.save(updated));
+            meilisearchService.indexItem(id);
+            return result;
         }).orElse(ApiResponse.fail("Not found"));
     }
 
@@ -490,6 +519,7 @@ public class AdminItemController {
         itemScheduleRepository.findById(sid).ifPresent(s -> {
             if (s.getItemId().equals(id)) { s.setStatus((byte) 0); itemScheduleRepository.save(s); }
         });
+        meilisearchService.indexItem(id);
         return ApiResponse.ok("Deleted");
     }
 
@@ -515,6 +545,49 @@ public class AdminItemController {
         if (body.get("durationValue") != null) s.setDurationValue(Integer.parseInt(body.get("durationValue").toString()));
         s.setDurationUnit(str(body, "durationUnit"));
         return s;
+    }
+
+    // ── Address rules ─────────────────────────────────────────────────────────
+
+    private List<Long> partnerAddressIds(Item item) {
+        return userLocationRepository.findByUserIdAndStatus(item.getUserId(), (byte) 1).stream().map(l -> l.getId()).toList();
+    }
+
+    private boolean addressRequired(Item item) {
+        String partnerType = userRepository.findById(item.getUserId()).map(User::getPartnerType).orElse(null);
+        return ItemAddressRules.requiresAddress(item.getSubtype(), partnerType);
+    }
+
+    private static List<Long> tickedAddresses(Map<String, Object> body) {
+        List<Long> ticked = new java.util.ArrayList<>();
+        if (body.get("userLocationIds") instanceof List<?> list) list.forEach(v -> { if (v instanceof Number n) ticked.add(n.longValue()); });
+        if (body.get("userLocationId") instanceof Number n) ticked.add(n.longValue());
+        else if (body.get("userLocationId") instanceof String t && !t.isBlank()) ticked.add(Long.parseLong(t.trim()));
+        return ticked;
+    }
+
+    /**
+     * A course taught at a place must have an address: on the course when it has no classes, on every class otherwise.
+     * One address of the partner is applied automatically; with several the person must choose. Null when fine.
+     */
+    private String applyAddressRules(Item item) {
+        if (!addressRequired(item)) return null;
+        List<Long> addressIds = partnerAddressIds(item);
+        var classes = itemScheduleRepository.findByItemIdAndStatus(item.getId(), (byte) 1);
+        if (classes.isEmpty()) {
+            var place = ItemAddressRules.resolve(addressIds, item.getUserLocationId(), "khóa học");
+            if (!place.ok()) return place.problem();
+            item.setUserLocationId(place.id());
+            return null;
+        }
+        for (ItemSchedule c : classes) {
+            if (c.getUserLocationId() != null && addressIds.contains(c.getUserLocationId())) continue;
+            var place = ItemAddressRules.resolve(addressIds, null, "ca học" + (c.getTitle() == null || c.getTitle().isBlank() ? "" : " \"" + c.getTitle() + "\""));
+            if (!place.ok()) return place.problem();
+            c.setUserLocationId(place.id());
+            itemScheduleRepository.save(c);
+        }
+        return null;
     }
 
     // ── Helper ────────────────────────────────────────────────────────────────

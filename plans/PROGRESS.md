@@ -130,6 +130,12 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 
 ## Nhật ký
 
+### 27/10/2026 – lưu khóa học bắt buộc có địa chỉ
+- Khóa dạy tại nơi (không phải Online / Mã code / Video) của đối tác không phải loại "Ứng dụng (bán mã code)" (`partner_type = app`, mức đối tác) phải có địa chỉ mới lưu được.
+- Khóa chưa có ca học: lưu địa chỉ vào `items.user_location_id`; có ca học: lưu theo từng ca. Đối tác 1 địa chỉ thì tự áp dụng; nhiều địa chỉ thì phải chọn (tạo ca học tick nhiều địa chỉ = mỗi địa chỉ một ca). Chưa có địa chỉ thì chặn và hiện dòng nhắc "Cập nhật địa chỉ của đối tác" mở popup quản lý.
+- Sửa lỗi cũ: lưu khóa học bị API từ chối (resultCode 0) vẫn báo "Đã lưu"; nay hiện lỗi. Lưu/xoá ca học giờ cập nhật lại chỉ mục tìm kiếm.
+- Thử bằng curl trên DB thật: nhiều địa chỉ chưa chọn bị chặn, chọn thì lưu, ca học tick 2 địa chỉ tạo 2 ca, đối tác không địa chỉ bị chặn, đối tác `app` và khóa online qua, 1 địa chỉ tự áp dụng.
+
 ### 27/10/2026 – địa chỉ chuyển vào trang Thành viên
 - Bỏ trang/menu "Địa điểm" riêng (dùng không tiện). Mọi vai trò đều có địa chỉ: thành viên = địa chỉ nhà (ít nhất khu vực, cho "gần tôi"), đối tác = nhiều cơ sở, một hội sở mặc định.
 - Danh sách Thành viên có cột "Địa chỉ" (thành viên: icon bản đồ; đối tác: "N cơ sở"; chưa có: "+ Thêm địa chỉ"; bấm mở popup) và bộ lọc Tất cả / Có / Chưa có địa chỉ (`hasLocation`).

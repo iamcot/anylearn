@@ -19,20 +19,20 @@ class ItemAttributeGapsTest {
 
     @Test
     void aCompleteOfflineCourseHasNoGaps() {
-        assertThat(ItemAttributeGaps.of(course("offline"), new Facts(1, 2, 1, 1, true))).isEmpty();
+        assertThat(ItemAttributeGaps.of(course("offline"), new Facts(1, 2, 1, 1, true, false))).isEmpty();
     }
 
     @Test
     void anEmptyOfflineCourseListsEverythingMissing() {
         Item item = new Item();
         item.setSubtype("offline");
-        assertThat(ItemAttributeGaps.of(item, new Facts(0, 0, 0, 0, false)))
+        assertThat(ItemAttributeGaps.of(item, new Facts(0, 0, 0, 0, false, false)))
                 .containsExactly("ages", "category", "tags", "location", "schedule", "sessions", "partnerType");
     }
 
     @Test
     void onlineCoursesNeedNoPlace() {
-        assertThat(ItemAttributeGaps.of(course("online"), new Facts(1, 1, 1, 0, true))).isEmpty();
+        assertThat(ItemAttributeGaps.of(course("online"), new Facts(1, 1, 1, 0, true, false))).isEmpty();
     }
 
     @Test
@@ -40,6 +40,11 @@ class ItemAttributeGapsTest {
         Item item = new Item();
         item.setSubtype("digital");
         item.setAgesMax((byte) 12);
-        assertThat(ItemAttributeGaps.of(item, new Facts(1, 1, 0, 0, true))).isEmpty();
+        assertThat(ItemAttributeGaps.of(item, new Facts(1, 1, 0, 0, true, false))).isEmpty();
+    }
+
+    @Test
+    void anAppPartnerNeedsNoPlace() {
+        assertThat(ItemAttributeGaps.of(course("offline"), new Facts(1, 1, 1, 0, true, true))).isEmpty();
     }
 }
