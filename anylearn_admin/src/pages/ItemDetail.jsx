@@ -325,15 +325,6 @@ export default function ItemDetail() {
 
     { key: 'overview', label: 'Tổng quan', children: (
       <div style={{ maxWidth: 700, paddingBottom: 32 }}>
-        {item?.addressRequired && item.partnerAddressCount === 0 && (
-          <Alert type="error" showIcon style={{ marginBottom: 16 }}
-            message="Đối tác chưa có địa chỉ, không lưu được khóa học này."
-            description={<a onClick={() => setPartnerLocationsOpen(true)}>Cập nhật địa chỉ của đối tác</a>} />
-        )}
-        {(item?.gaps ?? []).length > 0 && (
-          <Alert type="warning" showIcon style={{ marginBottom: 16 }}
-            message={`Khóa này thiếu: ${item.gaps.map(key => GAP_LABELS[key] ?? key).join(', ')}. Khách lọc theo các mục này sẽ ít thấy khóa.`} />
-        )}
         <SectionCard title="Tiêu đề">
           <FieldRow label="Đối tác">
             <Form.Item name="userId" noStyle rules={[{ required: true, message: 'Chọn đối tác' }]}>
@@ -690,6 +681,17 @@ export default function ItemDetail() {
       </div>
 
       <div style={{ padding: '0 24px', background: '#f5f5f5', minHeight: 'calc(100vh - 100px)' }}>
+        <div style={{ paddingTop: 16 }}>
+        {item?.addressRequired && item.partnerAddressCount === 0 && (
+          <Alert type="error" showIcon style={{ marginBottom: 12 }}
+            message="Đối tác chưa có địa chỉ, không lưu được khóa học này."
+            description={<a onClick={() => setPartnerLocationsOpen(true)}>Cập nhật địa chỉ của đối tác</a>} />
+        )}
+        {(item?.gaps ?? []).length > 0 && (
+          <Alert type="warning" showIcon style={{ marginBottom: 12 }}
+            message={`Khóa này thiếu: ${item.gaps.map(key => GAP_LABELS[key] ?? key).join(', ')}. Khách lọc theo các mục này sẽ ít thấy khóa.`} />
+        )}
+        </div>
         <Tabs items={tabItems} />
       </div>
     </Form>
