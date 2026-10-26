@@ -2,6 +2,25 @@
 @apiToken = {{$dotenv API_TOKEN}}
 @jwtToken = {{$dotenv JWT_TOKEN}}
 
+### Account summary: to-do list, children, counts (plan 06.1)
+GET {{baseUrl}}/me/summary
+Authorization: Bearer {{jwtToken}}
+
+### One child: courses, order count (plan 06.2)
+GET {{baseUrl}}/me/children/1
+Authorization: Bearer {{jwtToken}}
+
+### Notification switches: topic schedule|payment|renewal|review|promo, channel app|email|zalo (plan 06.4)
+GET {{baseUrl}}/user/notification-prefs
+Authorization: Bearer {{jwtToken}}
+
+###
+PUT {{baseUrl}}/user/notification-prefs
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{ "topic": "promo", "channel": "app", "enabled": false }
+
 ### Interest survey of a child (optional)
 PUT {{baseUrl}}/user/children/1/interests
 Authorization: Bearer {{jwtToken}}

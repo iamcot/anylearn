@@ -3,6 +3,8 @@ package com.anylearn.backend.service;
 import com.anylearn.backend.entity.Notification;
 import com.anylearn.backend.repository.NotificationRepository;
 import com.anylearn.backend.repository.UserRepository;
+import com.anylearn.backend.service.notifications.NotificationPrefsService;
+import com.anylearn.backend.service.notifications.NotificationTopics;
 import com.anylearn.backend.service.push.WebPushService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,11 +38,21 @@ public class NotificationService {
     @Autowired(required = false)
     private WebPushService webPushService;
 
+    // Per person, per topic and channel switches (plan 06.4). Absent in unit tests: then everything is allowed.
+    @Autowired(required = false)
+    private NotificationPrefsService prefs;
+
+    private boolean allowed(Long userId, String type, String channel) {
+        return prefs == null || prefs.allows(userId, type, channel);
+    }
+
     public Notification createNotification(Long userId, String type, String title, String content, String route) {
         return createNotification(userId, type, title, content, route, null);
     }
 
+    /** Returns the saved notification, or null when the person switched this kind off (the bell and push both stay quiet). */
     public Notification createNotification(Long userId, String type, String title, String content, String route, String extraContent) {
+        if (!allowed(userId, type, NotificationTopics.APP)) return null;
         Notification n = new Notification();
         n.setUserId(userId);
         n.setType(type);
@@ -54,7 +66,7 @@ public class NotificationService {
         notificationRepository.save(n);
         pushToBrowser(userId);
         pushToDevices(n);
-        tryEmailForNotification(userId, type, title, content);
+        if (allowed(userId, type, NotificationTopics.EMAIL)) tryEmailForNotification(userId, type, title, content);
         return n;
     }
 
@@ -100,6 +112,7 @@ public class NotificationService {
 
     public Notification createScheduledNotification(Long userId, String type, String title,
             String content, String route, String extraContent, LocalDateTime sendAt) {
+        if (!allowed(userId, type, NotificationTopics.APP)) return null;
         if (notificationRepository.existsByUserIdAndTypeAndExtraContent(userId, type, extraContent)) return null;
         Notification n = new Notification();
         n.setUserId(userId);
@@ -118,12 +131,23 @@ public class NotificationService {
     public void dispatchDueNotifications() {
         var due = notificationRepository.findBySendBeforeAndIsSend(LocalDateTime.now(), (byte) 0);
         for (Notification n : due) {
+            if (!allowed(n.getUserId(), n.getType(), NotificationTopics.APP)) {
+                // Switched off after it was scheduled: it never shows.
+                notificationRepository.delete(n);
+                continue;
+            }
             pushToBrowser(n.getUserId());
             pushToDevices(n);
             n.setIsSend((byte) 1);
             n.setUpdatedAt(LocalDateTime.now());
             notificationRepository.save(n);
         }
+    }
+
+    /** Same, for a notification type the person may have switched off on the email channel. */
+    public void sendEmailNotification(Long userId, String type, String subject, String htmlBody) {
+        if (!allowed(userId, type, NotificationTopics.EMAIL)) return;
+        sendEmailNotification(userId, subject, htmlBody);
     }
 
     public void sendEmailNotification(Long userId, String subject, String htmlBody) {

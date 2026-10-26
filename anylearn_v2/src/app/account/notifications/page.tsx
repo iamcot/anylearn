@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { sendTestPush } from '@/lib/api'
+import NotificationPrefsForm from '@/components/account/NotificationPrefs'
 import AccountCard from '@/components/account/AccountCard'
 import Alert from '@/components/Alert'
 import { ListSkeleton } from '@/components/PageSkeleton'
@@ -102,7 +103,7 @@ export default function NotificationSettingsPage() {
   return (
     <AccountCard title="Thông báo" subtitle="Nhắc lịch học, xác nhận thanh toán, đổi lịch và tin từ anyLEARN">
       <div className="max-w-xl p-4 sm:p-5">
-        {isAuthLoading ? <ListSkeleton showTitle={false} /> : <DeviceStatus push={push} />}
+        {isAuthLoading ? <ListSkeleton showTitle={false} /> : <><DeviceStatus push={push} /><NotificationPrefsForm /></>}
       </div>
     </AccountCard>
   )

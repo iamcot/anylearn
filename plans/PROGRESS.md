@@ -101,15 +101,15 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 08.2 | Engine gợi ý theo luật | todo | |
 | 08.3 | Hiển thị gợi ý | todo | |
 | 08.4 | Đo gợi ý | todo | |
-| 06.1 | `/account` dạng menu + "Cần làm ngay" | todo | |
-| 06.2 | Trang từng con | todo | |
-| 06.3 | Đơn hàng chia tab | todo | |
-| 06.4 | Cài đặt thông báo | todo | |
+| 06.1 | `/account` dạng menu + "Cần làm ngay" | done | `GET /me/summary`; điện thoại: trang menu + thanh "‹ Tài khoản" thay cho chip cuộn ngang; thẻ "Cần làm ngay": đơn chờ, bé thiếu ngày sinh, khóa chờ đánh giá, thông báo chưa đọc (thẻ cũng gồm nhắc review của 09.5) |
+| 06.2 | Trang từng con | done | `/account/children/[id]` (`GET /me/children/{id}`): khóa học, đơn, sửa, sở thích. Chưa có tiến độ/nhật ký (chưa có dữ liệu) |
+| 06.3 | Đơn hàng chia tab | done | Tab đã có từ 05; thêm lọc theo người học (`?child=ID` + ô chọn); đếm ngược 05.4 chưa làm |
+| 06.4 | Cài đặt thông báo | done | Bảng `user_notification_prefs` (V36), 5 nhóm × app/email/zalo, mặc định bật; chặn trong `NotificationService` (chuông, push, email, thông báo hẹn giờ). Kênh zalo chỉ lưu lựa chọn, ZNS chưa gửi theo bảng này; chat lớp (plan 11) chưa có |
 | 06.5 | Ưu đãi gom một chỗ | todo | |
 | 02.5 | Hạn điểm cho member (lô điểm) | todo | Chờ chốt thời hạn |
 | 02.6 | Nhắc điểm sắp hết hạn | todo | |
 | 09.4 | Đối tác trả lời + báo cáo review | done | Đối tác trả lời ngay trên trang khóa học; nút "Báo cáo" (V34 `review_reports`), admin lọc "Đối tác báo cáo", Giữ/Ẩn, số đỏ trên menu |
-| 09.5 | Nhắc viết review | done | Nhắc ở nửa khóa và khi hết khóa (mỗi mốc 1 lần), quét mỗi giờ; chưa có thẻ "Review chờ viết" ở "Cần làm ngay" (chờ plan 06) |
+| 09.5 | Nhắc viết review | done | Nhắc ở nửa khóa và khi hết khóa (mỗi mốc 1 lần), quét mỗi giờ; thẻ "Khóa học chờ đánh giá" đã có ở "Cần làm ngay" (plan 06.1) |
 | 09.6 | Thưởng điểm review | done | 20 anyPoint cho nhận xét từ 50 ký tự + 20 khi có ảnh (chỉnh được, mặc định do mình chọn, chờ chủ sản phẩm xác nhận); thu hồi khi ẩn/xóa; chưa dùng `point_lots` (chờ 02.5) |
 | 11.1 | Chat MVP backend | todo | |
 | 11.2 | Chat MVP FE | todo | |

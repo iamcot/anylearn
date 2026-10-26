@@ -90,7 +90,7 @@ public class PendingOrderFollowUpService {
         notificationService.createNotification(order.getUserId(), "order_reminder", "Đơn hàng đang chờ thanh toán",
                 content, "/order/" + order.getId(), null);
         if (stage.getAsInt() >= EMAIL_FROM_STAGE) {
-            notificationService.sendEmailNotification(order.getUserId(), "Đơn hàng #" + order.getId() + " đang chờ thanh toán",
+            notificationService.sendEmailNotification(order.getUserId(), "order_reminder", "Đơn hàng #" + order.getId() + " đang chờ thanh toán",
                     "<p>" + content.replace(" →", ".") + "</p>");
         }
     }

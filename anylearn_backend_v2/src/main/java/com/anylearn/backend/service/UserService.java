@@ -229,6 +229,7 @@ public class UserService {
                     row.put("image", item.getImage() != null ? item.getImage() : "");
                     row.put("paidPrice", d.getPaidPrice());
                     row.put("studentName", studentName);
+                    row.put("learnerId", d.getUserId());
                     items.add(row);
                 });
             }

@@ -138,6 +138,7 @@ public class AdminController {
         }
 
         var notif = notificationService.createNotification(targetUser.getId(), type, title, content, route, extraContent);
+        if (notif == null) return ApiResponse.fail("Người dùng đã tắt loại thông báo này.");
         return ApiResponse.ok(Map.of("notificationId", notif.getId(), "userId", targetUser.getId()));
     }
 

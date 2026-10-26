@@ -7,7 +7,7 @@ import { TODAY_NAV, isNavActive, type TodayNavItem } from '@/lib/today/nav'
 import CountBadge from '@/components/header/CountBadge'
 import { usePendingOrders } from '@/components/orders/usePendingOrders'
 
-const ACCOUNT_HREF = '/account/profile'
+const ACCOUNT_HREF = '/account'
 
 function TabIcon({ path }: { path: string }) {
   return (

@@ -8,13 +8,13 @@ describe('isNavActive', () => {
   })
   it('matches other items by prefix', () => {
     expect(isNavActive('/today/diary', '/today/diary')).toBe(true)
-    expect(isNavActive('/account/profile', '/account/profile')).toBe(true)
+    expect(isNavActive('/account', '/account')).toBe(true)
   })
   it('keeps the account tab active on every account page except the schedule', () => {
-    expect(isNavActive('/account/orders', '/account/profile')).toBe(true)
-    expect(isNavActive('/account/schedule', '/account/profile')).toBe(false)
+    expect(isNavActive('/account/orders', '/account')).toBe(true)
+    expect(isNavActive('/account/schedule', '/account')).toBe(false)
     expect(isNavActive('/account/schedule', '/account/schedule')).toBe(true)
-    expect(isNavActive('/search', '/account/profile')).toBe(false)
+    expect(isNavActive('/search', '/account')).toBe(false)
   })
 })
 

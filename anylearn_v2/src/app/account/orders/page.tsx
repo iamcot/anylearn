@@ -66,8 +66,16 @@ function OrdersContent() {
   }
 
   const activeTab = pickedTab ?? defaultOrderTab(searchParams.get('tab'), orders.map(order => order.status))
-  const countByTab = (tab: OrderTab) => orders.filter(order => orderTab(order.status) === tab).length
-  const shownOrders = orders.filter(order => orderTab(order.status) === activeTab)
+  const countByTab = (tab: OrderTab) => orders.filter(order => orderTab(order.status) === tab && (!childFilter || order.items.some(item => String(item.learnerId) === childFilter))).length
+  // Optional filter by learner, from the child page (?child=ID) or the picker below.
+  const childParam = searchParams.get('child')
+  const [pickedChild, setPickedChild] = useState<string | null>(null)
+  const childFilter = pickedChild ?? childParam ?? ''
+  const learners = Array.from(new Map(
+    orders.flatMap(order => order.items).filter(item => item.learnerId).map(item => [String(item.learnerId), item.studentName ?? 'Bạn'])
+  ))
+  const byChild = childFilter ? orders.filter(order => order.items.some(item => String(item.learnerId) === childFilter)) : orders
+  const shownOrders = byChild.filter(order => orderTab(order.status) === activeTab)
 
   return (
     <AccountCard title="Đơn hàng của tôi">
@@ -82,6 +90,18 @@ function OrdersContent() {
               {tab.label} ({countByTab(tab.key)})
             </button>
           ))}
+        </div>
+      )}
+      {!loading && learners.length > 1 && (
+        <div className="border-b border-line px-4 py-3 sm:px-5">
+          <label className="flex items-center gap-2 text-xs text-muted">
+            Người học
+            <select value={childFilter} onChange={e => setPickedChild(e.target.value)}
+              className="min-h-11 rounded-lg border border-line bg-white px-3 text-sm text-ink">
+              <option value="">Tất cả</option>
+              {learners.map(([id, name]) => <option key={id} value={id}>{name}</option>)}
+            </select>
+          </label>
         </div>
       )}
       {loading ? (

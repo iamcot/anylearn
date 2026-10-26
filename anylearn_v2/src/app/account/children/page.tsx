@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { getChildren, saveChild, deleteChild, type ChildUser } from '@/lib/api'
@@ -87,7 +88,7 @@ export default function ChildrenPage() {
                   : <div className="grid size-10 shrink-0 place-items-center rounded-full bg-blue-soft font-extrabold text-blue">{child.name?.charAt(0).toUpperCase()}</div>
                 }
                 <div className="min-w-0 flex-1">
-                  <div className="text-sm font-bold text-ink">{child.name}</div>
+                  <Link href={`/account/children/${child.id}`} className="text-sm font-bold text-ink no-underline hover:underline">{child.name}</Link>
                   {child.dob && <div className="text-xs text-muted">{new Date(child.dob).toLocaleDateString('vi-VN')}</div>}
                 </div>
                 <div className="flex shrink-0 gap-1">
