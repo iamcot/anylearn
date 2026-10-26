@@ -10,6 +10,7 @@ import com.anylearn.backend.repository.VoucherRepository;
 import com.anylearn.backend.service.ConfigService;
 import com.anylearn.backend.entity.User;
 import com.anylearn.backend.service.MeilisearchService;
+import com.anylearn.backend.service.search.SearchFilters;
 import com.anylearn.backend.service.insights.SearchContext;
 import com.anylearn.backend.service.insights.SearchLogService;
 import com.anylearn.backend.service.insights.SearchQuery;
@@ -19,6 +20,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -29,6 +31,7 @@ public class ConfigController {
     private final ConfigService configService;
     private final MeilisearchService meilisearchService;
     private final SearchLogService searchLogService;
+    private final com.anylearn.backend.service.settings.OperationSettingsService operationSettingsService;
     private final VoucherRepository voucherRepository;
     private final VoucherGroupRepository voucherGroupRepository;
     private final ConfigurationRepository configurationRepository;
@@ -66,8 +69,28 @@ public class ConfigController {
                                   @RequestParam(required = false, name = "sk") String sessionKey,
                                   @RequestParam(required = false, name = "aud") String audience,
                                   @RequestParam(required = false, name = "lage") Integer learnerAge,
+                                  @RequestParam(required = false) Integer ageFrom,
+                                  @RequestParam(required = false) Integer ageTo,
+                                  @RequestParam(required = false) String district,
+                                  @RequestParam(required = false) Double nearLat,
+                                  @RequestParam(required = false) Double nearLng,
+                                  @RequestParam(required = false) Double radiusKm,
+                                  @RequestParam(required = false) List<String> timeSlot,
+                                  @RequestParam(required = false) String partnerType,
+                                  @RequestParam(defaultValue = "false") boolean freeTrial,
+                                  @RequestParam(defaultValue = "false") boolean onSale,
+                                  @RequestParam(required = false) List<Long> tag,
+                                  @RequestParam(required = false) Long priceMin,
+                                  @RequestParam(required = false) Long priceMax,
+                                  @RequestParam(required = false) Integer startWithin,
                                   @AuthenticationPrincipal User user) {
-        var result = meilisearchService.search(q, page, pageSize, category, sort, authorId, age, priceRange, location, mode);
+        var filters = SearchFilters.Builder.empty().category(category).authorId(authorId).ageBucket(age).priceBucket(priceRange)
+                .provinceCode(location).mode(mode).districtCode(district).learnerAge(ageFrom, ageTo)
+                .near(nearLat, nearLng, radiusKm != null ? radiusKm : (double) operationSettingsService.nearRadiusKm()).timeSlots(timeSlot == null ? List.of() : timeSlot).partnerType(partnerType)
+                .tags(tag == null ? List.of() : tag).price(priceMin, priceMax).startWithin(startWithin).today(java.time.LocalDate.now());
+        if (freeTrial) filters.freeTrial();
+        if (onSale) filters.onSale();
+        var result = meilisearchService.search(q, page, pageSize, sort, filters.build());
         searchLogService.record(new SearchQuery(q, "class", category, age, priceRange, location, mode, authorId), page,
                 new SearchContext(ref, sessionKey, audience, learnerAge, user != null ? user.getId() : null), totalOf(result));
         return ApiResponse.ok(result);
@@ -83,6 +106,13 @@ public class ConfigController {
 
     private static int totalOf(Map<String, Object> result) {
         return result.get("total") instanceof Number total ? total.intValue() : 0;
+    }
+
+    @GetMapping("/search/options")
+    public ApiResponse<?> searchOptions(@RequestParam(required = false) String province) {
+        var options = new java.util.LinkedHashMap<>(configService.searchOptions(province));
+        options.put("nearRadiusKm", operationSettingsService.nearRadiusKm());
+        return ApiResponse.ok(options);
     }
 
     @GetMapping("/search-tags")

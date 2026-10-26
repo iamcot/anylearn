@@ -8,6 +8,7 @@ export interface AnyPointWay {
 // Shown on /account/anypoint and /info/anypoint. The exact points of a purchase differ per course and are shown on its page.
 export const HOW_TO_EARN: AnyPointWay[] = [
   { title: 'Mua khóa học', detail: 'Mỗi khóa học tặng lại anyPoint khi đơn được xác nhận. Số anyPoint hiện sẵn ở trang khóa học và trong giỏ hàng.' },
+  { title: 'Viết đánh giá khóa học', detail: 'Sau khi học, viết đánh giá từ 50 ký tự để nhận anyPoint, thêm ảnh nhận thêm. Số anyPoint hiện ngay trong form đánh giá.' },
   { title: 'Giới thiệu bạn bè', detail: 'Bạn bè đăng ký bằng giới thiệu của bạn mua khóa học, bạn nhận thêm anyPoint cho mỗi đơn của họ.' },
 ]
 

@@ -10,6 +10,28 @@ const CARD_CLASS = 'relative grid grid-cols-[112px_1fr] overflow-hidden rounded-
 const IMAGE_CLASS = 'relative grid min-h-[132px] place-items-center overflow-hidden bg-gradient-to-br from-green-soft to-blue-soft text-blue/40'
 const CHIP_CLASS = 'rounded-full px-2 py-0.5 text-[11px] font-extrabold md:text-xs'
 
+const SLOT_LABELS: Record<string, string> = {
+  weekday_morning: 'Sáng T2-T6', weekday_afternoon: 'Chiều T2-T6', weekday_evening: 'Tối T2-T6',
+  weekend_morning: 'Sáng T7-CN', weekend_afternoon: 'Chiều T7-CN', weekend_evening: 'Tối T7-CN',
+}
+
+// Short facts a parent compares at a glance: how far, when, free trial, on sale.
+function CourseFacts({ item }: { item: Item }) {
+  const slots = (item.timeSlots ?? []).map(slot => SLOT_LABELS[slot]).filter(Boolean).slice(0, 2)
+  const facts = [
+    item.distanceKm !== undefined ? `${item.distanceKm} km` : null,
+    ...slots,
+  ].filter((fact): fact is string => fact !== null)
+  if (facts.length === 0 && !item.hasFreeTrial && !item.onSale) return null
+  return (
+    <div className="flex flex-wrap items-center gap-1 text-xs text-muted">
+      {item.hasFreeTrial && <span className={`${CHIP_CLASS} bg-green-soft text-green-dark`}>Học thử</span>}
+      {item.onSale && <span className={`${CHIP_CLASS} bg-red-soft text-red`}>Giảm giá</span>}
+      {facts.map(fact => <span key={fact} className="rounded-full border border-line px-2 py-0.5">{fact}</span>)}
+    </div>
+  )
+}
+
 export function CourseResultCard({ item }: { item: Item }) {
   const categories = item.categoryTitles ? item.categoryTitles.split('|') : []
 
@@ -33,7 +55,7 @@ export function CourseResultCard({ item }: { item: Item }) {
               : <span className="grid size-4 shrink-0 place-items-center rounded-full bg-blue-soft text-blue"><UserIcon className="size-2.5" /></span>
             }
             <Link
-              href={`/search?mode=class&authorId=${item.authorId}`}
+              href={`/partner/${item.authorId}`}
               className="relative z-20 truncate text-xs font-bold text-muted no-underline"
             >
               {item.authorName}
@@ -48,6 +70,7 @@ export function CourseResultCard({ item }: { item: Item }) {
             <span key={category} className={`${CHIP_CLASS} bg-blue-soft text-blue`}>{category}</span>
           ))}
         </div>
+        <CourseFacts item={item} />
         {item.shortContent && <p className="m-0 line-clamp-2 flex-1 text-xs text-muted md:text-sm">{item.shortContent}</p>}
         <div className="mt-auto pt-1">
           <div className="mb-1 text-base font-extrabold text-red">{formatPrice(item.price)}</div>
@@ -71,7 +94,7 @@ export function CourseResultCard({ item }: { item: Item }) {
 export function UserResultCard({ user, mode }: { user: UserResult; mode: 'school' | 'teacher' }) {
   return (
     <article className={CARD_CLASS}>
-      <Link href={`/search?mode=class&authorId=${user.id}`} className="absolute inset-0 z-10" aria-label={user.name} />
+      <Link href={`/partner/${user.id}`} className="absolute inset-0 z-10" aria-label={user.name} />
       <div className={IMAGE_CLASS}>
         {user.image
           // eslint-disable-next-line @next/next/no-img-element

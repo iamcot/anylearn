@@ -1,6 +1,8 @@
 package com.anylearn.backend.controller.admin;
 
 import com.anylearn.backend.dto.response.ApiResponse;
+import com.anylearn.backend.entity.Contract;
+import com.anylearn.backend.entity.PartnerTypes;
 import com.anylearn.backend.entity.User;
 import com.anylearn.backend.repository.UserRepository;
 import com.anylearn.backend.service.MeilisearchService;
@@ -24,6 +26,9 @@ public class AdminUserController {
     private final PasswordEncoder passwordEncoder;
     private final MeilisearchService meilisearchService;
 
+    private static final String ACTIVE_LOCATION_EXISTS =
+            "EXISTS (SELECT 1 FROM user_locations ul WHERE ul.user_id = u.id AND ul.status = 1)";
+
     private boolean isAdmin(User user) {
         return user != null && "admin".equals(user.getRole());
     }
@@ -38,6 +43,7 @@ public class AdminUserController {
             @RequestParam(required = false) Integer statusFilter,
             @RequestParam(required = false) Integer isSigned,
             @RequestParam(required = false) String q,
+            @RequestParam(required = false) Boolean hasLocation,
             @RequestParam(defaultValue = "desc") String sortDir,
             @RequestParam(defaultValue = "id") String sortBy) {
         if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
@@ -49,13 +55,15 @@ public class AdminUserController {
                 (role != null && !role.isBlank() ? " AND u.role='" + role.replace("'", "") + "'" : "") +
                 (status != null ? " AND u.status=" + status : "") +
                 (statusFilter != null ? " AND u.status=" + statusFilter : "") +
-                (isSigned != null ? " AND u.is_signed=" + isSigned : "") +
+                (isSigned != null ? (isSigned == 1 ? " AND u.is_signed=" : " AND u.is_signed<>") + Contract.APPROVED : "") +
+                (hasLocation != null ? (hasLocation ? " AND " : " AND NOT ") + ACTIVE_LOCATION_EXISTS : "") +
                 (q != null && !q.isBlank() ? " AND (u.name LIKE '%" + q.replace("'","''") + "%' OR u.phone LIKE '%" + q.replace("'","''") + "%' OR u.email LIKE '%" + q.replace("'","''") + "%')" : "");
 
         @SuppressWarnings("unchecked")
         List<Object[]> rows = em.createNativeQuery(
                 "SELECT u.id, u.name, u.phone, u.email, u.role, u.status, u.image, u.wallet_m, u.wallet_c, u.commission_rate, u.created_at, " +
-                "u.introduce, u.full_content, u.user_id, ru.name AS refName, u.is_signed, u.popularity_score " +
+                "u.introduce, u.full_content, u.user_id, ru.name AS refName, u.is_signed, u.popularity_score, u.partner_type, " +
+                "(SELECT COUNT(*) FROM user_locations ul WHERE ul.user_id = u.id AND ul.status = 1) " +
                 "FROM users u LEFT JOIN users ru ON u.user_id = ru.id " +
                 "WHERE 1=1" + conditions + " ORDER BY " + safeSortCol + " " + safeSort + " LIMIT " + size + " OFFSET " + (long) page * size)
                 .getResultList();
@@ -72,8 +80,10 @@ public class AdminUserController {
             m.put("fullContent", r[12] != null ? r[12] : "");
             m.put("refUserId", r[13]);
             m.put("refName", r[14] != null ? r[14] : "");
-            m.put("isSigned", r[15]);
+            m.put("isSigned", r[15] instanceof Number n && n.intValue() == Contract.APPROVED ? 1 : 0);
             m.put("popularityScore", r[16] != null ? r[16] : 0);
+            m.put("partnerType", r[17]);
+            m.put("locationCount", r[18]);
             return m;
         }).toList();
 
@@ -104,11 +114,17 @@ public class AdminUserController {
             if (body.containsKey("email")) u.setEmail((String) body.get("email"));
             if (body.containsKey("role")) u.setRole((String) body.get("role"));
             if (body.containsKey("status")) u.setStatus(toNumber(body.get("status")).byteValue());
+            if (body.containsKey("partnerType")) {
+                String type = body.get("partnerType") instanceof String t && !t.isBlank() ? t : null;
+                if (type != null && !PartnerTypes.isValid(type)) return ApiResponse.fail("Loại đối tác không hợp lệ");
+                u.setPartnerType(type);
+            }
             if (body.containsKey("commissionRate")) u.setCommissionRate(toNumber(body.get("commissionRate")).doubleValue());
             if (body.get("image") != null) u.setImage(String.valueOf(body.get("image")));
             if (body.get("introduce") != null) u.setIntroduce(String.valueOf(body.get("introduce")));
             if (body.get("fullContent") != null) u.setFullContent(String.valueOf(body.get("fullContent")));
             userRepository.save(u);
+            if (body.containsKey("status")) meilisearchService.reindexItemsOfAuthorAsync(id);
             return ApiResponse.ok(u);
         }).orElse(ApiResponse.fail("Not found"));
     }
@@ -140,11 +156,12 @@ public class AdminUserController {
     public ApiResponse<?> toggleSigned(@AuthenticationPrincipal User admin, @PathVariable Long id) {
         if (!isAdmin(admin)) return ApiResponse.fail("Forbidden");
         return userRepository.findById(id).map(user -> {
-            byte newVal = (byte)(user.getIsSigned() != null && user.getIsSigned() == 1 ? 0 : 1);
+            byte newVal = user.hasApprovedContract() ? 0 : Contract.APPROVED;
             user.setIsSigned(newVal);
             userRepository.save(user);
             meilisearchService.indexUser(id);
-            return ApiResponse.ok(Map.of("isSigned", newVal));
+            meilisearchService.reindexItemsOfAuthorAsync(id);
+            return ApiResponse.ok(Map.of("isSigned", newVal == Contract.APPROVED ? 1 : 0));
         }).orElse(ApiResponse.fail("Not found"));
     }
 

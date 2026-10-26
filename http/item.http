@@ -64,3 +64,23 @@ POST http://localhost:8080/v2/api/price-reports
 Content-Type: application/json
 
 { "itemId": 1, "seenPlace": "Trường ABC", "seenPrice": 1200000, "phone": "0912345678" }
+
+
+### Reviews (plan 09)
+GET {{baseUrl}}/review-rewards
+###
+GET {{baseUrl}}/item/1693/reviews?stars=5&photos=false
+###
+GET {{baseUrl}}/item/1693/review-summary
+###
+POST {{baseUrl}}/item/1693/save-rating
+Authorization: Bearer {{$dotenv JWT_TOKEN}}
+Content-Type: application/json
+
+{ "comment": "Giáo viên rất nhiệt tình", "scores": { "teacher": 5, "value": 4 }, "media": [] }
+###
+POST {{baseUrl}}/item/1693/reviews/570/reply
+Authorization: Bearer {{$dotenv JWT_TOKEN}}
+Content-Type: application/json
+
+{ "text": "Cảm ơn chị đã tin tưởng ạ" }

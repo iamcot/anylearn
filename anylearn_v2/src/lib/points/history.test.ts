@@ -29,4 +29,8 @@ describe('sumPendingPoints', () => {
       { type: 'commission', amount: 10, status: 0 },
     ])).toBe(90)
   })
+  it('names the review reward and its withdrawal', () => {
+    expect(describeTransaction({ type: 'review_reward', amount: 20, status: 1 }).title).toBe('Thưởng viết đánh giá')
+    expect(describeTransaction({ type: 'review_reward_revoke', amount: -20, status: 1 })).toEqual({ title: 'Thu hồi anyPoint thưởng đánh giá', tone: 'spend' })
+  })
 })

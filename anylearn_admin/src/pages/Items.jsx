@@ -1,5 +1,5 @@
-import { App, Input, Select, Space, Switch, Table, Tag, Tooltip, Typography } from 'antd'
-import { FireOutlined, InfoCircleOutlined, PlusOutlined, RightOutlined } from '@ant-design/icons'
+import { App, Badge, Button, Input, Select, Space, Switch, Table, Tag, Tooltip, Typography } from 'antd'
+import { FireOutlined, InfoCircleOutlined, PlusOutlined, RightOutlined, StarOutlined, TagsOutlined, WarningOutlined } from '@ant-design/icons'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import client from '../api/client'
@@ -41,6 +41,11 @@ export default function Items() {
     staleTime: 30_000,
     gcTime: 10 * 60_000,
     placeholderData: keepPreviousData,
+  })
+
+  const { data: badges } = useQuery({
+    queryKey: ['admin-badges'],
+    queryFn: () => client.get('/admin/badges').then(r => r.data?.data ?? {}),
   })
 
   const { data: categories } = useQuery({
@@ -165,9 +170,18 @@ export default function Items() {
 
   return (
     <div style={{ padding: 24 }}>
-      <div className="page-header">
-        <div className="page-title">Khóa học</div>
-        <span className="page-subtitle">Quản lý danh sách khóa học của các đối tác</span>
+      <div className="page-header" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+        <div>
+          <div className="page-title">Khóa học</div>
+          <span className="page-subtitle">Quản lý danh sách khóa học của các đối tác</span>
+        </div>
+        <Space wrap>
+          <Button icon={<TagsOutlined />} onClick={() => navigate('/tags')}>Tags</Button>
+          <Button icon={<WarningOutlined />} onClick={() => navigate('/item-gaps')}>Thiếu thuộc tính</Button>
+          <Badge count={badges?.reviewsResubmitted ?? 0} size="small" offset={[-4, 4]}>
+            <Button icon={<StarOutlined />} onClick={() => navigate('/reviews')}>Xem tất cả đánh giá</Button>
+          </Badge>
+        </Space>
       </div>
       <div className="page-content">
       <Space style={{ marginBottom: 16, flexWrap: 'wrap', width: '100%', justifyContent: 'space-between' }}>

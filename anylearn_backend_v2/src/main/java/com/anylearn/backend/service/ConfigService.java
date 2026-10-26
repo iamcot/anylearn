@@ -20,6 +20,7 @@ public class ConfigService {
     private final CategoryRepository categoryRepository;
     private final ItemRepository itemRepository;
     private final TagRepository tagRepository;
+    private final com.anylearn.backend.repository.DistrictRepository districtRepository;
     private final ObjectMapper objectMapper;
     private final com.anylearn.backend.repository.UserRepository userRepository;
     private final ItemUserActionRepository itemUserActionRepository;
@@ -120,8 +121,7 @@ public class ConfigService {
     private List<Map<String, Object>> getCategoriesWithItems() {
         var categories = categoryRepository.findCategoriesWithActiveItems();
         return categories.stream().map(cat -> {
-            var items = itemRepository.findByItemCategoryIdAndStatusAndUserStatusOrderByBoostScoreDesc(
-                    cat.getId().intValue(), (byte) 1, (byte) 1, PageRequest.of(0, 10));
+            var items = itemRepository.findLiveByCategory(cat.getId().intValue(), PageRequest.of(0, 10));
             Map<String, Object> m = new LinkedHashMap<>();
             m.put("id", cat.getId());
             m.put("title", cat.getTitle());
@@ -161,6 +161,17 @@ public class ConfigService {
     }
 
     public List<String> searchTags(String q) {
-        return tagRepository.findDistinctActiveTags(q);
+        return tagRepository.findUsedNames(q == null || q.isBlank() ? null : q.trim(), 30);
+    }
+
+    /** Choices of the full search filter: districts of a province (when given) and the tags courses use. */
+    public Map<String, Object> searchOptions(String provinceCode) {
+        var districts = provinceCode == null || provinceCode.isBlank() ? List.<Map<String, String>>of()
+                : districtRepository.findByParentCode(provinceCode.trim()).stream()
+                        .sorted(java.util.Comparator.comparing(com.anylearn.backend.entity.District::getName))
+                        .map(d -> Map.of("code", d.getCode(), "name", d.getNameWithType())).toList();
+        var tags = tagRepository.findUsedTags(40).stream()
+                .map(t -> Map.<String, Object>of("id", t.getId(), "name", t.getName(), "group", t.getTagGroup())).toList();
+        return Map.of("districts", districts, "tags", tags);
     }
 }

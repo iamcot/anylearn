@@ -1,10 +1,13 @@
 import { Button, Drawer, Form, Input, Modal, Radio, Select, Space, Switch, Table, Tag, Tooltip, Typography, Upload } from 'antd'
-import { CopyOutlined, EditOutlined, InfoCircleOutlined, SaveOutlined, CloseOutlined, RightOutlined, UploadOutlined } from '@ant-design/icons'
+import { EnvironmentOutlined, CopyOutlined, EditOutlined, InfoCircleOutlined, SaveOutlined, CloseOutlined, RightOutlined, UploadOutlined } from '@ant-design/icons'
 import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import client from '../api/client'
 import { fmtVND, fmtDate, fmtDateTime } from '../utils/format'
 import { Field } from '../components/Field'
+import UserLocationsModal from '../components/UserLocationsModal'
+import ContractImportModal from '../components/ContractImportModal'
+import { PARTNER_ROLES } from '../utils/roles'
 import RichEditor from '../components/RichEditor'
 import { message } from 'antd'
 
@@ -33,6 +36,8 @@ function AvatarUpload({ value, onChange }) {
   )
 }
 
+const PARTNER_TYPES = { school: 'Trường học', center: 'Trung tâm', club: 'Câu lạc bộ', tutor: 'Gia sư', expert: 'Chuyên gia', app: 'Ứng dụng (bán mã code)' }
+
 export default function Users() {
   const qc = useQueryClient()
   const [q, setQ] = useState('')
@@ -43,6 +48,15 @@ export default function Users() {
   const [sortDir, setSortDir] = useState('desc')
   const [sortBy, setSortBy] = useState('id')
   const [selected, setSelected] = useState(null)
+  const [locationsOpen, setLocationsOpen] = useState(false)
+  const [locationUser, setLocationUser] = useState(null) // a row opened from the list column
+  const [locationFilter, setLocationFilter] = useState('')
+  const [importOpen, setImportOpen] = useState(false)
+  const { data: locations } = useQuery({
+    queryKey: ['admin-locations', selected?.id],
+    queryFn: () => client.get('/admin/locations', { params: { userId: selected.id } }).then(r => r.data?.data ?? []),
+    enabled: !!selected?.id,
+  })
   const [editing, setEditing] = useState(false)
   const [form] = Form.useForm()
   const [resetModal, setResetModal] = useState(false)
@@ -51,8 +65,8 @@ export default function Users() {
   const [newPwdResult, setNewPwdResult] = useState(null)
 
   const { data, isLoading } = useQuery({
-    queryKey: ['admin-users', q, role, statusFilter, isSignedFilter, page, sortDir, sortBy],
-    queryFn: () => client.get('/admin/users', { params: { q, role: role || undefined, ...(statusFilter !== '' && { status: statusFilter }), ...(isSignedFilter !== '' && { isSigned: isSignedFilter }), page: page - 1, size: 20, sortDir, sortBy } }).then(r => r.data?.data ?? r.data),
+    queryKey: ['admin-users', q, role, statusFilter, isSignedFilter, locationFilter, page, sortDir, sortBy],
+    queryFn: () => client.get('/admin/users', { params: { q, role: role || undefined, ...(statusFilter !== '' && { status: statusFilter }), ...(isSignedFilter !== '' && { isSigned: isSignedFilter }), ...(locationFilter !== '' && { hasLocation: locationFilter }), page: page - 1, size: 20, sortDir, sortBy } }).then(r => r.data?.data ?? r.data),
   })
 
   const toggleSignedMutation = useMutation({
@@ -63,6 +77,7 @@ export default function Users() {
   const mutation = useMutation({
     mutationFn: (values) => client.put(`/admin/users/${selected.id}`, {
       ...values,
+      partnerType: values.partnerType ?? null,
       status: Number(values.status),
       commissionRate: Number(values.commissionRate) / 100,
     }),
@@ -82,7 +97,7 @@ export default function Users() {
   useEffect(() => {
     if (selected && editing) form.setFieldsValue({
       name: selected.name, phone: selected.phone, email: selected.email,
-      role: selected.role, status: String(selected.status),
+      role: selected.role, status: String(selected.status), partnerType: selected.partnerType || undefined,
       commissionRate: ((selected.commissionRate ?? 0) * 100).toFixed(0),
       introduce: selected.introduce,
       fullContent: selected.fullContent,
@@ -109,6 +124,17 @@ export default function Users() {
     { title: 'Tên', dataIndex: 'name' },
     { title: 'Điện thoại', dataIndex: 'phone' },
     { title: 'Role', dataIndex: 'role' },
+    {
+      title: 'Địa chỉ', key: 'locations', width: 130,
+      render: (_, row) => {
+        const count = row.locationCount ?? 0
+        const open = (e) => { e.stopPropagation(); setLocationUser(row) }
+        if (count === 0) return <a onClick={open} style={{ color: '#fa8c16' }}>+ Thêm địa chỉ</a>
+        return PARTNER_ROLES.includes(row.role)
+          ? <a onClick={open}>{count} cơ sở</a>
+          : <Tooltip title="Xem địa chỉ"><a onClick={open}><EnvironmentOutlined /></a></Tooltip>
+      },
+    },
     { title: 'anyPoint', dataIndex: 'walletC', width: 100, render: v => (v ?? 0).toLocaleString('vi-VN') },
     {
       title: 'Ký HĐ', dataIndex: 'isSigned', width: 75,
@@ -167,8 +193,12 @@ export default function Users() {
             <Select value={isSignedFilter} onChange={v => { setIsSignedFilter(v); setPage(1) }} style={{ width: 150 }}
               options={[{ value: '', label: 'Tất cả HĐ' }, { value: '1', label: 'Đã ký HĐ' }, { value: '0', label: 'Chưa ký HĐ' }]}
             />
+            <Select value={locationFilter} onChange={v => { setLocationFilter(v); setPage(1) }} style={{ width: 170 }}
+              options={[{ value: '', label: 'Tất cả địa chỉ' }, { value: 'true', label: 'Có địa chỉ' }, { value: 'false', label: 'Chưa có địa chỉ' }]}
+            />
           </Space>
           <Space>
+            <Button size="small" onClick={() => setImportOpen(true)}>Nhập địa chỉ từ hợp đồng</Button>
             {data?.total != null && <Typography.Text type="secondary">{data.total.toLocaleString('vi-VN')} thành viên</Typography.Text>}
           </Space>
         </Space>
@@ -242,6 +272,20 @@ export default function Users() {
             }
             editing={editing}
           />
+          <Field label={PARTNER_ROLES.includes(selected?.role) ? 'Cơ sở' : 'Địa chỉ'}
+            viewValue={
+              <Space>
+                <span>{(locations ?? []).length === 0 ? 'Chưa có' : `${locations.length} địa chỉ${locations.find(l => l.head) ? ` · chính: ${locations.find(l => l.head).title}` : ''}`}</span>
+                <Button size="small" onClick={() => setLocationsOpen(true)}>Quản lý</Button>
+              </Space>
+            }
+            editing={false}
+          />
+          <Field label="Loại đối tác" viewValue={PARTNER_TYPES[selected?.partnerType] ?? '—'}
+            editContent={<Form.Item name="partnerType" noStyle><Select size="small" allowClear placeholder="Chọn loại đối tác" style={{ width: 220 }}
+              options={Object.entries(PARTNER_TYPES).map(([value, label]) => ({ value, label }))} /></Form.Item>}
+            editing={editing}
+          />
           <Field label="Hoa hồng" viewValue={`${((selected?.commissionRate ?? 0) * 100).toFixed(0)}%`}
             editContent={<Form.Item name="commissionRate" noStyle><Input size="small" type="number" suffix="%" /></Form.Item>}
             editing={editing}
@@ -264,6 +308,10 @@ export default function Users() {
           />
         </Form>
       </Drawer>
+      <ContractImportModal open={importOpen} onClose={() => setImportOpen(false)}
+        filters={{ q, role, status: statusFilter, isSigned: isSignedFilter }} />
+      <UserLocationsModal open={locationsOpen || !!locationUser} user={locationUser ?? selected}
+        onClose={() => { setLocationsOpen(false); setLocationUser(null); qc.invalidateQueries({ queryKey: ['admin-users'] }) }} />
 
       <Modal
         title="Reset mật khẩu"

@@ -212,3 +212,85 @@ Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
 Content-Type: application/json
 
 { "status": "fixed", "adminNote": "Đã chỉnh giá theo đối tác" }
+
+
+### Tag dictionary: list (usage count per tag), create, edit, merge
+GET http://localhost:8080/v2/admin/tags
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+###
+POST http://localhost:8080/v2/admin/tags
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+Content-Type: application/json
+
+{ "name": "Bóng rổ", "group": "sport" }
+
+###
+PUT http://localhost:8080/v2/admin/tags/1
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+Content-Type: application/json
+
+{ "group": "sport", "status": 1 }
+
+###
+POST http://localhost:8080/v2/admin/tags/2/merge
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+Content-Type: application/json
+
+{ "intoId": 1 }
+
+### Set the tags of a course
+PUT http://localhost:8080/v2/admin/items/1697
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+Content-Type: application/json
+
+{ "tagIds": [1, 4] }
+
+
+### Partner branches: list, search an address (Google), place details, create
+GET http://localhost:8080/v2/admin/locations?userId=14422
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+###
+GET http://localhost:8080/v2/admin/locations/autocomplete?q=12 nguyen hue&session=abc
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+###
+GET http://localhost:8080/v2/admin/locations/place?placeId=PLACE_ID&session=abc
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+###
+POST http://localhost:8080/v2/admin/locations
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+Content-Type: application/json
+
+{ "userId": 14422, "title": "Cơ sở Quận 1", "address": "12 Nguyễn Huệ, Quận 1", "lat": 10.7745, "lng": 106.7032, "provinceName": "Thành phố Hồ Chí Minh", "districtName": "Quận 1" }
+
+
+### Save several places picked from the address search (head office = headPlaceId)
+POST http://localhost:8080/v2/admin/locations/bulk
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+Content-Type: application/json
+
+{ "userId": 14422, "placeIds": ["PLACE_ID_1", "PLACE_ID_2"], "headPlaceId": "PLACE_ID_2" }
+
+
+### ── Collections ─────────────────────────────────────────────────────────────
+
+### List collections
+GET {{baseUrl}}/admin/collections?api_token={{$dotenv ADMIN_TOKEN}}
+
+### Suggest / search courses to add (same filters as the public search)
+GET {{baseUrl}}/admin/collections/course-search?q=bong&ageFrom=8&ageTo=10&freeTrial=true&api_token={{$dotenv ADMIN_TOKEN}}
+
+### Create a collection (itemIds = the courses, in order)
+POST {{baseUrl}}/admin/collections?api_token={{$dotenv ADMIN_TOKEN}}
+Content-Type: application/json
+
+{
+  "title": "Hè không màn hình",
+  "subtitle": "Hoạt động ngoài trời cho bé nghỉ hè",
+  "seasonFrom": "2026-06-01",
+  "seasonTo": "2026-08-31",
+  "itemIds": []
+}

@@ -30,3 +30,13 @@ export const ACTIVITY_LABELS: Record<string, string> = {
   test: 'Test đầu vào',
   visit: 'Tham quan',
 }
+
+// Kind of partner as shown on its public page (the same list the back office offers).
+export const PARTNER_TYPE_LABELS: Record<string, string> = {
+  school: 'Trường học',
+  center: 'Trung tâm',
+  club: 'Câu lạc bộ',
+  tutor: 'Gia sư',
+  expert: 'Chuyên gia',
+  app: 'Ứng dụng / mã học',
+}

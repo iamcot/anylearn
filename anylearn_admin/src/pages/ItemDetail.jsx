@@ -1,6 +1,6 @@
 import {
-  App, Button, Checkbox, DatePicker, Form, Input, InputNumber, Modal,
-  Popover, Rate, Select, Space, Switch, Table, Tabs, Tag, TimePicker, Tooltip,
+  Alert, App, Button, DatePicker, Form, Input, InputNumber, Modal,
+  Popover, Rate, Select, Space, Switch, Table, Tabs, Tag, Tooltip,
   Typography, Upload,
 } from 'antd'
 import {
@@ -11,7 +11,11 @@ import {
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import { useEffect, useRef, useState } from 'react'
+import LocationFormModal from '../components/LocationFormModal'
+import ScheduleFormModal from '../components/ScheduleFormModal'
+import UserLocationsModal from '../components/UserLocationsModal'
 import { useNavigate, useParams } from 'react-router-dom'
+import ReviewManager from '../components/ReviewManager'
 import client from '../api/client'
 import RichEditor from '../components/RichEditor'
 import { usePagination } from '../hooks/usePagination'
@@ -24,6 +28,10 @@ const SUBTYPES = [
   { value: 'offline', label: 'Học Tại Trường' }, { value: 'extra', label: 'Ngoại khóa' },
   { value: 'video', label: 'Video' }, { value: 'preschool', label: 'Mầm non' },
 ]
+const GAP_LABELS = {
+  ages: 'độ tuổi', category: 'lĩnh vực', tags: 'tags', location: 'địa điểm có toạ độ',
+  schedule: 'lịch học có giờ', sessions: 'số buổi', partnerType: 'loại đối tác (đặt ở trang Thành viên)',
+}
 const CYCLE_TYPES = [
   { value: 'session', label: 'Buổi' }, { value: 'day', label: 'Ngày' },
   { value: 'week', label: 'Tuần' }, { value: 'month', label: 'Tháng' }, { value: 'year', label: 'Năm' },
@@ -63,12 +71,12 @@ function SectionCard({ title, children }) {
 
 function FieldRow({ label, tooltip, children }) {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '170px 1fr', alignItems: 'flex-start', padding: '6px 0' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: '170px minmax(0, 1fr)', alignItems: 'flex-start', padding: '6px 0' }}>
       <span style={{ fontSize: 13, color: '#555', paddingTop: 5, display: 'flex', alignItems: 'center', gap: 4 }}>
         {label}
         {tooltip && <Tooltip title={tooltip}><InfoCircleOutlined style={{ fontSize: 11, color: '#bbb' }} /></Tooltip>}
       </span>
-      <div>{children}</div>
+      <div style={{ minWidth: 0 }}>{children}</div>
     </div>
   )
 }
@@ -108,7 +116,7 @@ function itemToForm(d) {
     dateEnd: d.dateEnd ? dayjs(d.dateEnd) : null,
     // special fields
     nolimitTime: d.nolimitTime === '1',
-    tags: (d.tags || '').split(',').filter(Boolean).map(t => t.trim()),
+    tagIds: d.tagIds ?? [],
     categoryIds: (d.categories ?? []).map(c => c.id),
     // company commission JSON
     cc_discount: ccObj.discount ?? null,
@@ -176,6 +184,21 @@ export default function ItemDetail() {
     }
   }, [item?.id])
 
+  const [tagSearch, setTagSearch] = useState('')
+  const { data: tagDictionary } = useQuery({
+    queryKey: ['admin-tags', '', ''],
+    queryFn: () => client.get('/admin/tags').then(r => r.data?.data ?? { tags: [] }),
+  })
+  const createTag = useMutation({
+    mutationFn: (name) => client.post('/admin/tags', { name }).then(r => r.data),
+    onSuccess: (res) => {
+      if (res.resultCode !== 1) return message.error(res.message)
+      form.setFieldValue('tagIds', [...(form.getFieldValue('tagIds') ?? []), res.data.id])
+      setTagSearch('')
+      setDirty(true)
+      qc.invalidateQueries({ queryKey: ['admin-tags'] })
+    },
+  })
   const { data: categories } = useQuery({
     queryKey: ['admin-categories'],
     queryFn: () => client.get('/admin/categories').then(r => r.data?.data ?? []),
@@ -200,7 +223,9 @@ export default function ItemDetail() {
     enabled: !isNew,
   })
 
-  const { data: partnerLocations } = useQuery({
+  const [locationModal, setLocationModal] = useState(null) // null | 'default' | 'schedule'
+  const [partnerLocationsOpen, setPartnerLocationsOpen] = useState(false)
+  const { data: partnerLocations, refetch: refetchLocations } = useQuery({
     queryKey: ['admin-item-locations', id],
     queryFn: () => client.get(`/admin/items/${id}/locations`).then(r => r.data?.data ?? []),
     enabled: !isNew,
@@ -220,7 +245,6 @@ export default function ItemDetail() {
 
   const saveMutation = useMutation({
     mutationFn: async (values) => {
-      const tagArr = Array.isArray(values.tags) ? values.tags : []
       const ccJson = JSON.stringify({
         discount: values.cc_discount ?? null, commission: values.cc_commission ?? null,
         bonus_ref_seller: values.cc_bonus_ref_seller ?? null, bonus_foundation: values.cc_bonus_foundation ?? null,
@@ -229,7 +253,6 @@ export default function ItemDetail() {
       const body = {
         ...values,
         userId: values.userId?.value ?? values.userId,
-        tags: tagArr.join(','),
         dateStart: null,
         dateEnd: null,
         nolimitTime: values.nolimitTime ? '1' : '0',
@@ -254,10 +277,12 @@ export default function ItemDetail() {
         }
         return newId
       }
-      await Promise.all([
+      const [saved] = await Promise.all([
         client.put(`/admin/items/${id}`, itemBody),
         client.put(`/admin/items/${id}/categories`, { categoryIds: categoryIds ?? [] }),
       ])
+      // The API answers 200 with resultCode 0 for a rule it refuses (e.g. a course at a place with no address)
+      if (saved.data?.resultCode === 0) throw new Error(saved.data.message)
       return null
     },
     onSuccess: (newId) => {
@@ -272,7 +297,7 @@ export default function ItemDetail() {
         message.success('Đã lưu')
       }
     },
-    onError: (e) => message.error(`Lưu thất bại: ${e.response?.data?.message ?? e.message}`),
+    onError: (e) => message.error(`Lưu thất bại: ${e.response?.data?.message ?? e.message}`, 6),
   })
 
   const approveMutation = useMutation({
@@ -283,11 +308,6 @@ export default function ItemDetail() {
   const createReviewMutation = useMutation({
     mutationFn: (values) => client.post(`/admin/items/${id}/reviews`, values),
     onSuccess: () => { qc.invalidateQueries(['admin-item-reviews', id]); reviewForm.resetFields(); message.success('Đã thêm') },
-  })
-
-  const deleteReviewMutation = useMutation({
-    mutationFn: (rid) => client.delete(`/admin/items/${id}/reviews/${rid}`),
-    onSuccess: () => qc.invalidateQueries(['admin-item-reviews', id]),
   })
 
   function handleReset() {
@@ -393,8 +413,11 @@ export default function ItemDetail() {
             </Form.Item>
           </FieldRow>
           <FieldRow label="Tags">
-            <Form.Item name="tags" noStyle>
-              <Select mode="tags" placeholder="Gõ rồi nhấn , hoặc Enter" style={{ width: '100%' }} tokenSeparators={[',']} onChange={() => setDirty(true)} />
+            <Form.Item name="tagIds" noStyle>
+              <Select mode="multiple" placeholder="Chọn tag" style={{ width: '100%' }} optionFilterProp="label"
+                onSearch={setTagSearch} onChange={() => setDirty(true)}
+                options={(tagDictionary?.tags ?? []).filter(t => t.status === 1).map(t => ({ value: t.id, label: t.name }))}
+                notFoundContent={tagSearch.trim() ? <Button type="link" onClick={() => createTag.mutate(tagSearch.trim())}>Tạo tag &quot;{tagSearch.trim()}&quot;</Button> : null} />
             </Form.Item>
           </FieldRow>
         </SectionCard>
@@ -429,7 +452,32 @@ export default function ItemDetail() {
 
     { key: 'schedule', label: 'Lịch học', children: (
       <div style={{ maxWidth: 640, paddingBottom: 32 }}>
-        <SectionCard title="Thời gian">
+        {item?.addressRequired && (
+          <SectionCard title="Địa chỉ học">
+            <FieldRow label="Địa chỉ">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {(itemSchedules ?? []).length > 0
+                  ? <span style={{ color: '#888' }}>Khóa có ca học: mỗi ca dùng địa chỉ chọn riêng cho ca đó.</span>
+                  : (partnerLocations ?? []).length === 0
+                    ? <span style={{ color: '#cf1322' }}>Đối tác chưa có địa chỉ.</span>
+                  : (partnerLocations ?? []).length === 1
+                    ? <span>Đối tác chỉ có 1 địa chỉ, hệ thống dùng luôn: {partnerLocations[0].title} — {partnerLocations[0].address}</span>
+                    : (
+                      <Form.Item name="userLocationIds" noStyle>
+                        <Select mode="multiple" placeholder="Chọn một hoặc nhiều địa chỉ của đối tác" style={{ width: '100%' }} optionFilterProp="label" onChange={() => setDirty(true)}
+                          options={(partnerLocations ?? []).map(l => ({ value: l.id, label: `${l.title} — ${l.address}` }))} />
+                      </Form.Item>
+                    )}
+                <Space size={8}>
+                  <Button size="small" onClick={() => setPartnerLocationsOpen(true)}>Quản lý địa chỉ của đối tác</Button>
+                  <Typography.Text type="secondary" style={{ fontSize: 12 }}>Nếu khóa có ca học thì dùng địa chỉ cài đặt cho ca học.</Typography.Text>
+                </Space>
+              </div>
+            </FieldRow>
+          </SectionCard>
+        )}
+
+        <SectionCard title="Thời gian & ca học">
           <FieldRow label="Chiêu sinh liên tục">
             <Form.Item name="nolimitTime" noStyle valuePropName="checked">
               <Switch checkedChildren="Liên tục" unCheckedChildren="Có hạn" onChange={() => setDirty(true)} />
@@ -593,15 +641,7 @@ export default function ItemDetail() {
             </Button>
           </Space>
         </Form>
-        <Table size="small" dataSource={reviews ?? []} rowKey="id" pagination={false}
-          columns={[
-            { title: 'Người dùng', dataIndex: 'userName', render: (v, r) => v || r.userId },
-            { title: 'Đánh giá', dataIndex: 'rating', render: v => <Rate disabled defaultValue={v} allowHalf style={{ fontSize: 13 }} /> },
-            { title: 'Nội dung', dataIndex: 'comment', ellipsis: true },
-            { title: 'Ngày', dataIndex: 'createdAt', render: v => fmtDate(v), width: 100 },
-            { width: 48, render: (_, r) => <Button size="small" danger icon={<DeleteOutlined />} onClick={() => deleteReviewMutation.mutate(r.id)} /> },
-          ]}
-        />
+        <ReviewManager itemId={id} />
       </div>
     )},
   ]
@@ -638,79 +678,43 @@ export default function ItemDetail() {
       </div>
 
       <div style={{ padding: '0 24px', background: '#f5f5f5', minHeight: 'calc(100vh - 100px)' }}>
+        <div style={{ paddingTop: 16 }}>
+        {item?.addressRequired && item.partnerAddressCount === 0 && (
+          <Alert type="error" showIcon style={{ marginBottom: 12 }}
+            message="Đối tác chưa có địa chỉ, không lưu được khóa học này."
+            description={<a onClick={() => setPartnerLocationsOpen(true)}>Cập nhật địa chỉ của đối tác</a>} />
+        )}
+        {(item?.gaps ?? []).length > 0 && (
+          <Alert type="warning" showIcon style={{ marginBottom: 12 }}
+            message={`Khóa này thiếu: ${item.gaps.map(key => GAP_LABELS[key] ?? key).join(', ')}. Khách lọc theo các mục này sẽ ít thấy khóa.`} />
+        )}
+        </div>
         <Tabs items={tabItems} />
       </div>
     </Form>
 
-    {/* Schedule Modal — outside Form/Tabs to avoid nesting issues */}
-    <Modal
-      title={scheduleModal === 'new' ? 'Thêm lịch học' : 'Sửa lịch học'}
-      open={!!scheduleModal}
-      onCancel={() => setScheduleModal(null)}
-      footer={null}
-      destroyOnClose
-    >
-      <Form form={scheduleForm} layout="vertical" onFinish={async (vals) => {
-        const body = {
-          ...vals,
-          weekdays: Array.isArray(vals.weekdays) ? vals.weekdays.join(',') : vals.weekdays,
-          eventDate: vals.eventDate?.format('YYYY-MM-DD') ?? null,
-          dateStart: vals.dateStart?.format('YYYY-MM-DD') ?? null,
-          dateEnd: vals.dateEnd?.format('YYYY-MM-DD') ?? null,
-          timeStart: vals.timeStart?.format('HH:mm') ?? null,
-          timeEnd: vals.timeEnd?.format('HH:mm') ?? null,
-        }
-        if (scheduleModal === 'new') await client.post(`/admin/items/${id}/schedules`, body)
-        else await client.put(`/admin/items/${id}/schedules/${scheduleModal.id}`, body)
+    <UserLocationsModal open={partnerLocationsOpen} user={{ id: item?.userId, name: item?.ownerName, role: 'school' }}
+      onClose={() => { setPartnerLocationsOpen(false); refetchLocations(); qc.invalidateQueries(['admin-item-detail', id]) }} />
+    <LocationFormModal open={!!locationModal} userId={item?.userId} userName={item?.ownerName} onClose={() => setLocationModal(null)}
+      onSaved={async (savedList) => {
+        const saved = savedList.find(l => l.head) ?? savedList[0]
+        await refetchLocations()
+        if (locationModal === 'schedule') scheduleForm.setFieldValue('userLocationId', saved.id)
+        else { form.setFieldValue('userLocationId', saved.id); setDirty(true) }
+        setLocationModal(null)
+      }} />
+
+    <ScheduleFormModal open={!!scheduleModal} form={scheduleForm} editing={scheduleModal !== 'new' && !!scheduleModal} item={item}
+      locations={partnerLocations ?? []} onAddLocation={() => setLocationModal('schedule')} onClose={() => setScheduleModal(null)}
+      onSubmit={async (body) => {
+        const res = await (scheduleModal === 'new'
+          ? client.post(`/admin/items/${id}/schedules`, body)
+          : client.put(`/admin/items/${id}/schedules/${scheduleModal.id}`, body))
+        if (res.data?.resultCode === 0) return message.error(res.data.message, 6)
         refetchSchedules()
+        qc.invalidateQueries(['admin-item-detail', id])
         setScheduleModal(null)
-      }}>
-        <Form.Item name="scheduleType" label="Loại lịch" initialValue="recurring">
-          <Select options={[{value:'recurring',label:'Lớp cố định (có ngày khai giảng)'},{value:'event',label:'Một buổi (1 ngày cụ thể)'},{value:'open',label:'Khai giảng linh hoạt (học sinh chọn ngày)'}]} />
-        </Form.Item>
-        <Form.Item noStyle shouldUpdate={(p, c) => p.scheduleType !== c.scheduleType}>
-          {({ getFieldValue }) => {
-            const t = getFieldValue('scheduleType')
-            return <>
-              {t === 'event' && <Form.Item name="eventDate" label="Ngày tổ chức"><DatePicker format="DD/MM/YYYY" style={{ width: '100%' }} /></Form.Item>}
-              {(t === 'recurring' || t === 'open') && (
-                <Form.Item name="weekdays" label="Ngày trong tuần">
-                  <Checkbox.Group options={[{label:'T2',value:'mon'},{label:'T3',value:'tue'},{label:'T4',value:'wed'},{label:'T5',value:'thu'},{label:'T6',value:'fri'},{label:'T7',value:'sat'},{label:'CN',value:'sun'}]} />
-                </Form.Item>
-              )}
-              {t === 'recurring' && <>
-                <Form.Item name="dateStart" label="Ngày bắt đầu"><DatePicker format="DD/MM/YYYY" style={{ width: '100%' }} /></Form.Item>
-                <Form.Item name="dateEnd" label="Ngày kết thúc (tuỳ chọn)"><DatePicker format="DD/MM/YYYY" style={{ width: '100%' }} /></Form.Item>
-              </>}
-            </>
-          }}
-        </Form.Item>
-        <Space>
-          <Form.Item name="timeStart" label="Giờ bắt đầu">
-            <TimePicker format="HH:mm" minuteStep={5} style={{ width: 110 }} placeholder="08:30" />
-          </Form.Item>
-          <Form.Item name="timeEnd" label="Giờ kết thúc">
-            <TimePicker format="HH:mm" minuteStep={5} style={{ width: 110 }} placeholder="10:00" />
-          </Form.Item>
-        </Space>
-        <Form.Item name="title" label="Tên lịch (tuỳ chọn)"><Input placeholder="VD: Ca chiều T3-T5" /></Form.Item>
-        <Form.Item name="userLocationId" label="Cơ sở (lớp tại trung tâm)">
-          <Select allowClear placeholder="Chọn cơ sở của đối tác"
-            options={(partnerLocations ?? []).map(l => ({ value: l.id, label: `${l.title} — ${l.address}` }))} />
-        </Form.Item>
-        <Form.Item name="locationNote" label="Phòng học / Ghi chú"><Input placeholder="VD: Phòng A203, tầng 2" /></Form.Item>
-        <Form.Item name="meetingUrl" label="Link học online (Zoom...)"><Input placeholder="https://zoom.us/j/..." /></Form.Item>
-        <Space>
-          <Form.Item name="meetingId" label="Meeting ID"><Input style={{ width: 170 }} /></Form.Item>
-          <Form.Item name="meetingPasscode" label="Mật khẩu"><Input style={{ width: 170 }} /></Form.Item>
-        </Space>
-        <Space>
-          <Form.Item name="gatherTime" label="Giờ tập trung (ngoại khóa)"><Input placeholder="07:30" style={{ width: 170 }} /></Form.Item>
-        </Space>
-        <Form.Item name="bringItems" label="Cần mang theo (ngoại khóa)"><Input placeholder="VD: Nước uống, nón, giày thể thao" /></Form.Item>
-        <Form.Item><Button type="primary" htmlType="submit" block>Lưu</Button></Form.Item>
-      </Form>
-    </Modal>
+      }} />
     </div>
   )
 }

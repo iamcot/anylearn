@@ -43,4 +43,9 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
     @Query(value = "SELECT COUNT(*) FROM order_details od JOIN orders o ON o.id = od.order_id WHERE od.user_id = :userId AND od.item_id = :itemId AND o.status = 'delivered'",
            nativeQuery = true)
     int existsDeliveredByUserIdAndItemId(@Param("userId") Long userId, @Param("itemId") Long itemId);
+
+    /** The person paid for the course (the order is theirs) or is the learner of it: a parent who bought it for a child counts. */
+    @Query(value = "SELECT COUNT(*) FROM order_details od JOIN orders o ON o.id = od.order_id WHERE (o.user_id = :userId OR od.user_id = :userId) AND od.item_id = :itemId AND o.status = 'delivered'",
+           nativeQuery = true)
+    int existsDeliveredForBuyerOrLearner(@Param("userId") Long userId, @Param("itemId") Long itemId);
 }

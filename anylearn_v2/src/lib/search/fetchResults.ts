@@ -1,6 +1,6 @@
 import { searchItems, searchUsers, type Item, type UserResult } from '@/lib/api'
 import type { SearchTracking } from './searchTracking'
-import { SEARCH_PAGE_SIZE, toApiFilters, type SearchState } from './query'
+import { SEARCH_PAGE_SIZE, advancedApiParams, toApiFilters, type SearchState } from './query'
 
 export interface SearchResults {
   items: Item[]
@@ -12,7 +12,9 @@ export async function fetchSearchResults(state: SearchState, tracking?: SearchTr
   if (state.mode === 'class') {
     const { age, priceRange, location, hinhthuc } = toApiFilters(state.filters)
     const data = await searchItems(
-      state.q, state.page, SEARCH_PAGE_SIZE, state.category, state.sort, state.authorId, age, priceRange, location, hinhthuc, tracking,
+      state.q, state.page, SEARCH_PAGE_SIZE,
+      { category: state.category, sort: state.sort, authorId: state.authorId, age, priceRange, location, mode: hinhthuc, extra: advancedApiParams(state.adv) },
+      tracking,
     )
     return { items: data.items, users: [], total: data.total }
   }

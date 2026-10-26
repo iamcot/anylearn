@@ -216,7 +216,7 @@ export default async function PdpPage({ params }: Props) {
               </div>
               <div className="min-w-[200px] flex-1">
                 {author.introduce && <p className="m-0 mb-4 leading-[1.7] text-muted">{author.introduce}</p>}
-                <Link href={`/search?mode=class&authorId=${author.id}`} className="btn btn--outline text-sm">
+                <Link href={`/partner/${author.id}`} className="btn btn--outline text-sm">
                   <ChevronLabel>Xem tất cả khóa học</ChevronLabel>
                 </Link>
               </div>
@@ -253,7 +253,7 @@ export default async function PdpPage({ params }: Props) {
         <div className="container">
           <h2 className="section-kicker mb-5">Đánh giá từ học viên</h2>
 
-          <ReviewsSection itemId={item.id} initialReviews={reviews} initialRating={rating} />
+          <ReviewsSection itemId={item.id} authorId={author?.id} authorName={author?.name} initialReviews={reviews} />
         </div>
       </section>
 

@@ -22,6 +22,12 @@ export interface Item {
   seoUrl?: string
   rating?: number
   num_favorite?: number
+  // Search results only (plan 04.2)
+  distanceKm?: number
+  hasFreeTrial?: boolean
+  onSale?: boolean
+  timeSlots?: string[]
+  pricePerSession?: number
 }
 
 export interface UserResult {
@@ -124,12 +130,21 @@ export interface PdpAuthor {
 }
 
 export interface PdpReview {
+  id?: number
   user_id: number
   user_name: string
   user_image?: string
   value: string
   extra_value?: string
   created_at: string
+  // Reviews plan 09
+  is_verified?: boolean
+  scores?: Record<string, number>
+  media?: string[]
+  partner_reply?: string | null
+  partner_replied_at?: string | null
+  item_title?: string
+  item_id?: number
 }
 
 export interface PdpCategory {
@@ -204,17 +219,40 @@ function withTracking(path: string, page: number, tracking?: SearchTracking): [s
   return [path + trackingQuery(tracking), options]
 }
 
-export async function searchItems(q: string, page = 0, pageSize = 20, category?: string, sort?: string, authorId?: number, age?: string, priceRange?: string, location?: string, mode?: string, tracking?: SearchTracking): Promise<SearchResult> {
-  let path = `/search?q=${encodeURIComponent(q)}&page=${page}&pageSize=${pageSize}`
-  if (category) path += `&category=${encodeURIComponent(category)}`
-  if (sort) path += `&sort=${encodeURIComponent(sort)}`
-  if (authorId) path += `&authorId=${authorId}`
-  if (age) path += `&age=${encodeURIComponent(age)}`
-  if (priceRange) path += `&priceRange=${encodeURIComponent(priceRange)}`
-  if (location) path += `&location=${encodeURIComponent(location)}`
-  if (mode) path += `&mode=${encodeURIComponent(mode)}`
-  const result = await apiFetch<SearchResult>(...withTracking(path, page, tracking))
+export interface SearchItemsOptions {
+  category?: string
+  sort?: string
+  authorId?: number
+  age?: string
+  priceRange?: string
+  location?: string
+  mode?: string
+  // Extra query parameters (advancedApiParams), repeated keys allowed
+  extra?: [string, string][]
+}
+
+export async function searchItems(q: string, page = 0, pageSize = 20, options: SearchItemsOptions = {}, tracking?: SearchTracking): Promise<SearchResult> {
+  const params = new URLSearchParams({ q, page: String(page), pageSize: String(pageSize) })
+  const optional: [string, string | number | undefined][] = [
+    ['category', options.category], ['sort', options.sort], ['authorId', options.authorId], ['age', options.age],
+    ['priceRange', options.priceRange], ['location', options.location], ['mode', options.mode],
+  ]
+  for (const [key, value] of optional) if (value) params.set(key, String(value))
+  for (const [key, value] of options.extra ?? []) params.append(key, value)
+  const result = await apiFetch<SearchResult>(...withTracking(`/search?${params.toString()}`, page, tracking))
   return result ?? { items: [], total: 0, page, pageSize }
+}
+
+export interface SearchOptions {
+  districts: { code: string; name: string }[]
+  tags: { id: number; name: string; group: string }[]
+  // How far "Gần tôi" reaches, set in the back office
+  nearRadiusKm?: number
+}
+
+export async function getSearchOptions(province?: string): Promise<SearchOptions> {
+  const result = await apiFetch<SearchOptions>(province ? `/search/options?province=${encodeURIComponent(province)}` : '/search/options')
+  return result ?? { districts: [], tags: [] }
 }
 
 export async function searchTags(q?: string): Promise<string[]> {

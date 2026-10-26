@@ -39,6 +39,7 @@ public class AdminController {
     private final EntityManager em;
     private final S3Service s3Service;
     private final BankAccountService bankAccountService;
+    private final com.anylearn.backend.service.settings.OperationSettingsService operationSettingsService;
 
     /** All categories regardless of status — for admin item editing */
     @GetMapping("/categories")
@@ -82,6 +83,8 @@ public class AdminController {
     public ApiResponse<?> reindex(@AuthenticationPrincipal User user) {
         if (user == null || !"admin".equals(user.getRole())) return ApiResponse.fail("Forbidden");
         meilisearchService.reindexAll();
+        // The school and teacher lists read the users index, so it is rebuilt together with the courses.
+        meilisearchService.reindexAllUsers();
         return ApiResponse.ok("Reindex complete");
     }
 
@@ -153,6 +156,19 @@ public class AdminController {
                 body.get("bankName"), body.get("bankBin"), body.get("accountNumber"),
                 body.get("accountName"), body.get("zaloPhone")));
         return problem == null ? ApiResponse.ok(bankAccountService.current()) : ApiResponse.fail(problem);
+    }
+
+    @GetMapping("/settings")
+    public ApiResponse<?> getSettings(@AuthenticationPrincipal User user) {
+        if (user == null || !"admin".equals(user.getRole())) return ApiResponse.fail("Forbidden");
+        return ApiResponse.ok(operationSettingsService.current());
+    }
+
+    @PutMapping("/settings")
+    public ApiResponse<?> updateSettings(@AuthenticationPrincipal User user, @RequestBody Map<String, Object> body) {
+        if (user == null || !"admin".equals(user.getRole())) return ApiResponse.fail("Forbidden");
+        String problem = operationSettingsService.save(body);
+        return problem == null ? ApiResponse.ok(operationSettingsService.current()) : ApiResponse.fail(problem);
     }
 
     @GetMapping("/config")

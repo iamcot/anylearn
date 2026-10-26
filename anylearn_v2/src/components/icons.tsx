@@ -226,3 +226,23 @@ export const RefreshIcon = (props: IconProps) => (
     <path d="M20 11a8 8 0 0 0-14.9-3M4 5v4h4M4 13a8 8 0 0 0 14.9 3M20 19v-4h-4" />
   </Icon>
 )
+
+export const PinIcon = (props: IconProps) => (
+  <Icon {...props}><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z" /><circle cx="12" cy="10" r="2.5" /></Icon>
+)
+
+export const TagIcon = (props: IconProps) => (
+  <Icon {...props}><path d="M3 12V4h8l10 10-8 8z" /><circle cx="7.5" cy="8.5" r="1.2" /></Icon>
+)
+
+export const MonitorIcon = (props: IconProps) => (
+  <Icon {...props}><rect x="3" y="4" width="18" height="12" rx="2" /><path d="M8 20h8M12 16v4" /></Icon>
+)
+
+export const CameraIcon = (props: IconProps) => (
+  <Icon {...props}><path d="M4 8h3l1.5-2h7L17 8h3v11H4z" /><circle cx="12" cy="13" r="3.5" /></Icon>
+)
+
+export const ShieldCheckIcon = (props: IconProps) => (
+  <Icon {...props}><path d="M12 3 5 6v5c0 4.5 3 8 7 10 4-2 7-5.5 7-10V6z" /><path d="m9 12 2 2 4-4" /></Icon>
+)

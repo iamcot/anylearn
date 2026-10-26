@@ -33,6 +33,16 @@ public class S3Service {
     @Value("${aws.s3.cdnUrl:}")
     private String cdnUrl;
 
+    /** True for an address of a file we stored ourselves, so a review cannot point at someone else's site. */
+    public boolean isOwnUrl(String url) {
+        if (url == null || url.isBlank()) return false;
+        return url.startsWith(publicBaseUrl() + "/");
+    }
+
+    private String publicBaseUrl() {
+        return cdnUrl.isBlank() ? "https://" + bucket + ".s3." + region + ".amazonaws.com" : cdnUrl.replaceAll("/+$", "");
+    }
+
     public String uploadImage(MultipartFile file, String folder) throws IOException {
         if (accessKey.isBlank() || secretKey.isBlank() || bucket.isBlank()) {
             throw new RuntimeException("AWS S3 chưa được cấu hình");
@@ -56,9 +66,7 @@ public class S3Service {
         s3.putObject(request, RequestBody.fromBytes(file.getBytes()));
         s3.close();
 
-        String baseUrl = cdnUrl.isBlank()
-                ? "https://" + bucket + ".s3." + region + ".amazonaws.com"
-                : cdnUrl.replaceAll("/+$", ""); // strip trailing slash
+        String baseUrl = publicBaseUrl();
 
         log.info("[S3] Uploaded: {}/{}", baseUrl, key);
         return baseUrl + "/" + key;

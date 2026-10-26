@@ -28,6 +28,12 @@ public class ItemActivity {
     @Column(nullable = false)
     private Byte status;
 
+    @Column(name = "admin_note")
+    private String adminNote;
+
+    @Column(name = "handled_at")
+    private LocalDateTime handledAt;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 

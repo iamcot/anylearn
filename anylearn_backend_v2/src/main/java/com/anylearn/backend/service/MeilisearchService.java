@@ -1,5 +1,6 @@
 package com.anylearn.backend.service;
 
+import com.anylearn.backend.service.search.ItemVisibility;
 import com.anylearn.backend.dto.ItemSearchDocument;
 import com.anylearn.backend.dto.UserSearchDocument;
 import com.anylearn.backend.entity.Item;
@@ -9,6 +10,10 @@ import com.anylearn.backend.repository.ItemRepository;
 import com.anylearn.backend.repository.ItemUserActionRepository;
 import com.anylearn.backend.repository.OrderDetailRepository;
 import com.anylearn.backend.repository.TagRepository;
+import com.anylearn.backend.service.search.Geo;
+import com.anylearn.backend.service.search.ItemSearchAttributes;
+import com.anylearn.backend.service.search.SearchFilterBuilder;
+import com.anylearn.backend.service.search.SearchFilters;
 import com.anylearn.backend.repository.UserRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -45,6 +50,7 @@ public class MeilisearchService {
     private final ItemEventRepository itemEventRepository;
     private final OrderDetailRepository orderDetailRepository;
     private final com.anylearn.backend.repository.UserLocationRepository userLocationRepository;
+    private final com.anylearn.backend.repository.ItemScheduleRepository itemScheduleRepository;
     private final ObjectMapper objectMapper;
 
     @Lazy
@@ -54,8 +60,6 @@ public class MeilisearchService {
     @PostConstruct
     public void initIndexSettings() {
         try {
-            meilisearchClient.index("items").updateSortableAttributesSettings(
-                new String[]{"price", "isHot", "boostScore", "popularityScore", "id"});
             meilisearchClient.index("users").updateFilterableAttributesSettings(
                 new String[]{"status", "isTest", "role", "id", "isSigned"});
             meilisearchClient.index("users").updateSortableAttributesSettings(
@@ -90,49 +94,25 @@ public class MeilisearchService {
         }
     }
 
-    public Map<String, Object> search(String query, int page, int pageSize, String category, String sort, Long authorId, String age, String priceRange, String location, String mode) {
+    public Map<String, Object> search(String query, int page, int pageSize, String sort, SearchFilters filters) {
         try {
-            List<String> filters = new java.util.ArrayList<>(List.of("status = 1", "userStatus = 1"));
-            if (category != null && !category.isBlank()) filters.add("categoryUrls = \"" + category + "\"");
-            if (authorId != null) filters.add("authorId = " + authorId);
-
-            // Age filter
-            if (age != null) switch (age) {
-                case "3-5"  -> { filters.add("agesMin <= 5");  filters.add("agesMax >= 3"); }
-                case "6-10" -> { filters.add("agesMin <= 10"); filters.add("agesMax >= 6"); }
-                case "11-15"-> { filters.add("agesMin <= 15"); filters.add("agesMax >= 11"); }
-                case "16+"  -> filters.add("agesMax >= 16");
-            }
-
-            // Price filter
-            if (priceRange != null) switch (priceRange) {
-                case "under2" -> filters.add("price < 2000000");
-                case "2to5"   -> { filters.add("price >= 2000000"); filters.add("price <= 5000000"); }
-                case "over5"  -> filters.add("price > 5000000");
-            }
-
-            // Location filter (province code)
-            if (location != null && !location.isBlank()) {
-                filters.add("authorProvinceCodes = \"" + location + "\"");
-            }
-
-            // Mode/format filter
-            if (mode != null) switch (mode) {
-                case "online"  -> filters.add("subtype = \"online\"");
-                case "digital" -> filters.add("subtype = \"digital\"");
-                case "offline" -> { filters.add("subtype != \"online\""); filters.add("subtype != \"digital\""); }
-            }
+            List<String> clauses = SearchFilterBuilder.build(filters);
 
             String[] sortClause = switch (sort != null ? sort : "popular") {
                 case "newest"    -> new String[]{"id:desc"};
                 case "priceLow"  -> new String[]{"price:asc"};
                 case "priceHigh" -> new String[]{"price:desc"};
+                case "soonest"   -> new String[]{"nextStartDay:asc"};
+                case "perSession" -> new String[]{"pricePerSession:asc"};
+                case "nearest"   -> filters.hasNear()
+                        ? new String[]{String.format(java.util.Locale.ROOT, "_geoPoint(%s,%s):asc", filters.nearLat(), filters.nearLng())}
+                        : new String[]{"popularityScore:desc"};
                 default          -> new String[]{"popularityScore:desc"};
             };
 
             var request = SearchRequest.builder()
                     .q(query != null ? query : "")
-                    .filter(filters.toArray(new String[0]))
+                    .filter(clauses.toArray(new String[0]))
                     .sort(sortClause)
                     .offset(page * pageSize)
                     .limit(pageSize)
@@ -146,6 +126,9 @@ public class MeilisearchService {
             List<Long> ids = hits.stream()
                     .map(h -> ((Number) h.get("id")).longValue())
                     .collect(Collectors.toList());
+
+            Map<Long, Map<String, Object>> hitsById = hits.stream()
+                    .collect(Collectors.toMap(h -> ((Number) h.get("id")).longValue(), h -> h, (a, b) -> a));
 
             // Build categoryTitles lookup from Meilisearch hits
             Map<Long, String> categoryTitlesMap = hits.stream()
@@ -165,6 +148,11 @@ public class MeilisearchService {
                             Long itemId = ((Number) m.get("id")).longValue();
                             if (categoryTitlesMap.containsKey(itemId)) {
                                 m.put("categoryTitles", categoryTitlesMap.get(itemId));
+                            }
+                            copySearchAttributes(hitsById.get(itemId), m);
+                            if (filters.hasNear()) {
+                                Double km = nearestBranchKm(hitsById.get(itemId), filters);
+                                if (km != null) m.put("distanceKm", Math.round(km * 10) / 10.0);
                             }
                             return m;
                         })
@@ -187,9 +175,18 @@ public class MeilisearchService {
         }
     }
 
+    private static Double nearestBranchKm(Map<String, Object> hit, SearchFilters filters) {
+        if (hit == null || !(hit.get("locations") instanceof List<?> branches)) return null;
+        return branches.stream()
+                .filter(Map.class::isInstance).map(b -> (Map<?, ?>) b)
+                .filter(b -> b.get("lat") instanceof Number && b.get("lng") instanceof Number)
+                .map(b -> Geo.distanceKm(filters.nearLat(), filters.nearLng(), ((Number) b.get("lat")).doubleValue(), ((Number) b.get("lng")).doubleValue()))
+                .min(Double::compareTo).orElse(null);
+    }
+
     public List<Long> findSimilarIds(Long itemId, Long authorId, String title, List<String> categoryUrls, String subtype, int limit) {
         try {
-            List<String> filters = new java.util.ArrayList<>(List.of("status = 1", "userStatus = 1"));
+            List<String> filters = new java.util.ArrayList<>(List.of("status = 1", "userStatus = 1", SearchFilterBuilder.AUTHOR_LIVE_CLAUSE));
             if (authorId != null) filters.add("authorId != " + authorId);
             List<String> orParts = new java.util.ArrayList<>();
             if (categoryUrls != null) {
@@ -274,6 +271,18 @@ public class MeilisearchService {
         }
     }
 
+    /** A partner's status or contract changed: their courses appear or disappear, so refresh every course of theirs. */
+    @Async
+    public void reindexItemsOfAuthorAsync(Long authorId) {
+        for (Item item : itemRepository.findByUserId(authorId)) {
+            try {
+                indexItem(item.getId());
+            } catch (RuntimeException e) {
+                log.warn("Could not reindex item {} of partner {}: {}", item.getId(), authorId, e.getMessage());
+            }
+        }
+    }
+
     @Async
     public void updateItemPopularityScoreAsync(Item item) {
         updateItemPopularityScore(item);
@@ -293,7 +302,12 @@ public class MeilisearchService {
                 .collect(Collectors.joining("|"));
 
         List<String> categoryUrls = itemCategoryRepository.findAllCategoryUrlsByItemId(item.getId());
-        String tags = tagRepository.findTagsByItemId(item.getId());
+        String tags = String.join(" ", tagRepository.findActiveNamesByItemId(item.getId()));
+        List<Long> tagIds = tagRepository.findByItemId(item.getId()).stream()
+                .filter(t -> t.getStatus() != null && t.getStatus() == 1).map(com.anylearn.backend.entity.Tag::getId).toList();
+        var schedules = itemScheduleRepository.findByItemIdAndStatus(item.getId(), (byte) 1);
+        var branches = ItemSearchAttributes.activeBranchesOf(item, userLocationRepository.findItemAddressIds(item.getId()), schedules, userLocationRepository::findAllById);
+        var attributes = ItemSearchAttributes.derive(item, schedules, branches, java.time.LocalDate.now());
 
         int isHot  = item.getIsHot() != null ? item.getIsHot() : 0;
         int boost  = item.getBoostScore() != null ? item.getBoostScore() : 0;
@@ -322,8 +336,52 @@ public class MeilisearchService {
                 boost,
                 score,
                 item.getImage(),
-                item.getDateStart() != null ? item.getDateStart().toString() : null
+                item.getDateStart() != null ? item.getDateStart().toString() : null,
+                attributes.districtCodes(),
+                attributes.geo(),
+                attributes.locations(),
+                attributes.timeSlots(),
+                author != null ? author.getPartnerType() : null,
+                attributes.hasFreeTrial(),
+                attributes.onSale(),
+                tagIds,
+                attributes.pricePerSession(),
+                attributes.nextStartDay(),
+                author != null && ItemVisibility.isAuthorLive(author.getStatus(), author.getIsSigned()) ? 1 : 0
         );
+    }
+
+    /**
+     * Ids of the courses matching a search (up to `limit`): for lists that the caller re-orders. Most popular first, or
+     * nearest first when a point is given; the point only sorts, it never removes a course.
+     */
+    public List<Long> searchIds(String query, int limit, SearchFilters filters, Double sortLat, Double sortLng) {
+        try {
+            var request = SearchRequest.builder()
+                    .q(query != null ? query : "")
+                    .filter(SearchFilterBuilder.build(filters).toArray(new String[0]))
+                    .sort(sortLat != null && sortLng != null
+                            ? new String[]{String.format(java.util.Locale.ROOT, "_geoPoint(%s,%s):asc", sortLat, sortLng), "popularityScore:desc"}
+                            : new String[]{"popularityScore:desc"})
+                    .attributesToRetrieve(new String[]{"id"})
+                    .limit(limit)
+                    .build();
+            SearchResult result = (SearchResult) meilisearchClient.index("items").search(request);
+            return result.getHits().stream().map(hit -> ((Number) hit.get("id")).longValue()).collect(Collectors.toList());
+        } catch (Exception e) {
+            log.warn("Meilisearch id search failed: {}", e.getMessage());
+            return Collections.emptyList();
+        }
+    }
+
+    private static final List<String> CARD_ATTRIBUTES = List.of("hasFreeTrial", "onSale", "timeSlots", "pricePerSession");
+
+    /** What a result card shows about a course ("Học thử", when it runs) comes from the index, nothing is looked up twice. */
+    private static void copySearchAttributes(Map<String, Object> hit, Map<String, Object> card) {
+        if (hit == null) return;
+        for (String key : CARD_ATTRIBUTES) {
+            if (hit.get(key) != null) card.put(key, hit.get(key));
+        }
     }
 
     // ── User indexing ──
@@ -448,7 +506,7 @@ public class MeilisearchService {
         Double rating = itemUserActionRepository.avgRatingByOwner(user.getId());
         int isHot    = user.getIsHot()          != null ? user.getIsHot()          : 0;
         int boost    = user.getBoostScore()       != null ? user.getBoostScore()       : 0;
-        int isSigned = user.getIsSigned()         != null ? user.getIsSigned()         : 0;
+        int isSigned = user.hasApprovedContract() ? 1 : 0;
         int score    = user.getPopularityScore()  != null ? user.getPopularityScore()  : 0;
 
         return new UserSearchDocument(

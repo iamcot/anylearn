@@ -17,6 +17,7 @@ public class ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
     private final ItemUserActionRepository itemUserActionRepository;
+    private final com.anylearn.backend.service.reviews.ReviewService reviewService;
     private final ItemSchedulePlanRepository itemSchedulePlanRepository;
     private final ItemScheduleRepository itemScheduleRepository;
     private final ClassTeacherRepository classTeacherRepository;
@@ -43,6 +44,9 @@ public class ItemService {
         }
 
         User author = userRepository.findById(item.getUserId()).orElse(null);
+        boolean visible = author != null && com.anylearn.backend.service.search.ItemVisibility.isVisible(
+                item.getStatus(), item.getUserStatus(), author.getStatus(), author.getIsSigned());
+        if (!visible && !mayOpenHiddenItem(item, currentUser)) throw new IllegalArgumentException("Trang không tồn tại");
         Map<String, Object> authorInfo = author == null ? null : new LinkedHashMap<>(Map.of(
                 "id", author.getId(),
                 "name", author.getName() != null ? author.getName() : "",
@@ -81,7 +85,7 @@ public class ItemService {
         boolean isFav = currentUser != null &&
                 itemUserActionRepository.findFavByItemAndUser(itemId, currentUser.getId()).isPresent();
         boolean hasPurchased = currentUser != null &&
-                orderDetailRepository.existsDeliveredByUserIdAndItemId(currentUser.getId(), itemId) > 0;
+                orderDetailRepository.existsDeliveredForBuyerOrLearner(currentUser.getId(), itemId) > 0;
 
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("item", item);
@@ -115,8 +119,15 @@ public class ItemService {
         return result;
     }
 
+    /** A course that is not shown to visitors can still be opened by the back office, its partner and people who bought it. */
+    private boolean mayOpenHiddenItem(Item item, User viewer) {
+        if (viewer == null) return false;
+        if ("admin".equals(viewer.getRole()) || item.getUserId().equals(viewer.getId())) return true;
+        return orderDetailRepository.existsDeliveredForBuyerOrLearner(viewer.getId(), item.getId()) > 0;
+    }
+
     private List<Map<String, Object>> getReviews(Long itemId) {
         // Using raw query via ItemUserActionRepository for join with users
-        return itemUserActionRepository.findReviewsByItemId(itemId);
+        return reviewService.list(itemId, false, null, false);
     }
 }

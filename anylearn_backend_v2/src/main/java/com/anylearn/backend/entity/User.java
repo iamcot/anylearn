@@ -38,11 +38,20 @@ public class User {
     @Column(nullable = false, length = 20)
     private String role;
 
+    /** school, center, club, tutor or expert (see PartnerTypes); only set for partners. */
+    @Column(name = "partner_type")
+    private String partnerType;
+
     @Column(nullable = false)
     private Byte status;
 
     @Column(name = "is_signed", nullable = false)
     private Byte isSigned;
+
+    /** Contract status "approved" (Contract.APPROVED): the value of is_signed that means "signed" for the back office and search. */
+    public boolean hasApprovedContract() {
+        return isSigned != null && isSigned == Contract.APPROVED;
+    }
 
     @Column(name = "user_category_id", nullable = false)
     private Integer userCategoryId;

@@ -265,7 +265,7 @@ public class UserService {
 
     // ── anyPoint (wallet_c) history ───────────────────────────────────────────
 
-    private static final List<String> WALLET_C_TYPES = List.of("commission", "commission_add", "activitybonus", "exchange", "exchange_refund");
+    private static final List<String> WALLET_C_TYPES = List.of("commission", "commission_add", "activitybonus", "exchange", "exchange_refund", "review_reward", "review_reward_revoke");
 
     public List<Map<String, Object>> getWalletCHistory(User user) {
         var txns = transactionRepository.findByUserIdAndTypeIn(user.getId(), WALLET_C_TYPES);

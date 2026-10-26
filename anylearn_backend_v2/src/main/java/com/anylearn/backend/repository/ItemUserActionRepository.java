@@ -29,12 +29,13 @@ public interface ItemUserActionRepository extends JpaRepository<ItemUserAction, 
     List<java.util.Map<String, Object>> findRatedItemsByUser(@Param("userId") Long userId,
             org.springframework.data.domain.Pageable pageable);
 
-    @Query("""
-        SELECT AVG(CAST(iua.value AS double))
-        FROM ItemUserAction iua
-        JOIN Item i ON i.id = iua.itemId
-        WHERE iua.type = 'rating' AND i.userId = :userId
-        """)
+    @Query(value = """
+        SELECT AVG(iua.value + 0)
+        FROM item_user_actions iua
+        JOIN items i ON i.id = iua.item_id
+        LEFT JOIN review_details d ON d.review_id = iua.id
+        WHERE iua.type = 'rating' AND i.user_id = :userId AND COALESCE(d.status, 'published') = 'published'
+        """, nativeQuery = true)
     Double avgRatingByOwner(@Param("userId") Long userId);
 
     @Query("SELECT COUNT(iua) FROM ItemUserAction iua WHERE iua.itemId = :itemId AND iua.type = 'fav' AND iua.value = '1'")
@@ -43,7 +44,11 @@ public interface ItemUserActionRepository extends JpaRepository<ItemUserAction, 
     @Query("SELECT COUNT(iua) FROM ItemUserAction iua WHERE iua.itemId = :itemId AND iua.type = 'reg'")
     Long countReg(@Param("itemId") Long itemId);
 
-    @Query("SELECT AVG(CAST(iua.value AS double)) FROM ItemUserAction iua WHERE iua.itemId = :itemId AND iua.type = 'rating'")
+    // Hidden reviews (review_details.status) do not count.
+    @Query(value = """
+        SELECT AVG(iua.value + 0) FROM item_user_actions iua LEFT JOIN review_details d ON d.review_id = iua.id
+        WHERE iua.item_id = :itemId AND iua.type = 'rating' AND COALESCE(d.status, 'published') = 'published'
+        """, nativeQuery = true)
     Double avgRating(@Param("itemId") Long itemId);
 
     @Query("SELECT iua FROM ItemUserAction iua WHERE iua.itemId = :itemId AND iua.userId = :userId AND iua.type = 'fav'")

@@ -36,7 +36,7 @@ export default function CourseCard({ item }: Props) {
         </h3>
 
         {item.authorName && item.authorId && (
-          <Link href={`/search?mode=class&authorId=${item.authorId}`}
+          <Link href={`/partner/${item.authorId}`}
             className="relative z-10 flex items-center gap-1.5 mb-2.5 no-underline">
             {item.authorImage
               // eslint-disable-next-line @next/next/no-img-element

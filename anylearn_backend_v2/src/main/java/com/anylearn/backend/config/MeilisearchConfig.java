@@ -36,11 +36,12 @@ public class MeilisearchConfig {
             });
 
             index.updateFilterableAttributesSettings(new String[]{
-                "status", "userStatus", "type", "subtype", "price", "categoryUrls", "authorId", "agesMin", "agesMax", "authorProvinceCodes"
+                "status", "userStatus", "authorLive", "type", "subtype", "price", "categoryUrls", "authorId", "agesMin", "agesMax", "authorProvinceCodes",
+                "districtCodes", "timeSlots", "partnerType", "hasFreeTrial", "onSale", "tagIds", "nextStartDay", "pricePerSession", "_geo"
             });
 
             index.updateSortableAttributesSettings(new String[]{
-                "isHot", "boostScore", "price", "dateStart", "id"
+                "isHot", "boostScore", "popularityScore", "price", "dateStart", "id", "nextStartDay", "pricePerSession", "_geo"
             });
 
             index.updateRankingRulesSettings(new String[]{

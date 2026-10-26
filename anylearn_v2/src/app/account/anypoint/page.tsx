@@ -23,14 +23,15 @@ const STATUS_CONFIG: Record<number, { label: string; tone: BadgeTone }> = {
 }
 
 export default function AnypointPage() {
-  const { user, token } = useAuth()
+  const { user, token, refreshUser } = useAuth()
   const [history, setHistory] = useState<WalletTransaction[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (!token) return
     getWalletCHistory(token).then(data => { setHistory(data); setLoading(false) })
-  }, [token])
+    refreshUser()
+  }, [token, refreshUser])
 
   const totalPending = sumPendingPoints(history)
   const balance = user?.walletC ?? 0

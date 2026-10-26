@@ -11,6 +11,13 @@ import java.time.LocalDateTime;
 @Getter @Setter
 public class Contract {
 
+    // Same numbers as the old portal. users.is_signed mirrors the status: 99 (approved) is "signed" in the back office.
+    public static final byte DELETED = 0;
+    public static final byte NEW = 1;
+    public static final byte SIGNED = 10;
+    public static final byte APPROVED = 99;
+
+
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 

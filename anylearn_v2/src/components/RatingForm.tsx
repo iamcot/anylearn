@@ -1,94 +1,151 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
-import { API_BASE } from '@/lib/apiBase'
-import { StarIcon } from './icons'
+import { getReviewRewards, saveReview, uploadReviewPhoto } from '@/lib/api'
+import type { ReviewRewards } from '@/lib/api'
+import { REVIEW_CRITERIA, REVIEW_MAX_PHOTOS, REVIEW_QUICK_PHRASES, STAR_LABELS } from '@/config/reviews'
+import { appendPhrase, rewardHint } from '@/lib/reviews/text'
+import { GUEST_CHIP_OFF } from '@/components/guest/chipStyles'
+import { CameraIcon, CloseIcon, StarIcon } from './icons'
+import type { MyRating } from './useItemRatingStatus'
 
 interface Props {
   itemId: number
   existingRating?: number
   existingComment?: string
-  onSaved?: (myRating: { value: number; comment: string }) => void
+  existingScores?: Record<string, number>
+  existingMedia?: string[]
+  onSaved?: (myRating: MyRating, pointsGiven: number) => void
 }
 
-export default function RatingForm({ itemId, existingRating, existingComment, onSaved }: Props) {
-  const { user } = useAuth()
-  const [rating, setRating] = useState(existingRating ?? 0)
+function Stars({ value, onPick, size = 'size-7', box = 'size-11' }: { value: number; onPick: (n: number) => void; size?: string; box?: string }) {
   const [hovered, setHovered] = useState(0)
+  const display = hovered || value
+  return (
+    <div className="flex gap-1" onMouseLeave={() => setHovered(0)}>
+      {[1, 2, 3, 4, 5].map(n => (
+        <button
+          key={n}
+          type="button"
+          aria-label={`${n} sao`}
+          className={`grid ${box} cursor-pointer place-items-center border-0 bg-transparent p-0 transition-transform hover:scale-110 ${n <= display ? 'text-star' : 'text-line'}`}
+          onMouseEnter={() => setHovered(n)}
+          onClick={() => onPick(n === value ? 0 : n)}
+        >
+          <StarIcon filled className={size} />
+        </button>
+      ))}
+    </div>
+  )
+}
+
+// Writing or editing a review: stars, optional scores per criterion, a comment with quick phrases and up to 4 photos.
+export default function RatingForm({ itemId, existingRating, existingComment, existingScores, existingMedia, onSaved }: Props) {
+  const { user, refreshUser } = useAuth()
+  const [rating, setRating] = useState(existingRating ?? 0)
   const [comment, setComment] = useState(existingComment ?? '')
+  const [scores, setScores] = useState<Record<string, number>>(existingScores ?? {})
+  const [media, setMedia] = useState<string[]>(existingMedia ?? [])
   const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
+  const [rewards, setRewards] = useState<ReviewRewards | null>(null)
+  const fileInput = useRef<HTMLInputElement>(null)
+
+  useEffect(() => { getReviewRewards().then(setRewards) }, [])
 
   if (!user) return null
+  const token = user.jwtToken
 
   async function submit() {
     if (rating === 0) { setError('Vui lòng chọn số sao'); return }
-    setSaving(true); setError('')
-    try {
-      const res = await fetch(`${API_BASE}/item/${itemId}/save-rating`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${user!.jwtToken}` },
-        body: JSON.stringify({ rating, comment }),
-      })
-      const json = await res.json()
-      if (json.resultCode === 1) {
-        onSaved?.({ value: rating, comment })
-      } else {
-        setError(json.message ?? 'Có lỗi xảy ra')
-      }
-    } catch {
-      setError('Có lỗi xảy ra, thử lại sau')
-    } finally {
-      setSaving(false)
-    }
+    setSaving(true)
+    setError('')
+    const result = await saveReview(itemId, { rating, comment, scores, media }, token)
+    setSaving(false)
+    if (result.error) { setError(result.error); return }
+    if (result.pointsGiven > 0) refreshUser()
+    onSaved?.({ value: rating, comment, scores, media }, result.pointsGiven)
   }
 
-  const display = hovered || rating
+  async function addPhotos(files: FileList | null) {
+    if (!files) return
+    setUploading(true)
+    setError('')
+    for (const file of Array.from(files).slice(0, REVIEW_MAX_PHOTOS - media.length)) {
+      const result = await uploadReviewPhoto(itemId, file, token)
+      if (result.url) setMedia(current => (current.length < REVIEW_MAX_PHOTOS ? [...current, result.url as string] : current))
+      else setError(result.error ?? 'Không tải được ảnh')
+    }
+    setUploading(false)
+    if (fileInput.current) fileInput.current.value = ''
+  }
 
   return (
     <div className="rounded-[18px] border border-line bg-white p-5">
-      <div className="mb-3 font-extrabold text-ink">
-        {existingRating ? 'Cập nhật đánh giá của bạn' : 'Viết đánh giá'}
+      <div className="mb-1 font-extrabold text-ink">{existingRating ? 'Cập nhật đánh giá của bạn' : 'Viết đánh giá'}</div>
+      <p className="m-0 mb-3 text-xs text-muted">Chỉ phụ huynh đã đăng ký khóa này mới đánh giá được, nên mỗi đánh giá đều có dấu &quot;Đã học tại anyLEARN&quot;.</p>
+
+      {rewardHint(rewards) && <p className="m-0 mb-3 rounded-lg bg-green-soft px-3 py-2 text-xs font-semibold text-green-dark">{rewardHint(rewards)}</p>}
+
+      <div className="mb-4 flex items-center">
+        <Stars value={rating} onPick={setRating} />
+        {rating > 0 && <span className="ml-2 self-center text-sm text-muted">{STAR_LABELS[rating]}</span>}
       </div>
 
-      {/* Stars */}
-      <div className="flex gap-1 mb-4" onMouseLeave={() => setHovered(0)}>
-        {[1, 2, 3, 4, 5].map(n => (
-          <button
-            key={n}
-            type="button"
-            aria-label={`${n} sao`}
-            className={`grid size-11 cursor-pointer place-items-center border-0 bg-transparent p-0 transition-transform hover:scale-110 ${n <= display ? 'text-star' : 'text-line'}`}
-            onMouseEnter={() => setHovered(n)}
-            onClick={() => setRating(n)}
-          >
-            <StarIcon filled className="size-7" />
-          </button>
+      <div className="mb-4 grid gap-1 sm:grid-cols-2 sm:gap-x-6">
+        {REVIEW_CRITERIA.map(criterion => (
+          <div key={criterion.id} className="flex items-center justify-between gap-2">
+            <span className="text-sm text-text">{criterion.label}</span>
+            <Stars value={scores[criterion.id] ?? 0} size="size-5" box="size-9" onPick={n => setScores(current => {
+              const next = { ...current }
+              if (n === 0) delete next[criterion.id]
+              else next[criterion.id] = n
+              return next
+            })} />
+          </div>
         ))}
-        {display > 0 && (
-          <span className="ml-2 text-sm text-muted self-center">
-            {['', 'Tệ', 'Không tốt', 'Bình thường', 'Tốt', 'Xuất sắc'][display]}
-          </span>
-        )}
       </div>
 
-      {/* Comment */}
+      <div className="mb-2 flex flex-wrap gap-2">
+        {REVIEW_QUICK_PHRASES.map(phrase => (
+          <button key={phrase} type="button" onClick={() => setComment(current => appendPhrase(current, phrase))} className={`${GUEST_CHIP_OFF} min-h-9 px-3 text-[13px]`}>{phrase}</button>
+        ))}
+      </div>
       <textarea
         value={comment}
         onChange={e => setComment(e.target.value)}
         placeholder="Chia sẻ trải nghiệm của bạn với khóa học này..."
         rows={3}
+        maxLength={2000}
         className="w-full resize-y rounded-xl border border-line px-3 py-2.5 font-[inherit] text-sm outline-none focus:border-green"
       />
 
-      {error && <p className="mb-0 mt-1 text-xs text-red">{error}</p>}
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        {media.map(url => (
+          <div key={url} className="relative size-16 overflow-hidden rounded-xl bg-bg">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={url} alt="Ảnh đã chọn" className="size-full object-cover" />
+            <button type="button" aria-label="Bỏ ảnh" onClick={() => setMedia(current => current.filter(item => item !== url))} className="absolute right-0.5 top-0.5 grid size-6 cursor-pointer place-items-center rounded-full border-0 bg-ink/60 p-0 text-white">
+              <CloseIcon className="size-3.5" />
+            </button>
+          </div>
+        ))}
+        {media.length < REVIEW_MAX_PHOTOS && (
+          <>
+            <button type="button" onClick={() => fileInput.current?.click()} disabled={uploading} className="btn btn--outline min-h-11 gap-1.5 px-3 py-2 text-sm">
+              <CameraIcon className="size-4" />
+              {uploading ? 'Đang tải ảnh...' : 'Thêm ảnh'}
+            </button>
+            <input ref={fileInput} type="file" accept="image/*" multiple hidden onChange={event => addPhotos(event.target.files)} />
+          </>
+        )}
+      </div>
 
-      <button
-        onClick={submit}
-        disabled={saving}
-        className={`btn btn--green mt-3 ${saving ? 'opacity-70' : ''}`}
-      >
+      {error && <p className="mb-0 mt-2 text-xs text-red">{error}</p>}
+
+      <button onClick={submit} disabled={saving || uploading} className={`btn btn--green mt-3 ${saving ? 'opacity-70' : ''}`}>
         {saving ? 'Đang gửi...' : existingRating ? 'Cập nhật' : 'Gửi đánh giá'}
       </button>
     </div>

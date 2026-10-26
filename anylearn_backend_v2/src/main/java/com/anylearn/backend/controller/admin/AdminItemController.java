@@ -1,5 +1,10 @@
 package com.anylearn.backend.controller.admin;
 
+import com.anylearn.backend.service.location.ItemAddressRules;
+import com.anylearn.backend.service.partners.FollowService;
+import com.anylearn.backend.service.search.ItemAttributeGaps;
+import com.anylearn.backend.service.search.ItemSearchAttributes;
+
 import com.anylearn.backend.dto.response.ApiResponse;
 import com.anylearn.backend.entity.Item;
 import com.anylearn.backend.entity.ItemSchedule;
@@ -29,10 +34,16 @@ public class AdminItemController {
     private final ItemUserActionRepository itemUserActionRepository;
     private final ItemScheduleRepository itemScheduleRepository;
     private final UserLocationRepository userLocationRepository;
+    private final com.anylearn.backend.service.tags.TagService tagService;
+    private final FollowService followService;
+    private final com.anylearn.backend.service.reviews.ReviewService reviewService;
+    private final com.anylearn.backend.service.location.LocationService locationService;
     private final OrderDetailRepository orderDetailRepository;
     private final UserRepository userRepository;
     private final MeilisearchService meilisearchService;
     private final EntityManager em;
+
+    private static final int GAP_LIST_LIMIT = 300;
 
     private boolean isAdmin(User user) {
         return user != null && "admin".equals(user.getRole());
@@ -165,6 +176,12 @@ public class AdminItemController {
             m.put("nolimitTime", item.getNolimitTime());
             m.put("cycleType", item.getCycleType()); m.put("cycleAmount", item.getCycleAmount());
             m.put("locationType", item.getLocationType()); m.put("location", item.getLocation());
+            m.put("userLocationId", item.getUserLocationId());
+            m.put("isPaymentfee", item.getIsPaymentfee());
+            m.put("userLocationIds", itemAddressIds(item));
+            m.put("gaps", gapsOf(item));
+            m.put("addressRequired", addressRequired(item));
+            m.put("partnerAddressCount", partnerAddressIds(item).size());
             // enrollment flags (note typo: activiy not activity)
             m.put("agesMin", item.getAgesMin()); m.put("agesMax", item.getAgesMax());
             m.put("seats", item.getSeats());
@@ -173,7 +190,7 @@ public class AdminItemController {
             m.put("activiyTest", item.getActiviyTest());
             m.put("activiyVisit", item.getActiviyVisit());
             m.put("activationSupport", item.getActivationSupport());
-            m.put("tags", item.getTags());
+            m.put("tagIds", tagService.tagsOfItem(item.getId()).stream().map(com.anylearn.backend.entity.Tag::getId).toList());
             // content
             m.put("image", item.getImage());
             m.put("shortContent", item.getShortContent());
@@ -192,6 +209,49 @@ public class AdminItemController {
         }).orElse(ApiResponse.fail("Not found"));
     }
 
+    // ── Missing search attributes ─────────────────────────────────────────────
+
+    @GetMapping("/attribute-gaps")
+    public ApiResponse<?> attributeGaps(@AuthenticationPrincipal User user) {
+        if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
+        Map<String, Integer> summary = new java.util.LinkedHashMap<>();
+        ItemAttributeGaps.LABELS.keySet().forEach(key -> summary.put(key, 0));
+        List<Map<String, Object>> rows = new java.util.ArrayList<>();
+        int checked = 0;
+        Map<Long, User> owners = new java.util.HashMap<>();
+        for (Item item : itemRepository.findAll()) {
+            if (item.getStatus() == null || item.getStatus() != 1 || item.getUserStatus() == null || item.getUserStatus() != 1) continue;
+            checked++;
+            List<String> gaps = gapsOf(item);
+            gaps.forEach(key -> summary.merge(key, 1, Integer::sum));
+            if (!gaps.isEmpty() && rows.size() < GAP_LIST_LIMIT) {
+                Map<String, Object> row = new java.util.LinkedHashMap<>();
+                row.put("id", item.getId());
+                row.put("title", item.getTitle());
+                row.put("userId", item.getUserId());
+                var owner = owners.computeIfAbsent(item.getUserId(), id -> userRepository.findById(id).orElse(null));
+                row.put("ownerName", owner != null ? owner.getName() : null);
+                row.put("ownerPhone", owner != null ? owner.getPhone() : null);
+                row.put("ownerRole", owner != null ? owner.getRole() : null);
+                row.put("gaps", gaps);
+                rows.add(row);
+            }
+        }
+        return ApiResponse.ok(Map.of("checked", checked, "summary", summary, "labels", ItemAttributeGaps.LABELS, "items", rows));
+    }
+
+    private List<String> gapsOf(Item item) {
+        var schedules = itemScheduleRepository.findByItemIdAndStatus(item.getId(), (byte) 1);
+        var branches = ItemSearchAttributes.activeBranchesOf(item, userLocationRepository.findItemAddressIds(item.getId()), schedules, userLocationRepository::findAllById);
+        String partnerType = userRepository.findById(item.getUserId()).map(User::getPartnerType).orElse(null);
+        return ItemAttributeGaps.of(item, new ItemAttributeGaps.Facts(
+                itemCategoryRepository.findAllCategoryUrlsByItemId(item.getId()).size(),
+                tagService.tagsOfItem(item.getId()).size(),
+                (int) schedules.stream().filter(s -> s.getTimeStart() != null && !s.getTimeStart().isBlank()).count(),
+                (int) branches.stream().filter(b -> b.getLat() != null && b.getLng() != null).count(),
+                partnerType != null, "app".equals(partnerType)));
+    }
+
     // ── Update ────────────────────────────────────────────────────────────────
 
     @PutMapping("/{id:\\d+}")
@@ -201,6 +261,7 @@ public class AdminItemController {
             @RequestBody Map<String, Object> body) {
         if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
         return itemRepository.findById(id).map(item -> {
+            boolean wasLive = FollowService.isLive(item);
             if (body.containsKey("title")) item.setTitle((String) body.get("title"));
             if (body.containsKey("userId")) item.setUserId(toNum(body.get("userId")).longValue());
             if (body.containsKey("subtype")) item.setSubtype((String) body.get("subtype"));
@@ -210,10 +271,10 @@ public class AdminItemController {
             if (body.containsKey("companyCommission")) item.setCompanyCommission((String) body.get("companyCommission"));
             if (body.containsKey("status")) item.setStatus(toNum(body.get("status")).byteValue());
             if (body.containsKey("userStatus")) item.setUserStatus(toNum(body.get("userStatus")).byteValue());
+            if (body.containsKey("isPaymentfee")) item.setIsPaymentfee(body.get("isPaymentfee") == null ? 0 : toNum(body.get("isPaymentfee")).intValue());
             if (body.containsKey("isHot")) item.setIsHot(toNum(body.get("isHot")).byteValue());
             if (body.containsKey("boostScore")) item.setBoostScore(toNum(body.get("boostScore")).intValue());
             if (body.containsKey("itemCategoryId")) item.setItemCategoryId(toNum(body.get("itemCategoryId")).intValue());
-            if (body.containsKey("tags")) item.setTags((String) body.get("tags"));
             // schedule
             if (body.containsKey("dateStart") && body.get("dateStart") != null) item.setDateStart(LocalDate.parse((String) body.get("dateStart")));
             if (body.containsKey("dateEnd")) item.setDateEnd(body.get("dateEnd") == null ? null : LocalDate.parse((String) body.get("dateEnd")));
@@ -224,6 +285,7 @@ public class AdminItemController {
             if (body.containsKey("cycleAmount")) item.setCycleAmount(body.get("cycleAmount") == null ? null : toNum(body.get("cycleAmount")).intValue());
             if (body.containsKey("locationType")) item.setLocationType((String) body.get("locationType"));
             if (body.containsKey("location")) item.setLocation((String) body.get("location"));
+            if (body.containsKey("userLocationId")) item.setUserLocationId(body.get("userLocationId") == null ? null : toNum(body.get("userLocationId")).longValue());
             if (body.containsKey("agesMin")) item.setAgesMin(body.get("agesMin") == null ? null : toNum(body.get("agesMin")).byteValue());
             if (body.containsKey("agesMax")) item.setAgesMax(body.get("agesMax") == null ? null : toNum(body.get("agesMax")).byteValue());
             if (body.containsKey("seats")) item.setSeats(body.get("seats") == null ? null : toNum(body.get("seats")).intValue());
@@ -239,8 +301,13 @@ public class AdminItemController {
             if (body.containsKey("seoTitle")) item.setSeoTitle((String) body.get("seoTitle"));
             if (body.containsKey("seoUrl")) item.setSeoUrl((String) body.get("seoUrl"));
             if (body.containsKey("seoDesc")) item.setSeoDesc((String) body.get("seoDesc"));
+            String addressProblem = applyAddressRules(item, tickedAddresses(body));
+            if (addressProblem != null) return ApiResponse.fail(addressProblem);
             itemRepository.save(item);
+            if (body.get("tagIds") instanceof java.util.List<?> tagIds)
+                tagService.setItemTags(id, tagIds.stream().filter(Number.class::isInstance).map(n -> ((Number) n).longValue()).toList());
             meilisearchService.indexItem(id);
+            followService.announceIfNewlyOpen(item, wasLive);
             return ApiResponse.ok(item);
         }).orElse(ApiResponse.fail("Not found"));
     }
@@ -251,9 +318,11 @@ public class AdminItemController {
     public ApiResponse<?> approve(@AuthenticationPrincipal User user, @PathVariable Long id) {
         if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
         return itemRepository.findById(id).map(item -> {
+            boolean wasLive = FollowService.isLive(item);
             item.setUserStatus((byte) 1);
             itemRepository.save(item);
             meilisearchService.indexItem(id);
+            followService.announceIfNewlyOpen(item, wasLive);
             return ApiResponse.ok("Approved");
         }).orElse(ApiResponse.fail("Not found"));
     }
@@ -339,7 +408,7 @@ public class AdminItemController {
     @GetMapping("/{id:\\d+}/reviews")
     public ApiResponse<?> reviews(@AuthenticationPrincipal User user, @PathVariable Long id) {
         if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
-        var reviews = itemUserActionRepository.findReviewsByItemId(id);
+        var reviews = reviewService.list(id, true, null, false);
         var result = reviews.stream().map(r -> {
             var m = new LinkedHashMap<String, Object>();
             m.put("id",        r.get("id"));
@@ -348,6 +417,13 @@ public class AdminItemController {
             m.put("rating",    r.get("value"));
             m.put("comment",   r.get("extra_value"));
             m.put("createdAt", r.get("created_at") != null ? r.get("created_at").toString() : "");
+            m.put("verified", r.get("is_verified"));
+            m.put("status", r.get("status"));
+            m.put("partnerReply", r.get("partner_reply"));
+            m.put("hiddenReason", r.get("hidden_reason"));
+            m.put("resubmittedAt", r.get("resubmitted_at") != null ? r.get("resubmitted_at").toString() : null);
+            m.put("scores", r.get("scores"));
+            m.put("media", r.get("media"));
             return m;
         }).toList();
         return ApiResponse.ok(result);
@@ -382,9 +458,17 @@ public class AdminItemController {
             @PathVariable Long id,
             @PathVariable Long reviewId) {
         if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
-        itemUserActionRepository.deleteById(reviewId);
-        itemRepository.findById(id).ifPresent(meilisearchService::updateItemPopularityScoreAsync);
+        reviewService.delete(id, reviewId);
         return ApiResponse.ok("Deleted");
+    }
+
+    @PutMapping("/{id:\\d+}/reviews/{reviewId:\\d+}/status")
+    public ApiResponse<?> setReviewStatus(@AuthenticationPrincipal User user, @PathVariable Long id, @PathVariable Long reviewId,
+                                          @RequestBody Map<String, Object> body) {
+        if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
+        String problem = reviewService.setStatus(id, reviewId, body.get("status") instanceof String s ? s : "",
+                body.get("reason") instanceof String reason ? reason : "");
+        return problem == null ? ApiResponse.ok("OK") : ApiResponse.fail(problem);
     }
 
     // ── Item Schedules CRUD ───────────────────────────────────────────────────
@@ -400,11 +484,27 @@ public class AdminItemController {
                                          @PathVariable Long id,
                                          @RequestBody Map<String, Object> body) {
         if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
-        ItemSchedule s = buildSchedule(body);
-        s.setItemId(id);
-        s.setCreatedAt(LocalDateTime.now());
-        s.setUpdatedAt(LocalDateTime.now());
-        return ApiResponse.ok(itemScheduleRepository.save(s));
+        var item = itemRepository.findById(id).orElse(null);
+        if (item == null) return ApiResponse.fail("Not found");
+        List<Long> addressIds = addressRequired(item) ? partnerAddressIds(item) : null;
+        List<Long> places;
+        try {
+            places = addressIds == null ? java.util.Collections.singletonList(null) : ItemAddressRules.chosenFor(addressIds, tickedAddresses(body), "ca học");
+        } catch (IllegalArgumentException e) {
+            return ApiResponse.fail(e.getMessage());
+        }
+        // One class per ticked address: the same hours at another branch is another class.
+        List<ItemSchedule> saved = new java.util.ArrayList<>();
+        for (Long place : places) {
+            ItemSchedule s = buildSchedule(body);
+            if (addressIds != null) s.setUserLocationId(place);
+            s.setItemId(id);
+            s.setCreatedAt(LocalDateTime.now());
+            s.setUpdatedAt(LocalDateTime.now());
+            saved.add(itemScheduleRepository.save(s));
+        }
+        meilisearchService.indexItem(id);
+        return ApiResponse.ok(saved);
     }
 
     @GetMapping("/{id:\\d+}/locations")
@@ -412,7 +512,7 @@ public class AdminItemController {
         if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
         return itemRepository.findById(id)
                 .map(item -> ApiResponse.ok(userLocationRepository.findByUserIdAndStatus(item.getUserId(), (byte) 1).stream()
-                        .map(l -> Map.of("id", l.getId(), "title", l.getTitle(), "address", l.getAddress()))
+                        .map(l -> Map.of("id", l.getId(), "title", l.getTitle(), "address", l.getAddress(), "hasCoordinates", l.getLat() != null))
                         .toList()))
                 .orElse(ApiResponse.fail("Not found"));
     }
@@ -426,11 +526,19 @@ public class AdminItemController {
         return itemScheduleRepository.findById(sid).map(s -> {
             if (!s.getItemId().equals(id)) return ApiResponse.fail("Not found");
             ItemSchedule updated = buildSchedule(body);
+            var owner = itemRepository.findById(id).orElse(null);
+            if (owner != null && addressRequired(owner)) {
+                var place = ItemAddressRules.resolve(partnerAddressIds(owner), updated.getUserLocationId(), "ca học");
+                if (!place.ok()) return ApiResponse.fail(place.problem());
+                updated.setUserLocationId(place.id());
+            }
             updated.setId(sid);
             updated.setItemId(id);
             updated.setCreatedAt(s.getCreatedAt());
             updated.setUpdatedAt(LocalDateTime.now());
-            return ApiResponse.ok(itemScheduleRepository.save(updated));
+            var result = ApiResponse.ok(itemScheduleRepository.save(updated));
+            meilisearchService.indexItem(id);
+            return result;
         }).orElse(ApiResponse.fail("Not found"));
     }
 
@@ -442,6 +550,7 @@ public class AdminItemController {
         itemScheduleRepository.findById(sid).ifPresent(s -> {
             if (s.getItemId().equals(id)) { s.setStatus((byte) 0); itemScheduleRepository.save(s); }
         });
+        meilisearchService.indexItem(id);
         return ApiResponse.ok("Deleted");
     }
 
@@ -467,6 +576,65 @@ public class AdminItemController {
         if (body.get("durationValue") != null) s.setDurationValue(Integer.parseInt(body.get("durationValue").toString()));
         s.setDurationUnit(str(body, "durationUnit"));
         return s;
+    }
+
+    // ── Address rules ─────────────────────────────────────────────────────────
+
+    private List<Long> partnerAddressIds(Item item) {
+        return userLocationRepository.findByUserIdAndStatus(item.getUserId(), (byte) 1).stream().map(l -> l.getId()).toList();
+    }
+
+    private List<Long> itemAddressIds(Item item) {
+        List<Long> ids = userLocationRepository.findItemAddressIds(item.getId());
+        return ids.isEmpty() && item.getUserLocationId() != null ? List.of(item.getUserLocationId()) : ids;
+    }
+
+    private boolean addressRequired(Item item) {
+        String partnerType = userRepository.findById(item.getUserId()).map(User::getPartnerType).orElse(null);
+        return ItemAddressRules.requiresAddress(item.getSubtype(), partnerType);
+    }
+
+    /** The list from the form wins; the single `userLocationId` only matters for a client that sends no list. */
+    private static List<Long> tickedAddresses(Map<String, Object> body) {
+        List<Long> ticked = new java.util.ArrayList<>();
+        if (body.get("userLocationIds") instanceof List<?> list) {
+            list.forEach(v -> { if (v instanceof Number n) ticked.add(n.longValue()); });
+            return ticked;
+        }
+        if (body.get("userLocationId") instanceof Number n) ticked.add(n.longValue());
+        else if (body.get("userLocationId") instanceof String t && !t.isBlank()) ticked.add(Long.parseLong(t.trim()));
+        return ticked;
+    }
+
+    /**
+     * A course taught at a place must have an address: on the course (one or several) when it has no classes, on every class otherwise.
+     * One address of the partner is applied automatically; with several the person must choose. Null when fine.
+     */
+    private String applyAddressRules(Item item, List<Long> tickedForCourse) {
+        if (!addressRequired(item)) return null;
+        List<Long> addressIds = partnerAddressIds(item);
+        var classes = itemScheduleRepository.findByItemIdAndStatus(item.getId(), (byte) 1);
+        if (classes.isEmpty()) {
+            // The form sends the whole list; an old client sending only the single address still works.
+            List<Long> ticked = tickedForCourse.isEmpty() && item.getUserLocationId() != null ? List.of(item.getUserLocationId()) : tickedForCourse;
+            List<Long> chosen;
+            try {
+                chosen = ItemAddressRules.chosenFor(addressIds, ticked, "khóa học");
+            } catch (IllegalArgumentException e) {
+                return e.getMessage();
+            }
+            item.setUserLocationId(chosen.get(0));
+            locationService.replaceItemAddresses(item.getId(), chosen);
+            return null;
+        }
+        for (ItemSchedule c : classes) {
+            if (c.getUserLocationId() != null && addressIds.contains(c.getUserLocationId())) continue;
+            var place = ItemAddressRules.resolve(addressIds, null, "ca học" + (c.getTitle() == null || c.getTitle().isBlank() ? "" : " \"" + c.getTitle() + "\""));
+            if (!place.ok()) return place.problem();
+            c.setUserLocationId(place.id());
+            itemScheduleRepository.save(c);
+        }
+        return null;
     }
 
     // ── Helper ────────────────────────────────────────────────────────────────

@@ -15,6 +15,7 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
         SELECT DISTINCT c.* FROM categories c
         JOIN items_categories ic ON ic.category_id = c.id
         JOIN items i ON i.id = ic.item_id AND i.status = 1 AND i.user_status = 1
+          AND EXISTS (SELECT 1 FROM users a WHERE a.id = i.user_id AND a.status = 1 AND a.is_signed = 99)
         WHERE c.status = 1
         ORDER BY c.id ASC
         """, nativeQuery = true)
