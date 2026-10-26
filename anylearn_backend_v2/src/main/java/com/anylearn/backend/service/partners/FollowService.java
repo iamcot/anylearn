@@ -51,6 +51,9 @@ public class FollowService {
      */
     public void announceIfNewlyOpen(Item item, boolean wasLive) {
         if (wasLive || !isLive(item)) return;
+        boolean partnerShown = userRepository.findById(item.getUserId())
+                .map(partner -> com.anylearn.backend.service.search.ItemVisibility.isAuthorLive(partner.getStatus(), partner.getIsSigned())).orElse(false);
+        if (!partnerShown) return;
         int firstTime = jdbc.update("INSERT IGNORE INTO follow_announcements (item_id) VALUES (?)", item.getId());
         if (firstTime == 0) return;
         List<Long> followers = jdbc.queryForList("SELECT user_id FROM follows WHERE partner_id = ?", Long.class, item.getUserId());

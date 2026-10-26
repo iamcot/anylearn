@@ -36,7 +36,7 @@ public class MeilisearchConfig {
             });
 
             index.updateFilterableAttributesSettings(new String[]{
-                "status", "userStatus", "type", "subtype", "price", "categoryUrls", "authorId", "agesMin", "agesMax", "authorProvinceCodes",
+                "status", "userStatus", "authorLive", "type", "subtype", "price", "categoryUrls", "authorId", "agesMin", "agesMax", "authorProvinceCodes",
                 "districtCodes", "timeSlots", "partnerType", "hasFreeTrial", "onSale", "tagIds", "nextStartDay", "pricePerSession", "_geo"
             });
 

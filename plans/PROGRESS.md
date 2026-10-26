@@ -457,3 +457,7 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 
 ### 26/10/2026 – duyệt / từ chối hoạt động
 - Trang Hoạt động có thêm nút Từ chối; cả hai nút mở hộp nhập nội dung gửi khách (từ chối bắt buộc lý do). Thông báo `activity_result` gửi cho người đăng ký, nếu là bé thì gửi phụ huynh. V33 thêm `admin_note`, `handled_at`. Sửa lỗi hộp "Ẩn đánh giá": bộ đếm ký tự đè lên nút.
+
+### 26/10/2026 – quy tắc hiện khóa học
+- Khóa chỉ hiện cho khách khi khóa bật (status và user_status) VÀ đối tác hoạt động VÀ đã Ký HĐ (is_signed 99): một quy tắc `ItemVisibility` áp cho tìm kiếm (trường `authorLive` trong Meilisearch), trang chủ, danh mục, bộ sưu tập, trang đối tác, khóa liên quan, thông báo khóa mới và trang chi tiết khóa (admin, đối tác và người đã mua vẫn mở được).
+- Rủi ro khi triển khai: đối tác chưa bật Ký HĐ sẽ mất toàn bộ khóa trên site; cần rà công tắc Ký HĐ trước. Chưa thử với Meilisearch thật (chỉ thử phần SQL và trang chi tiết).

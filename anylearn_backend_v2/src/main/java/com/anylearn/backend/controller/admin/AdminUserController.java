@@ -124,6 +124,7 @@ public class AdminUserController {
             if (body.get("introduce") != null) u.setIntroduce(String.valueOf(body.get("introduce")));
             if (body.get("fullContent") != null) u.setFullContent(String.valueOf(body.get("fullContent")));
             userRepository.save(u);
+            if (body.containsKey("status")) meilisearchService.reindexItemsOfAuthorAsync(id);
             return ApiResponse.ok(u);
         }).orElse(ApiResponse.fail("Not found"));
     }
@@ -159,6 +160,7 @@ public class AdminUserController {
             user.setIsSigned(newVal);
             userRepository.save(user);
             meilisearchService.indexUser(id);
+            meilisearchService.reindexItemsOfAuthorAsync(id);
             return ApiResponse.ok(Map.of("isSigned", newVal == Contract.APPROVED ? 1 : 0));
         }).orElse(ApiResponse.fail("Not found"));
     }

@@ -10,10 +10,13 @@ public final class SearchFilterBuilder {
     public static final double DEFAULT_RADIUS_KM = 10;
     public static final double MAX_RADIUS_KM = 100;
 
+    /** Courses of a partner that is not an active signed member are never shown. A document indexed before the field existed still passes. */
+    public static final String AUTHOR_LIVE_CLAUSE = "authorLive != 0";
+
     private SearchFilterBuilder() {}
 
     public static List<String> build(SearchFilters f) {
-        List<String> clauses = new ArrayList<>(List.of("status = 1", "userStatus = 1"));
+        List<String> clauses = new ArrayList<>(List.of("status = 1", "userStatus = 1", AUTHOR_LIVE_CLAUSE));
         if (notBlank(f.category())) clauses.add("categoryUrls = " + quote(f.category()));
         if (f.authorId() != null) clauses.add("authorId = " + f.authorId());
         addAgeBucket(clauses, f.ageBucket());

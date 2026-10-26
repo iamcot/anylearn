@@ -44,6 +44,9 @@ public class ItemService {
         }
 
         User author = userRepository.findById(item.getUserId()).orElse(null);
+        boolean visible = author != null && com.anylearn.backend.service.search.ItemVisibility.isVisible(
+                item.getStatus(), item.getUserStatus(), author.getStatus(), author.getIsSigned());
+        if (!visible && !mayOpenHiddenItem(item, currentUser)) throw new IllegalArgumentException("Trang không tồn tại");
         Map<String, Object> authorInfo = author == null ? null : new LinkedHashMap<>(Map.of(
                 "id", author.getId(),
                 "name", author.getName() != null ? author.getName() : "",
@@ -114,6 +117,13 @@ public class ItemService {
         result.put("url", "Khoá học " + item.getTitle() + " cực hay trên anyLEARN bạn có biết chưa");
 
         return result;
+    }
+
+    /** A course that is not shown to visitors can still be opened by the back office, its partner and people who bought it. */
+    private boolean mayOpenHiddenItem(Item item, User viewer) {
+        if (viewer == null) return false;
+        if ("admin".equals(viewer.getRole()) || item.getUserId().equals(viewer.getId())) return true;
+        return orderDetailRepository.existsDeliveredForBuyerOrLearner(viewer.getId(), item.getId()) > 0;
     }
 
     private List<Map<String, Object>> getReviews(Long itemId) {

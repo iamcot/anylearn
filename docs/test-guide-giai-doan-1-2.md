@@ -141,6 +141,13 @@ Mở cửa sổ ẩn danh.
 - [ ] Bấm "Duyệt": hộp nhập nội dung (không bắt buộc), bấm "Duyệt và báo khách": dòng chuyển "Đã duyệt" kèm nội dung; khách (hoặc phụ huynh nếu là bé) nhận thông báo
 - [ ] Bấm "Từ chối": để trống thì không bấm được nút xác nhận; nhập lý do rồi gửi: dòng chuyển "Đã từ chối", khách nhận thông báo kèm lý do
 
+### B9. Khóa nào được hiện cho khách
+- [ ] Khóa của đối tác **chưa Ký HĐ** không hiện ở tìm kiếm, trang chủ, bộ sưu tập, trang đối tác; mở link trực tiếp (chưa đăng nhập) báo "Trang không tồn tại"
+- [ ] Admin, đối tác đó và người đã mua vẫn mở được trang khóa
+- [ ] Bật Ký HĐ cho đối tác: sau vài phút khóa hiện lại trong tìm kiếm
+- [ ] Tắt khóa (Platform = Ẩn) hoặc đối tác chưa duyệt (Chờ duyệt): khóa biến khỏi mọi danh sách
+- [ ] Đối tác ngừng hoạt động: khóa biến khỏi danh sách
+
 ---
 
 ## C. Kiểm tra chung

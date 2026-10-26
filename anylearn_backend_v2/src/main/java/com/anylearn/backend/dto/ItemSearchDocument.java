@@ -36,5 +36,7 @@ public record ItemSearchDocument(
         boolean onSale,
         List<Long> tagIds,
         Long pricePerSession,
-        Integer nextStartDay
+        Integer nextStartDay,
+        // 1 when the partner is an active member with a signed contract, 0 otherwise (courses of others are never shown)
+        int authorLive
 ) {}

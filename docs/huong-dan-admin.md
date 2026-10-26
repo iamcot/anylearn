@@ -84,6 +84,15 @@ Ghi nhớ: địa chỉ phục vụ "Gần tôi" nên **cần có tọa độ**.
 
 ## 3. Khóa học
 
+### 3.0 Khóa nào được hiện cho khách
+
+Một khóa chỉ hiện cho khách (tìm kiếm, trang chủ, danh mục, bộ sưu tập, trang đối tác, khóa liên quan, "Thử điều mới") khi **đủ cả bốn điều kiện**:
+1. Khóa đang **Hiển thị** (cột Platform) và **Đã duyệt** (cột Đối tác duyệt).
+2. Đối tác sở hữu khóa có trạng thái **hoạt động**.
+3. Đối tác đã **Ký HĐ** (công tắc Ký HĐ ở trang Thành viên, tương ứng hợp đồng ở trạng thái đã duyệt).
+
+Thiếu một điều kiện thì khóa biến khỏi mọi danh sách; mở link trực tiếp cũng báo "Trang không tồn tại". Ngoại lệ: admin, chính đối tác đó và người đã mua khóa vẫn mở được trang khóa. Bật hoặc tắt công tắc Ký HĐ, hoặc đổi trạng thái đối tác, thì các khóa của đối tác được cập nhật lại trong tìm kiếm trong vài phút (không cần bấm "Cập nhật chỉ mục ngay"). **Trước khi triển khai bản này, kiểm tra công tắc Ký HĐ của các đối tác chính, nếu không toàn bộ khóa của họ sẽ biến mất.**
+
 ### 3.1 Hình thức học và địa chỉ bắt buộc
 
 Hình thức: Học tại trường, Học online, Mã code, Ngoại khóa, Video, Mầm non.

@@ -1,5 +1,6 @@
 package com.anylearn.backend.service;
 
+import com.anylearn.backend.service.search.ItemVisibility;
 import com.anylearn.backend.dto.ItemSearchDocument;
 import com.anylearn.backend.dto.UserSearchDocument;
 import com.anylearn.backend.entity.Item;
@@ -185,7 +186,7 @@ public class MeilisearchService {
 
     public List<Long> findSimilarIds(Long itemId, Long authorId, String title, List<String> categoryUrls, String subtype, int limit) {
         try {
-            List<String> filters = new java.util.ArrayList<>(List.of("status = 1", "userStatus = 1"));
+            List<String> filters = new java.util.ArrayList<>(List.of("status = 1", "userStatus = 1", SearchFilterBuilder.AUTHOR_LIVE_CLAUSE));
             if (authorId != null) filters.add("authorId != " + authorId);
             List<String> orParts = new java.util.ArrayList<>();
             if (categoryUrls != null) {
@@ -270,6 +271,18 @@ public class MeilisearchService {
         }
     }
 
+    /** A partner's status or contract changed: their courses appear or disappear, so refresh every course of theirs. */
+    @Async
+    public void reindexItemsOfAuthorAsync(Long authorId) {
+        for (Item item : itemRepository.findByUserId(authorId)) {
+            try {
+                indexItem(item.getId());
+            } catch (RuntimeException e) {
+                log.warn("Could not reindex item {} of partner {}: {}", item.getId(), authorId, e.getMessage());
+            }
+        }
+    }
+
     @Async
     public void updateItemPopularityScoreAsync(Item item) {
         updateItemPopularityScore(item);
@@ -333,7 +346,8 @@ public class MeilisearchService {
                 attributes.onSale(),
                 tagIds,
                 attributes.pricePerSession(),
-                attributes.nextStartDay()
+                attributes.nextStartDay(),
+                author != null && ItemVisibility.isAuthorLive(author.getStatus(), author.getIsSigned()) ? 1 : 0
         );
     }
 

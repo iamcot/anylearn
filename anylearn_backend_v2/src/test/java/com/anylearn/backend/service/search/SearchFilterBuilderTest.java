@@ -16,8 +16,8 @@ class SearchFilterBuilderTest {
     }
 
     @Test
-    void alwaysOnlyPublishedCourses() {
-        assertThat(SearchFilterBuilder.build(none().build())).containsExactly("status = 1", "userStatus = 1");
+    void alwaysOnlyPublishedCoursesOfSignedPartners() {
+        assertThat(SearchFilterBuilder.build(none().build())).containsExactly("status = 1", "userStatus = 1", "authorLive != 0");
     }
 
     @Test

@@ -121,8 +121,7 @@ public class ConfigService {
     private List<Map<String, Object>> getCategoriesWithItems() {
         var categories = categoryRepository.findCategoriesWithActiveItems();
         return categories.stream().map(cat -> {
-            var items = itemRepository.findByItemCategoryIdAndStatusAndUserStatusOrderByBoostScoreDesc(
-                    cat.getId().intValue(), (byte) 1, (byte) 1, PageRequest.of(0, 10));
+            var items = itemRepository.findLiveByCategory(cat.getId().intValue(), PageRequest.of(0, 10));
             Map<String, Object> m = new LinkedHashMap<>();
             m.put("id", cat.getId());
             m.put("title", cat.getTitle());

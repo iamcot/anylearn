@@ -4,7 +4,9 @@ import com.anylearn.backend.entity.Collection;
 import com.anylearn.backend.entity.Item;
 import com.anylearn.backend.repository.CollectionRepository;
 import com.anylearn.backend.repository.ItemRepository;
+import com.anylearn.backend.repository.UserRepository;
 import com.anylearn.backend.service.ConfigService;
+import com.anylearn.backend.service.search.ItemVisibility;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +26,7 @@ public class CollectionService {
 
     private final CollectionRepository collectionRepository;
     private final ItemRepository itemRepository;
+    private final UserRepository userRepository;
     private final ConfigService configService;
 
     // ── Visitors ─────────────────────────────────────────────────────────────
@@ -59,11 +62,14 @@ public class CollectionService {
     private List<Long> visibleItemIds(Long collectionId) {
         List<Long> ids = collectionRepository.findItemIds(collectionId);
         Map<Long, Item> byId = itemRepository.findAllById(ids).stream().collect(Collectors.toMap(Item::getId, Function.identity()));
-        return ids.stream().filter(id -> byId.containsKey(id) && isLive(byId.get(id))).toList();
+        Map<Long, com.anylearn.backend.entity.User> authors = userRepository.findAllById(
+                byId.values().stream().map(Item::getUserId).distinct().toList()).stream()
+                .collect(Collectors.toMap(com.anylearn.backend.entity.User::getId, Function.identity()));
+        return ids.stream().filter(id -> byId.containsKey(id) && isLive(byId.get(id), authors.get(byId.get(id).getUserId()))).toList();
     }
 
-    private static boolean isLive(Item item) {
-        return item.getStatus() != null && item.getStatus() == 1 && item.getUserStatus() != null && item.getUserStatus() == 1;
+    private static boolean isLive(Item item, com.anylearn.backend.entity.User author) {
+        return author != null && ItemVisibility.isVisible(item.getStatus(), item.getUserStatus(), author.getStatus(), author.getIsSigned());
     }
 
     private Map<String, Object> summary(Collection collection) {

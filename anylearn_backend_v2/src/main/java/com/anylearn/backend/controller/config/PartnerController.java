@@ -25,11 +25,16 @@ public class PartnerController {
     private final com.anylearn.backend.service.reviews.ReviewService reviewService;
     private final com.anylearn.backend.repository.UserRepository userRepository;
 
+    private static boolean partnerLive(User partner) {
+        return com.anylearn.backend.service.search.ItemVisibility.isAuthorLive(partner.getStatus(), partner.getIsSigned());
+    }
+
     @GetMapping("/{id}/summary")
     public ApiResponse<?> summary(@PathVariable Long id, @AuthenticationPrincipal User user) {
         var partner = userRepository.findById(id).orElse(null);
         if (partner == null) return ApiResponse.fail("Không tìm thấy đối tác");
-        Long courses = jdbc.queryForObject("SELECT COUNT(*) FROM items WHERE user_id = ? AND status = 1 AND user_status = 1", Long.class, id);
+        Long courses = partnerLive(partner)
+                ? jdbc.queryForObject("SELECT COUNT(*) FROM items WHERE user_id = ? AND status = 1 AND user_status = 1", Long.class, id) : Long.valueOf(0);
         Map<String, Object> map = new LinkedHashMap<>();
         map.put("partnerType", partner.getPartnerType());
         map.put("courseCount", courses == null ? 0 : courses);
