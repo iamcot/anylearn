@@ -1,5 +1,5 @@
 import { Button, Drawer, Form, Input, Modal, Radio, Select, Space, Switch, Table, Tag, Tooltip, Typography, Upload } from 'antd'
-import { CopyOutlined, EditOutlined, InfoCircleOutlined, SaveOutlined, CloseOutlined, RightOutlined, UploadOutlined } from '@ant-design/icons'
+import { EnvironmentOutlined, CopyOutlined, EditOutlined, InfoCircleOutlined, SaveOutlined, CloseOutlined, RightOutlined, UploadOutlined } from '@ant-design/icons'
 import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import client from '../api/client'
@@ -48,6 +48,8 @@ export default function Users() {
   const [sortBy, setSortBy] = useState('id')
   const [selected, setSelected] = useState(null)
   const [locationsOpen, setLocationsOpen] = useState(false)
+  const [locationUser, setLocationUser] = useState(null) // a row opened from the list column
+  const [locationFilter, setLocationFilter] = useState('')
   const { data: locations } = useQuery({
     queryKey: ['admin-locations', selected?.id],
     queryFn: () => client.get('/admin/locations', { params: { userId: selected.id } }).then(r => r.data?.data ?? []),
@@ -61,8 +63,8 @@ export default function Users() {
   const [newPwdResult, setNewPwdResult] = useState(null)
 
   const { data, isLoading } = useQuery({
-    queryKey: ['admin-users', q, role, statusFilter, isSignedFilter, page, sortDir, sortBy],
-    queryFn: () => client.get('/admin/users', { params: { q, role: role || undefined, ...(statusFilter !== '' && { status: statusFilter }), ...(isSignedFilter !== '' && { isSigned: isSignedFilter }), page: page - 1, size: 20, sortDir, sortBy } }).then(r => r.data?.data ?? r.data),
+    queryKey: ['admin-users', q, role, statusFilter, isSignedFilter, locationFilter, page, sortDir, sortBy],
+    queryFn: () => client.get('/admin/users', { params: { q, role: role || undefined, ...(statusFilter !== '' && { status: statusFilter }), ...(isSignedFilter !== '' && { isSigned: isSignedFilter }), ...(locationFilter !== '' && { hasLocation: locationFilter }), page: page - 1, size: 20, sortDir, sortBy } }).then(r => r.data?.data ?? r.data),
   })
 
   const toggleSignedMutation = useMutation({
@@ -120,6 +122,17 @@ export default function Users() {
     { title: 'Tên', dataIndex: 'name' },
     { title: 'Điện thoại', dataIndex: 'phone' },
     { title: 'Role', dataIndex: 'role' },
+    {
+      title: 'Địa chỉ', key: 'locations', width: 130,
+      render: (_, row) => {
+        const count = row.locationCount ?? 0
+        const open = (e) => { e.stopPropagation(); setLocationUser(row) }
+        if (count === 0) return <a onClick={open} style={{ color: '#fa8c16' }}>+ Thêm địa chỉ</a>
+        return PARTNER_ROLES.includes(row.role)
+          ? <a onClick={open}>{count} cơ sở</a>
+          : <Tooltip title="Xem địa chỉ"><a onClick={open}><EnvironmentOutlined /></a></Tooltip>
+      },
+    },
     { title: 'anyPoint', dataIndex: 'walletC', width: 100, render: v => (v ?? 0).toLocaleString('vi-VN') },
     {
       title: 'Ký HĐ', dataIndex: 'isSigned', width: 75,
@@ -177,6 +190,9 @@ export default function Users() {
             />
             <Select value={isSignedFilter} onChange={v => { setIsSignedFilter(v); setPage(1) }} style={{ width: 150 }}
               options={[{ value: '', label: 'Tất cả HĐ' }, { value: '1', label: 'Đã ký HĐ' }, { value: '0', label: 'Chưa ký HĐ' }]}
+            />
+            <Select value={locationFilter} onChange={v => { setLocationFilter(v); setPage(1) }} style={{ width: 170 }}
+              options={[{ value: '', label: 'Tất cả địa chỉ' }, { value: 'true', label: 'Có địa chỉ' }, { value: 'false', label: 'Chưa có địa chỉ' }]}
             />
           </Space>
           <Space>
@@ -289,7 +305,8 @@ export default function Users() {
           />
         </Form>
       </Drawer>
-      <UserLocationsModal open={locationsOpen} user={selected} onClose={() => setLocationsOpen(false)} />
+      <UserLocationsModal open={locationsOpen || !!locationUser} user={locationUser ?? selected}
+        onClose={() => { setLocationsOpen(false); setLocationUser(null); qc.invalidateQueries({ queryKey: ['admin-users'] }) }} />
 
       <Modal
         title="Reset mật khẩu"
