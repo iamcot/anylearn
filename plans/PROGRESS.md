@@ -55,7 +55,7 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 13.6 | SW nhận push, chống trùng với SSE, badge | done | Cùng tag `notif-<id>`; bấm mở `/notifications/open` |
 | 13.7 | Đo cài app / push | todo | |
 | 02.1 | API điểm dự kiến nhận | done | `ItemPointsResolver`, `GET /points/preview`, `points` trên dòng giỏ |
-| 02.2 | "+X điểm" ở PDP/giỏ/đơn | done | thẻ khóa trong danh sách: xong, sau cờ `NEXT_PUBLIC_CARD_POINTS=1` (mặc định tắt) |
+| 02.2 | "+X điểm" ở PDP/giỏ/đơn | done | thẻ khóa trong danh sách: xong, mặc định bật, đặt `NEXT_PUBLIC_CARD_POINTS=0` để ẩn |
 | 02.3 | Công tắc dùng điểm ở checkout | done | `UsePointsToggle`, `maxUsablePoints` |
 | 02.4 | Trang anyPoint timeline + `/info/anypoint` | done | chưa có dòng hết hạn (02.5) |
 | 05.1 | Chống đơn trùng | done | |
@@ -78,7 +78,7 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 03.4 | Index MeiliSearch | done | Thử trên Meilisearch 1.12 thật; cần `POST /admin/reindex` sau khi deploy |
 | 03.5 | API search bộ lọc mới | done | Chưa có `ageFor=<learnerId>`: FE gửi `ageFrom/ageTo` (xem ghi chú nhật ký) |
 | 04.1 | Chip chọn người học | done | Tài khoản: `Tất cả / con / Tôi` (tuổi từ ngày sinh, bé chỉ có năm sinh = 2 tuổi khả dĩ), nhớ lựa chọn `anylearn.activeLearner`; khách giữ chip cũ. Mới gắn vào trang search, trang chủ làm ở 04.3 |
-| 04.2 | Chip lọc nhanh + bộ lọc đầy đủ | done | Chip: Gần tôi/Cuối tuần/Tối trong tuần/Học thử/Giảm giá/Online; panel thêm quận, khung giờ, đối tác, giá tối đa (thanh trượt), khai giảng, tag; thẻ có khoảng cách/giờ/Học thử/Giảm giá. Chip "+X anyPoint" trên thẻ: xong, sau cờ `NEXT_PUBLIC_CARD_POINTS=1` |
+| 04.2 | Chip lọc nhanh + bộ lọc đầy đủ | done | Chip: Gần tôi/Cuối tuần/Tối trong tuần/Học thử/Giảm giá/Online; panel thêm quận, khung giờ, đối tác, giá tối đa (thanh trượt), khai giảng, tag; thẻ có khoảng cách/giờ/Học thử/Giảm giá. Chip "+X anyPoint" trên thẻ: xong, mặc định bật (`NEXT_PUBLIC_CARD_POINTS=0` để ẩn) |
 | 04.3 | Trang chủ mobile gọn | done | Còn 5 khối: hero (tìm kiếm + chip bé + chip nhanh), Dành cho {bé}, Đang hot gần bạn (cần địa chỉ đã lưu), chuyên gia/đối tác nổi bật, CTA nhờ tìm giúp + 3 bài viết. Chưa có khối bộ sưu tập (04.4) và nút "Thử điều mới" (04.5); PromoSlider giữ lại tới khi có bộ sưu tập. Chưa đo trước/sau |
 | 04.4 | Bộ sưu tập | done | Chọn tay + gợi ý theo bộ lọc, không dùng `filter_json`; mùa là khoảng ngày tuyệt đối (năm sau phải sửa tay). Tìm gợi ý cần Meilisearch nên chưa thử với Meilisearch thật trong sandbox (chỉ thử CRUD thật + gợi ý giả lập) |
 | 04.5 | Trang chuyên gia + "Ngẫu nhiên" | done | Trang `/partner/[id]` (giới thiệu, khóa đang mở, cơ sở, theo dõi), `/discover`. Chưa có phần review (chờ plan 09) và "thành tích" (chưa có dữ liệu) |
@@ -464,7 +464,7 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 
 ### 26/10/2026 – chip "+X anyPoint" trên thẻ khóa học
 - Backend: `ConfigService.enrichItem` (nơi duy nhất dựng thẻ khóa cho search, bộ sưu tập, khám phá, trang chủ, đối tác) thêm `points` (từ `ItemPointsResolver.buyerPoints`, bỏ khi 0 hoặc lỗi), nên số khớp với PDP và lúc tạo đơn.
-- FE: `components/points/CardPointsChip` ("+120 anyPoint", không kèm tiền) trong `CourseCard` và `CourseResultCard`; chỉ hiện khi `NEXT_PUBLIC_CARD_POINTS=1` (`lib/features.ts`), mặc định tắt để chủ sản phẩm xem có làm rối thẻ không. Test `cardPointsLabel`.
+- FE: `components/points/CardPointsChip` ("+120 anyPoint", không kèm tiền) trong `CourseCard` và `CourseResultCard`; mặc định hiện, đặt `NEXT_PUBLIC_CARD_POINTS=0` (`lib/features.ts`) để ẩn (ban đầu làm mặc định tắt, đổi sang bật theo yêu cầu 26/10). Test `cardPointsLabel`.
 - Chưa thử trên giao diện thật (không có DB/Meilisearch trong môi trường này); mỗi thẻ thêm vài truy vấn nhỏ như `enrichItem` đã có.
 
 ### 26/10/2026 – 01.5 khảo sát sở thích, 09.4 báo cáo review

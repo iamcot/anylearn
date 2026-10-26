@@ -80,7 +80,7 @@ NEXT_PUBLIC_API_URL=/v2/api                 # browser calls the API on the same 
 API_SERVER_ORIGIN=http://localhost:8080     # where Next.js forwards /v2/* and where SSR fetches go
 ```
 `NEXT_PUBLIC_GOOGLE_MAPS_KEY` is the browser key of the "Xem bản đồ" map (see "Course search attributes").
-`NEXT_PUBLIC_CARD_POINTS=1` shows the "+X anyPoint" chip on course cards in lists (off by default, plan 02.2).
+`NEXT_PUBLIC_CARD_POINTS=0` hides the "+X anyPoint" chip on course cards in lists (shown by default, plan 02.2).
 Testing on a phone: `ngrok http 3000` and open the ngrok URL. One tunnel is enough because `/v2/*` goes through Next.js.
 
 `anylearn_backend_v2/application.yml` reads:
