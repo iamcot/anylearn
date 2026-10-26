@@ -13,12 +13,16 @@ import java.security.SecureRandom;
 import java.util.HexFormat;
 
 @Service
+@lombok.extern.slf4j.Slf4j
 @RequiredArgsConstructor
 public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private EmailTemplateService emailTemplateService;
 
     public LoginResponse login(String phone, String password) {
         User user = userRepository.findByPhone(phone)
@@ -56,6 +60,14 @@ public class AuthService {
         user.setApiToken(generateApiToken());
 
         userRepository.save(user);
+        if (emailTemplateService != null && !user.getEmail().isBlank()) {
+            try {
+                emailTemplateService.sendToUser(user.getId(), "email-user_register", "Chào mừng bạn đến với anyLEARN",
+                        java.util.Map.of("phone", phone));
+            } catch (Exception e) {
+                log.warn("[register] welcome email failed for user {}: {}", user.getId(), e.getMessage());
+            }
+        }
         return new LoginResponse(user, jwtService.generateToken(user.getId()));
     }
 

@@ -7,6 +7,7 @@ import com.anylearn.backend.entity.OrderStatus;
 import com.anylearn.backend.repository.OrderDetailRepository;
 import com.anylearn.backend.repository.OrderFollowupRepository;
 import com.anylearn.backend.repository.OrderRepository;
+import com.anylearn.backend.service.EmailTemplateService;
 import com.anylearn.backend.service.NotificationService;
 import com.anylearn.backend.service.payment.PaymentApprovalService;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.OptionalInt;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -90,8 +92,10 @@ public class PendingOrderFollowUpService {
         notificationService.createNotification(order.getUserId(), "order_reminder", "Đơn hàng đang chờ thanh toán",
                 content, "/order/" + order.getId(), null);
         if (stage.getAsInt() >= EMAIL_FROM_STAGE) {
-            notificationService.sendEmailNotification(order.getUserId(), "Đơn hàng #" + order.getId() + " đang chờ thanh toán",
-                    "<p>" + content.replace(" →", ".") + "</p>");
+            notificationService.emailTemplate(order.getUserId(), "order_reminder", "email-order_reminder",
+                    "Đơn hàng #" + order.getId() + " đang chờ thanh toán",
+                    Map.of("orderId", String.valueOf(order.getId()), "amount", EmailTemplateService.money(order.getAmount()),
+                            "deadline", deadline, "payUrl", "https://anylearn.vn/order/" + order.getId()));
         }
     }
 

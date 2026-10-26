@@ -295,6 +295,10 @@ Mỗi lần khách tìm (chỉ trang kết quả đầu) được ghi lại theo
 - **Đơn chờ thanh toán:** khách thấy thẻ "Đơn đang chờ thanh toán" ở `/today` và Tài khoản; đặt trùng khóa và bé thì được hỏi. Thời gian nhắc và tự hủy chỉnh ở mục 8. Số liệu đơn chờ, được nhắc, trả tiền sau nhắc, hết hạn nằm ở trang tổng quan.
 - **Cài app và thông báo đẩy:** website cài được như app (Android hiện nút cài, iPhone có hướng dẫn thêm vào màn hình chính). Thông báo đẩy cần `VAPID_*` (mục 11); khách bật ở Tài khoản > Thông báo.
 - **Khách chưa đăng nhập:** được hỏi "Tìm cho ai?" (lưu tên và năm sinh của bé trên máy), khi đăng ký thì bé được tạo trong tài khoản. Thanh toán bắt buộc có ngày sinh đầy đủ của bé.
+- **Email tự động và nội dung email:** menu **Cài đặt > Cài đặt Emails** liệt kê các mẫu; chọn một mẫu để sửa, bấm **Lưu template**, rồi **Gửi thử cho tôi** (gửi bản đã lưu với dữ liệu mẫu tới email của tài khoản admin đang đăng nhập; tài khoản cần có email). **Xóa về mặc định** trả mẫu về bản gốc. Biến dạng `{{tênBiến}}` được thay bằng dữ liệu thật, danh sách biến hiện ngay trên trang. Tiêu đề email do hệ thống đặt. Tên người gửi hiện là **anyLEARN**.
+  - Gửi cho khách: **Xác nhận đơn hàng** (khi đơn được duyệt thanh toán), **Nhắc thanh toán** (từ mốc nhắc thứ 2), **Đơn hàng đã hủy** (hủy tay hoặc quá hạn), **Nhắc lịch học** (8 giờ sáng ngày trước buổi học), **Chào mừng đăng ký** (khi đăng ký có điền email). Khách tắt email theo nhóm ở Tài khoản > Thông báo; xác nhận đơn và đơn hủy thì luôn gửi.
+  - Gửi cho đội anyLEARN (tài khoản admin và thành viên trong "Người nhận thông báo admin", cộng các địa chỉ ở biến `ADMIN_EMAIL_RECIPIENTS`): đơn mới cần duyệt, đơn đã thanh toán, chuyển khoản lệch hoặc không khớp đơn, đăng ký và hủy đăng ký hoạt động. Mẫu **Thông báo cho đội anyLEARN** dùng chung cho đa số loại này.
+  - Người nhận phải có email trong hồ sơ; không có thì hệ thống bỏ qua.
 - **Lời hứa anyLEARN:** nội dung nằm ở `anylearn_v2/src/config/promise.ts` (nhờ lập trình viên sửa); trang `/info/why-anylearn`.
 
 ---

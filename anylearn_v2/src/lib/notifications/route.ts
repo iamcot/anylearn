@@ -13,7 +13,9 @@ export function resolveNotificationRoute(route?: string | null, extraContent?: s
     case '/foundation':       return '/account/anypoint'
     case '/orders':           return '/account/orders'
     case '/article':          return extraContent ? `/article/${extraContent}/bai-viet.html` : '/article'
-    default:                  return null
+    default:
+      // Routes that already are pages of this site (the backend sends /account/schedule, /order/12 ...).
+      return route.startsWith('/account/') || route.startsWith('/order/') ? route : null
   }
 }
 

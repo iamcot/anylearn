@@ -3,6 +3,8 @@ package com.anylearn.backend.service;
 import com.anylearn.backend.entity.Notification;
 import com.anylearn.backend.repository.NotificationRepository;
 import com.anylearn.backend.repository.UserRepository;
+import com.anylearn.backend.service.notifications.NotificationPrefsService;
+import com.anylearn.backend.service.notifications.NotificationTopics;
 import com.anylearn.backend.service.push.WebPushService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,11 +38,21 @@ public class NotificationService {
     @Autowired(required = false)
     private WebPushService webPushService;
 
+    // Per person, per topic and channel switches (plan 06.4). Absent in unit tests: then everything is allowed.
+    @Autowired(required = false)
+    private NotificationPrefsService prefs;
+
+    private boolean allowed(Long userId, String type, String channel) {
+        return prefs == null || prefs.allows(userId, type, channel);
+    }
+
     public Notification createNotification(Long userId, String type, String title, String content, String route) {
         return createNotification(userId, type, title, content, route, null);
     }
 
+    /** Returns the saved notification, or null when the person switched this kind off (the bell and push both stay quiet). */
     public Notification createNotification(Long userId, String type, String title, String content, String route, String extraContent) {
+        if (!allowed(userId, type, NotificationTopics.APP)) return null;
         Notification n = new Notification();
         n.setUserId(userId);
         n.setType(type);
@@ -54,7 +66,6 @@ public class NotificationService {
         notificationRepository.save(n);
         pushToBrowser(userId);
         pushToDevices(n);
-        tryEmailForNotification(userId, type, title, content);
         return n;
     }
 
@@ -83,23 +94,9 @@ public class NotificationService {
         });
     }
 
-    private void tryEmailForNotification(Long userId, String type, String title, String content) {
-        if (emailTemplateService == null) return;
-        try {
-            if ("order".equals(type)) {
-                emailTemplateService.sendToUser(userId, "email-order_success", title,
-                    Map.of("userName", "", "orderId", "", "items", content != null ? content : "", "amount", ""));
-            } else if ("schedule_reminder".equals(type)) {
-                emailTemplateService.sendToUser(userId, "email-schedule_reminder", title,
-                    Map.of("userName", "", "itemTitle", content != null ? content : "", "date", "", "scheduleInfo", ""));
-            }
-        } catch (Exception e) {
-            log.warn("[NotificationService] email trigger failed type={}: {}", type, e.getMessage());
-        }
-    }
-
     public Notification createScheduledNotification(Long userId, String type, String title,
             String content, String route, String extraContent, LocalDateTime sendAt) {
+        if (!allowed(userId, type, NotificationTopics.APP)) return null;
         if (notificationRepository.existsByUserIdAndTypeAndExtraContent(userId, type, extraContent)) return null;
         Notification n = new Notification();
         n.setUserId(userId);
@@ -118,11 +115,44 @@ public class NotificationService {
     public void dispatchDueNotifications() {
         var due = notificationRepository.findBySendBeforeAndIsSend(LocalDateTime.now(), (byte) 0);
         for (Notification n : due) {
+            if (!allowed(n.getUserId(), n.getType(), NotificationTopics.APP)) {
+                // Switched off after it was scheduled: it never shows.
+                notificationRepository.delete(n);
+                continue;
+            }
             pushToBrowser(n.getUserId());
             pushToDevices(n);
             n.setIsSend((byte) 1);
             n.setUpdatedAt(LocalDateTime.now());
             notificationRepository.save(n);
+            if ("schedule_reminder".equals(n.getType())) {
+                emailTemplate(n.getUserId(), n.getType(), "email-schedule_reminder", n.getTitle(),
+                        Map.of("itemTitle", String.valueOf(n.getContent()), "date", "", "scheduleInfo", "Mở lịch học để xem chi tiết"));
+            }
+        }
+    }
+
+    /** Email from an admin-editable template to a person; skipped when they switched the email channel of this type off or have no address. */
+    public void emailTemplate(Long userId, String type, String templateKey, String subject, Map<String, String> vars) {
+        if (emailTemplateService == null || !allowed(userId, type, NotificationTopics.EMAIL)) return;
+        try {
+            emailTemplateService.sendToUser(userId, templateKey, subject, vars);
+        } catch (Exception e) {
+            log.warn("[NotificationService] email {} failed for user {}: {}", templateKey, userId, e.getMessage());
+        }
+    }
+
+    /** Email every back office recipient with the generic notice template (the in-app notification is separate). */
+    public void emailAdmins(String subject, String content) {
+        emailAdmins(subject, "email-admin_notice", Map.of("title", subject, "content", content));
+    }
+
+    public void emailAdmins(String subject, String templateKey, Map<String, String> vars) {
+        if (emailTemplateService == null) return;
+        try {
+            emailTemplateService.sendToAdmins(subject, templateKey, vars);
+        } catch (Exception e) {
+            log.warn("[NotificationService] admin email {} failed: {}", templateKey, e.getMessage());
         }
     }
 

@@ -25,6 +25,7 @@ spring:
     username: ${MAIL_USERNAME:bdac97001@smtp-brevo.com}
     password: ${MAIL_PASSWORD:}
     from: ${MAIL_FROM:info@anylearn.vn}
+    from-name: "anyLEARN"
     properties:
       mail.smtp.auth: true
       mail.smtp.starttls.enable: true

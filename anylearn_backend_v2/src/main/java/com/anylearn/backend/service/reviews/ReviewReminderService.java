@@ -76,7 +76,7 @@ public class ReviewReminderService {
 
         String title = String.valueOf(enrollment.get("item_title"));
         notificationService.createNotification(parentId, "review_reminder", ReviewReminderRules.title(stage),
-                ReviewReminderRules.content(stage, title, settings.pointsForText()), "/pdp", String.valueOf(itemId));
+                ReviewReminderRules.content(stage, title, settings.pointsForText()), "/account/schedule", String.valueOf(itemId));
         return true;
     }
 

@@ -7,6 +7,8 @@ describe('resolveNotificationRoute', () => {
     expect(resolveNotificationRoute('/account/calendar')).toBe('/account/schedule')
     expect(resolveNotificationRoute('/pdp', '42')).toBe('/class/42/khoa-hoc')
     expect(resolveNotificationRoute('/article')).toBe('/article')
+    expect(resolveNotificationRoute('/account/schedule')).toBe('/account/schedule')
+    expect(resolveNotificationRoute('/order/12')).toBe('/order/12')
   })
 
   it('returns null for admin, unknown or missing routes', () => {

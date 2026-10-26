@@ -20,6 +20,8 @@ export interface Enrollment {
   status: string
   cycleType?: string
   cycleAmount?: number
+  learnerId?: number
+  learnerName?: string
 }
 
 export interface Activity {
@@ -31,6 +33,8 @@ export interface Activity {
   date?: string
   note?: string
   status: number
+  learnerId?: number
+  learnerName?: string
 }
 
 export type CalendarEvent = { kind: 'enrollment'; data: Enrollment } | { kind: 'activity'; data: Activity }
@@ -42,11 +46,13 @@ export interface RawEnrollment {
   date_start?: string; date_end?: string; event_date?: string; start_date?: string; end_date?: string
   schedule_title?: string; location_note?: string; status: string
   cycle_type?: string; cycle_amount?: number | string | null
+  learner_id?: number; learner_name?: string
 }
 
 export interface RawActivity {
   id: number; item_id: number; item_title?: string; seo_url?: string
   type?: string; date?: string; note?: string; status: number | string
+  learner_id?: number; learner_name?: string
 }
 
 export function normalizeEnrollment(raw: RawEnrollment): Enrollment {
@@ -69,6 +75,8 @@ export function normalizeEnrollment(raw: RawEnrollment): Enrollment {
     status: raw.status,
     cycleType: raw.cycle_type,
     cycleAmount: raw.cycle_amount != null ? Number(raw.cycle_amount) : undefined,
+    learnerId: raw.learner_id,
+    learnerName: raw.learner_name,
   }
 }
 
@@ -82,7 +90,14 @@ export function normalizeActivity(raw: RawActivity): Activity {
     date: raw.date,
     note: raw.note,
     status: Number(raw.status),
+    learnerId: raw.learner_id,
+    learnerName: raw.learner_name,
   }
+}
+
+/** Rows of one learner; no learner picked (null) keeps everything. */
+export function forLearner<T extends { learnerId?: number }>(rows: T[], learnerId: number | null): T[] {
+  return learnerId === null ? rows : rows.filter(row => row.learnerId === learnerId)
 }
 
 export function toISO(date: Date): string {

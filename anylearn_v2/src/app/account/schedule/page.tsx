@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { API_BASE } from '@/lib/apiBase'
 import {
-  eventsOnDate, mondayOfWeek, monthRange, normalizeActivity, normalizeEnrollment, toISO, weekRange,
+  eventsOnDate, forLearner, mondayOfWeek, monthRange, normalizeActivity, normalizeEnrollment, toISO, weekRange,
   type Activity, type Enrollment, type RawActivity, type RawEnrollment,
 } from '@/lib/schedule/calendar'
 import AccountCard from '@/components/account/AccountCard'
@@ -42,6 +42,8 @@ export default function SchedulePage() {
   const [viewMode, setViewMode] = useState<ViewMode>('calendar')
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selected, setSelected] = useState<Selected | null>(null)
+  const [learners, setLearners] = useState<{ id: number; name: string }[]>([])
+  const [learnerId, setLearnerId] = useState<number | null>(null)
 
   const authHeader = user ? { Authorization: `Bearer ${user.jwtToken}` } : undefined
 
@@ -53,6 +55,7 @@ export default function SchedulePage() {
         const data = json.data ?? {}
         setEnrollments(((data.enrollments ?? []) as RawEnrollment[]).map(normalizeEnrollment))
         setActivities(((data.activities ?? []) as RawActivity[]).map(normalizeActivity))
+        setLearners(data.learners ?? [])
       })
       .catch(() => {})
       .finally(() => setLoading(false))
@@ -93,8 +96,10 @@ export default function SchedulePage() {
   const today = toISO(now)
   const tomorrow = toISO(new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1))
   const { from, to } = period === 'week' ? weekRange(currentDate) : monthRange(currentDate)
-  const pending = enrollments.filter(e => e.status === 'pending')
-  const hasAnything = enrollments.some(e => e.status === 'active') || pending.length > 0 || activities.length > 0
+  const shownEnrollments = forLearner(enrollments, learnerId)
+  const shownActivities = forLearner(activities, learnerId)
+  const pending = shownEnrollments.filter(e => e.status === 'pending')
+  const hasAnything = shownEnrollments.some(e => e.status === 'active') || pending.length > 0 || shownActivities.length > 0
 
   return (
     <AccountCard title="Lịch học">
@@ -110,21 +115,32 @@ export default function SchedulePage() {
             onViewModeChange={setViewMode}
             onNavigate={navigate}
           />
+          {learners.length > 1 && (
+            <div className="flex flex-wrap gap-2" role="tablist" aria-label="Người học">
+              {[{ id: null, name: 'Tất cả' }, ...learners].map(learner => (
+                <button key={learner.id ?? 'all'} type="button" role="tab" aria-selected={learnerId === learner.id}
+                  onClick={() => setLearnerId(learner.id)}
+                  className={`min-h-11 cursor-pointer rounded-full border px-4 text-sm ${learnerId === learner.id ? 'border-green bg-green-soft font-extrabold text-green-dark' : 'border-line bg-white font-bold text-text'}`}>
+                  {learner.name}
+                </button>
+              ))}
+            </div>
+          )}
           <PendingStartDates enrollments={pending} onSetStartDate={handleSetStartDate} />
-          <UpcomingEvents today={eventsOnDate(enrollments, activities, today)} tomorrow={eventsOnDate(enrollments, activities, tomorrow)} onSelect={select} />
+          <UpcomingEvents today={eventsOnDate(shownEnrollments, shownActivities, today)} tomorrow={eventsOnDate(shownEnrollments, shownActivities, tomorrow)} onSelect={select} />
 
           {!hasAnything ? (
             <div className="py-10 text-center text-[13px] text-muted">Bạn chưa có lịch học nào.</div>
           ) : viewMode === 'list' ? (
-            <ListView enrollments={enrollments} activities={activities} from={from} to={to} onSelect={select} />
+            <ListView enrollments={shownEnrollments} activities={shownActivities} from={from} to={to} onSelect={select} />
           ) : period === 'month' ? (
             <MonthView
               key={`${currentDate.getFullYear()}-${currentDate.getMonth()}`}
-              enrollments={enrollments} activities={activities}
+              enrollments={shownEnrollments} activities={shownActivities}
               year={currentDate.getFullYear()} month={currentDate.getMonth()} today={today} onSelect={select}
             />
           ) : (
-            <WeekView enrollments={enrollments} activities={activities} weekStart={mondayOfWeek(currentDate)} today={today} onSelect={select} />
+            <WeekView enrollments={shownEnrollments} activities={shownActivities} weekStart={mondayOfWeek(currentDate)} today={today} onSelect={select} />
           )}
         </div>
       )}

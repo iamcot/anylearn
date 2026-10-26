@@ -80,7 +80,7 @@ export default function AnypointPage() {
                     <span className="text-sm font-bold text-ink">{reason.title}</span>
                     <Badge tone={status.tone}>{status.label}</Badge>
                   </div>
-                  {txn.content && <div className="truncate text-xs text-muted">{txn.content}</div>}
+                  {txn.content && <div className="text-xs text-muted">{txn.content}</div>}
                   {txn.orderId && (
                     <Link href={`/order/${txn.orderId}`} className="text-xs font-medium text-green-dark">Xem đơn #{txn.orderId}</Link>
                   )}

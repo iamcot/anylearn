@@ -311,6 +311,9 @@ public class ItemController {
             };
             String date = ia.getDate() != null ? " · " + ia.getDate() : "";
             final String content = buyerName + " đăng ký " + typeLabel + " · " + itemTitle + date;
+            notificationService.emailAdmins("Đăng ký hoạt động mới", "email-activity_registration",
+                    Map.of("studentName", buyerName, "studentPhone", String.valueOf(user.getPhone()), "activityType", typeLabel,
+                            "itemTitle", itemTitle, "date", ia.getDate() != null ? String.valueOf(ia.getDate()) : ""));
             userRepository.findAdminNotificationRecipients().forEach(admin -> {
                 try {
                     notificationService.createNotification(admin.getId(), "activity_registration",
@@ -340,6 +343,7 @@ public class ItemController {
             };
             String buyerName = user.getName() != null ? user.getName() : user.getPhone();
             final String content = buyerName + " hủy đăng ký " + typeLabel + " · " + itemTitle;
+            notificationService.emailAdmins("Hủy đăng ký hoạt động", content);
             userRepository.findAdminNotificationRecipients().forEach(admin -> {
                 try {
                     notificationService.createNotification(admin.getId(), "activity_registration",

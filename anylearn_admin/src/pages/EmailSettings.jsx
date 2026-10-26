@@ -1,38 +1,22 @@
-import { Button, Card, Space, Tag, Typography } from 'antd'
-import { CheckCircleOutlined, DeleteOutlined, MailOutlined, ReloadOutlined, SaveOutlined } from '@ant-design/icons'
+import { App, Button, Card, Space, Tag, Typography } from 'antd'
+import { CheckCircleOutlined, DeleteOutlined, MailOutlined, ReloadOutlined, SaveOutlined, SendOutlined } from '@ant-design/icons'
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import client from '../api/client'
 import RichEditor from '../components/RichEditor'
 
-// Default HTML templates (read from backend resource files via endpoint, or load lazily)
-const TEMPLATE_META = {
-  'email-order_success': {
-    displayName: 'Xác nhận đơn hàng',
-    vars: ['userName', 'orderId', 'items', 'amount'],
-    subject: 'Xác nhận đơn hàng thành công - anyLEARN',
-  },
-  'email-activity_registration': {
-    displayName: 'Đăng ký hoạt động (gửi admin)',
-    vars: ['studentName', 'studentPhone', 'activityType', 'itemTitle', 'date'],
-    subject: 'Đăng ký hoạt động mới - anyLEARN',
-  },
-  'email-schedule_reminder': {
-    displayName: 'Nhắc lịch học',
-    vars: ['userName', 'itemTitle', 'date', 'scheduleInfo'],
-    subject: 'Nhắc nhở lịch học - anyLEARN',
-  },
-  'email-user_register': {
-    displayName: 'Chào mừng đăng ký',
-    vars: ['userName', 'phone'],
-    subject: 'Chào mừng đến với anyLEARN',
-  },
-}
-
 export default function EmailSettings() {
   const [selectedKey, setSelectedKey] = useState(null)
   const [editorHtml, setEditorHtml] = useState('')
   const qc = useQueryClient()
+  const { message } = App.useApp()
+
+  // The list of templates (name and variables) comes from the backend, so a new template shows up without a front end change.
+  const { data: templateList = [] } = useQuery({
+    queryKey: ['admin-email-templates'],
+    queryFn: () => client.get('/admin/email-templates').then(r => r.data?.data ?? []),
+  })
+  const TEMPLATE_META = Object.fromEntries(templateList.map(t => [t.key, t]))
 
   // Load all config to know which keys are customized
   const { data: configs = [] } = useQuery({
@@ -40,7 +24,7 @@ export default function EmailSettings() {
     queryFn: () => client.get('/admin/config').then(r => r.data?.data ?? []),
   })
   const customizedKeys = new Set(
-    configs.filter(c => c.key?.startsWith('email/')).map(c => c.key)
+    configs.filter(c => c.key?.startsWith('email-')).map(c => c.key)
   )
 
   // Load default template HTML from backend resource
@@ -75,6 +59,12 @@ export default function EmailSettings() {
       const def = await loadDefault(key)
       setEditorHtml(def)
     },
+  })
+
+  const testMutation = useMutation({
+    mutationFn: (key) => client.post(`/admin/email-templates/${encodeURIComponent(key)}/test`, {}),
+    onSuccess: (res) => message.success(res.data?.data ?? 'Đã gửi thử'),
+    onError: (error) => message.error(error.response?.data?.message ?? 'Chưa gửi được'),
   })
 
   const handleResetToDefault = async () => {
@@ -170,6 +160,14 @@ export default function EmailSettings() {
                     onClick={() => saveMutation.mutate(selectedKey)}
                   >
                     Lưu template
+                  </Button>
+                  <Button
+                    icon={<SendOutlined />}
+                    loading={testMutation.isPending}
+                    onClick={() => testMutation.mutate(selectedKey)}
+                    title="Gửi bản đã lưu, với dữ liệu mẫu, tới email của tài khoản admin đang đăng nhập"
+                  >
+                    Gửi thử cho tôi
                   </Button>
                   <Button
                     icon={<ReloadOutlined />}

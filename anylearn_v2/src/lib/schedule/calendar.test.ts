@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
-  activitiesOnDate, computeEffectiveEnd, enrollmentsOnDate, eventsOnDate, monthRange, mondayOfWeek,
+  activitiesOnDate, computeEffectiveEnd, enrollmentsOnDate, eventsOnDate, forLearner, monthRange, mondayOfWeek,
   normalizeEnrollment, toISO, weekRange, type Activity, type Enrollment,
 } from './calendar'
 
@@ -94,5 +94,15 @@ describe('normalizeEnrollment', () => {
   it('maps snake_case fields and converts the cycle amount to a number', () => {
     const e = normalizeEnrollment({ id: 1, item_id: 2, schedule_type: 'recurring', status: 'active', cycle_amount: '3', time_start: '18:00' })
     expect(e).toMatchObject({ itemId: 2, scheduleType: 'recurring', cycleAmount: 3, timeStart: '18:00', itemTitle: '' })
+  })
+})
+
+describe('forLearner', () => {
+  const rows = [{ learnerId: 1 }, { learnerId: 2 }, {}]
+  it('keeps everything when no learner is picked', () => {
+    expect(forLearner(rows, null)).toHaveLength(3)
+  })
+  it('keeps only the rows of the picked learner', () => {
+    expect(forLearner(rows, 2)).toEqual([{ learnerId: 2 }])
   })
 })

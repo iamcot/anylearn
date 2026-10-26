@@ -37,7 +37,7 @@ export interface UserOrder {
   status: string
   payment: string
   createdAt: string
-  items: { itemId: number; title: string; image?: string; paidPrice: number; studentName?: string }[]
+  items: { itemId: number; title: string; image?: string; paidPrice: number; studentName?: string; learnerId?: number }[]
 }
 
 export interface ItemCode {

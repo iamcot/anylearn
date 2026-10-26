@@ -475,6 +475,7 @@ public class CartService {
                 .orElse("") + (orderedItems.size() > 2 ? " +" + (orderedItems.size() - 2) + " khác" : "");
         String content = "Đơn #" + order.getId() + " · " + (buyer.getName() != null ? buyer.getName() : buyer.getPhone())
                 + " · " + itemNames;
+        notificationService.emailAdmins("Đơn hàng mới cần duyệt", content);
         userRepository.findAdminNotificationRecipients().forEach(admin -> {
             try {
                 notificationService.createNotification(admin.getId(), "system_notif",

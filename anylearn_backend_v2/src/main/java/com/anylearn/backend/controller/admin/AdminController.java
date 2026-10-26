@@ -39,6 +39,7 @@ public class AdminController {
     private final EntityManager em;
     private final S3Service s3Service;
     private final BankAccountService bankAccountService;
+    private final com.anylearn.backend.service.EmailTemplateService emailTemplateService;
     private final com.anylearn.backend.service.settings.OperationSettingsService operationSettingsService;
 
     /** All categories regardless of status — for admin item editing */
@@ -138,6 +139,7 @@ public class AdminController {
         }
 
         var notif = notificationService.createNotification(targetUser.getId(), type, title, content, route, extraContent);
+        if (notif == null) return ApiResponse.fail("Người dùng đã tắt loại thông báo này.");
         return ApiResponse.ok(Map.of("notificationId", notif.getId(), "userId", targetUser.getId()));
     }
 
@@ -224,6 +226,16 @@ public class AdminController {
         String html = EmailTemplates.loadDefault(key);
         if (html == null) return ApiResponse.fail("Template not found: " + key);
         return ApiResponse.ok(html);
+    }
+
+    /** Sends the template (saved version if the team edited it) with sample values to the signed in admin's email, or to `to`. */
+    @PostMapping("/email-templates/{key}/test")
+    public ApiResponse<?> testEmailTemplate(@AuthenticationPrincipal User user, @PathVariable String key,
+                                            @RequestBody(required = false) Map<String, String> body) {
+        if (user == null || !"admin".equals(user.getRole())) return ApiResponse.fail("Forbidden");
+        String to = body != null && body.get("to") != null && !body.get("to").isBlank() ? body.get("to") : user.getEmail();
+        String problem = emailTemplateService.sendTest(key, to);
+        return problem == null ? ApiResponse.ok("Đã gửi thử tới " + to) : ApiResponse.fail(problem);
     }
 
     /** Run wallet_c reconciliation audit. Returns list of discrepancies and persists a log entry. */
