@@ -125,7 +125,17 @@ Vào **Settings → Secrets and variables → Actions → New repository secret*
 | Secret | |
 |--------|--|
 | `BANK_NAME`, `BANK_ACCOUNT_NUMBER`, `BANK_ACCOUNT_NAME` | |
+| `BANK_BIN` | `970422` (MB Bank; 6-digit Napas code, needed for the VietQR) |
 | `BANK_TRANSFER_CONTENT`, `BANK_ZALO_PHONE` | |
+| `SEPAY_API_KEY` | API key of the SePay webhook (`Authorization: Apikey ...`) |
+
+**Web Push, maps, admin email:**
+| Secret | |
+|--------|--|
+| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` | `npx web-push generate-vapid-keys`, generate once and never rotate |
+| `VAPID_SUBJECT` | `mailto:info@anylearn.vn` (must not be empty) |
+| `GOOGLE_MAPS_API_KEY` | Places API (New) key, restricted to the server IP |
+| `ADMIN_EMAIL_RECIPIENTS` | comma separated, may be empty |
 
 **AWS S3:**
 | Secret | |

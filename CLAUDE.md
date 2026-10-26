@@ -92,6 +92,12 @@ SEPAY_API_KEY       # key of the SePay webhook, see "Bank transfer by QR"
 VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY / VAPID_SUBJECT   # Web Push keys (npx web-push generate-vapid-keys); empty = push off, see "PWA and push"
 ```
 
+## Production env checklist
+
+- **Whenever `application.yml` gets a new `${ENV_VAR:...}`, add it in the same change to all three places**: the `Create backend .env` step of `.github/workflows/deploy-production.yml` (as `${{ secrets.NAME }}`), `deployment/env/backend.env.example`, and the secrets tables in `deployment/README.md`. Then tell the owner which GitHub secrets to create. Without this the server silently runs on the yml default.
+- An env var that is written but empty overrides the yml default with an empty string (`BANK_BIN=` is not `970422`). So give a secret a value, or leave the line out; this matters for `VAPID_SUBJECT`, `BANK_BIN`, `MAIL_*`, `ZALO_*`.
+- Variables needed in production beyond the basic ones: `SEPAY_API_KEY`, `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` / `VAPID_SUBJECT`, `GOOGLE_MAPS_API_KEY`, `BANK_BIN`, `ADMIN_EMAIL_RECIPIENTS`. Optional with a safe default: `JWT_EXPIRATION_MS`, `MAIL_LOG_ONLY`.
+
 ## CI (GitHub Actions, self-hosted runner)
 
 - The runner is the production box: 2 cores, 4 GB RAM shared with Java, MySQL, MeiliSearch, Next.js and nginx. Measured peaks on 2 cores: `npm ci` about 0.9 GB, `next build` about 1 GB, `mvn package` about 0.5 GB. The three build jobs therefore run one after another (`build-backend` → `build-frontend` → `build-admin`); do not make them parallel again. If builds still get killed, add 2 GB of swap on the server.

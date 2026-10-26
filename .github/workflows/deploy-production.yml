@@ -231,6 +231,7 @@ jobs:
           MOMO_ACCESS_KEY=${{ secrets.MOMO_ACCESS_KEY }}
           MOMO_SECRET_KEY=${{ secrets.MOMO_SECRET_KEY }}
           BANK_NAME=${{ secrets.BANK_NAME }}
+          BANK_BIN=${{ secrets.BANK_BIN }}
           BANK_ACCOUNT_NUMBER=${{ secrets.BANK_ACCOUNT_NUMBER }}
           BANK_ACCOUNT_NAME=${{ secrets.BANK_ACCOUNT_NAME }}
           BANK_TRANSFER_CONTENT=${{ secrets.BANK_TRANSFER_CONTENT }}
@@ -253,6 +254,12 @@ jobs:
           MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
           MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
           MAIL_FROM=${{ secrets.MAIL_FROM }}
+          ADMIN_EMAIL_RECIPIENTS=${{ secrets.ADMIN_EMAIL_RECIPIENTS }}
+          SEPAY_API_KEY=${{ secrets.SEPAY_API_KEY }}
+          VAPID_PUBLIC_KEY=${{ secrets.VAPID_PUBLIC_KEY }}
+          VAPID_PRIVATE_KEY=${{ secrets.VAPID_PRIVATE_KEY }}
+          VAPID_SUBJECT=${{ secrets.VAPID_SUBJECT }}
+          GOOGLE_MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY }}
           SPRING_PROFILES_ACTIVE=prod
           EOF
           sudo chown anylearn-app:anylearn-deploy ${{ env.DEPLOY_PATH }}/backend/.env
