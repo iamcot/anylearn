@@ -90,10 +90,10 @@ public class ReviewService {
         return s3Service.isOwnUrl(url);
     }
 
-    /** The newest delivered order of this person for the course, or null when they never studied it. */
+    /** The newest delivered order of this person for the course (they paid for it or are its learner), or null. */
     public Long deliveredOrderId(Long userId, Long itemId) {
         List<Long> ids = jdbc.queryForList("SELECT MAX(od.order_id) FROM order_details od JOIN orders o ON o.id = od.order_id "
-                + "WHERE od.user_id = ? AND od.item_id = ? AND o.status = 'delivered'", Long.class, userId, itemId);
+                + "WHERE (o.user_id = ? OR od.user_id = ?) AND od.item_id = ? AND o.status = 'delivered'", Long.class, userId, userId, itemId);
         return ids.isEmpty() ? null : ids.get(0);
     }
 

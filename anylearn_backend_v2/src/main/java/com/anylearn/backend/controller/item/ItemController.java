@@ -112,7 +112,7 @@ public class ItemController {
             return ApiResponse.ok(res);
         }
         boolean faved = itemUserActionRepository.findFavByItemAndUser(itemId, currentUser.getId()).isPresent();
-        boolean purchased = orderDetailRepository.existsDeliveredByUserIdAndItemId(currentUser.getId(), itemId) > 0;
+        boolean purchased = orderDetailRepository.existsDeliveredForBuyerOrLearner(currentUser.getId(), itemId) > 0;
         var existingRating = itemUserActionRepository.findRatingByItemAndUser(itemId, currentUser.getId());
 
         var res = new java.util.LinkedHashMap<String, Object>();

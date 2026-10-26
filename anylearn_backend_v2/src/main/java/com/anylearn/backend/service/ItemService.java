@@ -82,7 +82,7 @@ public class ItemService {
         boolean isFav = currentUser != null &&
                 itemUserActionRepository.findFavByItemAndUser(itemId, currentUser.getId()).isPresent();
         boolean hasPurchased = currentUser != null &&
-                orderDetailRepository.existsDeliveredByUserIdAndItemId(currentUser.getId(), itemId) > 0;
+                orderDetailRepository.existsDeliveredForBuyerOrLearner(currentUser.getId(), itemId) > 0;
 
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("item", item);
