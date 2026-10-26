@@ -13,6 +13,15 @@ export default function ItemGaps() {
   const columns = [
     { title: 'Khóa học', key: 'title', render: (_, r) => <Link to={`/items/${r.id}`}>{r.title}</Link> },
     {
+      title: 'Đối tác', key: 'owner', width: 240,
+      render: (_, r) => (
+        <div>
+          <div>{r.ownerName || `#${r.userId}`} {r.ownerRole && <Tag>{r.ownerRole}</Tag>}</div>
+          {r.ownerPhone && <a href={`tel:${r.ownerPhone}`} style={{ fontSize: 12 }}>{r.ownerPhone}</a>}
+        </div>
+      ),
+    },
+    {
       title: 'Còn thiếu', key: 'gaps',
       render: (_, r) => <Space size={[4, 4]} wrap>{r.gaps.map(key => <Tag key={key} color="orange">{labels[key] ?? key}</Tag>)}</Space>,
     },

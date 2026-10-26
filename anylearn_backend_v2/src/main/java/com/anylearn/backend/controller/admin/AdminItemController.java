@@ -212,6 +212,7 @@ public class AdminItemController {
         ItemAttributeGaps.LABELS.keySet().forEach(key -> summary.put(key, 0));
         List<Map<String, Object>> rows = new java.util.ArrayList<>();
         int checked = 0;
+        Map<Long, User> owners = new java.util.HashMap<>();
         for (Item item : itemRepository.findAll()) {
             if (item.getStatus() == null || item.getStatus() != 1 || item.getUserStatus() == null || item.getUserStatus() != 1) continue;
             checked++;
@@ -222,6 +223,10 @@ public class AdminItemController {
                 row.put("id", item.getId());
                 row.put("title", item.getTitle());
                 row.put("userId", item.getUserId());
+                var owner = owners.computeIfAbsent(item.getUserId(), id -> userRepository.findById(id).orElse(null));
+                row.put("ownerName", owner != null ? owner.getName() : null);
+                row.put("ownerPhone", owner != null ? owner.getPhone() : null);
+                row.put("ownerRole", owner != null ? owner.getRole() : null);
                 row.put("gaps", gaps);
                 rows.add(row);
             }
