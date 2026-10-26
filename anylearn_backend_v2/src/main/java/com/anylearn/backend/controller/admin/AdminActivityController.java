@@ -86,7 +86,14 @@ public class AdminActivityController {
             return m;
         }).toList();
 
-        return ApiResponse.ok(Map.of("content", data, "page", page, "size", size));
+        Number total = (Number) em.createNativeQuery("""
+                SELECT COUNT(*) FROM item_activities ia
+                JOIN items i ON i.id = ia.item_id
+                JOIN users u ON u.id = ia.user_id
+                JOIN users pu ON pu.id = i.user_id
+                """ + where).getSingleResult();
+
+        return ApiResponse.ok(Map.of("content", data, "page", page, "size", size, "total", total.longValue()));
     }
 
     /** Approves or declines a registration and tells the family. Declining needs a reason; approving may carry details (time, place, what to bring). */

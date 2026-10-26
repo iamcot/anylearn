@@ -140,7 +140,7 @@ export default function Activities() {
           size="small"
           scroll={{ x: 'max-content' }}
           pagination={{
-            current: page, pageSize: 30, showSizeChanger: false,
+            current: page, pageSize: 30, total: data?.total ?? 0, showSizeChanger: false,
             onChange: p => setPage(p),
           }}
         />
