@@ -696,7 +696,7 @@ export default function ItemDetail() {
 
     <UserLocationsModal open={partnerLocationsOpen} user={{ id: item?.userId, name: item?.ownerName, role: 'school' }}
       onClose={() => { setPartnerLocationsOpen(false); refetchLocations(); qc.invalidateQueries(['admin-item-detail', id]) }} />
-    <LocationFormModal open={!!locationModal} userId={item?.userId} onClose={() => setLocationModal(null)}
+    <LocationFormModal open={!!locationModal} userId={item?.userId} userName={item?.ownerName} onClose={() => setLocationModal(null)}
       onSaved={async (savedList) => {
         const saved = savedList.find(l => l.head) ?? savedList[0]
         await refetchLocations()

@@ -55,7 +55,7 @@ export default function UserLocationsModal({ open, user, onClose }) {
               description={<>{l.address}<br /><span style={{ fontSize: 12 }}>{[l.wardName, l.districtName, l.provinceName].filter(Boolean).join(', ') || 'Chưa có khu vực'}</span></>} />
           </List.Item>
         )} />
-      <LocationFormModal open={!!editing} userId={user?.id} location={editing === 'new' ? null : editing} headLabel={headLabel}
+      <LocationFormModal open={!!editing} userId={user?.id} userName={user?.name} location={editing === 'new' ? null : editing} headLabel={headLabel}
         onClose={() => setEditing(null)} onSaved={() => { setEditing(null); refresh() }} />
     </Modal>
   )

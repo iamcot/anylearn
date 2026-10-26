@@ -9,7 +9,7 @@ function newSessionToken() {
 
 // Add or edit an address of a user: a member's home, or a branch of a partner.
 // "Tìm tự động": one result fills the form; several results are listed to pick from.
-export default function LocationFormModal({ open, userId, location, headLabel = 'Hội sở / địa chỉ mặc định', onClose, onSaved }) {
+export default function LocationFormModal({ open, userId, userName, location, headLabel = 'Hội sở / địa chỉ mặc định', onClose, onSaved }) {
   const [form] = Form.useForm()
   const [candidates, setCandidates] = useState([])
   const [checked, setChecked] = useState([])
@@ -47,7 +47,8 @@ export default function LocationFormModal({ open, userId, location, headLabel = 
   }
 
   const autoSearch = async () => {
-    const text = (form.getFieldValue('address') ?? '').trim()
+    // Nothing typed: look the person or school up by name, so a known school needs no typing at all.
+    const text = (form.getFieldValue('address') ?? '').trim() || (userName ?? '').trim()
     if (text.length < 3) return message.warning('Nhập địa chỉ (ít nhất 3 ký tự) rồi bấm Tìm tự động')
     setSearching(true)
     try {
@@ -104,10 +105,10 @@ export default function LocationFormModal({ open, userId, location, headLabel = 
       <Form form={form} layout="vertical" onFinish={submit}>
         {!googleOn && <Alert type="info" showIcon style={{ marginBottom: 12 }}
           message="Chưa bật tìm địa chỉ tự động (thiếu GOOGLE_MAPS_API_KEY). Nhập địa chỉ và toạ độ bằng tay." />}
-        <Form.Item label="Địa chỉ" required extra="Nhập số nhà, đường, quận rồi bấm Tìm tự động để lấy toạ độ và khu vực.">
+        <Form.Item label="Địa chỉ" required extra={userName ? `Nhập số nhà, đường, quận rồi bấm Tìm tự động. Để trống thì tìm theo tên "${userName}".` : 'Nhập số nhà, đường, quận rồi bấm Tìm tự động để lấy toạ độ và khu vực.'}>
           <Space.Compact style={{ width: '100%' }}>
-            <Form.Item name="address" noStyle rules={[{ required: true, message: 'Nhập địa chỉ' }]}>
-              <Input placeholder="VD: 12 Nguyễn Huệ, Quận 1" onPressEnter={e => { e.preventDefault(); autoSearch() }} />
+            <Form.Item name="address" noStyle rules={[{ required: true, message: 'Nhập địa chỉ hoặc bấm Tìm tự động' }]}>
+              <Input placeholder={userName ? `VD: 12 Nguyễn Huệ, Quận 1 (hoặc để trống)` : 'VD: 12 Nguyễn Huệ, Quận 1'} onPressEnter={e => { e.preventDefault(); autoSearch() }} />
             </Form.Item>
             <Button type="primary" loading={searching} onClick={autoSearch}>Tìm tự động</Button>
           </Space.Compact>
