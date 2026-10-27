@@ -52,10 +52,10 @@ export default function PathwayBlock({ itemId }: { itemId: number }) {
                 <ol className="m-0 flex list-none flex-col p-0 md:flex-row">
                   {pathway.steps.map((step, index) => {
                     const current = index === currentIndex
+                    const course = step.items.find(item => item.itemId === itemId) ?? step.items[0]
                     const bought = step.items.find(item => item.owned)
                     // Ticked: a step before this course, or one with a bought course. The step being viewed keeps its number unless this very course is bought.
                     const passed = current ? !!course?.owned : index < currentIndex || !!bought
-                    const course = step.items.find(item => item.itemId === itemId) ?? step.items[0]
                     return (
                       <li key={step.stepNo} aria-current={current ? 'step' : undefined}
                         className="relative flex min-w-0 gap-3 pb-5 last:pb-0 md:flex-1 md:flex-col md:items-center md:gap-2 md:pb-0 md:text-center">
