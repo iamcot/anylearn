@@ -42,6 +42,7 @@ CREATE TABLE IF NOT EXISTS item_autofill_log (
 -- ---------------------------------------------------------------
 -- Chữ (literal) và kết quả hàm trong bảng tạm lấy collation của kết nối; ép về collation của bảng items để khỏi lỗi 1267 (utf8mb4_unicode_ci vs utf8mb4_0900_ai_ci).
 SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci;
+SET SESSION default_collation_for_utf8mb4 = 'utf8mb4_unicode_ci';
 SET @batch = 'n1';
 START TRANSACTION;
 
