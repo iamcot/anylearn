@@ -1,6 +1,6 @@
 import { Avatar, Badge, Dropdown, Flex, Layout, List, Menu, Popover, Spin, Typography } from 'antd'
 import {
-  AppstoreOutlined, AuditOutlined, BankOutlined, BellOutlined, BookOutlined, CalendarOutlined, DashboardOutlined, DollarOutlined, FileTextOutlined,
+  AppstoreOutlined, BranchesOutlined, AuditOutlined, BankOutlined, BellOutlined, BookOutlined, CalendarOutlined, DashboardOutlined, DollarOutlined, FileTextOutlined,
   CustomerServiceOutlined, FundOutlined, LineChartOutlined, SearchOutlined, LogoutOutlined, MailOutlined, ApiOutlined, OrderedListOutlined, SettingOutlined, SolutionOutlined, SwapOutlined,
   TeamOutlined, UserOutlined,
 } from '@ant-design/icons'
@@ -33,6 +33,7 @@ const NAV_GROUPS = [
     { key: '/items',            icon: <BookOutlined />,        label: 'Khóa học'   },
     { key: '/schedule-monitor', icon: <CalendarOutlined />,    label: 'Lịch học'   },
     { key: '/collections',      icon: <AppstoreOutlined />,    label: 'Bộ sưu tập' },
+    { key: '/pathways',         icon: <BranchesOutlined />,    label: 'Lộ trình & gợi ý' },
   ] },
   { key: 'g-content', type: 'group', label: 'Nội dung & phân tích', children: [
     { key: '/articles',         icon: <FileTextOutlined />,    label: 'Bài viết'   },

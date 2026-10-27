@@ -97,10 +97,10 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 07.4 | Khảo sát giữa khóa | done | Bảng `enrollment_feedback` (V37), `GET /api/lifecycle/surveys`, `POST /api/lifecycle/feedback`; thẻ `SurveyCard` ở `/today`; điểm thấp (≤ 2) báo admin |
 | 07.5 | Gia hạn 1 chạm | done | `POST /api/lifecycle/renew` đưa đúng khóa/bé/lớp vào giỏ rồi sang `/checkout`; tặng anyPoint (giao dịch `renew_bonus`, mặc định 0, chủ sản phẩm chọn anyPoint thay voucher) khi đơn gia hạn sớm được thanh toán, mỗi lần gia hạn một lần. Ngưỡng buổi / số ngày sửa được trong admin |
 | 07.6 | Nhắc học phí theo kỳ | done | Nhiều mốc trước hạn (mặc định 7 và 1 ngày), quá hạn một nhắc riêng; email cho mọi thông báo `schedule_renewal` (mẫu "Gia hạn khóa học / nhắc học phí") |
-| 08.1 | Lộ trình khóa học | todo | |
-| 08.2 | Engine gợi ý theo luật | todo | |
-| 08.3 | Hiển thị gợi ý | todo | |
-| 08.4 | Đo gợi ý | todo | |
+| 08.1 | Lộ trình khóa học | done | V38 `pathways` + `pathway_steps`; trang admin "Lộ trình & gợi ý" (khung tìm khóa + mũi tên + ghi chú từng bước); `GET /api/pathways/{slug}`, `GET /api/items/{id}/pathway` có tiến độ theo bé suy từ đơn và lớp. Chưa có khối lộ trình trên trang khóa (chỉ API) |
+| 08.2 | Engine gợi ý theo luật | done | `RecommendationService`: 5 nguồn (lộ trình, anh chị em, khung giờ trống, theo mùa, sở thích), lọc thuần có test (tuổi, đã mua, đã ẩn, trùng giờ). Bỏ "Đi kèm" và "Người khác cũng mua" (chưa đủ dữ liệu) |
+| 08.3 | Hiển thị gợi ý | done | Thẻ gợi ý trên `/today` (tối đa 1 thẻ), gợi ý cho anh chị em ở trang đơn thành công, câu "bước tiếp theo" trong tin nhắc hết buổi; nút "Không quan tâm" ẩn khóa đó 30 ngày (sửa được). Không push |
+| 08.4 | Đo gợi ý | done | Bảng `recommendation_events` (view/click, theo loại gợi ý), báo cáo lượt xem, bấm, đơn trong 30 ngày ở trang Lộ trình & gợi ý; bật/tắt từng loại ở Cài đặt > Vận hành |
 | 06.1 | `/account` dạng menu + "Cần làm ngay" | done | `GET /me/summary`; điện thoại: trang menu + thanh "‹ Tài khoản" thay cho chip cuộn ngang; thẻ "Cần làm ngay": đơn chờ, bé thiếu ngày sinh, khóa chờ đánh giá, thông báo chưa đọc (thẻ cũng gồm nhắc review của 09.5) |
 | 06.2 | Trang từng con | done | `/account/children/[id]` (`GET /me/children/{id}`): khóa học, đơn, sửa, sở thích. Chưa có tiến độ/nhật ký (chưa có dữ liệu) |
 | 06.3 | Đơn hàng chia tab | done | Tab đã có từ 05; thêm lọc theo người học (`?child=ID` + ô chọn); đếm ngược 05.4 chưa làm |
@@ -485,3 +485,9 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 - Email mới: `email-lifecycle_start`, `_absent`, `_survey`, `_renew`; `email-order_success` thêm `classInfo`, `todayUrl`. Thông báo hẹn giờ `schedule_renewal` giờ cũng gửi email.
 - Chủ sản phẩm chốt: gửi cả email ngoài ZNS; ưu đãi gia hạn sớm là anyPoint; mọi thông số sửa trong admin. Danh sách đầy đủ mẫu ZNS cần đăng ký: `docs/zns-templates.md`.
 - Chưa làm: gửi ZNS thật (chờ mã mẫu được duyệt); nút gia hạn 1 chạm cho học phí theo kỳ (vẫn đi qua trang add2cart); chưa thử với MySQL thật (đã chạy test thuần, tsc, vitest, build admin).
+
+### 27/10/2026 – plan 08 gợi ý khóa tiếp theo
+- Chủ sản phẩm chốt: bỏ "Đi kèm" / "Người khác cũng mua" đợt này, không push gợi ý, "Không quan tâm" = không nhắc lại 30 ngày (sửa được), dùng sở thích đã khảo sát làm nguồn dự phòng, lộ trình do admin nhập.
+- Backend: V38, `service/recommend/*` (`RecommendationRules` thuần + 11 test, `RecommendationService`, `PathwayService`, `RecommendationSettings`), `RecommendationController`, `AdminPathwayController`. FE: `components/recommendations/*`; admin: trang `Pathways`, mục "Gợi ý khóa học" trong cài đặt vận hành.
+- Seed demo thêm lộ trình Tiếng Anh, ngày sinh cho Bin và Su, một đơn đã thanh toán của Bin để xem gợi ý cho Su; request mẫu trong `http/today.http` và `http/admin.http`.
+- Chưa làm: 08.5 (chờ plan 10), khối lộ trình trên trang khóa học, thông báo gợi ý theo mùa. Chưa thử với MySQL thật (test thuần, tsc, vitest, build admin xanh); câu SQL của engine và báo cáo cần chạy thử với DB thật.

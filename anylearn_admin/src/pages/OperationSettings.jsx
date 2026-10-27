@@ -1,4 +1,4 @@
-import { Alert, App as AntApp, Button, Card, Form, Input, InputNumber, Popconfirm, Space, Switch, Typography } from 'antd'
+import { Alert, App as AntApp, Button, Card, Checkbox, Form, Input, InputNumber, Popconfirm, Space, Switch, Typography } from 'antd'
 import { ReloadOutlined, SaveOutlined } from '@ant-design/icons'
 import { useEffect } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -126,6 +126,23 @@ export default function OperationSettings() {
           <Form.Item name="earlyRenewBonusPoints" label="Tặng anyPoint khi gia hạn sớm" rules={[{ required: true, message: 'Nhập số anyPoint' }]}
             extra="Tặng khi phụ huynh gia hạn lúc gói / kỳ học phí cũ còn hiệu lực, sau khi đơn được thanh toán. Mỗi lần gia hạn tặng một lần. Nhập 0 để tắt.">
             <InputNumber min={0} max={100000} precision={0} addonAfter="anyPoint" style={{ width: 200 }} />
+          </Form.Item>
+        </Card>
+
+        <Card title="Gợi ý khóa học" style={{ marginBottom: 16 }}>
+          <Form.Item name="recommendSources" label="Loại gợi ý đang bật"
+            extra="Xem hiệu quả từng loại ở trang Lộ trình &amp; gợi ý. Bỏ chọn một loại để ngừng gợi ý theo loại đó.">
+            <Checkbox.Group options={[
+              { value: 'pathway', label: 'Lộ trình (khóa tiếp theo)' },
+              { value: 'sibling', label: 'Anh chị em (cùng đối tác)' },
+              { value: 'free_slot', label: 'Khung giờ trống' },
+              { value: 'season', label: 'Theo mùa (bộ sưu tập)' },
+              { value: 'interest', label: 'Sở thích của bé' },
+            ]} />
+          </Form.Item>
+          <Form.Item name="recommendDismissDays" label={'Không nhắc lại sau khi bấm "Không quan tâm" (ngày)'} rules={[{ required: true, message: 'Nhập số ngày' }]}
+            extra="Gợi ý đó sẽ không hiện lại cho bé này trong số ngày này. Từ 1 đến 365.">
+            <InputNumber min={1} max={365} precision={0} addonAfter="ngày" style={{ width: 160 }} />
           </Form.Item>
         </Card>
 

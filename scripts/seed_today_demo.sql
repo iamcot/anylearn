@@ -7,6 +7,10 @@ SET @wd0 = LOWER(LEFT(DAYNAME(@today), 3));
 SET @wd1 = LOWER(LEFT(DAYNAME(@today + INTERVAL 1 DAY), 3));
 SET @wd3 = LOWER(LEFT(DAYNAME(@today + INTERVAL 3 DAY), 3));
 
+DELETE FROM recommendation_events WHERE learner_id IN (SELECT id FROM users WHERE phone LIKE '0999000%');
+DELETE FROM recommendation_dismissals WHERE learner_id IN (SELECT id FROM users WHERE phone LIKE '0999000%');
+DELETE FROM pathway_steps WHERE pathway_id IN (SELECT id FROM pathways WHERE slug LIKE 'demo-%');
+DELETE FROM pathways WHERE slug LIKE 'demo-%';
 DELETE FROM lifecycle_messages WHERE learner_id IN (SELECT id FROM users WHERE phone LIKE '0999000%');
 DELETE FROM enrollment_feedback WHERE learner_id IN (SELECT id FROM users WHERE phone LIKE '0999000%');
 DELETE FROM notifications WHERE user_id IN (SELECT id FROM users WHERE phone LIKE '0999000%');
@@ -163,3 +167,25 @@ INSERT INTO configurations (`key`, `value`, `type`, created_at, updated_at) VALU
 
 -- To receive the emails, put your address on the parent (the demo accounts have none):
 --   UPDATE users SET email = 'you@example.com' WHERE api_token = 'demo_parent_token';
+
+-- ── Plan 08 (suggestions) ───────────────────────────────────────────────────
+-- Birth dates make age filters and "Su 7 tuổi" texts work.
+UPDATE users SET dob = @today - INTERVAL 9 YEAR, dob_year_only = 0 WHERE id = @bin;
+UPDATE users SET dob = @today - INTERVAL 7 YEAR, dob_year_only = 0 WHERE id = @su;
+
+-- Pathway "Tiếng Anh": step 1 is Bin's running class, step 2 is new. Expect on /today (Bin): "Bin đang học Tiếng Anh giao tiếp 2, bước tiếp theo ... là Tiếng Anh giao tiếp 3".
+INSERT INTO items (title, type, subtype, user_id, status, user_status, is_test, price, date_start, cycle_type, cycle_amount, user_location_id, ages_min, ages_max)
+VALUES ('[DEMO] Tiếng Anh giao tiếp 3', 'class', 'offline', @lan, 1, 1, 1, 3900000, @today + INTERVAL 20 DAY, 'session', 12, @place, 6, 12);
+SET @eng3 = LAST_INSERT_ID();
+INSERT INTO item_schedules (item_id, title, schedule_type, weekdays, date_start, time_start, time_end, location_note, user_location_id)
+VALUES (@eng3, 'Lớp tối', 'recurring', @wd1, @today + INTERVAL 20 DAY, '18:00', '19:30', 'Phòng 204', @place);
+INSERT INTO pathways (slug, title, subtitle, is_active) VALUES ('demo-tieng-anh', '[DEMO] Tiếng Anh giao tiếp', 'Từ giao tiếp 2 đến giao tiếp 3', 1);
+SET @pathway = LAST_INSERT_ID();
+INSERT INTO pathway_steps (pathway_id, item_id, step_no, note) VALUES (@pathway, @eng, 1, NULL), (@pathway, @eng3, 2, 'Dành cho bé đã xong giao tiếp 2');
+
+-- A paid order of Bin's guitar class: open /order/<id>?status=success as the parent and Su gets suggestions from Thầy Minh (Bin's partner).
+INSERT INTO orders (user_id, amount, quantity, status, payment) VALUES (@parent, 1800000, 1, 'delivered', 'bank_transfer');
+SET @order2 = LAST_INSERT_ID();
+INSERT INTO order_details (order_id, user_id, item_id, unit_price, paid_price, quanity, status)
+VALUES (@order2, @bin, @guitar, 1800000, 1800000, 1, 'delivered');
+SELECT CONCAT('Demo paid order for the sibling suggestions: /order/', @order2, '?status=success') AS hint;

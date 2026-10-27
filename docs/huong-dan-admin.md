@@ -16,6 +16,7 @@ Cập nhật lần cuối: 26/10/2026.
 7. [Bộ sưu tập](#7-bộ-sưu-tập)
 7b. [Trang đối tác, theo dõi, thử điều mới](#7b-trang-đối-tác-theo-dõi-và-thử-điều-mới-cho-con)
 7c. [Đánh giá của phụ huynh](#7c-đánh-giá-của-phụ-huynh)
+7d. [Lộ trình và gợi ý khóa học](#7d-lộ-trình-và-gợi-ý-khóa-học)
 8. [Cấu hình vận hành](#8-cấu-hình-vận-hành)
 9. [Nhu cầu của khách: nhờ tìm khóa, báo giá rẻ hơn, xu hướng tìm kiếm](#9-nhu-cầu-của-khách)
 10. [Thông báo cho team và thanh toán](#10-thông-báo-và-thanh-toán)
@@ -253,6 +254,30 @@ Trang khóa học hiện: điểm trung bình, số đánh giá, tỉ lệ từn
 
 ---
 
+## 7d. Lộ trình và gợi ý khóa học
+
+Phụ huynh thấy tối đa **một thẻ gợi ý mỗi ngày** ở trang Hôm nay của từng bé, và gợi ý cho các bé còn lại ở trang đơn hàng thành công. Mọi gợi ý đều có **lý do** hiển thị ("Bin đang học Tiếng Anh 2, bước tiếp theo của lộ trình Tiếng Anh là Tiếng Anh 3") và nút **Không quan tâm** (ẩn khóa đó cho bé trong số ngày đặt ở mục 8, mặc định 30). Không gợi ý khóa bé đã mua, khóa không hợp tuổi, khóa trùng giờ với lịch đang học.
+
+**Lộ trình** (menu Khóa học > **Lộ trình & gợi ý**): admin tạo chuỗi khóa có thứ tự, ví dụ "Bóng đá U13 → U15 → U17". Tên, mô tả, ảnh, rồi tìm khóa và thêm bằng khung "tìm khóa + tick" như Bộ sưu tập, sắp xếp bằng mũi tên, mỗi bước có ghi chú. Cần ít nhất 2 bước. Bé học (hoặc đã học) một bước sẽ được gợi ý bước kế tiếp mà bé chưa có; khi gói sắp hết buổi, tin nhắc gia hạn cũng nêu bước tiếp theo. Tiến độ của bé không phải nhập: bước nào bé có đơn hoặc lớp thì tính là đã có. Tắt công tắc "Đang dùng" để lộ trình ngừng gợi ý.
+
+**5 loại gợi ý** (tắt/bật ở Cài đặt > Vận hành > Gợi ý khóa học):
+
+| Loại | Gợi ý khi nào |
+|---|---|
+| Lộ trình | Bé có một bước của lộ trình |
+| Anh chị em | Một bé trong tài khoản học ở đối tác nào thì các bé còn lại (hợp tuổi, không trùng giờ) được gợi ý khóa khác của đối tác đó. Cần nhập ngày sinh của bé |
+| Khung giờ trống | Bé có một ngày trong tuần chưa có lớp nào, có lớp vào ngày đó gần khu vực bé đang học (hoặc học online) |
+| Theo mùa | Khóa trong Bộ sưu tập đang trong thời gian hiển thị |
+| Sở thích của bé | Bé có trả lời khảo sát sở thích khi thêm bé (cờ vua, vẽ, bơi...) |
+
+Thứ tự ưu tiên: Lộ trình, Anh chị em, Khung giờ trống, Theo mùa, Sở thích. Cùng một khóa chỉ hiện theo lý do mạnh nhất.
+
+**Hiệu quả**: cuối trang Lộ trình & gợi ý có bảng 30 ngày gần nhất theo từng loại: lượt xem, lượt bấm, tỷ lệ bấm, số bé bấm rồi đặt khóa đó trong 30 ngày. Loại nào kém thì bỏ chọn ở Cài đặt > Vận hành.
+
+Lưu ý: khóa chỉ được gợi ý khi đang bật và đối tác đã ký hợp đồng (cùng quy tắc với trang khách thấy). Nên nhập sẵn vài lộ trình thật, nếu không đợt đầu chỉ có gợi ý anh chị em, khung giờ trống và theo mùa.
+
+---
+
 ## 8. Cấu hình vận hành
 
 Menu **Cài đặt (bánh răng) > Vận hành > Cấu hình tìm kiếm & đơn hàng**. Thay đổi có hiệu lực ngay.
@@ -267,6 +292,7 @@ Menu **Cài đặt (bánh răng) > Vận hành > Cấu hình tìm kiếm & đơn
 | Thưởng thêm khi có ảnh (anyPoint) | Cộng thêm khi đánh giá có ít nhất một ảnh. 0 = tắt | 20 |
 | Nhắc phụ huynh viết đánh giá | Nhắc khi học nửa khóa và khi hết khóa (mục 7c) | Bật |
 | Vòng đời học viên | Xem bảng riêng bên dưới | |
+| Gợi ý khóa học | Bật/tắt từng loại gợi ý; số ngày không nhắc lại sau "Không quan tâm" (mục 7d) | Bật cả 5 loại, 30 ngày |
 | Cập nhật chỉ mục ngay | Chạy lại toàn bộ chỉ mục tìm kiếm, gồm cả khóa học và danh sách trường / chuyên gia (mất vài phút) | |
 
 ### Vòng đời học viên: nhắc lịch, gia hạn, hậu mãi
@@ -353,6 +379,7 @@ Dành cho người cài đặt hệ thống; team admin chỉ cần biết để
 | Phụ huynh không nhận nhắc khai giảng / vắng / khảo sát | Đang tắt "Bật nhắc tự động", ngoài giờ gửi, người đó tắt công tắc thông báo, hoặc lớp chưa nhập lịch | Kiểm tra mục 8 (Vòng đời học viên) và lịch của lớp |
 | Không có nhắc vắng học cho một lớp | Lớp không có điểm danh nào (không đo được) | Điểm danh ít nhất một buổi, hoặc bật nút "Vào lớp" cho lớp online |
 | Phụ huynh không nhận anyPoint gia hạn sớm | Đặt 0, đơn chưa thanh toán, đã nhận cho lần gia hạn đó, hoặc gói cũ đã hết khi bấm Gia hạn | Kiểm tra mục 8 và lịch sử anyPoint của khách |
+| Phụ huynh không thấy thẻ gợi ý | Chưa có khóa nào hợp (tuổi, giờ, đã mua), bé chưa nhập ngày sinh (loại Anh chị em), loại gợi ý đang tắt, hoặc đã bấm Không quan tâm | Kiểm tra mục 7d; bé cần có ngày sinh; tạo lộ trình cho khóa đang học |
 | Phụ huynh không viết được đánh giá | Tài khoản chưa có đơn đã giao của khóa đó | Kiểm tra đơn ở mục Đơn hàng; đơn chưa thanh toán chưa được tính |
 | Không tải được ảnh đánh giá | Chưa cấu hình kho ảnh (AWS) | Nhờ người cài đặt (mục 11) |
 | Đối tác không thấy nút Trả lời | Không đăng nhập bằng tài khoản sở hữu khóa | Đăng nhập đúng tài khoản đối tác, mở khóa của họ |

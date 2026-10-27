@@ -314,3 +314,16 @@ Content-Type: application/json
 { "lifecycleEnabled": true, "preStartDays": [3, 1], "absentStreak": 2, "surveyPercent": 50, "surveyLowScore": 2,
   "renewSessionsLeft": 3, "renewDaysBefore": 14, "feeDays": [7, 1], "sendFromHour": 8, "sendToHour": 21,
   "earlyRenewBonusPoints": 50 }
+
+### Plan 08: pathways (admin)
+GET {{baseUrl}}/admin/pathways?api_token={{$dotenv ADMIN_TOKEN}}
+
+###
+POST {{baseUrl}}/admin/pathways?api_token={{$dotenv ADMIN_TOKEN}}
+Content-Type: application/json
+
+{ "title": "Bóng đá: từ U13 đến U15", "subtitle": "Học liên tục cùng một sân", "active": true,
+  "steps": [ { "itemId": 1, "note": "" }, { "itemId": 2, "note": "Cho bé đã thạo kỹ thuật cơ bản" } ] }
+
+### Plan 08: views, clicks and orders per kind of suggestion (default last 30 days)
+GET {{baseUrl}}/admin/recommendations/stats?from=2026-10-01&to=2026-10-31&api_token={{$dotenv ADMIN_TOKEN}}

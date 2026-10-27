@@ -13,6 +13,7 @@ import { ClockIcon, CloseIcon, CoinIcon } from '@/components/icons'
 import BankTransferPanel from '@/components/payment/BankTransferPanel'
 import { orderTransferNote } from '@/lib/vietqr/payload'
 import { useOrderStatus } from '@/components/payment/useOrderStatus'
+import OrderRecommendations from '@/components/recommendations/OrderRecommendations'
 import AppPromptCard from '@/components/pwa/AppPromptCard'
 import { earnedLabel } from '@/lib/points/reward'
 import { formatHoldUntil } from '@/lib/orders/deadline'
@@ -227,6 +228,7 @@ export default function OrderPage() {
               </InstructionBox>
             )}
 
+            {token && (paymentStatus === 'success' || isApproved) && <OrderRecommendations orderId={String(orderId)} token={token} />}
             {(paymentStatus === 'success' || isAwaitingBankTransfer) && <div className="mb-5"><AppPromptCard context="order" /></div>}
 
             <div className="flex flex-wrap justify-center gap-3">

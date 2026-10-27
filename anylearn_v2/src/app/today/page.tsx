@@ -15,6 +15,7 @@ import LearnerChips from '@/components/today/LearnerChips'
 import { FeeSummary, PackageCards } from '@/components/today/PackageCards'
 import { ExtraCard, LaterTodayCard, NextSessionCard } from '@/components/today/SessionCards'
 import type { ActionContext } from '@/components/today/SessionButtons'
+import TodayRecommendation from '@/components/recommendations/TodayRecommendation'
 import SurveyCard from '@/components/today/SurveyCard'
 import SlotCard from '@/components/today/SlotCard'
 import WeekStrip from '@/components/today/WeekStrip'
@@ -130,6 +131,7 @@ function TodayContent() {
                 <PackageCards packages={current.packages} learnerId={selectedId} />
               </div>
             </Area>
+            {token && <Area order={7}><TodayRecommendation key={selectedId} learnerId={selectedId} token={token} /></Area>}
             <Area order={7}><SlotCard now={now} /></Area>
             <Area order={8}><AppPromptCard context="today" /></Area>
           </div>
