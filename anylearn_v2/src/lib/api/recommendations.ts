@@ -14,6 +14,7 @@ export interface Recommendation {
   source: RecommendationSource
   /** The pathway page to open, only for pathway suggestions. */
   pathwaySlug?: string | null
+  pathwayProgress?: { stepNo: number; done: boolean; skipped: boolean; next: boolean }[]
   reasonCode: string
   reasonText: string
 }

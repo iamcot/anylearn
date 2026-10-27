@@ -308,10 +308,32 @@ public class RecommendationService {
             map.put("source", candidate.source());
             map.put("reasonCode", candidate.reasonCode());
             map.put("reasonText", candidate.reasonText());
-            if (RecommendationRules.PATHWAY.equals(candidate.source())) map.put("pathwaySlug", pathwaySlugOf(candidate.itemId(), ctx.owned()));
+            if (RecommendationRules.PATHWAY.equals(candidate.source())) {
+                String slug = pathwaySlugOf(candidate.itemId(), ctx.owned());
+                map.put("pathwaySlug", slug);
+                if (slug != null) map.put("pathwayProgress", progressOf(slug, ctx));
+            }
             out.add(map);
         }
         return out;
+    }
+
+    /** Dots for the card: per step done / skipped / next, so the parent sees where the learner is on the pathway. */
+    private List<Map<String, Object>> progressOf(String slug, LearnerContext ctx) {
+        return pathwayService.getPublic(slug, ctx.info().id(), ctx.owned()).map(pathway -> {
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> steps = (List<Map<String, Object>>) pathway.get("steps");
+            List<Map<String, Object>> dots = new ArrayList<>();
+            for (Map<String, Object> step : steps) {
+                Map<String, Object> dot = new LinkedHashMap<>();
+                dot.put("stepNo", step.get("stepNo"));
+                dot.put("done", step.get("done"));
+                dot.put("skipped", step.get("skipped"));
+                dot.put("next", step.get("next"));
+                dots.add(dot);
+            }
+            return dots;
+        }).orElse(List.of());
     }
 
     /** The pathway page to open for a suggested course: the chain that holds a course the learner already has, else the first. */

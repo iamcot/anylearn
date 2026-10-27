@@ -16,6 +16,28 @@ interface Props {
   onHidden: () => void
 }
 
+/** A bar of dots, one per pathway step: filled = done, ring = the suggested next step; "Bạn ở đây" sits under the last finished one. */
+function PathwayDots({ steps }: { steps?: Props['rec']['pathwayProgress'] }) {
+  if (!steps || steps.length < 2) return null
+  const current = steps.reduce((last, step, index) => (step.done ? index : last), -1)
+  return (
+    <div className="mt-3 flex items-start px-1" aria-label="Các bước của lộ trình">
+      {steps.map((step, index) => (
+        <div key={step.stepNo} className="relative flex flex-1 flex-col items-center">
+          {index > 0 && (
+            <span className={`absolute right-1/2 top-[7px] h-0.5 w-full ${steps[index - 1].done && step.done ? 'bg-green' : 'bg-line'}`} />
+          )}
+          <span className={`relative size-4 rounded-full border-2 ${
+            step.done ? 'border-green bg-green' : step.next ? 'border-green bg-white ring-4 ring-green-soft' : 'border-line bg-white'}`} />
+          <span className={`mt-1 text-[11px] leading-tight ${index === current ? 'font-black text-green-dark' : 'text-muted'}`}>
+            {index === current ? 'Bạn ở đây' : step.next ? 'Tiếp theo' : step.skipped ? 'Bỏ qua' : `Bước ${index + 1}`}
+          </span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 /** One suggestion with the reason a parent reads. Shown and clicked are counted; "Không quan tâm" hides it for a while. */
 export default function RecommendationCard({ rec, context, token, onHidden }: Props) {
   useEffect(() => {
@@ -31,6 +53,7 @@ export default function RecommendationCard({ rec, context, token, onHidden }: Pr
     <section className="rounded-[20px] border border-line bg-white p-4">
       <span className="text-xs font-bold uppercase tracking-wide text-muted">Gợi ý cho {rec.learnerName}</span>
       <p className="mt-1 text-sm text-ink">{rec.reasonText}</p>
+      <PathwayDots steps={rec.pathwayProgress} />
       <div className="mt-3 flex items-center gap-3">
         {rec.image && (
           // eslint-disable-next-line @next/next/no-img-element
