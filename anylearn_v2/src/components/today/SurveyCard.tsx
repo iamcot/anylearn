@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { getSurveys, sendFeedback, type PendingSurvey } from '@/lib/today/api'
 
 const SCORES = [1, 2, 3, 4, 5]
@@ -63,6 +64,8 @@ function SurveyRow({ survey, token, onDone }: { survey: PendingSurvey; token: st
 /** Mid-course survey of the selected learner (plan 07.4): one question, shown until answered. */
 export default function SurveyCard({ learnerId, token }: { learnerId: number; token: string }) {
   const [surveys, setSurveys] = useState<PendingSurvey[]>([])
+  const wanted = Number(useSearchParams().get('survey')) || null
+  const ref = useRef<HTMLElement>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -71,9 +74,16 @@ export default function SurveyCard({ learnerId, token }: { learnerId: number; to
   }, [token])
 
   const mine = surveys.filter(survey => survey.learnerId === learnerId)
+  const highlighted = wanted != null && mine.some(survey => survey.enrollmentId === wanted)
+
+  // A notification link (?survey=ID) brings the person straight to the question.
+  useEffect(() => {
+    if (highlighted) ref.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [highlighted])
+
   if (mine.length === 0) return null
   return (
-    <section className="space-y-4 rounded-[20px] border border-line bg-white p-4">
+    <section ref={ref} className={`space-y-4 rounded-[20px] border bg-white p-4 ${highlighted ? 'border-blue ring-2 ring-blue/30' : 'border-line'}`}>
       <span className="text-xs font-bold uppercase tracking-wide text-muted">Giữa khóa</span>
       {mine.map(survey => (
         <SurveyRow

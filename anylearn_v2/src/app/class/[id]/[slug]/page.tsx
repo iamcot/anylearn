@@ -10,6 +10,7 @@ import PromiseStrip from '@/components/promise/PromiseStrip'
 import ReportPriceButton from '@/components/promise/ReportPriceButton'
 import FavButton from '@/components/FavButton'
 import ReviewsSection from '@/components/ReviewsSection'
+import PathwayBlock from '@/components/recommendations/PathwayBlock'
 import ActivityButton from '@/components/ActivityButton'
 import ChevronLabel from '@/components/ChevronLabel'
 import StarRating from '@/components/StarRating'
@@ -247,6 +248,8 @@ export default async function PdpPage({ params }: Props) {
           </div>
         </section>
       )}
+
+      <PathwayBlock itemId={item.id} />
 
       {/* ── Đánh giá ── */}
       <section className="section section--soft" id="reviews-section">

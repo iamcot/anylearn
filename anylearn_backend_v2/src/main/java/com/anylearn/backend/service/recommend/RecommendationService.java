@@ -90,20 +90,33 @@ public class RecommendationService {
         return present(ctx, finish(ctx, seeds, 1));
     }
 
-    /** After an order: suggestions for the other children of the account, from the classes this order bought. */
+    /**
+     * After an order: first the siblings' suggestions (other children, from the classes this order bought); when there
+     * are none (a fee order, a single learner), the best suggestion of each learner of the account from every source.
+     */
     public List<Map<String, Object>> forOrder(User account, Long orderId) {
-        if (!settings.sources().contains(RecommendationRules.SIBLING)) return List.of();
         Integer mine = jdbc.queryForObject("SELECT COUNT(*) FROM orders WHERE id = ? AND user_id = ?", Integer.class, orderId, account.getId());
         if (mine == null || mine == 0) return List.of();
+        List<String> on = settings.sources();
         Map<Long, Set<Long>> boughtBy = new HashMap<>();
         jdbc.queryForList("SELECT user_id, item_id FROM order_details WHERE order_id = ?", orderId).forEach(row ->
                 boughtBy.computeIfAbsent(((Number) row.get("user_id")).longValue(), k -> new HashSet<>()).add(((Number) row.get("item_id")).longValue()));
 
         List<Map<String, Object>> result = new ArrayList<>();
-        for (Learner target : learnerLoader.learnersOf(account)) {
-            if (boughtBy.containsKey(target.id())) continue; // already in this order
-            LearnerContext ctx = contextOf(account, target.id());
-            result.addAll(present(ctx, finish(ctx, siblingSeeds(account, ctx, boughtBy), 1)));
+        if (on.contains(RecommendationRules.SIBLING)) {
+            for (Learner target : learnerLoader.learnersOf(account)) {
+                if (boughtBy.containsKey(target.id())) continue; // already in this order
+                LearnerContext ctx = contextOf(account, target.id());
+                result.addAll(present(ctx, finish(ctx, siblingSeeds(account, ctx, boughtBy), 1)));
+            }
+        }
+        if (result.isEmpty()) {
+            Set<Object> seen = new HashSet<>();
+            for (Learner target : learnerLoader.learnersOf(account)) {
+                for (Map<String, Object> card : forToday(account, target.id())) {
+                    if (seen.add(card.get("itemId"))) result.add(card);
+                }
+            }
         }
         return result.stream().limit(3).toList();
     }
