@@ -12,6 +12,7 @@ import MobileMenu from './header/MobileMenu'
 import NotificationBell from './header/NotificationBell'
 import { useNotifications } from './header/useNotifications'
 import { ICON_BUTTON_CLASS, MEMBER_NAV_LINKS, NAV_LINKS } from './header/constants'
+import { ZALO_SUPPORT_URL } from '@/config/promise'
 import { BROWSE_HOME_URL, markBrowsing } from '@/lib/today/links'
 import { isNavActive } from '@/lib/today/nav'
 
@@ -70,6 +71,10 @@ export default function Header() {
             <Link href="/search" onClick={isToday ? markBrowsing : undefined} aria-label="Tìm khóa học"
               className={ICON_BUTTON_CLASS}><SearchIcon /></Link>
           )}
+          <a href={ZALO_SUPPORT_URL} target="_blank" rel="noopener noreferrer" aria-label="Chat Zalo với anyLEARN" className={ICON_BUTTON_CLASS}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/cdn/img/zalo.png" alt="" className="size-6 object-contain" />
+          </a>
           <Link href="/checkout" aria-label="Giỏ hàng" className={ICON_BUTTON_CLASS}>
             <CartIcon />
             <CountBadge count={cartCount} />

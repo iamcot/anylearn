@@ -315,7 +315,7 @@ body {
   /* ── Room for the bottom tabs (AppTabs, shown below lg) ── */
   @media (max-width: 1023.98px) {
     .has-app-tabs { padding-bottom: var(--app-tabs-h); }
-    .has-app-tabs .zalo-chat-widget { bottom: calc(var(--app-tabs-h) + 12px) !important; }
+    .zalo-chat-widget { display: none !important; }
   }
 }
 
