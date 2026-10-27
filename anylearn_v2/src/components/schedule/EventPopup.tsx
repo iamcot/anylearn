@@ -112,7 +112,7 @@ export default function EventPopup({ event, position, onClose, onCancelActivity,
           <div className="mt-3">
             <button type="button" disabled={marking}
               onClick={async () => { setMarking(true); setMarkError(''); const error = await onMarkAttended(); setMarking(false); if (error) setMarkError(error) }}
-              className="min-h-11 w-full cursor-pointer rounded-full border border-line bg-white px-4 text-sm font-bold text-blue hover:bg-bg disabled:opacity-60">
+              className="min-h-11 w-full cursor-pointer rounded-full border border-line bg-white px-4 text-sm font-bold text-green-dark hover:bg-bg disabled:opacity-60">
               {marking ? 'Đang lưu...' : 'Đánh dấu đã đến lớp'}
             </button>
             {markError && <p className="mb-0 mt-2 text-xs text-red">{markError}</p>}
@@ -140,7 +140,7 @@ export default function EventPopup({ event, position, onClose, onCancelActivity,
               </button>
             )
           ) : <span />}
-          <Link href={courseUrl} target="_blank" rel="noopener noreferrer" className="text-[13px] font-medium text-blue no-underline">
+          <Link href={courseUrl} target="_blank" rel="noopener noreferrer" className="text-[13px] font-medium text-green-dark no-underline">
             <ChevronLabel>Xem khóa học</ChevronLabel>
           </Link>
         </div>

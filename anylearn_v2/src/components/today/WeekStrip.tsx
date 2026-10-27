@@ -36,7 +36,7 @@ export default function WeekStrip({ week, now }: { week: WeekDayView[]; now: Dat
     <section className="rounded-[20px] border border-line bg-white p-4">
       <div className="flex items-center justify-between">
         <span className="text-xs font-bold uppercase tracking-wide text-muted">Tuần này</span>
-        <Link href="/account/schedule" className="text-sm font-bold text-blue">Xem lịch đầy đủ</Link>
+        <Link href="/account/schedule" className="text-sm font-bold text-green-dark">Xem lịch đầy đủ</Link>
       </div>
       <div className="mt-3 grid grid-cols-7 gap-1">
         {week.map(day => {

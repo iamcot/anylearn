@@ -70,7 +70,7 @@ export function PackageCards({ packages, learnerId }: { packages: PackageView[];
     <section className={`${CARD} space-y-5`}>
       <div className="flex items-center justify-between">
         <span className="text-xs font-bold uppercase tracking-wide text-muted">Gói học</span>
-        <Link href="/account/orders" className="text-sm font-bold text-blue">Xem tất cả</Link>
+        <Link href="/account/orders" className="text-sm font-bold text-green-dark">Xem tất cả</Link>
       </div>
       {packages.map(pack => <PackageRow key={pack.enrollmentId} pack={pack} learnerId={learnerId} />)}
     </section>

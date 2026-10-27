@@ -50,7 +50,7 @@ export default function RecommendationCard({ rec, context, token, onHidden }: Pr
           Xem khóa học
         </Link>
         {rec.pathwaySlug && (
-          <Link href={`/pathway/${rec.pathwaySlug}?child=${rec.learnerId}`} className="text-sm font-bold text-blue no-underline">
+          <Link href={`/pathway/${rec.pathwaySlug}?child=${rec.learnerId}`} className="text-sm font-bold text-green-dark no-underline">
             Xem toàn bộ lộ trình
           </Link>
         )}

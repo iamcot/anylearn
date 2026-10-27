@@ -83,7 +83,7 @@ export default function SurveyCard({ learnerId, token }: { learnerId: number; to
 
   if (mine.length === 0) return null
   return (
-    <section ref={ref} className={`space-y-4 rounded-[20px] border bg-white p-4 ${highlighted ? 'border-blue ring-2 ring-blue/30' : 'border-line'}`}>
+    <section ref={ref} className={`space-y-4 rounded-[20px] border bg-white p-4 ${highlighted ? 'border-green ring-2 ring-green/30' : 'border-line'}`}>
       <span className="text-xs font-bold uppercase tracking-wide text-muted">Giữa khóa</span>
       {mine.map(survey => (
         <SurveyRow

@@ -27,7 +27,7 @@ export default function PathwayBlock({ itemId }: { itemId: number }) {
               <div className="mb-3">
                 <div className="text-base font-extrabold text-ink">{pathway.title}</div>
                 {pathway.subtitle && <div className="text-sm text-muted">{pathway.subtitle}</div>}
-                <Link href={`/pathway/${pathway.slug}`} className="text-sm font-bold text-blue no-underline">Xem toàn bộ lộ trình</Link>
+                <Link href={`/pathway/${pathway.slug}`} className="text-sm font-bold text-green-dark no-underline">Xem toàn bộ lộ trình</Link>
               </div>
               <ol className="m-0 flex list-none flex-col gap-3 p-0 md:flex-row">
                 {pathway.steps.map(step => {
@@ -36,7 +36,7 @@ export default function PathwayBlock({ itemId }: { itemId: number }) {
                     <li key={step.itemId} className="md:flex-1">
                       <Link href={getCourseUrl({ id: step.itemId, seoUrl: step.seoUrl ?? undefined, title: step.title })}
                         aria-current={current ? 'step' : undefined}
-                        className={`flex h-full flex-col gap-1 rounded-card border p-4 no-underline ${current ? 'border-blue bg-blue-soft' : 'border-line bg-white hover:bg-bg'}`}>
+                        className={`flex h-full flex-col gap-1 rounded-card border p-4 no-underline ${current ? 'border-green bg-green-soft' : 'border-line bg-white hover:bg-bg'}`}>
                         <span className="text-xs font-bold uppercase tracking-wide text-muted">Bước {step.stepNo}{current ? ' · bạn đang xem' : ''}</span>
                         <span className="text-sm font-extrabold text-ink">{step.title}</span>
                         {step.note && <span className="text-xs text-muted">{step.note}</span>}

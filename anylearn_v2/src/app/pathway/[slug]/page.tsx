@@ -42,7 +42,7 @@ function PathwayView() {
     return (
       <div className="container py-10">
         <p className="text-muted">Không tìm thấy lộ trình này.</p>
-        <Link href="/" className="font-bold text-blue no-underline">Về trang chủ</Link>
+        <Link href="/" className="font-bold text-green-dark no-underline">Về trang chủ</Link>
       </div>
     )
   }
@@ -73,7 +73,7 @@ function PathwayView() {
         {pathway.steps.map((step, index) => (
           <li key={step.itemId}>
             <Link href={getCourseUrl({ id: step.itemId, seoUrl: step.seoUrl ?? undefined, title: step.title })}
-              className={`flex items-center gap-3 rounded-card border p-4 no-underline ${index === nextIndex ? 'border-blue bg-blue-soft' : 'border-line bg-white hover:bg-bg'}`}>
+              className={`flex items-center gap-3 rounded-card border p-4 no-underline ${index === nextIndex ? 'border-green bg-green-soft' : 'border-line bg-white hover:bg-bg'}`}>
               <span className={`grid size-9 shrink-0 place-items-center rounded-full text-sm font-extrabold ${step.done ? 'bg-green text-white' : 'bg-bg text-muted'}`}>
                 {step.done ? '✓' : step.stepNo}
               </span>
