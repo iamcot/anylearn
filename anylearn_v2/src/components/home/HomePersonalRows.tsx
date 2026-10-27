@@ -36,9 +36,9 @@ export default function HomePersonalRows() {
   return (
     <>
       <HomeCourseRow block={forYouBlock(context)} onShown={onForYou} />
+      <DiscoverCard childName={context.learner?.name} chipKey={context.learner?.chipKey} near={!!context.near} />
       {hot && <HomeCourseRow block={hot} exclude={afterForYou} onShown={onHot} />}
       <HomeCourseRow block={topRatedBlock()} exclude={afterHot} />
-      <DiscoverCard childName={context.learner?.name} chipKey={context.learner?.chipKey} near={!!context.near} />
     </>
   )
 }
