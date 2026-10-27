@@ -196,7 +196,7 @@ export default async function PdpPage({ params }: Props) {
                 </div>
               )}
 
-              <RegisterButton itemId={item.id} />
+              <RegisterButton itemId={item.id} price={item.price} />
               <ActivityButton itemId={item.id}
                 activiyTrial={item.activiyTrial} activiyTest={item.activiyTest} activiyVisit={item.activiyVisit} />
               <PromiseStrip />

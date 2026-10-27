@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
+import HeaderBack from './header/HeaderBack'
 import UpcomingEventsBar from './UpcomingEventsBar'
 import { CartIcon, MenuIcon, SearchIcon } from './icons'
 import AccountMenu from './header/AccountMenu'
@@ -33,10 +34,13 @@ export default function Header() {
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-line/90 min-h-[76px]">
       <div className="container flex items-center justify-between gap-6 h-[76px]">
 
-        <Link href={homeHref} onClick={isToday ? markBrowsing : undefined} className="flex items-center no-underline">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/cdn/anylearn/img/LogoanyLEARN.svg" alt="anyLEARN" className="h-[60px]" />
-        </Link>
+        <div className="flex min-w-0 items-center">
+          <HeaderBack />
+          <Link href={homeHref} onClick={isToday ? markBrowsing : undefined} className="flex items-center no-underline">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/cdn/anylearn/img/LogoanyLEARN.svg" alt="anyLEARN" className="h-[60px]" />
+          </Link>
+        </div>
 
         <nav className="hidden lg:flex gap-6 items-center">
           {navLinks.map(({ href, label }) => {

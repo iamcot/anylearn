@@ -1,7 +1,9 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
+import { useEffect, useRef } from 'react'
+import { useAuth } from '@/context/AuthContext'
 import { clearCompare, removeCompare, useCompareList } from '@/lib/compare/store'
 import { MAX_COMPARE } from '@/lib/compare/selection'
 import { ArrowRightIcon, CloseIcon } from '@/components/icons'
@@ -14,12 +16,38 @@ export default function CompareBar() {
   const list = useCompareList()
   const pathname = usePathname()
   if (list.length === 0 || HIDDEN_PREFIXES.some(prefix => pathname.startsWith(prefix))) return null
+  return <Bar list={list} pathname={pathname} />
+}
+
+function Bar({ list, pathname }: { list: ReturnType<typeof useCompareList>; pathname: string }) {
+  const router = useRouter()
+  const { user } = useAuth()
+  const ref = useRef<HTMLDivElement>(null)
+
+  // Other fixed bars (the course page's register bar) stack above this one by reading its height.
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const publish = () => document.documentElement.style.setProperty('--compare-bar-h', `${el.offsetHeight}px`)
+    publish()
+    const observer = new ResizeObserver(publish)
+    observer.observe(el)
+    return () => {
+      observer.disconnect()
+      document.documentElement.style.removeProperty('--compare-bar-h')
+    }
+  }, [])
+
+  // Closing ends the comparison: the picks are cleared and the parent goes back to the search.
+  const close = () => {
+    clearCompare()
+    router.push('/search')
+  }
   const href = `/compare?ids=${list.map(entry => entry.id).join(',')}`
   const onComparePage = pathname.startsWith('/compare')
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-white px-4 py-2.5 shadow-[0_-4px_16px_rgba(0,0,0,0.08)]"
-      style={{ bottom: 'var(--app-tabs-h, 0px)' }}>
+    <div ref={ref} className={`fixed inset-x-0 z-40 border-t border-line bg-white px-4 py-2.5 shadow-[0_-4px_16px_rgba(0,0,0,0.08)] ${user ? 'bottom-[var(--app-tabs-h)] lg:bottom-0' : 'bottom-0'}`}>
       <div className="mx-auto flex max-w-[1100px] items-center gap-3">
         <div className="flex min-w-0 flex-1 gap-2 overflow-x-auto">
           {list.map(entry => (
@@ -46,7 +74,7 @@ export default function CompareBar() {
             So sánh ({list.length}) <ArrowRightIcon className="size-4" />
           </Link>
         )}
-        <button type="button" onClick={clearCompare} aria-label="Đóng so sánh" title="Đóng so sánh"
+        <button type="button" onClick={close} aria-label="Đóng so sánh" title="Đóng so sánh"
           className="grid size-11 shrink-0 cursor-pointer place-items-center rounded-full border border-line bg-white text-muted hover:border-red hover:text-red">
           <CloseIcon className="size-5" />
         </button>
