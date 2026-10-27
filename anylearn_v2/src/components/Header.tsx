@@ -11,7 +11,7 @@ import CountBadge from './header/CountBadge'
 import MobileMenu from './header/MobileMenu'
 import NotificationBell from './header/NotificationBell'
 import { useNotifications } from './header/useNotifications'
-import { ICON_BUTTON_CLASS, MEMBER_NAV_LINKS, NAV_LINKS, TODAY_NAV_LINKS } from './header/constants'
+import { ICON_BUTTON_CLASS, MEMBER_NAV_LINKS, NAV_LINKS } from './header/constants'
 import { BROWSE_HOME_URL, markBrowsing } from '@/lib/today/links'
 import { isNavActive } from '@/lib/today/nav'
 
@@ -22,7 +22,7 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
   const { user, cartCount, openAuthModal } = useAuth()
   const { unreadCount, setUnreadCount } = useNotifications()
-  const navLinks = isToday ? TODAY_NAV_LINKS : user ? [...MEMBER_NAV_LINKS, ...NAV_LINKS] : NAV_LINKS
+  const navLinks = user || isToday ? MEMBER_NAV_LINKS : NAV_LINKS
   const compactMobile = isToday || !!user
 
   const bell = user && <NotificationBell token={user.jwtToken} unreadCount={unreadCount} onUnreadChange={setUnreadCount} />
@@ -39,7 +39,7 @@ export default function Header() {
 
         <nav className="hidden lg:flex gap-6 items-center">
           {navLinks.map(({ href, label }) => {
-            const active = isToday && isNavActive(pathname, href)
+            const active = isNavActive(pathname, href)
             return (
               <Link key={label} href={href}
                 aria-current={active ? 'page' : undefined}
@@ -51,6 +51,7 @@ export default function Header() {
         </nav>
 
         <div className="hidden lg:flex items-center gap-2.5">
+          <Link href="/search" onClick={isToday ? markBrowsing : undefined} aria-label="Tìm khóa học" className={ICON_BUTTON_CLASS}><SearchIcon /></Link>
           <Link href="/checkout" aria-label="Giỏ hàng" className={ICON_BUTTON_CLASS}>
             <CartIcon />
             <CountBadge count={cartCount} />

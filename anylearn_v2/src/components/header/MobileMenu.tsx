@@ -9,7 +9,7 @@ export default function MobileMenu({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="border-t border-line px-5 py-4 flex flex-col gap-3 bg-white lg:hidden">
-      {NAV_LINKS.map(({ href, label }) => (
+      {[...NAV_LINKS, { href: '/search', label: 'Tìm kiếm' }].map(({ href, label }) => (
         <Link key={label} href={href} onClick={onClose} className="font-extrabold text-text no-underline text-base">
           {label}
         </Link>
