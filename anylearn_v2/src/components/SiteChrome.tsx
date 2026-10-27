@@ -19,6 +19,7 @@ export default function SiteChrome({ header, footer, children }: Props) {
   const { user } = useAuth()
   const isToday = pathname.startsWith('/today')
   const isJoin = pathname.startsWith('/join')
+  const isMap = pathname.startsWith('/search/map')
   const showTabs = !!user && !NO_TABS_PREFIXES.some(prefix => pathname.startsWith(prefix))
   const needsBodySpace = showTabs && !isToday
 
@@ -31,7 +32,7 @@ export default function SiteChrome({ header, footer, children }: Props) {
     <>
       {!isJoin && header}
       <main style={{ flex: 1 }}>{children}</main>
-      {!isToday && !isJoin && footer}
+      {!isToday && !isJoin && !isMap && footer}
       <CompareBar />
       {showTabs && <AppTabs />}
     </>
