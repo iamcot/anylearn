@@ -36,15 +36,19 @@ export default function CompareBar() {
             </span>
           ))}
         </div>
+        {list.length < MAX_COMPARE && (
+          <Link href="/search" aria-label="Thêm khóa học để so sánh" title="Thêm khóa học để so sánh"
+            className="grid size-9 shrink-0 place-items-center rounded-full border border-dashed border-green bg-white text-xl font-black leading-none text-green-dark no-underline hover:bg-green-soft">+</Link>
+        )}
         <span className="hidden text-xs text-muted sm:inline">{list.length}/{MAX_COMPARE} khóa</span>
         {!onComparePage && (
           <Link href={href} className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full bg-green px-5 text-sm font-black text-white no-underline hover:bg-green-dark">
-            Xem so sánh ({list.length}) <ArrowRightIcon className="size-4" />
+            So sánh ({list.length}) <ArrowRightIcon className="size-4" />
           </Link>
         )}
-        <button type="button" onClick={clearCompare}
-          className="inline-flex min-h-11 shrink-0 cursor-pointer items-center gap-1 rounded-full border border-line bg-white px-3 text-sm font-bold text-muted hover:border-red hover:text-red">
-          <CloseIcon className="size-4" /> Đóng so sánh
+        <button type="button" onClick={clearCompare} aria-label="Đóng so sánh" title="Đóng so sánh"
+          className="grid size-11 shrink-0 cursor-pointer place-items-center rounded-full border border-line bg-white text-muted hover:border-red hover:text-red">
+          <CloseIcon className="size-5" />
         </button>
       </div>
     </div>

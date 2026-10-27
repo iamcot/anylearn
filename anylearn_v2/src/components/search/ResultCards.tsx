@@ -4,6 +4,7 @@ import { formatPrice } from '@/lib/format/price'
 import { SUBTYPE_LABELS } from '@/config/itemLabels'
 import CardPointsChip from '@/components/points/CardPointsChip'
 import ChevronLabel from '@/components/ChevronLabel'
+import CompareToggle from '@/components/compare/CompareToggle'
 import { trackSearchClick } from '@/components/search/searchTracking'
 import { BookIcon, HeartIcon, SchoolIcon, StarIcon, UserIcon } from '@/components/icons'
 
@@ -75,16 +76,17 @@ export function CourseResultCard({ item }: { item: Item }) {
         <div className="mt-auto pt-1">
           <div className="mb-1 text-base font-extrabold text-red">{formatPrice(item.price)}</div>
           <CardPointsChip points={item.points} className="mb-1" />
-          <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
-            <div className="flex shrink-0 items-center gap-2 text-xs text-subtle">
-              {item.rating != null && item.rating > 0 && (
-                <span className="inline-flex items-center gap-1"><StarIcon filled className="size-3.5 text-star" />{item.rating.toFixed(1)}</span>
-              )}
-              {item.num_favorite != null && item.num_favorite > 0 && (
-                <span className="inline-flex items-center gap-1"><HeartIcon filled className="size-3.5 text-red" />{item.num_favorite}</span>
-              )}
-            </div>
-            <ChevronLabel className="ml-auto shrink-0 text-xs font-extrabold text-green-dark md:text-sm">Tìm hiểu thêm</ChevronLabel>
+          <div className="mb-1 flex items-center gap-2 text-xs text-subtle">
+            {item.rating != null && item.rating > 0 && (
+              <span className="inline-flex items-center gap-1"><StarIcon filled className="size-3.5 text-star" />{item.rating.toFixed(1)}</span>
+            )}
+            {item.num_favorite != null && item.num_favorite > 0 && (
+              <span className="inline-flex items-center gap-1"><HeartIcon filled className="size-3.5 text-red" />{item.num_favorite}</span>
+            )}
+          </div>
+          <div className="flex items-center justify-between gap-2">
+            <CompareToggle itemId={item.id} title={item.title} image={item.image} variant="text" />
+            <ChevronLabel className="shrink-0 text-xs font-extrabold text-green-dark md:text-sm">Tìm hiểu thêm</ChevronLabel>
           </div>
         </div>
       </div>

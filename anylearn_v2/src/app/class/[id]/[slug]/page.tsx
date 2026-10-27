@@ -21,6 +21,7 @@ import { formatPrice } from '@/lib/format/price'
 import { CYCLE_LABELS, SUBTYPE_LABELS } from '@/config/itemLabels'
 import { formatSchedule } from '@/lib/format/schedule'
 import CompareToggle from '@/components/compare/CompareToggle'
+import CompareWhenActive from '@/components/compare/CompareWhenActive'
 
 function formatAge(min?: number, max?: number) {
   if (!min && !max) return null
@@ -299,6 +300,7 @@ export default async function PdpPage({ params }: Props) {
                       </div>
                       <div className="text-sm font-extrabold text-red">{formatPrice(it.price)}</div>
                     </div>
+                    <CompareWhenActive itemId={it.id} title={it.title} image={it.image} />
                   </article>
                 </Link>
               ))}
