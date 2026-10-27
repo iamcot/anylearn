@@ -9,6 +9,7 @@ SET @wd3 = LOWER(LEFT(DAYNAME(@today + INTERVAL 3 DAY), 3));
 
 DELETE FROM recommendation_events WHERE learner_id IN (SELECT id FROM users WHERE phone LIKE '0999000%');
 DELETE FROM recommendation_dismissals WHERE learner_id IN (SELECT id FROM users WHERE phone LIKE '0999000%');
+DELETE FROM pathway_restarts WHERE pathway_id IN (SELECT id FROM pathways WHERE slug LIKE 'demo-%');
 DELETE FROM pathway_steps WHERE pathway_id IN (SELECT id FROM pathways WHERE slug LIKE 'demo-%');
 DELETE FROM pathways WHERE slug LIKE 'demo-%';
 DELETE FROM collection_items WHERE collection_id IN (SELECT id FROM collections WHERE slug LIKE 'demo-%');
@@ -187,7 +188,20 @@ INSERT INTO item_schedules (item_id, title, schedule_type, weekdays, date_start,
 VALUES (@eng3, 'Lớp tối', 'recurring', @wd1, @today + INTERVAL 20 DAY, '18:00', '19:30', 'Phòng 204', @place);
 INSERT INTO pathways (slug, title, subtitle, is_active) VALUES ('demo-tieng-anh', '[DEMO] Tiếng Anh giao tiếp', 'Từ giao tiếp 2 đến giao tiếp 3', 1);
 SET @pathway = LAST_INSERT_ID();
-INSERT INTO pathway_steps (pathway_id, item_id, step_no, note) VALUES (@pathway, @eng, 1, NULL), (@pathway, @eng3, 2, 'Dành cho bé đã xong giao tiếp 2');
+-- Step 2 has two alternatives (one by Cô Lan, one by Thầy Minh); step 3 is a harder course. Expect for Bin: the card suggests the
+-- Cô Lan one (same partner as Bin's step 1 course), the pathway page shows both, Cô Lan's first.
+INSERT INTO items (title, type, subtype, user_id, status, user_status, is_test, price, date_start, cycle_type, cycle_amount, user_location_id, ages_min, ages_max)
+VALUES ('[DEMO] Tiếng Anh giao tiếp 3 (lớp Thầy Minh)', 'class', 'offline', @minh, 1, 1, 1, 3600000, @today + INTERVAL 20 DAY, 'session', 12, @place, 6, 12);
+SET @eng3b = LAST_INSERT_ID();
+INSERT INTO items (title, type, subtype, user_id, status, user_status, is_test, price, date_start, cycle_type, cycle_amount, user_location_id, ages_min, ages_max)
+VALUES ('[DEMO] Tiếng Anh giao tiếp 4', 'class', 'offline', @lan, 1, 1, 1, 4500000, @today + INTERVAL 40 DAY, 'session', 12, @place, 6, 12);
+SET @eng4 = LAST_INSERT_ID();
+INSERT INTO pathway_steps (pathway_id, item_id, step_no, item_order, note) VALUES
+ (@pathway, @eng, 1, 1, NULL),
+ (@pathway, @eng3, 2, 1, 'Dành cho bé đã xong giao tiếp 2'),
+ (@pathway, @eng3b, 2, 2, 'Dành cho bé đã xong giao tiếp 2'),
+ (@pathway, @eng4, 3, 1, 'Nâng cao');
+-- To see a skipped step: give Bin an order or enrollment of "Tiếng Anh giao tiếp 4" without step 2, then open /pathway/demo-tieng-anh?child=<Bin>.
 
 -- A paid order of Bin's guitar class: open /order/<id>?status=success as the parent and Su gets suggestions from Thầy Minh (Bin's partner).
 INSERT INTO orders (user_id, amount, quantity, status, payment) VALUES (@parent, 1800000, 1, 'delivered', 'bank_transfer');

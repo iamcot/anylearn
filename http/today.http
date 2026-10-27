@@ -102,3 +102,9 @@ POST {{baseUrl}}/today/attendance?api_token={{parentToken}}
 Content-Type: application/json
 
 { "learnerId": 1, "sessionKey": "1_20261020" }
+
+### Plan 08: go back to a step the learner skipped ("Đặt lại")
+POST {{baseUrl}}/pathways/demo-tieng-anh/restart?api_token={{parentToken}}
+Content-Type: application/json
+
+{ "learnerId": 1, "stepNo": 2 }

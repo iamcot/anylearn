@@ -121,18 +121,18 @@ public class RecommendationService {
         return result.stream().limit(3).toList();
     }
 
-    /** The next course of a pathway after `itemId` for a learner, as a sentence for a notification ("" when none). */
+    /** The next step of a pathway after `itemId` for a learner, as a sentence for a notification ("" when none). */
     public String nextStepText(Long learnerId, Long itemId) {
         try {
             Set<Long> owned = ownedItems(learnerId);
             for (PathwayService.Chain chain : pathwayService.chainsOf(itemId)) {
-                Optional<Long> next = RecommendationRules.nextStep(chain.itemIds(), itemId, owned);
-                if (next.isPresent()) {
-                    Optional<Item> item = itemRepository.findById(next.get());
-                    if (item.isPresent() && ItemVisibility.isItemOn(item.get().getStatus(), item.get().getUserStatus())) {
-                        return " Bước tiếp theo của lộ trình " + chain.title() + ": " + item.get().getTitle() + ".";
-                    }
-                }
+                java.util.OptionalInt next = RecommendationRules.nextStepIndex(chain.steps(), owned, pathwayService.restartedOf(learnerId, chain));
+                if (next.isEmpty()) continue;
+                List<Long> step = chain.steps().get(next.getAsInt());
+                Map<Long, Long> partnerOf = pathwayService.partnersOf(java.util.stream.Stream.concat(step.stream(), java.util.stream.Stream.of(itemId)).toList());
+                Long first = RecommendationRules.relatedFirst(step, partnerOf, partnerOf.get(itemId) == null ? Set.of() : Set.of(partnerOf.get(itemId))).get(0);
+                return itemRepository.findById(first)
+                        .map(item -> " Bước tiếp theo của lộ trình " + chain.title() + ": " + item.getTitle() + ".").orElse("");
             }
         } catch (Exception e) {
             log.warn("Recommendation: next step failed for learner {}: {}", learnerId, e.getMessage());
@@ -142,19 +142,48 @@ public class RecommendationService {
 
     // ── Seeds ────────────────────────────────────────────────────────────────
 
+    /**
+     * For every pathway the learner has a course of: the courses of the step to suggest (the step after the last one they
+     * have, or one they asked to go back to). Courses of the partner whose course they already have in the previous step
+     * score a little higher, so the card shows the most related one.
+     */
     private List<Seed> pathwaySeeds(LearnerContext ctx) {
         List<Seed> seeds = new ArrayList<>();
         List<Map<String, Object>> rows = jdbc.queryForList(
                 "SELECT e.item_id, e.status, i.title FROM user_course_enrollments e JOIN items i ON i.id = e.item_id WHERE e.user_id = ?", ctx.info().id());
+        Map<Long, PathwayService.Chain> chains = new LinkedHashMap<>();
+        Map<Long, Boolean> running = new HashMap<>();
+        Map<Long, String> titleOf = new HashMap<>();
         for (Map<String, Object> row : rows) {
             Long itemId = ((Number) row.get("item_id")).longValue();
-            boolean running = "active".equals(row.get("status"));
+            titleOf.put(itemId, String.valueOf(row.get("title")));
             for (PathwayService.Chain chain : pathwayService.chainsOf(itemId)) {
-                RecommendationRules.nextStep(chain.itemIds(), itemId, ctx.owned()).ifPresent(next -> seeds.add(new Seed(next,
-                        RecommendationRules.PATHWAY, "pathway_next",
-                        "%s %s %s, bước tiếp theo của lộ trình %s là {title}".formatted(
-                                ctx.name(), running ? "đang học" : "đã học", row.get("title"), chain.title()),
-                        RecommendationRules.baseScore(RecommendationRules.PATHWAY) + (running ? 0 : 5))));
+                chains.putIfAbsent(chain.pathwayId(), chain);
+                running.merge(chain.pathwayId(), "active".equals(row.get("status")), Boolean::logicalOr);
+            }
+        }
+        for (PathwayService.Chain chain : chains.values()) {
+            Set<Integer> restarted = pathwayService.restartedOf(ctx.info().id(), chain);
+            java.util.OptionalInt next = RecommendationRules.nextStepIndex(chain.steps(), ctx.owned(), restarted);
+            if (next.isEmpty()) continue;
+            int at = next.getAsInt();
+            boolean live = running.getOrDefault(chain.pathwayId(), false);
+            int highest = RecommendationRules.highestDone(chain.steps(), ctx.owned());
+            String reference = highest < 0 ? "" : chain.steps().get(highest).stream().filter(titleOf::containsKey).map(titleOf::get).findFirst().orElse("");
+            List<Long> step = chain.steps().get(at);
+            Map<Long, Long> partnerOf = pathwayService.partnersOf(chain.steps().stream().flatMap(List::stream).toList());
+            Set<Long> relatedPartners = new HashSet<>();
+            for (int j = Math.min(at, highest + 1) - 1; j >= 0 && relatedPartners.isEmpty(); j--) {
+                for (Long id : chain.steps().get(j)) if (ctx.owned().contains(id) && partnerOf.get(id) != null) relatedPartners.add(partnerOf.get(id));
+            }
+            boolean restartedStep = restarted.contains(at);
+            for (Long itemId : step) {
+                if (ctx.owned().contains(itemId)) continue;
+                int score = RecommendationRules.baseScore(RecommendationRules.PATHWAY) + (live ? 0 : 5) + (relatedPartners.contains(partnerOf.get(itemId)) ? 3 : 0);
+                String text = restartedStep
+                        ? "%s quay lại bước %d của lộ trình %s: {title}".formatted(ctx.name(), chain.stepNos().get(at), chain.title())
+                        : "%s %s %s, bước tiếp theo của lộ trình %s là {title}".formatted(ctx.name(), live ? "đang học" : "đã học", reference, chain.title());
+                seeds.add(new Seed(itemId, RecommendationRules.PATHWAY, "pathway_next", text, score));
             }
         }
         return seeds;
@@ -288,7 +317,7 @@ public class RecommendationService {
     /** The pathway page to open for a suggested course: the chain that holds a course the learner already has, else the first. */
     private String pathwaySlugOf(Long itemId, Set<Long> owned) {
         List<PathwayService.Chain> chains = pathwayService.chainsOf(itemId);
-        return chains.stream().filter(chain -> chain.itemIds().stream().anyMatch(owned::contains)).findFirst()
+        return chains.stream().filter(chain -> chain.steps().stream().flatMap(List::stream).anyMatch(owned::contains)).findFirst()
                 .or(() -> chains.stream().findFirst()).map(PathwayService.Chain::slug).orElse(null);
     }
 

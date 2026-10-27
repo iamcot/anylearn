@@ -4,9 +4,8 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { getCourseUrl } from '@/lib/api'
 import { getItemPathways, type Pathway } from '@/lib/api/recommendations'
-import { formatMoney } from '@/lib/today/format'
 
-/** "Lộ trình học" on the course page: the chain this course belongs to, the current step highlighted (plan 08.1). */
+/** "Lộ trình học" on the course page: the chain this course belongs to, the step of this course highlighted (plan 08.1). */
 export default function PathwayBlock({ itemId }: { itemId: number }) {
   const [pathways, setPathways] = useState<Pathway[]>([])
 
@@ -31,17 +30,20 @@ export default function PathwayBlock({ itemId }: { itemId: number }) {
               </div>
               <ol className="m-0 flex list-none flex-col gap-3 p-0 md:flex-row">
                 {pathway.steps.map(step => {
-                  const current = step.itemId === itemId
+                  const current = step.items.some(item => item.itemId === itemId)
                   return (
-                    <li key={step.itemId} className="md:flex-1">
-                      <Link href={getCourseUrl({ id: step.itemId, seoUrl: step.seoUrl ?? undefined, title: step.title })}
-                        aria-current={current ? 'step' : undefined}
-                        className={`flex h-full flex-col gap-1 rounded-card border p-4 no-underline ${current ? 'border-green bg-green-soft' : 'border-line bg-white hover:bg-bg'}`}>
+                    <li key={step.stepNo} className="md:flex-1">
+                      <div aria-current={current ? 'step' : undefined}
+                        className={`flex h-full flex-col gap-1 rounded-card border p-4 ${current ? 'border-green bg-green-soft' : 'border-line bg-white'}`}>
                         <span className="text-xs font-bold uppercase tracking-wide text-muted">Bước {step.stepNo}{current ? ' · bạn đang xem' : ''}</span>
-                        <span className="text-sm font-extrabold text-ink">{step.title}</span>
                         {step.note && <span className="text-xs text-muted">{step.note}</span>}
-                        {step.price != null && <span className="mt-auto pt-1 text-sm font-bold text-red">{formatMoney(step.price)}</span>}
-                      </Link>
+                        {step.items.map(item => (
+                          <Link key={item.itemId} href={getCourseUrl({ id: item.itemId, seoUrl: item.seoUrl ?? undefined, title: item.title })}
+                            className={`text-sm no-underline ${item.itemId === itemId ? 'font-extrabold text-ink' : 'font-bold text-green-dark'}`}>
+                            {item.title}
+                          </Link>
+                        ))}
+                      </div>
                     </li>
                   )
                 })}

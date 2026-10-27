@@ -65,6 +65,7 @@ public class AdminPathwayController {
             List<PathwayService.Step> steps = body.get("steps") instanceof List<?> list ? list.stream()
                     .filter(Map.class::isInstance).map(o -> (Map<?, ?>) o)
                     .map(m -> new PathwayService.Step(m.get("itemId") instanceof Number n ? n.longValue() : null,
+                            m.get("itemIds") instanceof List<?> ids ? ids.stream().filter(Number.class::isInstance).map(x -> ((Number) x).longValue()).toList() : null,
                             m.get("note") instanceof String s ? s : null)).toList() : null;
             var draft = new PathwayService.Draft(text(body, "title"), text(body, "slug"), text(body, "subtitle"), text(body, "cover"),
                     body.get("partnerId") instanceof Number n ? n.longValue() : null,

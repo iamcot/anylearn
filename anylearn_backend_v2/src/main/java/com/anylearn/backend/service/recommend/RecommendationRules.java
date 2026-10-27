@@ -108,19 +108,53 @@ public final class RecommendationRules {
         return Optional.of(candidate.withOptions(fitting));
     }
 
-    /** The step after `currentItemId` that the learner does not own yet. Steps are in pathway order. */
-    public static Optional<Long> nextStep(List<Long> steps, Long currentItemId, Set<Long> owned) {
-        int at = steps.indexOf(currentItemId);
-        if (at < 0) return Optional.empty();
-        for (int i = at + 1; i < steps.size(); i++) {
-            if (!owned.contains(steps.get(i))) return Optional.of(steps.get(i));
-        }
-        return Optional.empty();
+    /** A pathway step holds one or more courses (alternatives): the learner has the step when they have any of them. */
+    public static boolean hasStep(List<Long> step, Set<Long> owned) {
+        return step.stream().anyMatch(owned::contains);
     }
 
-    /** How many steps of the pathway the learner has (any enrollment counts). */
-    public static int doneSteps(List<Long> steps, Set<Long> owned) {
-        return (int) steps.stream().filter(owned::contains).count();
+    /** How many steps of the pathway the learner has. */
+    public static int doneSteps(List<List<Long>> steps, Set<Long> owned) {
+        return (int) steps.stream().filter(step -> hasStep(step, owned)).count();
+    }
+
+    /** Index of the last step the learner has, -1 when none. */
+    public static int highestDone(List<List<Long>> steps, Set<Long> owned) {
+        for (int i = steps.size() - 1; i >= 0; i--) {
+            if (hasStep(steps.get(i), owned)) return i;
+        }
+        return -1;
+    }
+
+    /** Steps before the last one the learner has that they do not have themselves (a jump), unless they asked to go back to it. */
+    public static Set<Integer> skippedSteps(List<List<Long>> steps, Set<Long> owned, Set<Integer> restarted) {
+        int highest = highestDone(steps, owned);
+        Set<Integer> skipped = new java.util.TreeSet<>();
+        for (int i = 0; i < highest; i++) {
+            if (!hasStep(steps.get(i), owned) && !restarted.contains(i)) skipped.add(i);
+        }
+        return skipped;
+    }
+
+    /**
+     * The step to suggest: a step the learner asked to go back to (the first one they still do not have), else the step
+     * after the last one they have. Empty when they have none of the pathway or have finished it.
+     */
+    public static java.util.OptionalInt nextStepIndex(List<List<Long>> steps, Set<Long> owned, Set<Integer> restarted) {
+        for (int i = 0; i < steps.size(); i++) {
+            if (restarted.contains(i) && !hasStep(steps.get(i), owned)) return java.util.OptionalInt.of(i);
+        }
+        int highest = highestDone(steps, owned);
+        return highest >= 0 && highest + 1 < steps.size() ? java.util.OptionalInt.of(highest + 1) : java.util.OptionalInt.empty();
+    }
+
+    /** The courses of a step ordered so those made by a partner in `relatedPartners` come first (the order inside each group is kept). */
+    public static List<Long> relatedFirst(List<Long> step, Map<Long, Long> partnerOfItem, Set<Long> relatedPartners) {
+        List<Long> related = new java.util.ArrayList<>();
+        List<Long> others = new java.util.ArrayList<>();
+        for (Long itemId : step) (relatedPartners.contains(partnerOfItem.get(itemId)) ? related : others).add(itemId);
+        related.addAll(others);
+        return related;
     }
 
     /** One suggestion per course (the best score), best first, at most `limit`. */
