@@ -119,7 +119,7 @@ export default function CompareView() {
           {figures.fieldNotice && (
             <p role="note" className="mb-3 rounded-xl border border-yellow bg-yellow/10 px-4 py-3 text-sm text-ink">{figures.fieldNotice}</p>
           )}
-          <div className="grid gap-px rounded-card border border-line bg-line [--col:128px] [--lab:84px] sm:[--col:190px] sm:[--lab:140px] lg:[--col:250px] lg:[--lab:160px]" style={gridStyle}>
+          <div className="grid gap-px rounded-card border border-line bg-line [--col:128px] [--lab:96px] sm:[--col:190px] sm:[--lab:140px] lg:[--col:250px] lg:[--lab:160px]" style={gridStyle}>
             <div className="bg-white" />
             {courses.map(course => (
               <div key={course.id} className={`flex flex-col gap-2 bg-white p-3 ${figures.offField.includes(courses.indexOf(course)) ? 'ring-2 ring-inset ring-yellow' : ''}`}>
@@ -175,7 +175,7 @@ function bestNote(key: string): string {
 function Row({ label, icon, bg, children }: { label: string; icon?: React.ReactNode; bg: string; children: React.ReactNode }) {
   return (
     <>
-      <div className={`flex min-w-0 items-center gap-2 break-words p-2 text-[13px] font-extrabold text-ink sm:p-3 sm:text-sm ${bg}`}>{icon}{label}</div>
+      <div className={`flex min-w-0 items-center gap-2 break-words p-2.5 text-[13px] font-extrabold leading-snug text-ink sm:p-3 sm:text-sm ${bg}`}><span className="hidden sm:inline-flex">{icon}</span>{label}</div>
       {children}
     </>
   )
