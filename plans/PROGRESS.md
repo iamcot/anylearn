@@ -105,7 +105,7 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 06.2 | Trang từng con | done | `/account/children/[id]` (`GET /me/children/{id}`): khóa học, đơn, sửa, sở thích. Chưa có tiến độ/nhật ký (chưa có dữ liệu) |
 | 06.3 | Đơn hàng chia tab | done | Tab đã có từ 05; thêm lọc theo người học (`?child=ID` + ô chọn); đếm ngược 05.4 chưa làm |
 | 06.4 | Cài đặt thông báo | done | Bảng `user_notification_prefs` (V36), 5 nhóm × app/email/zalo, mặc định bật; chặn trong `NotificationService` (chuông, push, email, thông báo hẹn giờ). Kênh zalo chỉ lưu lựa chọn, ZNS chưa gửi theo bảng này; chat lớp (plan 11) chưa có |
-| 06.5 | Ưu đãi gom một chỗ | todo | |
+| 06.5 | Ưu đãi gom một chỗ | done | `/account/rewards`, `GET /api/me/rewards`: anyPoint + hạn, hạng, ưu đãi gia đình, mã giới thiệu (số bạn mời, điểm nhận). Voucher chưa có (chờ plan voucher) |
 | 02.5 | Hạn điểm cho member (lô điểm) | done | 28/10/2026 chủ sản phẩm chốt 12 tháng, tính từ 01/01/2027 (sớm nhất 01/01/2028 mới xóa). V42 `point_lots` (lô mở = số dư member hiện có), mọi cộng/trừ `wallet_c` qua `WalletService` cập nhật lô (trừ lô cũ nhất trước), job 00:10 xóa điểm quá hạn (transaction `points_expired`). Thời hạn, ngày bắt đầu, công tắc sửa ở Cài đặt > Vận hành. Trang giải thích `/info/anypoint-expiry`. Điểm đơn hủy hoàn lại thành lô mới |
 | 02.6 | Nhắc điểm sắp hết hạn | done | Nhắc 30 và 7 ngày trước (thông báo + push, nhóm tắt được "points"); dòng hạn ở /account/anypoint. Chưa làm: ZNS (chờ template), gợi ý 2–3 khóa kèm nhắc, nhắc khi có điểm mà giỏ không dùng |
 | 09.4 | Đối tác trả lời + báo cáo review | done | Đối tác trả lời ngay trên trang khóa học; nút "Báo cáo" (V34 `review_reports`), admin lọc "Đối tác báo cáo", Giữ/Ẩn, số đỏ trên menu |
@@ -121,7 +121,7 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | Task | Mô tả | Trạng thái | Ghi chú |
 |---|---|---|---|
 | 04.6 | So sánh khóa học | todo | |
-| 08.5 | Ưu đãi gia đình (gợi ý) | partial | Giảm giá đã có (10.3); chưa hiện trong thẻ gợi ý |
+| 08.5 | Ưu đãi gia đình (gợi ý) | done | Thẻ gợi ý (luật + AI) có nhãn `familyPercent` khi anh/chị vừa đăng ký trong cửa sổ ngày |
 | 10.2 | Hạng thành viên | done | V44, `service/membership/*`; nhân anyPoint của người mua, huy hiệu trong chat. Chưa có: giữ chỗ ưu tiên, voucher sinh nhật, hỗ trợ ưu tiên |
 | 10.3 | Gói gia đình | done | Bé thứ 2 trở đi giảm %, tính vào giá đơn. Chưa có: % theo từng đối tác, tặng anyPoint thay vì giảm |
 | 10.4 | Trả góp / đóng theo kỳ | todo | Chờ chủ sản phẩm |
@@ -522,3 +522,7 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 - Chủ sản phẩm bảo làm 10.2 (hạng thành viên) và 10.3 (gói gia đình), chấp nhận hệ số điểm làm tăng chi phí (mặc định x1,2 / x1,5 / x2, chỉnh được ở admin, đặt 1 là không thưởng). Ưu đãi gia đình: giảm % cho bé thứ 2 trở lên (mặc định 5%, 30 ngày), chưa theo đối tác và chưa có kiểu "thêm điểm".
 - Backend V44 `member_tiers`, `service/membership/*` (`MemberTierRules`, `FamilyDiscountRules` thuần + test), `CartService` (giảm giá dòng, hệ số điểm), `PaymentApprovalService` (tính lại hạng), `MembershipController`, `AdminMembershipController`. FE `TierCard`, dòng "Ưu đãi gia đình" ở checkout, huy hiệu hạng trong chat. Admin: trang "Hạng & gia đình".
 - Chưa làm: ưu tiên giữ chỗ, voucher sinh nhật, hỗ trợ ưu tiên (quyền lợi khác của 10.2), điểm thêm thay cho giảm giá, giảm theo đối tác. Chưa chạy với MySQL thật; `contextLoads` cần DB nên không chạy được ở đây.
+
+### 27/10/2026 – ưu đãi gom một chỗ, ưu đãi gia đình trong gợi ý (06.5, 08.5)
+- Chủ sản phẩm bảo làm cả hai. Trang `/account/rewards` (mục menu "Ưu đãi của tôi") gom anyPoint, hạng, ưu đãi gia đình, giới thiệu bạn bè. Không có voucher vì voucher sẽ có plan riêng (voucher hiện chưa gắn với người dùng). Nhãn gia đình trên thẻ gợi ý chỉ là xem trước, giá thật tính ở giỏ hàng.
+- Chưa chạy với MySQL thật; truy vấn đếm bạn mời và điểm giới thiệu mới đọc bằng mắt.

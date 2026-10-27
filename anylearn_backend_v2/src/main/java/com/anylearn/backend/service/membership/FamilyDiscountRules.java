@@ -36,4 +36,13 @@ public final class FamilyDiscountRules {
         }
         return result;
     }
+
+    /**
+     * The percent a child would get on a new course now, before any cart exists: only when another child of the account
+     * registered recently (a child already inside the window is the "first child" and gets nothing).
+     */
+    public static int offerPercent(boolean child, long learnerId, Set<Long> recentChildren, int percent) {
+        if (!child || percent <= 0 || recentChildren.isEmpty() || recentChildren.contains(learnerId)) return 0;
+        return percent;
+    }
 }

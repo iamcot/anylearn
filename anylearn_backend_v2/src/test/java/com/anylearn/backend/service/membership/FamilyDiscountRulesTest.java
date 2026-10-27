@@ -36,4 +36,13 @@ class FamilyDiscountRulesTest {
         assertThat(FamilyDiscountRules.discounts(lines, Set.of(), 0)).isEmpty();
         assertThat(FamilyDiscountRules.discounts(List.of(new Line(1, 10, true, 1_000_000), new Line(2, 11, true, 0)), Set.of(), 5)).isEmpty();
     }
+
+    @Test
+    void offerShownOnlyWhenASiblingRegisteredRecently() {
+        assertThat(FamilyDiscountRules.offerPercent(true, 11, Set.of(10L), 5)).isEqualTo(5);
+        assertThat(FamilyDiscountRules.offerPercent(true, 11, Set.of(), 5)).isZero();
+        assertThat(FamilyDiscountRules.offerPercent(true, 10, Set.of(10L), 5)).isZero();
+        assertThat(FamilyDiscountRules.offerPercent(false, 1, Set.of(10L), 5)).isZero();
+        assertThat(FamilyDiscountRules.offerPercent(true, 11, Set.of(10L), 0)).isZero();
+    }
 }

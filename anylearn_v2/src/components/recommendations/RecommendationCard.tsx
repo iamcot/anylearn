@@ -8,6 +8,7 @@ import {
   type Recommendation, type RecommendationContext,
 } from '@/lib/api/recommendations'
 import { formatMoney } from '@/lib/today/format'
+import { familyChip } from '@/lib/membership/familyOffer'
 
 interface Props {
   rec: Recommendation
@@ -62,6 +63,9 @@ export default function RecommendationCard({ rec, context, token, onHidden }: Pr
         <div className="min-w-0">
           <h3 className="text-base font-black text-ink">{rec.title}</h3>
           {rec.price != null && <p className="text-sm text-muted">{formatMoney(rec.price)}</p>}
+          {familyChip(rec.familyPercent) && (
+            <span className="mt-1 inline-block rounded-full bg-green-soft px-2.5 py-0.5 text-xs font-bold text-green-dark">{familyChip(rec.familyPercent)}</span>
+          )}
         </div>
       </div>
       <div className="mt-3 flex items-center justify-between gap-2">

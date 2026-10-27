@@ -18,10 +18,17 @@ public class MembershipController {
 
     private final MemberTierService tiers;
     private final MembershipSettings settings;
+    private final com.anylearn.backend.service.membership.RewardsSummaryService rewards;
 
     @GetMapping("/me/tier")
     public ApiResponse<?> myTier(@AuthenticationPrincipal User user) {
         return ApiResponse.ok(tiers.view(user));
+    }
+
+    /** Referral and family offer for the "Ưu đãi của tôi" page (plan 06.5). */
+    @GetMapping("/me/rewards")
+    public ApiResponse<?> myRewards(@AuthenticationPrincipal User user) {
+        return ApiResponse.ok(rewards.summary(user));
     }
 
     @GetMapping("/membership/family-offer")
