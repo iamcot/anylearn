@@ -50,6 +50,19 @@ public class NotificationSseService {
         dead.forEach(e -> removeEmitter(userId, e));
     }
 
+    /** A new class chat message: the open chat page refetches that room. */
+    public void notifyChat(Long userId, Long roomId) {
+        List<SseEmitter> emitters = userEmitters.get(userId);
+        if (emitters == null || emitters.isEmpty()) return;
+        for (SseEmitter emitter : emitters) {
+            try {
+                emitter.send(SseEmitter.event().name("chat").data(String.valueOf(roomId)));
+            } catch (IOException | IllegalStateException e) {
+                removeEmitter(userId, emitter);
+            }
+        }
+    }
+
     @Scheduled(fixedRate = 30000)
     public void sendHeartbeat() {
         userEmitters.forEach((userId, emitters) -> {

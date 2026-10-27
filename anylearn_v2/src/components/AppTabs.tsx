@@ -6,8 +6,10 @@ import { useAuth } from '@/context/AuthContext'
 import { TODAY_NAV, isNavActive, type TodayNavItem } from '@/lib/today/nav'
 import CountBadge from '@/components/header/CountBadge'
 import { usePendingOrders } from '@/components/orders/usePendingOrders'
+import { useChatUnread } from '@/components/chat/useChatUnread'
 
 const ACCOUNT_HREF = '/account'
+const COMMUNITY_HREF = '/today/community'
 
 function TabIcon({ path }: { path: string }) {
   return (
@@ -32,7 +34,7 @@ function UserAvatar({ active }: { active: boolean }) {
   )
 }
 
-function Tab({ item, active, pendingCount }: { item: TodayNavItem; active: boolean; pendingCount: number }) {
+function Tab({ item, active, pendingCount, chatUnread }: { item: TodayNavItem; active: boolean; pendingCount: number; chatUnread: number }) {
   return (
     <Link
       href={item.href}
@@ -41,7 +43,9 @@ function Tab({ item, active, pendingCount }: { item: TodayNavItem; active: boole
     >
       {item.href === ACCOUNT_HREF
         ? <span className="relative"><UserAvatar active={active} /><CountBadge count={pendingCount} /></span>
-        : <TabIcon path={item.icon} />}
+        : item.href === COMMUNITY_HREF
+          ? <span className="relative"><TabIcon path={item.icon} /><CountBadge count={chatUnread} /></span>
+          : <TabIcon path={item.icon} />}
       {item.label}
     </Link>
   )
@@ -50,12 +54,13 @@ function Tab({ item, active, pendingCount }: { item: TodayNavItem; active: boole
 export default function AppTabs() {
   const pathname = usePathname()
   const pendingCount = usePendingOrders().length
+  const chatUnread = useChatUnread()
   return (
     <nav
       className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-line bg-white px-1 pb-[var(--app-tabs-pad)] lg:hidden"
       aria-label="Menu chính"
     >
-      {TODAY_NAV.map(item => <Tab key={item.href} item={item} active={isNavActive(pathname, item.href)} pendingCount={pendingCount} />)}
+      {TODAY_NAV.map(item => <Tab key={item.href} item={item} active={isNavActive(pathname, item.href)} pendingCount={pendingCount} chatUnread={chatUnread} />)}
     </nav>
   )
 }

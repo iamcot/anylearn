@@ -2,7 +2,7 @@ import { Avatar, Badge, Dropdown, Flex, Layout, List, Menu, Popover, Spin, Typog
 import {
   AppstoreOutlined, BranchesOutlined, RobotOutlined, AuditOutlined, BankOutlined, CreditCardOutlined, BellOutlined, BookOutlined, CalendarOutlined, DashboardOutlined, DollarOutlined, FileTextOutlined,
   CustomerServiceOutlined, FundOutlined, LineChartOutlined, SearchOutlined, LogoutOutlined, MailOutlined, ApiOutlined, OrderedListOutlined, SettingOutlined, SolutionOutlined, SwapOutlined,
-  TeamOutlined, UserOutlined,
+  TeamOutlined, UserOutlined, MessageOutlined,
 } from '@ant-design/icons'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
@@ -28,6 +28,7 @@ const NAV_GROUPS = [
     { key: '/schedule-requests', icon: <CustomerServiceOutlined />, label: 'Nghỉ / đổi lịch' },
     { key: '/course-requests',  icon: <SearchOutlined />,      label: 'Nhờ tìm khóa học' },
     { key: '/price-reports',    icon: <DollarOutlined />,      label: 'Báo giá rẻ hơn' },
+    { key: '/chat',             icon: <MessageOutlined />,     label: 'Chat lớp' },
   ] },
   { key: 'g-courses', type: 'group', label: 'Khóa học', children: [
     { key: '/items',            icon: <BookOutlined />,        label: 'Khóa học'   },
@@ -54,6 +55,7 @@ const BADGE_FIELDS = {
   '/schedule-requests': 'scheduleRequests',
   '/course-requests': 'courseRequests',
   '/price-reports': 'priceReports',
+  '/chat': 'chatReports',
 }
 
 function withBadges(groups, counts) {

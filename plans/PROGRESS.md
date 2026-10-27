@@ -32,7 +32,7 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 - [ ] Câu chữ chính sách hoàn tiền trong "Lời hứa anyLEARN" (plan 10.1).
 - [ ] Hệ số điểm theo hạng thành viên có chấp nhận chi phí không (plan 10.2).
 - [ ] Trả góp: cách đối tác nhận tiền theo kỳ (plan 10.4).
-- [ ] Chat lớp: giáo viên có được vào nhóm không; nội quy và điều khoản cộng đồng (plan 11).
+- [x] Chat lớp (plan 11): giáo viên vào nhóm để trả lời, admin chủ động thêm người hỗ trợ; nội quy chỉ chủ đề học, không đả kích, không tôn giáo/chính trị, tôn trọng nhau (27/10/2026). Còn cần chủ sản phẩm duyệt câu chữ điều khoản sử dụng.
 
 ## Bảng task
 
@@ -111,10 +111,10 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 09.4 | Đối tác trả lời + báo cáo review | done | Đối tác trả lời ngay trên trang khóa học; nút "Báo cáo" (V34 `review_reports`), admin lọc "Đối tác báo cáo", Giữ/Ẩn, số đỏ trên menu |
 | 09.5 | Nhắc viết review | done | Nhắc ở nửa khóa và khi hết khóa (mỗi mốc 1 lần), quét mỗi giờ; thẻ "Khóa học chờ đánh giá" đã có ở "Cần làm ngay" (plan 06.1) |
 | 09.6 | Thưởng điểm review | done | 20 anyPoint cho nhận xét từ 50 ký tự + 20 khi có ảnh (chỉnh được, mặc định do mình chọn, chờ chủ sản phẩm xác nhận); thu hồi khi ẩn/xóa; chưa dùng `point_lots` (chờ 02.5) |
-| 11.1 | Chat MVP backend | todo | |
-| 11.2 | Chat MVP FE | todo | |
-| 11.3 | Thông báo chat | todo | |
-| 11.4 | Kiểm duyệt chat | todo | |
+| 11.1 | Chat MVP backend | done | V43 (`chat_rooms/members/messages/reports`), `service/chat/*`, `/api/chat/*`. Phòng + thành viên tạo khi người dùng mở danh sách (theo enrollment của tài khoản hoặc con), rời nhóm khi hết khóa quá `chat/retention_days`; chưa có job đối soát đêm. Tin mới đẩy qua SSE hiện có (sự kiện `chat`), FE poll 10 giây dự phòng. Giới hạn tin/phút. Chưa có ảnh |
+| 11.2 | Chat MVP FE | done | `/today/community` (danh sách nhóm), `/today/community/[roomId]` (chọn tên + đồng ý nội quy, tin theo ngày, trả lời, báo cáo), badge chưa đọc ở tab Cộng đồng. Chưa làm: ảnh, nút "Nhóm lớp" ở trang ca học/PDP |
+| 11.3 | Thông báo chat | partial | Thông báo cả lớp của giáo viên/đối tác luôn báo (chuông + push). Chưa gộp 30 phút/phòng cho tin thường, chưa tắt tiếng từng nhóm |
+| 11.4 | Kiểm duyệt chat | done | Admin: trang "Chat lớp" (báo cáo, ẩn tin, tạm khóa 7 ngày/khóa chat, khóa phòng, thêm giáo viên/người hỗ trợ, từ cấm, nội quy, bật/tắt). Giáo viên/đối tác: ghim, ẩn tin, thông báo cả lớp. Từ cấm lọc trước khi gửi |
 
 ### Giai đoạn 4 – mở rộng
 
@@ -506,3 +506,8 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 - Khối "Thử điều mới cho {bé}" ở trang chủ dùng thẳng AI (thêm dòng "Gợi ý từ AI"), bỏ thẻ riêng ở trang chủ; trang AI có nút "Về trang chủ".
 - AI trả sai format làm bị gọi lại nhiều lần: đổi sang tool call bắt buộc, prompt mềm hơn, giải mã `&amp;` trong tên khóa, tối đa 4 khóa mỗi đối tác trong danh sách gửi; câu trả lời không dùng được thì lưu danh sách theo luật cho cả ngày (V41 `status`), có token và có nút 👍/👎.
 - Admin: "Lượt mở danh sách", "Lượt xem khóa (bấm từ danh sách)", tỷ lệ danh sách có bấm; hiện số lần AI lỗi.
+
+### 27/10/2026 – chat lớp MVP có kiểm duyệt (plan 11, Nhóm chat người cùng lớp)
+- Chủ sản phẩm chốt: giáo viên vào nhóm để trả lời, admin thêm người hỗ trợ được; nội quy xoay quanh chủ đề học, không đả kích, không tôn giáo/chính trị, tôn trọng nhau. Đối tác của khóa tự là người kiểm duyệt (công tắc `chat/partner_moderator`), giáo viên khác admin thêm bằng tay ở Chat lớp > Nhóm lớp > Quản lý.
+- Backend V43 (số sau V42 của nhánh hạn dùng anyPoint chưa merge), FE `components/chat`, `app/today/community`, admin `ChatModeration`. Chưa thử với MySQL thật (môi trường không có DB): test thuần `ChatRulesTest`, vitest, tsc, eslint, build admin xanh.
+- Chưa làm: ảnh trong chat, gộp thông báo 30 phút, tắt tiếng từng nhóm, job đối soát đêm, nút "Nhóm lớp" ở PDP, câu chữ điều khoản sử dụng.

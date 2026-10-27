@@ -447,3 +447,14 @@ Khách thấy danh sách các cách thanh toán ở trang thanh toán và khi th
 - **Luật:** phương thức chỉ hiện khi đang bật và tổng tiền các khóa trong giỏ (trước khi trừ mã giảm giá và anyPoint) nằm trong khoảng Từ đơn – Đến đơn; "Đến đơn" = 0 là không giới hạn. Mặc định: Trả góp 0% từ 3.000.000đ; MoMo từ 1.000đ đến 50.000.000đ; còn lại không giới hạn. Phải bật ít nhất một phương thức.
 - **Tắt rồi thì sao:** khách không chọn được, và hệ thống từ chối cả khi ai đó cố gửi phương thức đã tắt. Đơn cũ đã chọn phương thức đó vẫn xử lý bình thường.
 - **Sau khi đổi:** có hiệu lực ngay, không cần làm gì thêm.
+
+### Chat lớp và kiểm duyệt
+
+Phụ huynh cùng một lớp (có bé đăng ký cùng ca học) trao đổi trong **Nhóm lớp** ở tab "Cộng đồng" trên app. Phụ huynh chỉ thấy tên hiển thị tự chọn (ví dụ "Mẹ Bin"), không thấy số điện thoại hay email. Tài khoản của bé không vào chat.
+
+- **Nhóm tự tạo** khi có người đăng ký ca học và mở tab Cộng đồng. Đối tác của khóa học tự là người kiểm duyệt (ghim tin, ẩn tin, gửi thông báo cả lớp). Hết khóa, thành viên còn đọc được số ngày đặt trong Cài đặt rồi tự rời nhóm.
+- **Xử lý báo cáo:** menu "Quản lý thành viên" > "Chat lớp" > tab "Báo cáo tin nhắn" (số đỏ ở menu là báo cáo chờ xử lý). Các nút: Ẩn tin; Ẩn tin + khóa 7 ngày; Ẩn tin + khóa chat (khóa người gửi ở mọi nhóm); Bỏ qua (không vi phạm). Tin bị ẩn hiện "Tin nhắn này đã bị ẩn" cho mọi người.
+- **Thêm giáo viên / người hỗ trợ:** tab "Nhóm lớp" > Quản lý > nhập **ID người dùng**, chọn "Kiểm duyệt (giáo viên)" để người đó nhắn, ghim, ẩn tin, gửi thông báo cả lớp. Cũng ở đây: cho thành viên rời nhóm, khóa/mở khóa chat, ẩn tin cũ, khóa cả nhóm (mọi người chỉ đọc, giáo viên vẫn nhắn được).
+- **Tab "Người bị khóa chat"** để mở khóa. **Tab "Cài đặt":** bật/tắt chat toàn hệ thống, đối tác có tự là người kiểm duyệt không, số tin tối đa mỗi phút (mặc định 20), số ngày còn đọc được sau khi hết khóa (mặc định 30), danh sách từ cấm (tin chứa từ cấm không gửi được), và nội quy hiện khi vào nhóm lần đầu.
+- Nội quy mặc định: chỉ chủ đề học, tôn trọng nhau không đả kích, không tôn giáo, chính trị, không quảng cáo/chèo kéo, không chia sẻ số điện thoại, địa chỉ, ảnh trẻ. Câu chữ điều khoản sử dụng cho phần cộng đồng cần chủ sản phẩm duyệt.
+- Có hiệu lực ngay, không cần lập lại chỉ mục. Chưa có: gửi ảnh, tắt tiếng từng nhóm, gộp thông báo tin mới.

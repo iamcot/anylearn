@@ -1,0 +1,95 @@
+@baseUrl = {{$dotenv BE_BASE_URL}}/api
+@adminUrl = {{$dotenv BE_BASE_URL}}/admin
+@jwtToken = {{$dotenv JWT_TOKEN}}
+@adminToken = {{$dotenv ADMIN_TOKEN}}
+
+### My class groups (creates the rooms the person is entitled to) with unread counts
+GET {{baseUrl}}/chat/rooms
+Authorization: Bearer {{jwtToken}}
+
+### Unread total for the "Cộng đồng" tab
+GET {{baseUrl}}/chat/unread
+Authorization: Bearer {{jwtToken}}
+
+### Room info, rules, pinned messages
+GET {{baseUrl}}/chat/rooms/1
+Authorization: Bearer {{jwtToken}}
+
+### First entry: choose the display name and accept the rules
+POST {{baseUrl}}/chat/rooms/1/join
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{ "displayName": "Mẹ Bin", "acceptRules": true }
+
+### Latest messages (oldest first); ?before=ID for older, ?after=ID for newer
+GET {{baseUrl}}/chat/rooms/1/messages
+Authorization: Bearer {{jwtToken}}
+
+### Send (announcement: true only for a moderator)
+POST {{baseUrl}}/chat/rooms/1/messages
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{ "body": "Mai lớp học ở phòng 302 nhé các mẹ", "replyToId": null, "announcement": false }
+
+### Mark read
+POST {{baseUrl}}/chat/rooms/1/read
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{ "messageId": 10 }
+
+### Report a message
+POST {{baseUrl}}/chat/messages/10/report
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{ "reason": "Quảng cáo trung tâm khác" }
+
+### Moderator: hide / pin
+POST {{baseUrl}}/chat/messages/10/hide
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{ "hidden": true }
+
+### Admin: reports (status open | hidden | dismissed)
+GET {{adminUrl}}/chat/reports?status=open
+Authorization: Bearer {{adminToken}}
+
+### Admin: handle a report (action hide | dismiss, ban?, muteDays?)
+PUT {{adminUrl}}/chat/reports/1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "action": "hide", "muteDays": 7 }
+
+### Admin: rooms, lock, add a teacher / supporter, ban
+GET {{adminUrl}}/chat/rooms
+Authorization: Bearer {{adminToken}}
+
+###
+PUT {{adminUrl}}/chat/rooms/1/lock
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "locked": true }
+
+###
+POST {{adminUrl}}/chat/rooms/1/members
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "userId": 5, "role": "moderator" }
+
+###
+PUT {{adminUrl}}/chat/users/5/ban
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "banned": true }
+
+### Admin: settings
+GET {{adminUrl}}/chat/settings
+Authorization: Bearer {{adminToken}}
