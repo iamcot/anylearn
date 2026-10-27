@@ -1,5 +1,5 @@
-// Hand-written service worker. ServiceWorkerRegister registers it as /sw.js?v=<build id>, so every build is a new
-// worker; it waits until the person taps "Tải lại" (SKIP_WAITING) instead of swapping under an open page.
+// Hand-written service worker. ServiceWorkerRegister registers it at a fixed URL (/sw.js), so a new worker installs
+// only when this file changes; it waits until the person taps "Tải lại" (SKIP_WAITING) instead of swapping under an open page.
 // Pages and API answers are never cached: they carry personal data (orders, schedules) and must stay fresh.
 const params = new URL(self.location.href).searchParams
 const CACHING_ENABLED = params.get('cache') !== '0'
