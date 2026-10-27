@@ -1,12 +1,10 @@
 import type { Metadata, Viewport } from 'next'
 import { Be_Vietnam_Pro } from 'next/font/google'
-import Script from 'next/script'
 import { Suspense } from 'react'
 import './globals.css'
 import SiteChrome from '@/components/SiteChrome'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
-import FloatContact from '@/components/FloatContact'
 import { AuthProvider } from '@/context/AuthContext'
 import AuthModal from '@/components/AuthModal'
 import NavigationProgress from '@/components/NavigationProgress'
@@ -49,7 +47,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </Suspense>
             <SiteChrome
               header={<Header />}
-              footer={<><Footer /><FloatContact /></>}
+              footer={<Footer />}
             >
               {children}
             </SiteChrome>
@@ -58,7 +56,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <GuestLearnerHost />
           </ToastProvider>
         </AuthProvider>
-        <Script src="https://sp.zalo.me/plugins/sdk.js" strategy="lazyOnload" />
       </body>
     </html>
   )

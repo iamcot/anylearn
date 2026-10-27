@@ -53,6 +53,10 @@ export default function Header() {
 
         <div className="hidden lg:flex items-center gap-2.5">
           <Link href="/search" onClick={isToday ? markBrowsing : undefined} aria-label="Tìm khóa học" className={ICON_BUTTON_CLASS}><SearchIcon /></Link>
+          <a href={ZALO_SUPPORT_URL} target="_blank" rel="noopener noreferrer" aria-label="Chat Zalo với anyLEARN" className={ICON_BUTTON_CLASS}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/cdn/img/zalo.png" alt="" className="size-6 object-contain" />
+          </a>
           <Link href="/checkout" aria-label="Giỏ hàng" className={ICON_BUTTON_CLASS}>
             <CartIcon />
             <CountBadge count={cartCount} />
