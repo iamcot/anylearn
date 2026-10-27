@@ -83,10 +83,14 @@ export default function CompareView() {
 
       {courses.length > 0 && figures && (
         <div className="mt-5 overflow-x-auto">
+          {figures.fieldNotice && (
+            <p role="note" className="mb-3 rounded-xl border border-yellow bg-yellow/10 px-4 py-3 text-sm text-ink">{figures.fieldNotice}</p>
+          )}
           <div className="grid min-w-max gap-px rounded-card border border-line bg-line" style={gridStyle}>
             <div className="bg-white" />
             {courses.map(course => (
-              <div key={course.id} className="flex flex-col gap-2 bg-white p-3">
+              <div key={course.id} className={`flex flex-col gap-2 bg-white p-3 ${figures.offField.includes(courses.indexOf(course)) ? 'ring-2 ring-inset ring-yellow' : ''}`}>
+                {figures.offField.includes(courses.indexOf(course)) && <span className="w-fit rounded-full bg-yellow/30 px-2 py-0.5 text-[11px] font-bold text-ink">Khác lĩnh vực</span>}
                 {course.image && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={course.image} alt="" className="aspect-[16/10] w-full rounded-lg object-cover" />

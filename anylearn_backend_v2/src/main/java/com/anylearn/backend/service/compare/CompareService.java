@@ -29,20 +29,39 @@ public class CompareService {
     private final UserRepository userRepository;
     private final ReviewService reviewService;
     private final ItemPointsResolver pointsResolver;
+    private final ItemCategoryRepository itemCategoryRepository;
+    private final TagRepository tagRepository;
 
     /** One column per visible course, in the order the parent picked them. `lat`/`lng` (optional) give the distance. */
     public Map<String, Object> compare(List<Long> ids, Double lat, Double lng) {
         List<Item> items = ids.isEmpty() ? List.of()
                 : itemRepository.findByIdsOrdered(ids, ids.stream().map(String::valueOf).collect(Collectors.joining(",")));
         List<Map<String, Object>> courses = new ArrayList<>();
-        for (Item item : items) courses.add(column(item, lat, lng));
+        List<CompareRules.Topic> topics = new ArrayList<>();
+        for (Item item : items) {
+            courses.add(column(item, lat, lng));
+            topics.add(topicOf(item));
+        }
 
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("courses", courses);
         result.put("best", best(courses));
+        CompareRules.FieldNotice notice = CompareRules.fieldNotice(topics);
+        result.put("fieldNotice", notice == null ? null : notice.text());
+        result.put("offField", notice == null ? List.of() : notice.off());
         result.put("mixedFormats", CompareRules.mixedFormats(courses.stream().map(c -> (String) c.get("subtype")).toList()));
         result.put("missing", ids.stream().filter(id -> items.stream().noneMatch(i -> i.getId().equals(id))).toList());
         return result;
+    }
+
+    /** Categories (shown) and categories + tags (matched, lower case) of a course. */
+    private CompareRules.Topic topicOf(Item item) {
+        List<String> categories = itemCategoryRepository.findCategoriesByItemId(item.getId()).stream()
+                .map(c -> String.valueOf(c.get("title"))).distinct().toList();
+        Set<String> keys = new LinkedHashSet<>();
+        categories.forEach(c -> keys.add(c.trim().toLowerCase(Locale.ROOT)));
+        tagRepository.findActiveNamesByItemId(item.getId()).forEach(t -> keys.add(t.trim().toLowerCase(Locale.ROOT)));
+        return new CompareRules.Topic(item.getTitle(), categories, keys);
     }
 
     private Map<String, Object> column(Item item, Double lat, Double lng) {
@@ -60,6 +79,7 @@ public class CompareService {
         col.put("image", item.getImage());
         col.put("seoUrl", item.getSeoUrl());
         col.put("subtype", item.getSubtype());
+        col.put("categories", itemCategoryRepository.findCategoriesByItemId(item.getId()).stream().map(c -> String.valueOf(c.get("title"))).distinct().limit(3).toList());
         col.put("partnerId", item.getUserId());
         col.put("partnerName", userRepository.findById(item.getUserId()).map(u -> u.getName()).orElse(null));
         col.put("price", item.getPrice());

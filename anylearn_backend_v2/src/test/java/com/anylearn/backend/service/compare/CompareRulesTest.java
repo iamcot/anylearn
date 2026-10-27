@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import com.anylearn.backend.service.compare.CompareRules.Topic;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -55,5 +56,31 @@ class CompareRulesTest {
         assertThat(CompareRules.scheduleLine("mon,wed", "18:00", "19:30")).isEqualTo("T2, T4 · 18:00-19:30");
         assertThat(CompareRules.scheduleLine(null, "9:00", null)).isEqualTo("9:00");
         assertThat(CompareRules.scheduleLine(null, null, null)).isEmpty();
+    }
+
+    private static Topic topic(String title, String category, String... tags) {
+        java.util.Set<String> keys = new java.util.LinkedHashSet<>();
+        if (category != null) keys.add(category.toLowerCase());
+        for (String t : tags) keys.add(t.toLowerCase());
+        return new Topic(title, category == null ? List.of() : List.of(category), keys);
+    }
+
+    @Test
+    void oneCourseOfAnotherFieldIsFlagged() {
+        var notice = CompareRules.fieldNotice(List.of(topic("Bơi A", "Thể thao"), topic("Bơi B", "Thể thao"), topic("Code C", "Lập trình")));
+        assertThat(notice.off()).containsExactly(2);
+        assertThat(notice.text()).contains("Code C").contains("Lập trình").contains("khác so với các khóa còn lại");
+    }
+
+    @Test
+    void sharedTagCountsAsRelated() {
+        assertThat(CompareRules.fieldNotice(List.of(topic("A", "Thể thao", "bóng đá"), topic("B", "Kỹ năng", "bóng đá")))).isNull();
+    }
+
+    @Test
+    void allDifferentIsSaidOnceAndUnknownIsNotDifferent() {
+        assertThat(CompareRules.fieldNotice(List.of(topic("A", "Thể thao"), topic("B", "Lập trình"))).text()).contains("lĩnh vực khác nhau");
+        assertThat(CompareRules.fieldNotice(List.of(topic("A", "Thể thao"), topic("B", null)))).isNull();
+        assertThat(CompareRules.fieldNotice(List.of(topic("A", "Thể thao")))).isNull();
     }
 }

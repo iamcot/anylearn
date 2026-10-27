@@ -150,4 +150,44 @@ public final class CompareRules {
         if (joined.isEmpty()) return time;
         return time.isEmpty() ? joined : joined + " · " + time;
     }
+
+    /** What a course is about, as the system knows it: its categories and tags (lower case, to match across courses). */
+    public record Topic(String title, List<String> categories, Set<String> keys) {}
+
+    /** The note above the table and the columns it points at (indexes into the list given). */
+    public record FieldNotice(String text, List<Integer> off) {}
+
+    /**
+     * Whether the picked courses are about the same field, from shared categories or tags (no AI, so it can be checked).
+     * Two courses are related when they share a category or a tag. A course related to none of the others is "off";
+     * nothing is said when the courses are all related or merely chained, or when a course has no category and no tag
+     * (unknown is not "different"). Returns null when there is nothing to say.
+     */
+    public static FieldNotice fieldNotice(List<Topic> topics) {
+        List<Integer> known = new ArrayList<>();
+        for (int i = 0; i < topics.size(); i++) if (!topics.get(i).keys().isEmpty()) known.add(i);
+        if (known.size() < 2) return null;
+        List<Integer> isolated = new ArrayList<>();
+        for (int i : known) {
+            boolean related = false;
+            for (int j : known) {
+                if (i != j && !Collections.disjoint(topics.get(i).keys(), topics.get(j).keys())) { related = true; break; }
+            }
+            if (!related) isolated.add(i);
+        }
+        if (isolated.isEmpty()) return null;
+        if (isolated.size() == known.size()) {
+            String text = known.size() == 2
+                    ? "Hai khóa này thuộc lĩnh vực khác nhau (" + describe(topics.get(known.get(0))) + " và " + describe(topics.get(known.get(1))) + "), nên số liệu chỉ để tham khảo."
+                    : "Các khóa này thuộc những lĩnh vực khác nhau, nên số liệu chỉ để tham khảo.";
+            return new FieldNotice(text, isolated);
+        }
+        List<String> names = isolated.stream().map(i -> "\"" + topics.get(i).title() + "\" (" + describe(topics.get(i)) + ")").toList();
+        return new FieldNotice((isolated.size() == 1 ? "Khóa " : "Các khóa ") + String.join(", ", names)
+                + " thuộc lĩnh vực khác so với các khóa còn lại.", isolated);
+    }
+
+    private static String describe(Topic topic) {
+        return topic.categories().isEmpty() ? "chưa rõ danh mục" : String.join(", ", topic.categories().stream().limit(2).toList());
+    }
 }

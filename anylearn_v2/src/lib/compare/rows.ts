@@ -21,6 +21,7 @@ function ratingText(course: CompareCourse): string | null {
 
 /** The rows of the table, in reading order. Figures only: nothing here scores or ranks a course. */
 export const COMPARE_ROWS: CompareRow[] = [
+  { key: 'categories', label: 'Lĩnh vực', cell: c => (c.categories.length ? c.categories.join(', ') : null) },
   { key: 'subtype', label: 'Hình thức', cell: c => (c.subtype ? SUBTYPE_LABELS[c.subtype] ?? c.subtype : null) },
   { key: 'price', label: 'Học phí', bestKey: 'price', cell: c => (c.price != null && c.price > 0 ? formatExactPrice(c.price) : null) },
   { key: 'sessions', label: 'Số buổi', cell: c => (c.sessions != null ? `${c.sessions} buổi` : null) },

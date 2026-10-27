@@ -6,6 +6,7 @@ export interface CompareCourse {
   image: string | null
   seoUrl: string | null
   subtype: string | null
+  categories: string[]
   partnerId: number | null
   partnerName: string | null
   price: number | null
@@ -28,6 +29,10 @@ export interface CompareFigures {
   /** Row key to the column index with the clearly best figure (lowest price, nearest...). Absent when tied or unknown. */
   best: Record<string, number>
   mixedFormats: boolean
+  /** Said when a course shares no category or tag with the others (from the system's own data, not the AI). */
+  fieldNotice: string | null
+  /** Column indexes the notice points at. */
+  offField: number[]
   missing: number[]
   factLabels: Record<string, string>
 }

@@ -492,4 +492,4 @@ Không có trang riêng trong admin. Phụ huynh bấm "So sánh" trên khóa h�
 - **Không chấm điểm, không xếp hạng.** Chỉ tô đậm giá trị tốt nhất của từng hàng (rẻ nhất, gần nhất) khi có khác biệt rõ.
 - **AI đọc mô tả:** phần "Ý chính trong mô tả khóa học" do AI rút ra từ mô tả khóa (phù hợp với ai, cách học, đã bao gồm, cần chuẩn bị, kết quả mong đợi), chỉ ghi lại điều mô tả nêu, mục không nêu thì trống. **Mô tả viết rõ các ý này thì bảng đầy đủ hơn.** Sửa mô tả thì AI đọc lại ở lần xem tiếp theo (mỗi khóa tốn một lần gọi AI cho tới khi mô tả đổi).
 - Dùng chung công tắc "Gợi ý AI" ở Cài đặt > Vận hành và khóa `ANTHROPIC_API_KEY`: tắt thì không đọc thêm khóa mới (các khóa đã đọc vẫn hiện).
-
+- **Cảnh báo khác lĩnh vực:** nếu một khóa không chung danh mục hoặc tag nào với các khóa còn lại, bảng so sánh ghi chú "khác lĩnh vực". Vì vậy cần gán đúng danh mục và tag cho khóa; khóa chưa có danh mục và tag thì không bị cảnh báo.

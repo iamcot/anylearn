@@ -3,7 +3,7 @@ import type { CompareCourse } from '@/lib/api/compare'
 import { visibleRows } from './rows'
 
 const base: CompareCourse = {
-  id: 1, title: 'A', image: null, seoUrl: null, subtype: 'offline', partnerId: 1, partnerName: 'P', price: 1_000_000, orgPrice: null,
+  id: 1, title: 'A', image: null, seoUrl: null, subtype: 'offline', categories: [], partnerId: 1, partnerName: 'P', price: 1_000_000, orgPrice: null,
   sessions: 10, pricePerSession: 100_000, schedules: ['T2 · 18:00-19:30'], dateStart: null, ages: null, distanceKm: null, branchCount: 1,
   ratingAverage: null, ratingCount: 0, freeTrial: false, points: 0,
 }
