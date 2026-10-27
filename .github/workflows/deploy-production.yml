@@ -107,6 +107,9 @@ jobs:
 
       - name: Build Next.js
         working-directory: anylearn_v2
+        env:
+          # The runner is the production box (4 GB shared): cap Node's heap so a build swaps less instead of starving everything.
+          NODE_OPTIONS: --max-old-space-size=1536
         run: |
           nice -n 19 npm run build
           [ -d ".next" ] || (echo "✗ .next not found after build" && exit 1)
