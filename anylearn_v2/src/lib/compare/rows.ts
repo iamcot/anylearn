@@ -53,7 +53,7 @@ export const COMPARE_ROWS: CompareRow[] = [
   { key: 'price', label: 'Học phí', icon: 'price', bestKey: 'price', cell: c => (c.price != null && c.price > 0 ? formatExactPrice(c.price) : null) },
   { key: 'sessions', label: 'Số buổi', icon: 'sessions', cell: c => (c.sessions != null ? `${c.sessions} buổi` : null) },
   { key: 'pricePerSession', label: 'Giá mỗi buổi', icon: 'perSession', bestKey: 'pricePerSession', cell: c => (c.pricePerSession != null ? `~${formatExactPrice(c.pricePerSession)}` : null) },
-  { key: 'classes', label: 'Ca học / số buổi', icon: 'classes', alwaysShow: true, cell: classesText },
+  { key: 'classes', label: 'Lịch học', icon: 'classes', alwaysShow: true, cell: classesText },
   { key: 'ages', label: 'Độ tuổi', icon: 'ages', cell: c => c.ages },
   { key: 'distanceKm', label: 'Khoảng cách', icon: 'distance', bestKey: 'distanceKm', cell: c => (c.distanceKm != null ? `${String(c.distanceKm).replace(".", ",")} km` + (c.branchCount > 1 ? ` (${c.branchCount} cơ sở)` : '') : null) },
   { key: 'rating', label: 'Đánh giá', icon: 'rating', cell: ratingText },
