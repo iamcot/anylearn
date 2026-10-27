@@ -31,7 +31,7 @@ function avatarOf(partner: NearbyPartner, size: string): HTMLElement {
     avatar.alt = ''
     return avatar
   }
-  return element('div', `grid ${size} shrink-0 place-items-center rounded-full bg-blue-soft font-extrabold text-blue`, partner.name.charAt(0).toUpperCase())
+  return element('div', `grid ${size} shrink-0 place-items-center rounded-full bg-blue-soft font-extrabold text-blue`, (partner.name ?? '?').charAt(0).toUpperCase())
 }
 
 function ratingLine(partner: NearbyPartner): HTMLElement | null {
@@ -140,12 +140,16 @@ export default function NearbyMapView({ center, radiusKm, backHref }: Props) {
       setStatus('ready')
     }
 
-    draw(node).catch(() => { if (!cancelled) setStatus('error') })
+    draw(node).catch(error => {
+      console.error('[nearby-map]', error)
+      if (!cancelled) setStatus('error')
+    })
     return () => { cancelled = true; markers.forEach(marker => { marker.map = null }) }
   }, [center.lat, center.lng, radiusKm, attempt])
 
   return (
-    <div className="fixed inset-0 z-[2000] flex flex-col bg-white">
+    // Inside the normal page: the site header stays on top and the tabs at the bottom; the map takes what is left.
+    <div className="flex h-[calc(100dvh-76px)] flex-col bg-white in-[.has-app-tabs]:max-lg:h-[calc(100dvh-76px-var(--app-tabs-h))]">
       <div className="flex items-center gap-2 border-b border-line px-3 py-2">
         <Link href={backHref} aria-label="Quay lại kết quả" className="grid size-11 shrink-0 place-items-center text-ink"><ChevronLeftIcon /></Link>
         <div className="min-w-0">
