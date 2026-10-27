@@ -211,9 +211,11 @@ SELECT f.item_id, GROUP_CONCAT(ELT(n.n - 1, 'mon', 'tue', 'wed', 'thu', 'fri', '
 FROM tmp_sched_found f JOIN tmp_n n ON n.n BETWEEN 2 AND 7
 WHERE f.day_text IS NOT NULL
   AND NOT (f.day_text REGEXP '(-|–|đến)' AND f.day_text REGEXP ',|và|/')
-  AND ( (f.day_text REGEXP '(-|–|đến)'
+  -- khoảng "thứ 2 - 6" = đúng 2 con số và có dấu nối; "thứ 2 - 4 - 6" (3 con số) là danh sách 2, 4, 6
+  AND ( (f.day_text REGEXP '(-|–|đến)' AND LENGTH(REGEXP_REPLACE(f.day_text, '[^2-7]', '')) = 2
           AND n.n BETWEEN CAST(REGEXP_SUBSTR(f.day_text, '[2-7]', 1, 1) AS UNSIGNED) AND CAST(REGEXP_SUBSTR(f.day_text, '[2-7]', 1, 2) AS UNSIGNED))
-     OR (NOT f.day_text REGEXP '(-|–|đến)' AND f.day_text REGEXP CONCAT('[^0-9]', n.n, '([^0-9]|$)')) )
+     OR (NOT (f.day_text REGEXP '(-|–|đến)' AND LENGTH(REGEXP_REPLACE(f.day_text, '[^2-7]', '')) = 2)
+         AND f.day_text REGEXP CONCAT('[^0-9]', n.n, '([^0-9]|$)')) )
 GROUP BY f.item_id;
 
 DROP TEMPORARY TABLE IF EXISTS tmp_sched_times;
