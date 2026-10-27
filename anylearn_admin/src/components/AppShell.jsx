@@ -2,7 +2,7 @@ import { Avatar, Badge, Dropdown, Flex, Layout, List, Menu, Popover, Spin, Typog
 import {
   AppstoreOutlined, BranchesOutlined, RobotOutlined, AuditOutlined, BankOutlined, CreditCardOutlined, BellOutlined, BookOutlined, CalendarOutlined, DashboardOutlined, DollarOutlined, FileTextOutlined,
   CustomerServiceOutlined, FundOutlined, LineChartOutlined, SearchOutlined, LogoutOutlined, MailOutlined, ApiOutlined, OrderedListOutlined, SettingOutlined, SolutionOutlined, SwapOutlined,
-  TeamOutlined, UserOutlined, MessageOutlined,
+  TeamOutlined, UserOutlined, MessageOutlined, CrownOutlined,
 } from '@ant-design/icons'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
@@ -29,6 +29,7 @@ const NAV_GROUPS = [
     { key: '/course-requests',  icon: <SearchOutlined />,      label: 'Nhờ tìm khóa học' },
     { key: '/price-reports',    icon: <DollarOutlined />,      label: 'Báo giá rẻ hơn' },
     { key: '/chat',             icon: <MessageOutlined />,     label: 'Chat lớp' },
+    { key: '/membership',       icon: <CrownOutlined />,       label: 'Hạng & gia đình' },
   ] },
   { key: 'g-courses', type: 'group', label: 'Khóa học', children: [
     { key: '/items',            icon: <BookOutlined />,        label: 'Khóa học'   },

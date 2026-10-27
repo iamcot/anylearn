@@ -17,6 +17,9 @@ export interface ChatMessage {
   mine: boolean
   name: string
   role: 'member' | 'moderator'
+  /** silver / gold / diamond when the author has a member tier. */
+  tier?: string
+  tierLabel?: string
   hidden: boolean
   body: string
   pinned: boolean

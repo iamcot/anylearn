@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { getWalletCHistory, type WalletTransaction } from '@/lib/api'
 import AccountCard from '@/components/account/AccountCard'
+import TierCard from '@/components/membership/TierCard'
 import Badge, { type BadgeTone } from '@/components/Badge'
 import { ListSkeleton } from '@/components/PageSkeleton'
 import { CoinIcon } from '@/components/icons'
@@ -66,6 +67,8 @@ export default function AnypointPage() {
           )}
         </div>
       </div>
+
+      <div className="border-b border-line p-4"><TierCard /></div>
 
       <h3 className="m-0 border-b border-line bg-bg px-5 py-2.5 text-sm font-extrabold text-ink">Lịch sử anyPoint</h3>
 

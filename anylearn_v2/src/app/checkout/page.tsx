@@ -38,8 +38,9 @@ function TotalRow({ label, value, discount = false }: { label: string; value: nu
 }
 
 // Where the person pays, amounts are exact ("1.500.000 đ"), never rounded to "1.5 triệu".
-function TotalsSummary({ subtotal, pointsDiscount, voucherDiscount, voucherCode, finalTotal, pointsToEarn }: {
+function TotalsSummary({ subtotal, familyDiscount, pointsDiscount, voucherDiscount, voucherCode, finalTotal, pointsToEarn }: {
   subtotal: number
+  familyDiscount: number
   pointsDiscount: number
   voucherDiscount: number
   voucherCode?: string
@@ -49,6 +50,7 @@ function TotalsSummary({ subtotal, pointsDiscount, voucherDiscount, voucherCode,
   return (
     <div className="flex flex-col gap-1.5 border-t border-line px-4 py-4 sm:px-5">
       <TotalRow label="Tạm tính" value={subtotal} />
+      {familyDiscount > 0 && <TotalRow label="Ưu đãi gia đình (bé thứ 2 trở lên)" value={familyDiscount} discount />}
       {pointsDiscount > 0 && <TotalRow label="Dùng anyPoint" value={pointsDiscount} discount />}
       {voucherDiscount > 0 && <TotalRow label={voucherCode ? `Mã ${voucherCode}` : 'Mã giảm giá'} value={voucherDiscount} discount />}
       <div className="mt-1 flex items-baseline justify-between gap-3 border-t border-dashed border-line pt-2.5">
@@ -106,7 +108,9 @@ export default function CheckoutPage() {
   if (isAuthLoading) return <FormPageSkeleton />
   if (!user) return null
 
-  const subtotal = items.reduce((sum, item) => sum + item.price, 0)
+  const grossSubtotal = items.reduce((sum, item) => sum + item.price, 0)
+  const familyDiscount = items.reduce((sum, item) => sum + (item.familyDiscount ?? 0), 0)
+  const subtotal = grossSubtotal - familyDiscount
   const walletPoints = user.walletC ?? 0
   const voucherValue = voucherResult?.discountValue ?? 0
   const maxPoints = maxUsablePoints(walletPoints, subtotal, voucherValue)
@@ -261,7 +265,8 @@ export default function CheckoutPage() {
               </div>
 
               <TotalsSummary
-                subtotal={subtotal}
+                subtotal={grossSubtotal}
+                familyDiscount={familyDiscount}
                 pointsDiscount={pointsDiscount}
                 voucherDiscount={voucherDiscount}
                 voucherCode={voucherResult?.code}

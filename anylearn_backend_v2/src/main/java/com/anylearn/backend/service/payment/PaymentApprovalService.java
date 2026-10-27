@@ -37,6 +37,9 @@ public class PaymentApprovalService {
     private final ItemScheduleRepository itemScheduleRepository;
     private final ItemRepository itemRepository;
     private final SessionSchedule sessionSchedule;
+    // Optional so tests that build the service by hand keep working.
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.anylearn.backend.service.membership.MemberTierService memberTierService;
 
     // Plan 07: order details for the confirmation email and the early-renewal bonus. Absent in unit tests.
     @org.springframework.beans.factory.annotation.Autowired(required = false)
@@ -108,6 +111,14 @@ public class PaymentApprovalService {
                 log.info("[approveOrder] approved commission tx {} type={} amt={} user={}",
                         commTx.getId(), commTx.getType(), commTx.getAmount(), commTx.getUserId());
             });
+        }
+
+        if (memberTierService != null) {
+            try {
+                userRepository.findById(order.getUserId()).ifPresent(buyer -> memberTierService.refresh(buyer.getId(), buyer.getRole()));
+            } catch (Exception e) {
+                log.warn("[approveOrder] tier refresh failed for order {}: {}", orderId, e.getMessage());
+            }
         }
 
         // Notify admins

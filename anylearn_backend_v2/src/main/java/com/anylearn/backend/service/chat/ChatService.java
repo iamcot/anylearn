@@ -32,6 +32,7 @@ public class ChatService {
     private final NotificationSseService sse;
     private final NotificationService notifications;
     private final UserRepository users;
+    private final com.anylearn.backend.service.membership.MemberTierService tiers;
 
     // ---------- membership ----------
 
@@ -191,6 +192,7 @@ public class ChatService {
         for (Map<String, Object> m : jdbc.queryForList("SELECT user_id, CONCAT(display_name, COALESCE(CONCAT(' · ', class_label), '')) AS display_name, role FROM chat_members WHERE room_id = ?", roomId)) {
             names.put(((Number) m.get("user_id")).longValue(), m);
         }
+        Map<Long, String> tierOf = tiers.tiersOf(names.keySet());
         Map<Long, Map<String, Object>> byId = new HashMap<>();
         for (Map<String, Object> r : rows) byId.put(((Number) r.get("id")).longValue(), r);
         List<Map<String, Object>> out = new ArrayList<>();
@@ -204,6 +206,11 @@ public class ChatService {
             m.put("mine", authorId == user.getId());
             m.put("name", author == null || author.get("display_name") == null ? "Thành viên" : author.get("display_name"));
             m.put("role", author == null ? ChatRules.ROLE_MEMBER : author.get("role"));
+            String tier = tierOf.get(authorId);
+            if (tier != null && !"member".equals(tier)) {
+                m.put("tier", tier);
+                m.put("tierLabel", com.anylearn.backend.service.membership.MemberTierRules.label(tier));
+            }
             m.put("hidden", hidden);
             m.put("body", hidden ? HIDDEN_TEXT : r.get("body"));
             m.put("pinned", flag(r.get("is_pinned")));

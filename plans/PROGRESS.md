@@ -517,3 +517,8 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 - Lượt mở PDP theo người dùng: bảng `item_view_days` (V42; một dòng cho mỗi người, khóa, ngày; giữ 60 ngày, dọn lúc 03:30), FE gọi `POST /api/item/{id}/view` khi đã đăng nhập. 5 khóa vừa xem trong 30 ngày được thêm vào prompt gợi ý AI. Lượt xem từ danh sách AI trong admin không đổi. Bảng `item_events` cũ (mỗi lượt một dòng, cả khách) vẫn giữ cho điểm phổ biến.
 
 - Đổi theo chủ sản phẩm (27/10/2026): phòng chat theo **khóa học** thay vì theo ca; không cần ca học; tên thành viên tự gắn thêm lớp đang học (`chat_members.class_label`), phụ huynh được báo trước khi vào. Sửa thẳng V43 vì chưa merge.
+
+### 27/10/2026 – hạng thành viên và ưu đãi gia đình (plan 10.2, 10.3)
+- Chủ sản phẩm bảo làm 10.2 (hạng thành viên) và 10.3 (gói gia đình), chấp nhận hệ số điểm làm tăng chi phí (mặc định x1,2 / x1,5 / x2, chỉnh được ở admin, đặt 1 là không thưởng). Ưu đãi gia đình: giảm % cho bé thứ 2 trở lên (mặc định 5%, 30 ngày), chưa theo đối tác và chưa có kiểu "thêm điểm".
+- Backend V44 `member_tiers`, `service/membership/*` (`MemberTierRules`, `FamilyDiscountRules` thuần + test), `CartService` (giảm giá dòng, hệ số điểm), `PaymentApprovalService` (tính lại hạng), `MembershipController`, `AdminMembershipController`. FE `TierCard`, dòng "Ưu đãi gia đình" ở checkout, huy hiệu hạng trong chat. Admin: trang "Hạng & gia đình".
+- Chưa làm: ưu tiên giữ chỗ, voucher sinh nhật, hỗ trợ ưu tiên (quyền lợi khác của 10.2), điểm thêm thay cho giảm giá, giảm theo đối tác. Chưa chạy với MySQL thật; `contextLoads` cần DB nên không chạy được ở đây.

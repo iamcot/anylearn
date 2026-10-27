@@ -472,3 +472,13 @@ Phụ huynh cùng một lớp (có bé đăng ký cùng một khóa học, kể 
 
 Hệ thống ghi mỗi người đã đăng nhập mở khóa nào, gộp theo ngày (một dòng cho mỗi người, khóa và ngày), giữ 60 ngày rồi tự xóa. Gợi ý AI dùng 5 khóa vừa xem trong 30 ngày làm một tín hiệu. Không có gì phải nhập hay cấu hình.
 
+
+### Hạng thành viên và ưu đãi gia đình
+
+Menu "Quản lý thành viên" > "Hạng & ưu đãi gia đình".
+
+- **Hạng thành viên:** Thành viên, Bạc, Vàng, Kim cương theo tổng tiền các đơn đã hoàn tất trong 12 tháng gần nhất. Chỉ tài khoản thành viên (không phải đối tác). Mặc định: Bạc từ 3.000.000đ, Vàng từ 10.000.000đ, Kim cương từ 30.000.000đ. Hạng tự tính lại mỗi đêm và mỗi khi một đơn của người đó được thanh toán; nút "Tính lại ngay" để tính cho mọi người.
+- **Quyền lợi hiện có:** hệ số nhân anyPoint khi mua (mặc định Bạc x1,2, Vàng x1,5, Kim cương x2). Hệ số chỉ áp cho phần anyPoint người mua tự nhận, không đổi điểm của đối tác hay người giới thiệu. **Hệ số làm tăng chi phí anyPoint**; đặt bằng 1 để không thưởng thêm. Trang khóa học vẫn hiện điểm cơ bản, giỏ hàng và đơn hiện điểm đã nhân. Phụ huynh thấy hạng, thanh tiến độ và "Còn X đ nữa lên hạng Y" ở đầu Tài khoản và trang anyPoint; trong nhóm chat lớp, hạng Bạc/Vàng/Kim cương hiện bên cạnh tên.
+- **Ưu đãi gia đình:** bé thứ 2 trở lên của cùng tài khoản được giảm % (mặc định 5%) khi đăng ký trong số ngày cài đặt (mặc định 30) kể từ lúc bé khác đăng ký, hoặc cùng một giỏ hàng. Bé đầu tiên không được giảm; đơn bị hủy không tính. Giỏ hàng hiện dòng "Ưu đãi gia đình", số tiền chuyển khoản trên đơn là số đã giảm. Đặt 0% hoặc tắt công tắc để dừng.
+- **Chưa có:** giảm theo từng đối tác, ưu tiên giữ chỗ, voucher sinh nhật, hỗ trợ ưu tiên.
+- Thay đổi ngưỡng có hiệu lực với lần tính lại tiếp theo (bấm "Tính lại ngay" để áp dụng luôn).

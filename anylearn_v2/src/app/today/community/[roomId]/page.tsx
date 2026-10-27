@@ -10,6 +10,7 @@ import {
   type ChatMessage, type ChatRoom,
 } from '@/lib/api/chat'
 import { chatDayLabel, formatChatTime, mergeMessages } from '@/lib/chat/format'
+import { TIER_STYLE } from '@/lib/membership/tier'
 
 const POLL_MS = 10000
 const btnGreen = 'inline-flex min-h-11 items-center justify-center rounded-full bg-green px-5 text-[15px] font-black text-white disabled:opacity-50'
@@ -64,6 +65,9 @@ function Bubble({ message, canModerate, onReply, onReport, onHide, onPin }: {
     <div className={`flex flex-col ${mine ? 'items-end' : 'items-start'}`}>
       <span className="mb-0.5 px-1 text-xs text-muted">
         {mine ? 'Bạn' : message.name}{message.role === 'moderator' && ' · Giáo viên / đối tác'}
+        {message.tier && (
+          <span className={`ml-1.5 rounded-full px-2 py-px text-[11px] font-extrabold ${TIER_STYLE[message.tier] ?? TIER_STYLE.member}`}>{message.tierLabel}</span>
+        )}
       </span>
       <button type="button" onClick={() => setOpen(value => !value)}
         className={`max-w-[85%] whitespace-pre-wrap break-words rounded-2xl px-3 py-2 text-left text-[15px] ${
