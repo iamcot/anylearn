@@ -27,6 +27,7 @@ export default function PathwayBlock({ itemId }: { itemId: number }) {
               <div className="mb-3">
                 <div className="text-base font-extrabold text-ink">{pathway.title}</div>
                 {pathway.subtitle && <div className="text-sm text-muted">{pathway.subtitle}</div>}
+                <Link href={`/pathway/${pathway.slug}`} className="text-sm font-bold text-blue no-underline">Xem toàn bộ lộ trình</Link>
               </div>
               <ol className="m-0 flex list-none flex-col gap-3 p-0 md:flex-row">
                 {pathway.steps.map(step => {

@@ -279,9 +279,17 @@ public class RecommendationService {
             map.put("source", candidate.source());
             map.put("reasonCode", candidate.reasonCode());
             map.put("reasonText", candidate.reasonText());
+            if (RecommendationRules.PATHWAY.equals(candidate.source())) map.put("pathwaySlug", pathwaySlugOf(candidate.itemId(), ctx.owned()));
             out.add(map);
         }
         return out;
+    }
+
+    /** The pathway page to open for a suggested course: the chain that holds a course the learner already has, else the first. */
+    private String pathwaySlugOf(Long itemId, Set<Long> owned) {
+        List<PathwayService.Chain> chains = pathwayService.chainsOf(itemId);
+        return chains.stream().filter(chain -> chain.itemIds().stream().anyMatch(owned::contains)).findFirst()
+                .or(() -> chains.stream().findFirst()).map(PathwayService.Chain::slug).orElse(null);
     }
 
     /** Courses a visitor could open (switched on, live partner) with the weekly slots of each of their classes. */

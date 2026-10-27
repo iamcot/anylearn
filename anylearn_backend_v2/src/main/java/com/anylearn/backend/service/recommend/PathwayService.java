@@ -141,14 +141,14 @@ public class PathwayService {
     }
 
     /** An active pathway a course is in, with its courses in order: the chain the engine walks. */
-    public record Chain(Long pathwayId, String title, List<Long> itemIds) {}
+    public record Chain(Long pathwayId, String slug, String title, List<Long> itemIds) {}
 
     public List<Chain> chainsOf(Long itemId) {
         List<Chain> chains = new ArrayList<>();
-        jdbc.queryForList("SELECT p.id, p.title FROM pathways p JOIN pathway_steps s ON s.pathway_id = p.id WHERE s.item_id = ? AND p.is_active = 1", itemId)
+        jdbc.queryForList("SELECT p.id, p.slug, p.title FROM pathways p JOIN pathway_steps s ON s.pathway_id = p.id WHERE s.item_id = ? AND p.is_active = 1", itemId)
                 .forEach(row -> {
                     Long pathwayId = ((Number) row.get("id")).longValue();
-                    chains.add(new Chain(pathwayId, String.valueOf(row.get("title")),
+                    chains.add(new Chain(pathwayId, String.valueOf(row.get("slug")), String.valueOf(row.get("title")),
                             jdbc.queryForList("SELECT item_id FROM pathway_steps WHERE pathway_id = ? ORDER BY step_no", Long.class, pathwayId)));
                 });
         return chains;

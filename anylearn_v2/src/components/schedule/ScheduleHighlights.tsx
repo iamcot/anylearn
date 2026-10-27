@@ -1,5 +1,6 @@
 'use client'
 
+import MissedBadge from './MissedBadge'
 import { useState } from 'react'
 import { ACTIVITY_LABELS } from '@/config/itemLabels'
 import type { CalendarEvent, Enrollment } from '@/lib/schedule/calendar'
@@ -69,6 +70,7 @@ function UpcomingGroup({ title, events, onSelect }: { title: string; events: Cal
           {event.kind === 'activity' && <span className="text-[11px] font-medium text-activity">{ACTIVITY_LABELS[event.data.type]}</span>}
           <span className="font-medium text-ink">{event.data.itemTitle}</span>
           {event.kind === 'enrollment' && event.data.timeStart && <span className="text-[11px] text-muted">{event.data.timeStart}</span>}
+          <MissedBadge event={event} />
         </button>
       ))}
     </div>

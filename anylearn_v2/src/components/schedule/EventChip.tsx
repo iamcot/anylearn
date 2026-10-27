@@ -1,4 +1,5 @@
 import type { CalendarEvent } from '@/lib/schedule/calendar'
+import MissedBadge from './MissedBadge'
 import { eventColorClass, eventLabel, pointOf, type SelectEvent } from './eventStyle'
 
 interface Props {
@@ -16,7 +17,7 @@ export default function EventChip({ event, onSelect, wrap = false }: Props) {
         wrap ? 'whitespace-normal' : 'truncate'
       }`}
     >
-      {eventLabel(event)}
+      <MissedBadge event={event} compact />{eventLabel(event)}
     </button>
   )
 }

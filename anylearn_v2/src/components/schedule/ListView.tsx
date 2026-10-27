@@ -1,3 +1,4 @@
+import MissedBadge from './MissedBadge'
 import { useMemo } from 'react'
 import { eventsOnDate, toISO, type Activity, type CalendarEvent, type Enrollment } from '@/lib/schedule/calendar'
 import { ACTIVITY_LABELS } from '@/config/itemLabels'
@@ -21,6 +22,7 @@ function ListRow({ event, onSelect }: { event: CalendarEvent; onSelect: SelectEv
       <span className={`size-2.5 shrink-0 rounded-full ${eventColorClass(event)}`} />
       {event.kind === 'activity' && <span className="shrink-0 text-xs font-medium text-activity">{ACTIVITY_LABELS[event.data.type] ?? event.data.type}</span>}
       <span className="flex-1 text-sm font-medium text-ink">{event.data.itemTitle}</span>
+      <MissedBadge event={event} />
       {time && <span className="shrink-0 text-xs text-subtle">{time}</span>}
     </button>
   )

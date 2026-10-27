@@ -12,6 +12,8 @@ export interface Recommendation {
   learnerId: number
   learnerName: string
   source: RecommendationSource
+  /** The pathway page to open, only for pathway suggestions. */
+  pathwaySlug?: string | null
   reasonCode: string
   reasonText: string
 }
@@ -42,10 +44,17 @@ export function dismissRecommendation(rec: Recommendation, token: string): Resul
 }
 
 export interface PathwayStep { stepNo: number; itemId: number; note: string | null; title: string; image: string | null; price: number | null; seoUrl: string | null; done: boolean }
-export interface Pathway { id: number; slug: string; title: string; subtitle: string | null; steps: PathwayStep[]; stepNo?: number }
+export interface Pathway { id: number; slug: string; title: string; subtitle: string | null; steps: PathwayStep[]; stepNo?: number; doneSteps?: number; totalSteps?: number }
 
 /** The pathways a course is part of (public); empty when it is in none. */
 export async function getItemPathways(itemId: number): Promise<Pathway[]> {
   const data = await apiFetch<Pathway[]>(`/items/${itemId}/pathway`, { cache: 'no-store' })
   return Array.isArray(data) ? data : []
+}
+
+/** One pathway with its steps; with a learner (and a token) each step says whether they already have it. */
+export async function getPathway(slug: string, learnerId: number | null, token: string | null): Promise<Pathway | null> {
+  const query = learnerId != null && token ? `?learnerId=${learnerId}` : ''
+  if (token) return (await authFetch<Pathway>(`/pathways/${encodeURIComponent(slug)}${query}`, token)).data
+  return apiFetch<Pathway>(`/pathways/${encodeURIComponent(slug)}`, { cache: 'no-store' })
 }

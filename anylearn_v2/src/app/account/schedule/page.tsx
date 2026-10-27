@@ -16,6 +16,7 @@ import MonthView from '@/components/schedule/MonthView'
 import WeekView from '@/components/schedule/WeekView'
 import ListView from '@/components/schedule/ListView'
 import EventPopup from '@/components/schedule/EventPopup'
+import { MissedContext } from '@/components/schedule/MissedBadge'
 import type { SelectEvent } from '@/components/schedule/eventStyle'
 import type { CalendarEvent } from '@/lib/schedule/calendar'
 
@@ -33,6 +34,8 @@ function navigationLabel(period: Period, date: Date, from: string, to: string) {
     new Date(`${iso}T00:00:00`).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', ...(withYear ? { year: 'numeric' } : {}) })
   return `${short(from, false)} – ${short(to, true)}`
 }
+
+const nowTime = () => new Date().toTimeString().substring(0, 5)
 
 export default function SchedulePage() {
   const { user } = useAuth()
@@ -116,7 +119,10 @@ export default function SchedulePage() {
   const pending = shownEnrollments.filter(e => e.status === 'pending')
   const hasAnything = shownEnrollments.some(e => e.status === 'active') || pending.length > 0 || shownActivities.length > 0
 
+  const isMissed = (event: CalendarEvent) => attendanceState(event, attended, toISO(new Date()), nowTime()) === 'markable'
+
   return (
+    <MissedContext.Provider value={isMissed}>
     <AccountCard title="Lịch học">
       {loading ? (
         <div className="p-5"><ListSkeleton showTitle={false} /></div>
@@ -162,8 +168,9 @@ export default function SchedulePage() {
 
       {selected && (
         <EventPopup event={selected.event} position={selected.position} onClose={() => setSelected(null)} onCancelActivity={handleCancelActivity}
-          attendance={attendanceState(selected.event, attended, toISO(new Date()))} onMarkAttended={markAttended} />
+          attendance={attendanceState(selected.event, attended, toISO(new Date()), nowTime())} onMarkAttended={markAttended} />
       )}
     </AccountCard>
+    </MissedContext.Provider>
   )
 }

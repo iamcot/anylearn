@@ -49,6 +49,11 @@ export default function RecommendationCard({ rec, context, token, onHidden }: Pr
         >
           Xem khóa học
         </Link>
+        {rec.pathwaySlug && (
+          <Link href={`/pathway/${rec.pathwaySlug}?child=${rec.learnerId}`} className="text-sm font-bold text-blue no-underline">
+            Xem toàn bộ lộ trình
+          </Link>
+        )}
         <button type="button" onClick={hide} className="min-h-11 px-2 text-sm font-semibold text-muted hover:text-ink">
           Không quan tâm
         </button>

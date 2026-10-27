@@ -208,10 +208,12 @@ export function eventsOnDate(enrollments: Enrollment[], activities: Activity[], 
 const ATTENDANCE_WINDOW_DAYS = 120
 
 /** What the calendar can do about attendance for an event: nothing, show "attended", or offer the mark. */
-export function attendanceState(event: CalendarEvent, attended: Set<string>, todayIso: string): 'none' | 'attended' | 'markable' {
+export function attendanceState(event: CalendarEvent, attended: Set<string>, todayIso: string, nowTime?: string): 'none' | 'attended' | 'markable' {
   if (event.kind !== 'enrollment' || !event.date || !event.data.scheduleId || event.data.learnerId == null) return 'none'
   if (event.data.scheduleType !== 'recurring' && event.data.scheduleType !== 'event') return 'none'
   if (event.date > todayIso) return 'none'
+  // Today's class that has not started yet cannot be marked (the API refuses it too).
+  if (event.date === todayIso && nowTime && event.data.timeStart && event.data.timeStart.substring(0, 5) > nowTime) return 'none'
   if (attended.has(attendanceKey(event.data.learnerId, event.data.scheduleId, event.date))) return 'attended'
   const oldest = new Date(`${todayIso}T00:00:00`)
   oldest.setDate(oldest.getDate() - ATTENDANCE_WINDOW_DAYS)

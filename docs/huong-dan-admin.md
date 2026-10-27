@@ -258,7 +258,7 @@ Trang khóa học hiện: điểm trung bình, số đánh giá, tỉ lệ từn
 
 Phụ huynh thấy tối đa **một thẻ gợi ý mỗi ngày** ở trang Hôm nay của từng bé, và gợi ý cho các bé còn lại ở trang đơn hàng thành công. Mọi gợi ý đều có **lý do** hiển thị ("Bin đang học Tiếng Anh 2, bước tiếp theo của lộ trình Tiếng Anh là Tiếng Anh 3") và nút **Không quan tâm** (ẩn khóa đó cho bé trong số ngày đặt ở mục 8, mặc định 30). Không gợi ý khóa bé đã mua, khóa không hợp tuổi, khóa trùng giờ với lịch đang học.
 
-**Lộ trình** (menu Khóa học > **Lộ trình & gợi ý**): admin tạo chuỗi khóa có thứ tự, ví dụ "Bóng đá U13 → U15 → U17". Tên, mô tả, ảnh, rồi tìm khóa và thêm bằng khung "tìm khóa + tick" như Bộ sưu tập, sắp xếp bằng mũi tên, mỗi bước có ghi chú. Cần ít nhất 2 bước. Bé học (hoặc đã học) một bước sẽ được gợi ý bước kế tiếp mà bé chưa có; khi gói sắp hết buổi, tin nhắc gia hạn cũng nêu bước tiếp theo. Tiến độ của bé không phải nhập: bước nào bé có đơn hoặc lớp thì tính là đã có. Tắt công tắc "Đang dùng" để lộ trình ngừng gợi ý.
+**Lộ trình** (menu Khóa học > **Lộ trình & gợi ý**): admin tạo chuỗi khóa có thứ tự, ví dụ "Bóng đá U13 → U15 → U17". Tên, mô tả, ảnh, rồi tìm khóa và thêm bằng khung "tìm khóa + tick" như Bộ sưu tập, sắp xếp bằng mũi tên, mỗi bước có ghi chú. Cần ít nhất 2 bước. Bé học (hoặc đã học) một bước sẽ được gợi ý bước kế tiếp mà bé chưa có; khi gói sắp hết buổi, tin nhắc gia hạn cũng nêu bước tiếp theo. Tiến độ của bé không phải nhập: bước nào bé có đơn hoặc lớp thì tính là đã có. Tắt công tắc "Đang dùng" để lộ trình ngừng gợi ý. Khách xem trọn lộ trình (từng bước, bước nào bé đã có) ở trang `/pathway/<đường dẫn>`, mở từ thẻ gợi ý "Xem toàn bộ lộ trình" và từ khối "Lộ trình học" trên trang khóa học.
 
 **5 loại gợi ý** (tắt/bật ở Cài đặt > Vận hành > Gợi ý khóa học):
 
@@ -314,7 +314,7 @@ Cùng trang cài đặt, thẻ **Vòng đời học viên**. Mọi tin gửi **c
 | Thưởng anyPoint khi điểm danh đủ | Tặng một lần cho tài khoản phụ huynh khi bé có mặt đủ mọi buổi của khóa (khóa đã kết thúc hết số buổi đã mua); buổi xin nghỉ được duyệt không tính là có mặt. 0 = tắt | 0 |
 | Tặng anyPoint khi gia hạn sớm | Tặng khi phụ huynh bấm Gia hạn lúc gói / kỳ cũ còn hiệu lực và đơn được thanh toán; mỗi lần gia hạn một lần. 0 = tắt | 0 |
 
-**Điểm danh**: phụ huynh bấm "Đã đến lớp" cho buổi hôm nay trên trang Hôm nay, hoặc cho buổi quá khứ (120 ngày gần nhất) bằng cách bấm vào buổi học trong **Tài khoản > Lịch học** rồi "Đánh dấu đã đến lớp". Admin điểm danh (và bỏ điểm danh) ở menu **Theo dõi lịch học**, cột **Điểm danh** của từng buổi đã diễn ra. Điểm danh là căn cứ của báo vắng học và thưởng đủ buổi, nên nên kiểm tra lại khi bật thưởng.
+**Điểm danh**: phụ huynh bấm "Đã đến lớp" cho buổi hôm nay trên trang Hôm nay, hoặc cho buổi quá khứ (120 ngày gần nhất) bằng cách bấm vào buổi học trong **Tài khoản > Lịch học** rồi "Đánh dấu đã đến lớp". Trang Hôm nay của phụ huynh có khối **Buổi chưa điểm danh** (3 buổi gần nhất trong 30 ngày chưa ai điểm danh, nút "Điểm danh bù"), và trong Lịch học các buổi đó có nhãn "Chưa điểm danh". Admin điểm danh (và bỏ điểm danh) ở menu **Theo dõi lịch học**, cột **Điểm danh** của từng buổi đã diễn ra. Điểm danh là căn cứ của báo vắng học và thưởng đủ buổi, nên nên kiểm tra lại khi bật thưởng.
 
 Lưu ý: nút **Gia hạn** ở trang Hôm nay thêm đúng khóa, đúng bé, đúng lớp vào giỏ rồi mở trang thanh toán; nếu lớp đã đóng đăng ký thì mở trang chọn lại. Khoản tặng hiện trong lịch sử anyPoint của khách là "Thưởng gia hạn sớm". Danh sách mẫu ZNS cần đăng ký: `docs/zns-templates.md`.
 
