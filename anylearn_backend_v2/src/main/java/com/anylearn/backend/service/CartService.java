@@ -68,7 +68,7 @@ public class CartService {
         Object enrichedItem = enrichedList.isEmpty() ? Map.of(
                 "id", item.getId(), "title", item.getTitle(), "price", item.getPrice(),
                 "orgPrice", item.getOrgPrice(), "image", item.getImage(),
-                "dateStart", item.getDateStart(), "nolimitTime", item.getNolimitTime()
+                "dateStart", java.util.Objects.toString(item.getDateStart(), ""), "nolimitTime", item.getNolimitTime()
         ) : enrichedList.get(0);
 
         List<User> children = userRepository.findByUserIdAndIsChild(currentUser.getId(), (byte) 1);

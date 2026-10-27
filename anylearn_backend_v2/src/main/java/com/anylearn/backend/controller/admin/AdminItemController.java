@@ -75,7 +75,6 @@ public class AdminItemController {
         item.setIsTest((byte) 0);
         item.setNolimitTime("1");
         item.setAllowReRegister((byte) 0);
-        item.setDateStart(LocalDate.now());
         item.setCreatedAt(LocalDateTime.now());
 
         var saved = itemRepository.save(item);
@@ -276,7 +275,7 @@ public class AdminItemController {
             if (body.containsKey("boostScore")) item.setBoostScore(toNum(body.get("boostScore")).intValue());
             if (body.containsKey("itemCategoryId")) item.setItemCategoryId(toNum(body.get("itemCategoryId")).intValue());
             // schedule
-            if (body.containsKey("dateStart") && body.get("dateStart") != null) item.setDateStart(LocalDate.parse((String) body.get("dateStart")));
+            if (body.containsKey("dateStart")) item.setDateStart(body.get("dateStart") == null ? null : LocalDate.parse((String) body.get("dateStart")));
             if (body.containsKey("dateEnd")) item.setDateEnd(body.get("dateEnd") == null ? null : LocalDate.parse((String) body.get("dateEnd")));
             if (body.containsKey("timeStart")) item.setTimeStart((String) body.get("timeStart"));
             if (body.containsKey("timeEnd")) item.setTimeEnd((String) body.get("timeEnd"));

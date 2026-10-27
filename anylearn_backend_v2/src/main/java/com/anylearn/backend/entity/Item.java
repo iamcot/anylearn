@@ -56,7 +56,7 @@ public class Item {
     @Column(name = "got_bonus", nullable = false)
     private Byte gotBonus;
 
-    @Column(name = "date_start", nullable = false)
+    @Column(name = "date_start")
     private LocalDate dateStart;
 
     @Column(name = "time_start")

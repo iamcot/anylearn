@@ -265,6 +265,21 @@ INSERT INTO item_autofill_log (batch, item_id, field, old_value, new_value)
 SELECT @batch, i.id, 'sessions', CONCAT(COALESCE(i.cycle_type, ''), ':', COALESCE(i.cycle_amount, '')), CONCAT('session:', t.n) FROM tmp_sessions t JOIN items i ON i.id = t.id;
 UPDATE items i JOIN tmp_sessions t ON t.id = i.id SET i.cycle_type = 'session', i.cycle_amount = t.n;
 
+-- B14. Làm sạch ngày/giờ bắt đầu ở cấp khóa học (items.date_start, time_start, time_end, date_end).
+--      Các trường này vô nghĩa: date_start bị code tự dời +15/+30 ngày mỗi lần xem khóa, time_start/time_end hiếm khi có.
+--      Ngày khai giảng thật nằm ở ca học (item_schedules). Cần V46 (date_start cho phép NULL) đã chạy trước khi chạy khối này.
+--      Khóa có ngày khai giảng tương lai mà chưa có ca nào: liệt kê để đối tác chuyển sang ca học (dữ liệu cũ vẫn còn trong items_bak_n1).
+SELECT 'B14 khóa đang bật có ngày bắt đầu nhưng chưa có ca học (đối tác cần tạo ca)' AS preview, i.id, i.title, i.date_start, i.user_id
+FROM items i
+WHERE i.status = 1 AND i.user_status = 1 AND i.is_test = 0 AND i.date_start >= CURDATE()
+  AND NOT EXISTS (SELECT 1 FROM item_schedules s WHERE s.item_id = i.id AND s.status = 1)
+ORDER BY i.date_start, i.id;
+INSERT INTO item_autofill_log (batch, item_id, field, old_value, new_value)
+SELECT @batch, id, 'item_dates', CONCAT_WS('|', date_start, time_start, time_end, date_end), NULL
+FROM items WHERE date_start IS NOT NULL OR time_start IS NOT NULL OR time_end IS NOT NULL OR date_end IS NOT NULL;
+UPDATE items SET date_start = NULL, time_start = NULL, time_end = NULL, date_end = NULL
+WHERE date_start IS NOT NULL OR time_start IS NOT NULL OR time_end IS NOT NULL OR date_end IS NOT NULL;
+
 -- B12. Báo cáo cuối: những gì đã tự điền và những gì còn thiếu cho khóa đang hiển thị
 SELECT field, COUNT(*) AS rows_changed FROM item_autofill_log WHERE batch = @batch GROUP BY field ORDER BY field;
 SELECT
@@ -277,7 +292,7 @@ SELECT
 FROM items i JOIN users u ON u.id = i.user_id
 WHERE i.is_test = 0 AND i.status = 1 AND i.user_status = 1 AND u.status = 1 AND u.is_signed = 99;
 
--- Đổi ROLLBACK thành COMMIT khi đã xem xong các bảng xem trước (B5, B7, B8, B9, B10, B11, B13) và hài lòng.
+-- Đổi ROLLBACK thành COMMIT khi đã xem xong các bảng xem trước (B5, B7, B8, B9, B10, B11, B13, B14) và hài lòng.
 ROLLBACK;
 -- COMMIT;
 
@@ -292,6 +307,7 @@ ROLLBACK;
 -- DELETE FROM items_categories; INSERT INTO items_categories SELECT * FROM items_categories_bak_n1;
 -- DELETE FROM item_locations;  INSERT INTO item_locations  SELECT * FROM item_locations_bak_n1;
 -- UPDATE users u JOIN users_partner_type_bak_n1 b ON b.id = u.id SET u.partner_type = b.partner_type;
+-- UPDATE items i JOIN items_bak_n1 b ON b.id = i.id SET i.date_start = b.date_start, i.time_start = b.time_start, i.time_end = b.time_end, i.date_end = b.date_end;  -- B14
 -- Ca học linh hoạt đã tạo (B11) là các dòng mới, xóa theo nhật ký:
 -- DELETE s FROM item_schedules s JOIN item_autofill_log l ON l.item_id = s.item_id AND l.batch = 'n1' AND l.field = 'schedule'
 --  WHERE s.title = 'Ca linh hoạt' AND s.schedule_type = 'open';
