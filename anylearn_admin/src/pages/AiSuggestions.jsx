@@ -34,7 +34,7 @@ export default function AiSuggestions() {
       )}
 
       <Row gutter={[16, 16]}>
-        <Col xs={12} md={6}><Card loading={isLoading}><Statistic title="Lần gọi AI" value={s?.suggestions ?? 0} suffix={s?.fallbacks ? `(${s.fallbacks} lỗi, dùng luật)` : } /></Card></Col>
+        <Col xs={12} md={6}><Card loading={isLoading}><Statistic title="Lần gọi AI" value={s?.suggestions ?? 0} suffix={s?.fallbacks ? `(${s.fallbacks} lỗi, dùng luật)` : undefined} /></Card></Col>
         <Col xs={12} md={6}><Card loading={isLoading}><Statistic title="Số bé / người học" value={s?.learners ?? 0} /></Card></Col>
         <Col xs={12} md={6}><Card loading={isLoading}><Statistic title="Token gửi đi" value={s?.inputTokens ?? 0} /></Card></Col>
         <Col xs={12} md={6}><Card loading={isLoading}><Statistic title="Token nhận về" value={s?.outputTokens ?? 0} /></Card></Col>
