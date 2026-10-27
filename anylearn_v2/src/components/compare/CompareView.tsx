@@ -39,9 +39,11 @@ export default function CompareView() {
   const figuresKey = `${idsKey}|${point ? `${point.lat},${point.lng}` : ''}`
   const [figuresAnswer, setFiguresAnswer] = useState<{ key: string; data: CompareFigures | null } | null>(null)
   const [highlightsAnswer, setHighlightsAnswer] = useState<{ key: string; data: CompareHighlights | null } | null>(null)
-  const figures = figuresAnswer?.key === figuresKey ? figuresAnswer.data : null
+  const [retry, setRetry] = useState(0)
+  const requestKey = `${figuresKey}#${retry}`
+  const figures = figuresAnswer?.key === requestKey ? figuresAnswer.data : null
   const highlights = highlightsAnswer?.key === idsKey ? (highlightsAnswer.data ?? { enabled: false, courses: {} }) : null
-  const loading = ids.length > 0 && figuresAnswer?.key !== figuresKey
+  const loading = ids.length > 0 && figuresAnswer?.key !== requestKey
 
   useEffect(() => {
     if (!token) return
@@ -56,10 +58,14 @@ export default function CompareView() {
   useEffect(() => {
     if (ids.length === 0) return
     let alive = true
-    getCompareFigures(ids, point).then(data => { if (alive) setFiguresAnswer({ key: figuresKey, data }) })
+    getCompareFigures(ids, point).then(async first => {
+      // One quiet retry: a first call often fails while the server is waking up.
+      const data = first ?? await getCompareFigures(ids, point)
+      if (alive) setFiguresAnswer({ key: requestKey, data })
+    })
     return () => { alive = false }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [figuresKey])
+  }, [figuresKey, retry])
 
   useEffect(() => {
     if (ids.length === 0) return
@@ -92,7 +98,16 @@ export default function CompareView() {
       )}
 
       {ids.length > 0 && loading && <p className="mt-6 text-muted">Đang lấy số liệu…</p>}
-      {!loading && ids.length > 0 && courses.length === 0 && <p className="mt-6 text-muted">Không tìm thấy các khóa đã chọn (có thể đã ngừng hiển thị).</p>}
+      {!loading && ids.length > 0 && figures === null && (
+        <div className="mt-6 text-muted">
+          <p className="m-0">Chưa lấy được số liệu (đường truyền hoặc máy chủ đang bận). Các khóa bạn chọn vẫn được giữ.</p>
+          <button type="button" onClick={() => setRetry(n => n + 1)} className="mt-3 inline-flex min-h-11 cursor-pointer items-center rounded-full border-0 bg-green px-5 text-sm font-black text-white hover:bg-green-dark">Thử lại</button>
+        </div>
+      )}
+      {!loading && figures && courses.length === 0 && <p className="mt-6 text-muted">Không tìm thấy các khóa đã chọn (có thể đã ngừng hiển thị).</p>}
+      {!loading && figures && courses.length > 0 && figures.missing.length > 0 && (
+        <p className="mt-4 text-sm text-muted">{figures.missing.length} khóa đã chọn không còn hiển thị nên không có trong bảng.</p>
+      )}
 
       {courses.length > 0 && figures && (
         <div className="mt-5 overflow-x-auto">

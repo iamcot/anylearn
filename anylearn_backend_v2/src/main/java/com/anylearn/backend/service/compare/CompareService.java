@@ -9,6 +9,7 @@ import com.anylearn.backend.service.search.Geo;
 import com.anylearn.backend.service.search.ItemSearchAttributes;
 import com.anylearn.backend.service.search.SessionCounts;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -19,6 +20,7 @@ import java.util.stream.Collectors;
  * The figures of the comparison page (plan 04.6): only what the partner entered or the system counts, never a score.
  * A value that cannot be told is null and the page writes "Chưa có thông tin".
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CompareService {
@@ -39,8 +41,15 @@ public class CompareService {
         List<Map<String, Object>> courses = new ArrayList<>();
         List<CompareRules.Topic> topics = new ArrayList<>();
         for (Item item : items) {
-            courses.add(column(item, lat, lng));
-            topics.add(topicOf(item));
+            try {
+                Map<String, Object> col = column(item, lat, lng);
+                CompareRules.Topic topic = topicOf(item);
+                courses.add(col);
+                topics.add(topic);
+            } catch (RuntimeException e) {
+                // One odd course must not blank the whole page.
+                log.warn("Compare: course {} skipped: {}", item.getId(), e.toString());
+            }
         }
 
         Map<String, Object> result = new LinkedHashMap<>();
@@ -50,7 +59,7 @@ public class CompareService {
         result.put("fieldNotice", notice == null ? null : notice.text());
         result.put("offField", notice == null ? List.of() : notice.off());
         result.put("mixedFormats", CompareRules.mixedFormats(courses.stream().map(c -> (String) c.get("subtype")).toList()));
-        result.put("missing", ids.stream().filter(id -> items.stream().noneMatch(i -> i.getId().equals(id))).toList());
+        result.put("missing", ids.stream().filter(id -> courses.stream().noneMatch(c -> id.equals(c.get("id")))).toList());
         return result;
     }
 
@@ -81,7 +90,7 @@ public class CompareService {
         col.put("subtype", item.getSubtype());
         col.put("categories", itemCategoryRepository.findCategoriesByItemId(item.getId()).stream().map(c -> String.valueOf(c.get("title"))).distinct().limit(3).toList());
         col.put("partnerId", item.getUserId());
-        col.put("partnerName", userRepository.findById(item.getUserId()).map(u -> u.getName()).orElse(null));
+        col.put("partnerName", item.getUserId() == null ? null : userRepository.findById(item.getUserId()).map(u -> u.getName()).orElse(null));
         col.put("price", item.getPrice());
         col.put("orgPrice", item.getOrgPrice() != null && item.getPrice() != null && item.getOrgPrice() > item.getPrice() ? item.getOrgPrice() : null);
         col.put("sessions", sessions);
@@ -111,9 +120,10 @@ public class CompareService {
         if (lat == null || lng == null || locations.isEmpty()) return null;
         double nearest = Double.MAX_VALUE;
         for (Map<String, Object> branch : locations) {
+            if (!(branch.get("lat") instanceof Number) || !(branch.get("lng") instanceof Number)) continue;
             nearest = Math.min(nearest, Geo.distanceKm(lat, lng, ((Number) branch.get("lat")).doubleValue(), ((Number) branch.get("lng")).doubleValue()));
         }
-        return Math.round(nearest * 10) / 10.0;
+        return nearest == Double.MAX_VALUE ? null : Math.round(nearest * 10) / 10.0;
     }
 
     /** Per row, the index of the best figure (lowest price, nearest, most reviews are never ranked), only when it is a clear one. */
