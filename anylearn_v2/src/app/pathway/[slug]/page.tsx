@@ -2,14 +2,14 @@
 
 import Link from 'next/link'
 import { Suspense, useCallback, useEffect, useState } from 'react'
-import { useParams, useRouter, useSearchParams } from 'next/navigation'
+import { useParams, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { getCourseUrl } from '@/lib/api'
 import { getPathway, restartPathwayStep, type Pathway, type PathwayCourse, type PathwayStep } from '@/lib/api/recommendations'
 import { getLearners } from '@/lib/today/api'
 import type { LearnerView } from '@/lib/today/types'
 import { formatMoney } from '@/lib/today/format'
-import { ChevronLeftIcon } from '@/components/icons'
+import HistoryBackButton from '@/components/HistoryBackButton'
 import { ListSkeleton } from '@/components/PageSkeleton'
 
 const TAG = 'rounded-full px-2 py-0.5 text-[11px] font-bold'
@@ -75,7 +75,6 @@ function StepRow({ step, canRestart, onRestart }: { step: PathwayStep; canRestar
 
 function PathwayView() {
   const { slug } = useParams<{ slug: string }>()
-  const router = useRouter()
   const wantedChild = Number(useSearchParams().get('child')) || null
   const { token, isAuthLoading } = useAuth()
   const [learners, setLearners] = useState<LearnerView[]>([])
@@ -113,8 +112,6 @@ function PathwayView() {
   }
 
   const hasLearner = learnerId != null && learners.some(learner => learner.id === learnerId)
-  // Back to the page the person came from; with no history (a pasted link) the home page.
-  const goBack = () => (window.history.length > 1 ? router.back() : router.push('/'))
   async function restart(stepNo: number) {
     if (!token || learnerId == null) return
     setError('')
@@ -125,10 +122,7 @@ function PathwayView() {
 
   return (
     <div className="container py-6 lg:py-10">
-      <button type="button" onClick={goBack} className="inline-flex min-h-11 cursor-pointer items-center gap-0.5 border-0 bg-transparent p-0 text-sm font-bold text-green-dark hover:underline">
-        <ChevronLeftIcon className="-ml-1 size-5" />
-        Quay lại
-      </button>
+      <HistoryBackButton />
       <header className="mb-5 mt-3">
         <h1 className="m-0 text-2xl font-extrabold text-ink lg:text-3xl">{pathway.title}</h1>
         {pathway.subtitle && <p className="m-0 mt-1 text-muted">{pathway.subtitle}</p>}
