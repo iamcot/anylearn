@@ -17,6 +17,10 @@ export default function AnyPointInfoPage() {
           và dùng anyPoint đó để giảm tiền cho khóa học tiếp theo của bé hoặc của chính bạn.
         </p>
         <HowToEarn />
+        <p className="mt-6 text-sm text-text">
+          anyPoint nhận từ khóa học có hạn dùng.{' '}
+          <Link href="/info/anypoint-expiry" className="font-medium text-green-dark">Xem hạn dùng anyPoint</Link>
+        </p>
         <div className="mt-8 flex flex-wrap gap-3">
           <Link href="/search" className="btn btn--green no-underline">Tìm khóa học</Link>
           <Link href="/account/anypoint" className="btn btn--outline no-underline">Xem anyPoint của tôi</Link>

@@ -458,3 +458,17 @@ Phụ huynh cùng một lớp (có bé đăng ký cùng ca học) trao đổi tr
 - **Tab "Người bị khóa chat"** để mở khóa. **Tab "Cài đặt":** bật/tắt chat toàn hệ thống, đối tác có tự là người kiểm duyệt không, số tin tối đa mỗi phút (mặc định 20), số ngày còn đọc được sau khi hết khóa (mặc định 30), danh sách từ cấm (tin chứa từ cấm không gửi được), và nội quy hiện khi vào nhóm lần đầu.
 - Nội quy mặc định: chỉ chủ đề học, tôn trọng nhau không đả kích, không tôn giáo, chính trị, không quảng cáo/chèo kéo, không chia sẻ số điện thoại, địa chỉ, ảnh trẻ. Câu chữ điều khoản sử dụng cho phần cộng đồng cần chủ sản phẩm duyệt.
 - Có hiệu lực ngay, không cần lập lại chỉ mục. Chưa có: gửi ảnh, tắt tiếng từng nhóm, gộp thông báo tin mới.
+
+### Hạn dùng anyPoint
+
+Điểm của thành viên mua khóa học có hạn dùng; điểm của đối tác không bao giờ hết hạn. Khách đọc giải thích ở trang `/info/anypoint-expiry` và thấy dòng "X anyPoint dùng được đến hết ngày …" dưới số dư ở Tài khoản > anyPoint.
+
+- **Nhập ở đâu:** Cài đặt > Vận hành > nhóm "Hạn dùng anyPoint": công tắc **Bật hạn dùng**, **Hạn dùng (tháng)** (mặc định 12), **Bắt đầu tính hạn từ ngày** (mặc định 01/01/2027).
+- **Luật:** mỗi lần nhận điểm là một phần riêng, hết hạn sau số tháng kể từ ngày nhận; điểm nhận trước ngày bắt đầu cũng tính từ ngày bắt đầu. Với mặc định, sớm nhất đến 01/01/2028 mới có điểm bị xóa (dùng được đến hết 31/12/2027). Khi thanh toán, hệ thống dùng phần điểm sắp hết hạn trước. Điểm đơn bị hủy hoàn lại được tính là phần mới.
+- **Hằng ngày lúc 00:10:** điểm quá hạn bị xóa (xuất hiện dòng "anyPoint hết hạn" trong lịch sử, thành viên nhận thông báo); thành viên được nhắc trước 30 ngày và 7 ngày (thông báo trong app + push, tắt được ở Tài khoản > Thông báo > "Nhắc anyPoint sắp hết hạn").
+- **Sau khi đổi:** có hiệu lực ngay cho cả điểm đang có (đổi số tháng hoặc ngày bắt đầu là đổi hạn của mọi phần điểm). Tắt công tắc thì ngừng xóa và ngừng nhắc, điểm không bị mất. Điểm đã bị xóa không tự khôi phục: cần cộng bù tay.
+
+### Lượt mở trang khóa học theo người dùng
+
+Hệ thống ghi mỗi người đã đăng nhập mở khóa nào, gộp theo ngày (một dòng cho mỗi người, khóa và ngày), giữ 60 ngày rồi tự xóa. Gợi ý AI dùng 5 khóa vừa xem trong 30 ngày làm một tín hiệu. Không có gì phải nhập hay cấu hình.
+
