@@ -61,25 +61,56 @@ INSERT INTO item_autofill_log (batch, item_id, field, old_value, new_value)
   WHERE NOT EXISTS (SELECT 1 FROM item_tags x WHERE x.item_id = t.item_id AND x.tag_id = t.tag_id);
 INSERT IGNORE INTO item_tags (item_id, tag_id) SELECT item_id, tag_id FROM tmp_n2_tags;
 
--- Lĩnh vực: (id khóa, id lĩnh vực), chỉ cho khóa chưa có lĩnh vực nào
+-- Lĩnh vực (kể cả lĩnh vực đang tắt ở trang chủ): (id khóa, id lĩnh vực), chỉ cho khóa chưa có lĩnh vực nào
 DROP TEMPORARY TABLE IF EXISTS tmp_n2_cats;
 CREATE TEMPORARY TABLE tmp_n2_cats (item_id BIGINT NOT NULL, category_id BIGINT UNSIGNED NOT NULL, PRIMARY KEY (item_id, category_id));
 INSERT INTO tmp_n2_cats (item_id, category_id) VALUES
-  (88,57),
-  (359,57),
-  (360,57),
-  (362,57),
-  (363,57),
-  (361,57),
-  (137,57),
-  (139,57),
-  (653,57),
-  (660,57),
-  (446,57),
-  (449,57),
-  (455,57),
-  (456,57);
-DELETE c FROM tmp_n2_cats c LEFT JOIN items i ON i.id = c.item_id LEFT JOIN categories g ON g.id = c.category_id AND g.status = 1
+  (88,22),
+  (137,22),
+  (139,22),
+  (359,22),
+  (360,22),
+  (361,22),
+  (362,22),
+  (363,22),
+  (1670,22),
+  (140,47),
+  (141,47),
+  (143,47),
+  (144,47),
+  (146,47),
+  (149,47),
+  (150,47),
+  (175,47),
+  (677,47),
+  (678,47),
+  (339,16),
+  (340,16),
+  (341,16),
+  (343,16),
+  (345,16),
+  (440,21),
+  (458,5),
+  (459,5),
+  (459,15),
+  (643,53),
+  (668,53),
+  (674,53),
+  (674,51),
+  (674,52),
+  (700,3),
+  (702,3),
+  (841,3),
+  (915,3),
+  (916,3),
+  (727,8),
+  (832,49),
+  (834,49),
+  (835,49),
+  (836,49),
+  (837,49),
+  (838,49);
+DELETE c FROM tmp_n2_cats c LEFT JOIN items i ON i.id = c.item_id LEFT JOIN categories g ON g.id = c.category_id
   WHERE i.id IS NULL OR g.id IS NULL OR EXISTS (SELECT 1 FROM items_categories x WHERE x.item_id = c.item_id);
 SELECT 'N2 lĩnh vực sẽ thêm' AS preview, i.id, i.title, g.title AS category FROM tmp_n2_cats c JOIN items i ON i.id = c.item_id JOIN categories g ON g.id = c.category_id ORDER BY i.id;
 INSERT INTO item_autofill_log (batch, item_id, field, old_value, new_value) SELECT @batch, item_id, 'category', NULL, category_id FROM tmp_n2_cats;
