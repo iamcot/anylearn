@@ -32,8 +32,8 @@ function shareText(percent: number): string {
 }
 
 /** anyPoint earned with the share of the price it is worth, e.g. "120 anyPoint (~6% giá mua)". */
-export function pointsText(points: number, price: number | null): string | null {
-  if (points <= 0) return null
+export function pointsText(points: number, price: number | null): string {
+  if (points <= 0) return '0 anyPoint'
   const base = `${formatPoints(points)} anyPoint`
   if (price == null || price <= 0) return base
   const percent = (points * POINT_VALUE_VND * 100) / price
@@ -58,7 +58,7 @@ export const COMPARE_ROWS: CompareRow[] = [
   { key: 'distanceKm', label: 'Khoảng cách', icon: 'distance', bestKey: 'distanceKm', cell: c => (c.distanceKm != null ? `${String(c.distanceKm).replace(".", ",")} km` + (c.branchCount > 1 ? ` (${c.branchCount} cơ sở)` : '') : null) },
   { key: 'rating', label: 'Đánh giá', icon: 'rating', cell: ratingText },
   { key: 'freeTrial', label: 'Học thử', icon: 'trial', cell: c => (c.freeTrial ? 'Có học thử' : null) },
-  { key: 'points', label: 'anyPoint nhận về', icon: 'points', bestKey: 'points', cell: c => (c.isPaymentFee ? 'Không có' : pointsText(c.points, c.price)) },
+  { key: 'points', label: 'anyPoint nhận về', icon: 'points', bestKey: 'points', cell: c => pointsText(c.points, c.price) },
 ]
 
 /** Rows where every course has no information (e.g. no position given for the distance) are left out, except the ones marked `alwaysShow`. */
