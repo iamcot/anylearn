@@ -35,3 +35,9 @@ WHERE i.is_test = 0 AND i.status = 1 AND i.user_status = 1 AND COALESCE(i.is_pay
     OR (COALESCE(i.subtype,'') NOT IN ('digital','video') AND (i.cycle_type IS NULL OR i.cycle_amount IS NULL OR i.cycle_amount <= 0))
   )
 ORDER BY i.id;
+
+-- G4. Tên khóa học viết HOA TOÀN BỘ (để đổi về cách viết bình thường)
+SELECT i.id, i.title FROM items i
+WHERE i.is_test = 0 AND CHAR_LENGTH(i.title) > 8 AND CAST(i.title AS BINARY) = CAST(UPPER(i.title) AS BINARY)
+  AND i.title REGEXP '[A-Za-zÀ-ỹ]{3}'
+ORDER BY i.id;
