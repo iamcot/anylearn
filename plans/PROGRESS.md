@@ -121,9 +121,9 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | Task | Mô tả | Trạng thái | Ghi chú |
 |---|---|---|---|
 | 04.6 | So sánh khóa học | todo | |
-| 08.5 | Ưu đãi gia đình (gợi ý) | todo | Cùng 10.3 |
-| 10.2 | Hạng thành viên | todo | |
-| 10.3 | Gói gia đình | todo | |
+| 08.5 | Ưu đãi gia đình (gợi ý) | partial | Giảm giá đã có (10.3); chưa hiện trong thẻ gợi ý |
+| 10.2 | Hạng thành viên | done | V44, `service/membership/*`; nhân anyPoint của người mua, huy hiệu trong chat. Chưa có: giữ chỗ ưu tiên, voucher sinh nhật, hỗ trợ ưu tiên |
+| 10.3 | Gói gia đình | done | Bé thứ 2 trở đi giảm %, tính vào giá đơn. Chưa có: % theo từng đối tác, tặng anyPoint thay vì giảm |
 | 10.4 | Trả góp / đóng theo kỳ | todo | Chờ chủ sản phẩm |
 | 11.5 | Chat mở rộng | todo | |
 | 13.8 | Thay app cũ trên store bằng bản bọc web (TWA / Capacitor), cùng package/bundle id | todo | Theo kết quả 13.0; có thể kéo lên sớm |
