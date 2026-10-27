@@ -174,8 +174,8 @@ function SearchPageInner() {
           <div className="min-w-0">
             {authorProfile && <AuthorProfileCard profile={authorProfile} />}
 
-            <div className="mb-[18px] flex items-end justify-between gap-4">
-              <div>
+            <div className="mb-[18px] flex items-end justify-between gap-3">
+              <div className="shrink-0">
                 <h2 ref={headingRef} className="m-0 scroll-mt-24 whitespace-nowrap text-lg font-extrabold text-ink md:text-3xl">Kết quả phù hợp {state.mode === 'class' && state.adv.near && GOOGLE_MAPS_KEY && (
                     <button type="button" onClick={() => setMapOpen(true)} className="inline-flex min-h-11 cursor-pointer items-center gap-1 border-0 bg-transparent p-0 text-sm font-bold text-green-dark">
                       <MapIcon className="size-4" />Xem bản đồ
@@ -191,7 +191,7 @@ function SearchPageInner() {
                   aria-label="Sắp xếp"
                   value={state.sort}
                   onChange={event => apply({ sort: event.target.value })}
-                  className="min-h-11 rounded-full border border-line bg-white px-3.5 font-medium text-text outline-none"
+                  className="min-h-11 min-w-0 flex-1 rounded-full border border-line bg-white px-3 text-sm font-medium text-text outline-none sm:flex-none sm:px-3.5 sm:text-base"
                 >
                   {(state.adv.near ? [...SORT_OPTIONS, NEAREST_SORT] : SORT_OPTIONS).map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
                 </select>
