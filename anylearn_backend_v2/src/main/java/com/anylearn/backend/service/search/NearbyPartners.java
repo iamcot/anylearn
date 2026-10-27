@@ -18,7 +18,11 @@ public final class NearbyPartners {
     private NearbyPartners() {}
 
     /** A branch of a partner: where it is and what the partner is called. */
-    public record Branch(long partnerId, String name, String image, String intro, double lat, double lng) {}
+    public record Branch(long partnerId, String name, String image, String intro, double lat, double lng, Double rating, long ratingCount) {
+        public Branch(long partnerId, String name, String image, String intro, double lat, double lng) {
+            this(partnerId, name, image, intro, lat, lng, null, 0);
+        }
+    }
 
     /** The square around the point that holds the whole circle: {minLat, maxLat, minLng, maxLng}, a cheap first filter for SQL. */
     public static double[] boundingBox(double lat, double lng, double radiusKm) {
@@ -40,6 +44,8 @@ public final class NearbyPartners {
             entry.put("name", branch.name());
             entry.put("image", branch.image());
             entry.put("intro", shortIntro(branch.intro()));
+            entry.put("rating", branch.rating() == null || branch.ratingCount() <= 0 ? null : Math.round(branch.rating() * 10) / 10.0);
+            entry.put("ratingCount", branch.ratingCount());
             entry.put("lat", branch.lat());
             entry.put("lng", branch.lng());
             entry.put("distanceKm", km);

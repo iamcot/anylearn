@@ -21,7 +21,7 @@ export interface CompareRow {
 
 function ratingText(course: CompareCourse): string | null {
   if (course.ratingAverage == null || course.ratingCount <= 0) return null
-  return `${course.ratingAverage.toFixed(1).replace('.', ',')} sao từ ${course.ratingCount} đánh giá`
+  return `${course.ratingAverage.toFixed(1).replace('.', ',')} ★ từ ${course.ratingCount} đánh giá`
 }
 
 /** 6 -> "6", 1.5 -> "1,5", 12.4 -> "12" (one decimal only under 10). */

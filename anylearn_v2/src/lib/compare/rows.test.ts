@@ -30,7 +30,7 @@ describe('visibleRows', () => {
   })
   it('writes the rating with its count', () => {
     const row = visibleRows([{ ...base, ratingAverage: 4.5, ratingCount: 12 }]).find(r => r.key === 'rating')!
-    expect(row.cell({ ...base, ratingAverage: 4.5, ratingCount: 12 })).toBe('4,5 sao từ 12 đánh giá')
+    expect(row.cell({ ...base, ratingAverage: 4.5, ratingCount: 12 })).toBe('4,5 ★ từ 12 đánh giá')
   })
 })
 
