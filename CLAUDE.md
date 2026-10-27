@@ -184,7 +184,7 @@ Thư mục `http/` chứa VS Code REST Client files cho mọi endpoint:
 
 ## Course page opens per person
 
-- `item_view_days` (V42): one row per user, course and day with a counter (`ItemViewService`), rows older than 60 days are deleted nightly. FE `components/pdp/TrackItemView` calls `POST /api/item/{id}/view` for a signed-in visitor (the server render has no token). `AiSuggestionService.appendAccountSignals` adds the last 5 courses viewed in 30 days. Anonymous opens and the popularity score still use `item_events` (`ItemTrackingService`, one row per open).
+- `item_view_days` (V42): one row per user, course and day with a counter (`ItemViewService`), rows older than 60 days are deleted nightly. FE `components/pdp/TrackItemView` calls `POST /api/item/{id}/view` for a signed-in visitor (the server render has no token). `AiSuggestionService.appendAccountSignals` adds the last 5 courses viewed in 30 days. `item_events` (`ItemTrackingService`, popularity score, anonymous too) is now written by the same `POST /api/item/{id}/view` (public), not by `GET /pdp`, which the server render calls twice (metadata + page) and used to double every view.
 
 ## Orders waiting for payment
 
