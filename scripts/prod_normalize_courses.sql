@@ -210,6 +210,8 @@ CREATE TEMPORARY TABLE tmp_sched_days AS
 SELECT f.item_id, GROUP_CONCAT(ELT(n.n - 1, 'mon', 'tue', 'wed', 'thu', 'fri', 'sat') ORDER BY n.n) AS weekdays
 FROM tmp_sched_found f JOIN tmp_n n ON n.n BETWEEN 2 AND 7
 WHERE f.day_text IS NOT NULL
+  -- "T2" đứng một mình, không có "thứ" và không có giờ, thường là tên sản phẩm (hộp gỗ The Small T2): bỏ
+  AND (f.day_text LIKE 'thứ%' OR f.time_text IS NOT NULL OR LENGTH(REGEXP_REPLACE(f.day_text, '[^2-7]', '')) >= 2)
   AND NOT (f.day_text REGEXP '(-|–|đến)' AND f.day_text REGEXP ',|và|/')
   -- khoảng "thứ 2 - 6" = đúng 2 con số và có dấu nối; "thứ 2 - 4 - 6" (3 con số) là danh sách 2, 4, 6
   AND ( (f.day_text REGEXP '(-|–|đến)' AND LENGTH(REGEXP_REPLACE(f.day_text, '[^2-7]', '')) = 2
