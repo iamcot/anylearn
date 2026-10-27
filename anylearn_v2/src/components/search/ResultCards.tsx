@@ -46,7 +46,7 @@ export function CourseResultCard({ item }: { item: Item }) {
           : <BookIcon className="size-10" />
         }
       </div>
-      <div className="flex flex-col gap-1.5 p-3 md:p-4">
+      <div className="flex flex-1 flex-col gap-1.5 p-3 md:p-4">
         <h3 className="m-0 line-clamp-2 text-sm font-extrabold leading-snug text-green-dark md:text-base">{item.title}</h3>
         {item.authorName && (
           <div className="flex items-center gap-1.5">
