@@ -300,3 +300,17 @@ Content-Type: application/json
   "seasonTo": "2026-08-31",
   "itemIds": []
 }
+
+### Plan 07: run the reminder scan + send due notifications now (admin only; hourly job otherwise)
+POST {{baseUrl}}/admin/lifecycle/run?api_token={{$dotenv ADMIN_TOKEN}}
+
+### Plan 07: read / change the lifecycle settings (same page as the other operation settings)
+GET {{baseUrl}}/admin/settings?api_token={{$dotenv ADMIN_TOKEN}}
+
+###
+PUT {{baseUrl}}/admin/settings?api_token={{$dotenv ADMIN_TOKEN}}
+Content-Type: application/json
+
+{ "lifecycleEnabled": true, "preStartDays": [3, 1], "absentStreak": 2, "surveyPercent": 50, "surveyLowScore": 2,
+  "renewSessionsLeft": 3, "renewDaysBefore": 14, "feeDays": [7, 1], "sendFromHour": 8, "sendToHour": 21,
+  "earlyRenewBonusPoints": 50 }

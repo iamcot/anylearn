@@ -7,6 +7,9 @@ SET @wd0 = LOWER(LEFT(DAYNAME(@today), 3));
 SET @wd1 = LOWER(LEFT(DAYNAME(@today + INTERVAL 1 DAY), 3));
 SET @wd3 = LOWER(LEFT(DAYNAME(@today + INTERVAL 3 DAY), 3));
 
+DELETE FROM lifecycle_messages WHERE learner_id IN (SELECT id FROM users WHERE phone LIKE '0999000%');
+DELETE FROM enrollment_feedback WHERE learner_id IN (SELECT id FROM users WHERE phone LIKE '0999000%');
+DELETE FROM notifications WHERE user_id IN (SELECT id FROM users WHERE phone LIKE '0999000%');
 DELETE FROM session_attendances WHERE learner_id IN (SELECT id FROM users WHERE phone LIKE '0999000%');
 DELETE FROM schedule_requests WHERE learner_id IN (SELECT id FROM users WHERE phone LIKE '0999000%');
 DELETE FROM item_user_actions WHERE user_id IN (SELECT id FROM users WHERE phone LIKE '0999000%');
@@ -111,3 +114,52 @@ INSERT INTO orders (user_id, amount, quantity, status, payment) VALUES (@parent,
 SET @order = LAST_INSERT_ID();
 INSERT INTO order_details (order_id, user_id, item_id, unit_price, paid_price, quanity, status)
 VALUES (@order, @parent, @fee, 2500000, 2500000, 1, 'pay_pending');
+
+-- ── Plan 07 (lifecycle reminders) ───────────────────────────────────────────
+-- Bin: [DEMO] Tiếng Anh giao tiếp 2 is past 50% (survey), [DEMO] Kỹ năng sống has 2 sessions left (renew + early bonus),
+--      the fee item is due in 5 days (fee reminder). Su: piano used up and the fee is overdue.
+-- Added below: Bin starts a class tomorrow (D-1), Su starts one in 3 days (D-3), Su missed her last 2 sessions of a maths class.
+SET @wdm1 = LOWER(LEFT(DAYNAME(@today - INTERVAL 1 DAY), 3));
+SET @wdm3 = LOWER(LEFT(DAYNAME(@today - INTERVAL 3 DAY), 3));
+
+INSERT INTO items (title, type, subtype, user_id, status, user_status, is_test, price, date_start, cycle_type, cycle_amount, user_location_id)
+VALUES ('[DEMO] Guitar nhập môn', 'class', 'offline', @minh, 1, 1, 1, 1800000, @today + INTERVAL 1 DAY, 'session', 8, @place);
+SET @guitar = LAST_INSERT_ID();
+INSERT INTO item_schedules (item_id, title, schedule_type, weekdays, date_start, time_start, time_end, gather_time, bring_items, location_note, user_location_id)
+VALUES (@guitar, 'Ca chiều', 'recurring', @wd1, @today + INTERVAL 1 DAY, '15:00', '16:30', '14:45', 'Đàn guitar (nếu có), sổ ghi chép', 'Phòng 101, tầng 1', @place);
+SET @s_guitar = LAST_INSERT_ID();
+INSERT INTO user_course_enrollments (user_id, item_id, schedule_id, start_date, end_date, status)
+VALUES (@bin, @guitar, @s_guitar, @today + INTERVAL 1 DAY, @today + INTERVAL 60 DAY, 'active');
+
+INSERT INTO items (title, type, subtype, user_id, status, user_status, is_test, price, date_start, cycle_type, cycle_amount)
+VALUES ('[DEMO] Cờ vua cơ bản', 'class', 'online', @lan, 1, 1, 1, 900000, @today + INTERVAL 3 DAY, 'session', 8);
+SET @chess = LAST_INSERT_ID();
+INSERT INTO item_schedules (item_id, title, schedule_type, weekdays, date_start, time_start, time_end, meeting_url, gather_time, bring_items)
+VALUES (@chess, 'Ca tối', 'recurring', @wd3, @today + INTERVAL 3 DAY, '19:00', '20:00', 'https://zoom.us/j/5555555555', '18:50', 'Bàn cờ, máy tính có camera');
+SET @s_chess = LAST_INSERT_ID();
+INSERT INTO user_course_enrollments (user_id, item_id, schedule_id, start_date, end_date, status)
+VALUES (@su, @chess, @s_chess, @today + INTERVAL 3 DAY, @today + INTERVAL 60 DAY, 'active');
+
+INSERT INTO items (title, type, subtype, user_id, status, user_status, is_test, price, date_start, cycle_type, cycle_amount, user_location_id)
+VALUES ('[DEMO] Toán tư duy', 'class', 'offline', @lan, 1, 1, 1, 2400000, @today - INTERVAL 10 DAY, 'session', 12, @place);
+SET @math = LAST_INSERT_ID();
+INSERT INTO item_schedules (item_id, title, schedule_type, weekdays, date_start, time_start, time_end, location_note, user_location_id)
+VALUES (@math, 'Ca tối', 'recurring', CONCAT(@wdm1, ',', @wdm3), @today - INTERVAL 10 DAY, '18:00', '19:30', 'Phòng 202', @place);
+SET @s_math = LAST_INSERT_ID();
+INSERT INTO user_course_enrollments (user_id, item_id, schedule_id, start_date, end_date, status)
+VALUES (@su, @math, @s_math, @today - INTERVAL 10 DAY, @today + INTERVAL 40 DAY, 'active');
+-- attended the older sessions (5 to 10 days ago), missed the 2 latest (3 days ago and yesterday)
+INSERT INTO session_attendances (learner_id, item_schedule_id, session_date, status, source, joined_at)
+SELECT @su, @s_math, d, 'attended', 'manual', NOW()
+FROM (SELECT @today - INTERVAL n DAY AS d FROM (SELECT 5 n UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10) x) days
+WHERE LOWER(LEFT(DAYNAME(d), 3)) IN (@wdm1, @wdm3);
+
+-- Local testing settings: send at any hour, a bonus for renewing early. Change them in the back office afterwards.
+DELETE FROM configurations WHERE `key` IN ('lifecycle/send_from_hour', 'lifecycle/send_to_hour', 'lifecycle/early_renew_bonus_points');
+INSERT INTO configurations (`key`, `value`, `type`, created_at, updated_at) VALUES
+ ('lifecycle/send_from_hour', '0', 'text', NOW(), NOW()),
+ ('lifecycle/send_to_hour', '24', 'text', NOW(), NOW()),
+ ('lifecycle/early_renew_bonus_points', '50', 'text', NOW(), NOW());
+
+-- To receive the emails, put your address on the parent (the demo accounts have none):
+--   UPDATE users SET email = 'you@example.com' WHERE api_token = 'demo_parent_token';

@@ -30,6 +30,7 @@ public class AdminController {
 
     private final MeilisearchService meilisearchService;
     private final ZnsService znsService;
+    private final com.anylearn.backend.service.ScheduleNotificationService scheduleNotificationService;
     private final NotificationService notificationService;
     private final UserRepository userRepository;
     private final AuthService authService;
@@ -87,6 +88,15 @@ public class AdminController {
         // The school and teacher lists read the users index, so it is rebuilt together with the courses.
         meilisearchService.reindexAllUsers();
         return ApiResponse.ok("Reindex complete");
+    }
+
+    /** Runs the hourly reminder scan and sends the due notifications now (for testing reminders without waiting for the clock). */
+    @PostMapping("/lifecycle/run")
+    public ApiResponse<?> runLifecycle(@AuthenticationPrincipal User user) {
+        if (user == null || !"admin".equals(user.getRole())) return ApiResponse.fail("Forbidden");
+        scheduleNotificationService.scan();
+        scheduleNotificationService.dispatch();
+        return ApiResponse.ok("Lifecycle scan complete");
     }
 
     @PostMapping("/reindex/users")

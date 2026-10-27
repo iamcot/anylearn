@@ -58,3 +58,14 @@ POST {{baseUrl}}/lifecycle/renew?api_token={{parentToken}}
 Content-Type: application/json
 
 { "enrollmentId": 1 }
+
+### Plan 07 test flow with the demo seed (scripts/seed_today_demo.sql)
+# 1. Run the seed, 2. run the scan below, 3. check the parent's notifications (second request):
+POST {{$dotenv BE_BASE_URL}}/admin/lifecycle/run?api_token={{$dotenv ADMIN_TOKEN}}
+
+###
+GET {{baseUrl}}/user/notification?api_token={{parentToken}}
+# Expect: lifecycle_start for Bin (tomorrow, guitar) and Su (3 days, chess), lifecycle_absent for Su (maths),
+# lifecycle_survey for Bin (English), schedule_renewal (renew + fee steps, sent by the 5-minute dispatch, run the endpoint twice).
+# 4. Renew Bin's Kỹ năng sống (find its enrollment id in /today -> packages[].enrollmentId), then POST /checkout and pay the order:
+#    the early bonus (50 anyPoint) shows in wallet history as "Thưởng gia hạn sớm".
