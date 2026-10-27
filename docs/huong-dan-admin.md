@@ -392,6 +392,7 @@ Dành cho người cài đặt hệ thống; team admin chỉ cần biết để
 | "Thử điều mới" trống | Không có khóa nào khớp tuổi và khu vực | Kiểm tra độ tuổi và tọa độ cơ sở của khóa |
 | Danh sách trường / chuyên gia (trang anySCHOOL, anyPROFESSOR, khối đối tác nổi bật) thiếu người | Chỉ đối tác đã bật **Ký HĐ** mới được liệt kê; hoặc danh sách chưa cập nhật sau khi bật Ký HĐ hàng loạt | Bật Ký HĐ cho đối tác (Thành viên), rồi bấm Cập nhật chỉ mục ngay |
 | Bộ sưu tập không hiện trên trang chủ | Đang tắt, ngoài khoảng ngày, hoặc không còn khóa nào đang mở | Kiểm tra công tắc Hiện, khoảng ngày và danh sách khóa |
+| Khách không thấy "Trả góp 0%" | Tổng đơn dưới mức "Từ đơn" của phương thức (mặc định 3.000.000đ), hoặc đang tắt | Vào Cài đặt > Thanh toán > Phương thức thanh toán, kiểm tra công tắc và hai ô số tiền |
 
 ---
 
@@ -411,3 +412,12 @@ Ghi chú cho người làm phần mềm: file này nằm ở `docs/huong-dan-adm
 ### Khóa chưa có địa chỉ vẫn tìm được bằng "Gần tôi"
 
 Khóa không có địa chỉ riêng (không địa chỉ khóa, không địa chỉ ở các lớp) sẽ được tìm theo **hội sở của đối tác** (không có hội sở thì lấy địa chỉ đầu tiên có tọa độ). Địa chỉ của khóa/lớp luôn được ưu tiên. Đối tác cần có ít nhất một địa chỉ có tọa độ. Sau khi cập nhật hệ thống, bấm **Cài đặt > Vận hành > Lập lại chỉ mục** một lần. Khóa vẫn được cảnh báo "Thiếu thuộc tính" cho đến khi gắn địa chỉ riêng.
+
+### Phương thức thanh toán bật tắt được
+
+Khách thấy danh sách các cách thanh toán ở trang thanh toán và khi thử lại thanh toán đơn. Danh sách này không còn cố định trong code.
+
+- **Nhập ở đâu:** menu người dùng góc phải > "Cài đặt" > nhóm "Thanh toán" > "Phương thức thanh toán". Mỗi dòng có công tắc **Bật**, **Tên hiện cho khách** (để trống = tên mặc định), **Từ đơn** và **Đến đơn** (đồng).
+- **Luật:** phương thức chỉ hiện khi đang bật và tổng tiền các khóa trong giỏ (trước khi trừ mã giảm giá và anyPoint) nằm trong khoảng Từ đơn – Đến đơn; "Đến đơn" = 0 là không giới hạn. Mặc định: Trả góp 0% từ 3.000.000đ; MoMo từ 1.000đ đến 50.000.000đ; còn lại không giới hạn. Phải bật ít nhất một phương thức.
+- **Tắt rồi thì sao:** khách không chọn được, và hệ thống từ chối cả khi ai đó cố gửi phương thức đã tắt. Đơn cũ đã chọn phương thức đó vẫn xử lý bình thường.
+- **Sau khi đổi:** có hiệu lực ngay, không cần làm gì thêm.

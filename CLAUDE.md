@@ -285,6 +285,10 @@ Thư mục `http/` chứa VS Code REST Client files cho mọi endpoint:
 - `docs/huong-dan-admin.md` is the manual for the back office team (Vietnamese): what data to enter, how search, home page, collections and settings use it, what to do after a change. **Whenever a task adds or changes something an admin enters, configures or sees the effect of (a new field, filter, setting, menu page, env variable, default value), update that file in the same change**, following the pattern in its last section.
 - Operation settings editable by the team (no developer): back office "Cài đặt" > "Vận hành" (`/admin/settings`, `OperationSettingsService`, rules in `SettingsRules`): `search/near_radius_km` (default 10, 1 to 100, used by `/api/search` when `radiusKm` is not sent and by the home row "Đang hot gần bạn"), `order/remind_hours`, `order/auto_cancel_hours`, `order/auto_cancel_enabled`; the same page has the button that runs `POST /admin/reindex`.
 
+## Payment methods
+
+- The checkout list is not hard-coded: `PaymentMethodRules.DEFINITIONS` (keys `bank_transfer`, `card`, `vnpay`, `momo`, `installment`, default labels and amount ranges) plus rows of `configurations` `payment/{key}/enabled|min|max|label` (`PaymentMethodService`, back office page "Phương thức thanh toán", `/admin/payment-methods` GET / PUT `{methods:[{key,enabled,min,max,label}]}`; at least one must stay on). `GET /api/payment/methods?total=` returns what to show: enabled and `min <= total <= max` (`max` 0 = no limit; installment defaults to 3,000,000, momo 1,000 to 50,000,000). `POST /api/cart/checkout` and `POST /api/payment/initiate` refuse a method that is switched off (the range is only for display, since coupons and anyPoint lower the paid amount). FE `components/PaymentMethodSelector` loads the list and falls back to the old built-in one when the call fails. A new gateway needs an entry in `DEFINITIONS` and a `case` in `PaymentController.initiatePayment`.
+
 ## Growth roadmap
 
 Feature plans live in `plans/` (start with `plans/00-overview.md`); progress, owner decisions and open questions in `plans/PROGRESS.md`. Update PROGRESS.md after every task.

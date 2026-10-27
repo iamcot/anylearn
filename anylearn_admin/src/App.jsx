@@ -18,6 +18,7 @@ import AllReviews from './pages/AllReviews'
 import SearchInsights from './pages/SearchInsights'
 import NotificationRecipients from './pages/NotificationRecipients'
 import BankAccount from './pages/BankAccount'
+import PaymentMethods from './pages/PaymentMethods'
 import Dashboard from './pages/Dashboard'
 import Finance from './pages/Finance'
 import Items from './pages/Items'
@@ -107,6 +108,7 @@ export default function App() {
                   <Route path="articles" element={<Articles />} />
                   <Route path="audit" element={<Audit />} />
                   <Route path="bank-account" element={<BankAccount />} />
+                  <Route path="payment-methods" element={<PaymentMethods />} />
                   <Route path="notification-recipients" element={<NotificationRecipients />} />
                   <Route path="finance" element={<Finance />} />
                 </Route>
