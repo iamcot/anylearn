@@ -33,6 +33,11 @@ function JoinGate({ room, onJoin }: { room: ChatRoom; onJoin: (name: string) => 
       <input id="chat-name" value={name} onChange={event => setName(event.target.value)} maxLength={30} placeholder="Ví dụ: Mẹ Bin"
         className="mt-1 min-h-11 w-full rounded-xl border border-line px-3 text-[16px]" />
       <p className="mt-1 text-xs text-muted">Các phụ huynh khác chỉ thấy tên này, không thấy số điện thoại hay email của bạn.</p>
+      {room.classLabel && (
+        <p className="mt-2 rounded-xl bg-green-soft px-3 py-2 text-sm">
+          Nhóm này gồm các lớp của cùng một khóa học. Tên của bạn sẽ được thêm lớp đang học: <b>{name.trim() || 'Mẹ Bin'} · {room.classLabel}</b>
+        </p>
+      )}
       <div className="mt-4 whitespace-pre-line rounded-2xl bg-green-soft p-4 text-sm">{room.rulesText}</div>
       <label className="mt-4 flex items-start gap-2 text-sm font-semibold">
         <input type="checkbox" checked={agree} onChange={event => setAgree(event.target.checked)} className="mt-1 h-4 w-4 accent-green" />

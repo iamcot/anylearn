@@ -31,6 +31,8 @@ export interface ChatRoom {
   role: 'member' | 'moderator'
   joined: boolean
   displayName: string | null
+  /** The member's class(es) of the course, added after the name in the group. */
+  classLabel: string | null
   banned: boolean
   rulesText: string
   pinned: ChatMessage[]

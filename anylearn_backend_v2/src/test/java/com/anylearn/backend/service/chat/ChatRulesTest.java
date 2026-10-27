@@ -64,4 +64,10 @@ class ChatRulesTest {
         assertThat(ChatRules.stillInGroup("active", today.minusDays(31), today, 30)).isFalse();
         assertThat(ChatRules.stillInGroup("pending", null, today, 30)).isFalse();
     }
+
+    @Test
+    void classLabelJoinsClassesAndIsCapped() {
+        assertThat(ChatRules.classLabel(List.of("Thứ 2 18:00", "Thứ 4 18:00"))).isEqualTo("Thứ 2 18:00, Thứ 4 18:00");
+        assertThat(ChatRules.classLabel(List.of("a".repeat(200)))).hasSize(100).endsWith("…");
+    }
 }

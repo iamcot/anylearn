@@ -450,9 +450,9 @@ Khách thấy danh sách các cách thanh toán ở trang thanh toán và khi th
 
 ### Chat lớp và kiểm duyệt
 
-Phụ huynh cùng một lớp (có bé đăng ký cùng ca học) trao đổi trong **Nhóm lớp** ở tab "Cộng đồng" trên app. Phụ huynh chỉ thấy tên hiển thị tự chọn (ví dụ "Mẹ Bin"), không thấy số điện thoại hay email. Tài khoản của bé không vào chat.
+Phụ huynh cùng một lớp (có bé đăng ký cùng một khóa học, kể cả khác ca) trao đổi trong **Nhóm lớp** ở tab "Cộng đồng" trên app. Phụ huynh chỉ thấy tên hiển thị tự chọn (ví dụ "Mẹ Bin"), không thấy số điện thoại hay email. Tài khoản của bé không vào chat.
 
-- **Nhóm tự tạo** khi có người đăng ký ca học và mở tab Cộng đồng. Đối tác của khóa học tự là người kiểm duyệt (ghim tin, ẩn tin, gửi thông báo cả lớp). Hết khóa, thành viên còn đọc được số ngày đặt trong Cài đặt rồi tự rời nhóm.
+- **Mỗi khóa học một nhóm**, tự tạo khi có người đăng ký (đã thanh toán) và mở tab Cộng đồng; khóa không chia ca vẫn có nhóm. Tên phụ huynh trong nhóm được hệ thống thêm lớp đang học, ví dụ "Mẹ Bin · Thứ 2 18:00", và phụ huynh được báo điều này khi vào nhóm. Đối tác của khóa học tự là người kiểm duyệt (ghim tin, ẩn tin, gửi thông báo cả lớp). Hết khóa, thành viên còn đọc được số ngày đặt trong Cài đặt rồi tự rời nhóm.
 - **Xử lý báo cáo:** menu "Quản lý thành viên" > "Chat lớp" > tab "Báo cáo tin nhắn" (số đỏ ở menu là báo cáo chờ xử lý). Các nút: Ẩn tin; Ẩn tin + khóa 7 ngày; Ẩn tin + khóa chat (khóa người gửi ở mọi nhóm); Bỏ qua (không vi phạm). Tin bị ẩn hiện "Tin nhắn này đã bị ẩn" cho mọi người.
 - **Thêm giáo viên / người hỗ trợ:** tab "Nhóm lớp" > Quản lý > nhập **ID người dùng**, chọn "Kiểm duyệt (giáo viên)" để người đó nhắn, ghim, ẩn tin, gửi thông báo cả lớp. Cũng ở đây: cho thành viên rời nhóm, khóa/mở khóa chat, ẩn tin cũ, khóa cả nhóm (mọi người chỉ đọc, giáo viên vẫn nhắn được).
 - **Tab "Người bị khóa chat"** để mở khóa. **Tab "Cài đặt":** bật/tắt chat toàn hệ thống, đối tác có tự là người kiểm duyệt không, số tin tối đa mỗi phút (mặc định 20), số ngày còn đọc được sau khi hết khóa (mặc định 30), danh sách từ cấm (tin chứa từ cấm không gửi được), và nội quy hiện khi vào nhóm lần đầu.

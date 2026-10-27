@@ -23,7 +23,7 @@ public class ChatAdminService {
         return jdbc.queryForList(
                 "SELECT rp.id, rp.status, rp.reason, rp.created_at AS createdAt, rp.message_id AS messageId, "
                         + "m.body, m.is_hidden AS hidden, m.room_id AS roomId, r.title AS roomTitle, m.user_id AS authorId, "
-                        + "(SELECT display_name FROM chat_members c WHERE c.room_id = m.room_id AND c.user_id = m.user_id) AS authorName, "
+                        + "(SELECT CONCAT(display_name, COALESCE(CONCAT(' · ', class_label), '')) FROM chat_members c WHERE c.room_id = m.room_id AND c.user_id = m.user_id) AS authorName, "
                         + "(SELECT u.name FROM users u WHERE u.id = m.user_id) AS authorAccount, "
                         + "(SELECT c.banned FROM chat_members c WHERE c.room_id = m.room_id AND c.user_id = m.user_id) AS authorBanned, "
                         + "(SELECT display_name FROM chat_members c WHERE c.room_id = m.room_id AND c.user_id = rp.reporter_id) AS reporterName "
@@ -77,7 +77,7 @@ public class ChatAdminService {
     public List<Map<String, Object>> recentMessages(long roomId) {
         return jdbc.queryForList(
                 "SELECT x.id, x.body, x.type, x.is_hidden AS hidden, x.created_at AS createdAt, x.user_id AS authorId, "
-                        + "(SELECT display_name FROM chat_members c WHERE c.room_id = x.room_id AND c.user_id = x.user_id) AS authorName "
+                        + "(SELECT CONCAT(display_name, COALESCE(CONCAT(' · ', class_label), '')) FROM chat_members c WHERE c.room_id = x.room_id AND c.user_id = x.user_id) AS authorName "
                         + "FROM chat_messages x WHERE x.room_id = ? ORDER BY x.id DESC LIMIT 100", roomId);
     }
 
@@ -87,7 +87,7 @@ public class ChatAdminService {
 
     public List<Map<String, Object>> members(long roomId) {
         return jdbc.queryForList(
-                "SELECT m.user_id AS userId, m.role, m.display_name AS displayName, m.banned, m.muted_until AS mutedUntil, m.left_at AS leftAt, u.name AS account "
+                "SELECT m.user_id AS userId, m.role, m.display_name AS displayName, m.class_label AS classLabel, m.banned, m.muted_until AS mutedUntil, m.left_at AS leftAt, u.name AS account "
                         + "FROM chat_members m JOIN users u ON u.id = m.user_id WHERE m.room_id = ? ORDER BY m.role, m.joined_at", roomId);
     }
 

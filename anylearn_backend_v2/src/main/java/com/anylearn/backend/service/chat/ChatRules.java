@@ -75,6 +75,12 @@ public final class ChatRules {
         return null;
     }
 
+    /** The class(es) of a member shown after the name, e.g. "Mẹ Bin · Thứ 2 18:00"; capped so the name stays short. */
+    public static String classLabel(java.util.Collection<String> classes) {
+        String label = String.join(", ", classes);
+        return label.length() > 100 ? label.substring(0, 99) + "…" : label;
+    }
+
     /** Still in the class, or the course ended no more than {@code retentionDays} ago (read only after that). */
     public static boolean stillInGroup(String enrollmentStatus, java.time.LocalDate endDate, java.time.LocalDate today, int retentionDays) {
         if ("active".equals(enrollmentStatus)) return endDate == null || !endDate.plusDays(retentionDays).isBefore(today);

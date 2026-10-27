@@ -42,18 +42,30 @@ public class ChatService {
         int retention = settings.retentionDays();
         LocalDate today = LocalDate.now();
         List<Map<String, Object>> rows = jdbc.queryForList(
-                "SELECT uce.schedule_id sid, uce.item_id iid, uce.status st, uce.end_date ed, i.title it, isc.title sct "
+                "SELECT uce.item_id iid, uce.status st, uce.end_date ed, i.title it, "
+                        + "COALESCE(NULLIF(isc.title, ''), TRIM(CONCAT(COALESCE(isc.weekdays, ''), ' ', COALESCE(isc.time_start, '')))) sct "
                         + "FROM user_course_enrollments uce JOIN items i ON i.id = uce.item_id "
-                        + "JOIN item_schedules isc ON isc.id = uce.schedule_id "
+                        + "LEFT JOIN item_schedules isc ON isc.id = uce.schedule_id "
                         + "LEFT JOIN users l ON l.id = uce.user_id AND l.is_child = 1 "
-                        + "WHERE uce.status = 'active' AND uce.schedule_id IS NOT NULL AND (uce.user_id = ? OR l.user_id = ?)", uid, uid);
+                        + "WHERE uce.status = 'active' AND (uce.user_id = ? OR l.user_id = ?)", uid, uid);
         boolean banned = isBannedAnywhere(uid);
-        Set<Long> eligible = new HashSet<>();
+        Map<Long, Set<String>> labels = new LinkedHashMap<>();
+        Map<Long, String> titles = new HashMap<>();
         for (Map<String, Object> r : rows) {
             if (!ChatRules.stillInGroup((String) r.get("st"), toDate(r.get("ed")), today, retention)) continue;
-            long roomId = ensureRoom(((Number) r.get("sid")).longValue(), ((Number) r.get("iid")).longValue(), title(r));
+            long itemId = ((Number) r.get("iid")).longValue();
+            titles.put(itemId, String.valueOf(r.get("it")));
+            Set<String> set = labels.computeIfAbsent(itemId, k -> new LinkedHashSet<>());
+            Object sc = r.get("sct");
+            if (sc != null && !sc.toString().isBlank()) set.add(sc.toString().trim());
+        }
+        Set<Long> eligible = new HashSet<>();
+        for (Map.Entry<Long, Set<String>> e : labels.entrySet()) {
+            long roomId = ensureRoom(e.getKey(), titles.get(e.getKey()));
             eligible.add(roomId);
             ensureMember(roomId, uid, ChatRules.ROLE_MEMBER, banned, null);
+            String label = e.getValue().isEmpty() ? null : ChatRules.classLabel(e.getValue());
+            jdbc.update("UPDATE chat_members SET class_label = ? WHERE room_id = ? AND user_id = ? AND role = 'member'", label, roomId, uid);
         }
         for (Map<String, Object> m : jdbc.queryForList("SELECT room_id, left_at FROM chat_members WHERE user_id = ? AND role = 'member'", uid)) {
             long roomId = ((Number) m.get("room_id")).longValue();
@@ -85,16 +97,10 @@ public class ChatService {
         return value instanceof java.sql.Date d ? d.toLocalDate() : null;
     }
 
-    private static String title(Map<String, Object> r) {
-        String item = String.valueOf(r.get("it"));
-        Object sc = r.get("sct");
-        return sc == null || sc.toString().isBlank() ? item : item + " · " + sc;
-    }
-
-    private long ensureRoom(long scheduleId, long itemId, String title) {
-        jdbc.update("INSERT IGNORE INTO chat_rooms (item_schedule_id, item_id, title, created_at) VALUES (?, ?, ?, NOW())",
-                scheduleId, itemId, title.length() > 255 ? title.substring(0, 255) : title);
-        return jdbc.queryForObject("SELECT id FROM chat_rooms WHERE item_schedule_id = ?", Long.class, scheduleId);
+    private long ensureRoom(long itemId, String title) {
+        jdbc.update("INSERT IGNORE INTO chat_rooms (item_id, title, created_at) VALUES (?, ?, NOW())",
+                itemId, title.length() > 255 ? title.substring(0, 255) : title);
+        return jdbc.queryForObject("SELECT id FROM chat_rooms WHERE item_id = ?", Long.class, itemId);
     }
 
     /** A moderator keeps an existing membership; a moderator row is created with the person's name already chosen. */
@@ -158,6 +164,7 @@ public class ChatService {
         out.put("role", m.get("role"));
         out.put("joined", m.get("rules_accepted_at") != null);
         out.put("displayName", m.get("display_name"));
+        out.put("classLabel", m.get("class_label"));
         out.put("banned", flag(m.get("banned")));
         out.put("rulesText", settings.rulesText());
         out.put("pinned", messages(user, roomId, jdbc.queryForList(
@@ -181,7 +188,7 @@ public class ChatService {
 
     private List<Map<String, Object>> messages(User user, long roomId, List<Map<String, Object>> rows) {
         Map<Long, Map<String, Object>> names = new HashMap<>();
-        for (Map<String, Object> m : jdbc.queryForList("SELECT user_id, display_name, role FROM chat_members WHERE room_id = ?", roomId)) {
+        for (Map<String, Object> m : jdbc.queryForList("SELECT user_id, CONCAT(display_name, COALESCE(CONCAT(' · ', class_label), '')) AS display_name, role FROM chat_members WHERE room_id = ?", roomId)) {
             names.put(((Number) m.get("user_id")).longValue(), m);
         }
         Map<Long, Map<String, Object>> byId = new HashMap<>();
