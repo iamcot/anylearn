@@ -34,7 +34,7 @@ public class MissedAttendanceService {
         Learner learner = loader.require(account, learnerId);
         LocalDateTime now = LocalDateTime.now(clock);
         DateRange window = DateRange.of(now.toLocalDate().minusDays(WINDOW_DAYS), now.toLocalDate());
-        List<Map<String, Object>> rows = new ArrayList<>();
+        Map<String, Map<String, Object>> byKey = new LinkedHashMap<>(); // a class enrolled twice lists a session once
         for (EnrollmentContext context : loader.load(learner.id()).contexts()) {
             if (!context.hasSchedule() || context.isFee()) continue;
             Long scheduleId = context.schedule().getId();
@@ -46,9 +46,10 @@ public class MissedAttendanceService {
                 row.put("itemTitle", context.item().getTitle());
                 row.put("date", session.date().toString());
                 row.put("start", session.start() == null ? null : session.start().toString());
-                rows.add(row);
+                byKey.putIfAbsent(session.key().toString(), row);
             }
         }
+        List<Map<String, Object>> rows = new ArrayList<>(byKey.values());
         rows.sort(Comparator.comparing((Map<String, Object> row) -> String.valueOf(row.get("date")))
                 .thenComparing(row -> String.valueOf(row.get("start"))).reversed());
         Map<String, Object> result = new LinkedHashMap<>();

@@ -90,6 +90,18 @@ class TodayServiceTest {
     }
 
     @Test
+    void aClassEnrolledTwiceShowsEachSessionOnce() {
+        // a renewal made while the old enrollment still runs gives the same class twice
+        when(enrollments.findByUserIdAndStatus(CHILD_ID, "active")).thenReturn(List.of(
+                TodayTestData.enrollment(1L, CHILD_ID, 10L, 100L), TodayTestData.enrollment(2L, CHILD_ID, 11L, 101L),
+                TodayTestData.enrollment(3L, CHILD_ID, 11L, 101L)));
+
+        TodayResponse today = serviceAt(TUESDAY.atTime(16, 10)).today(parent, null);
+
+        assertThat(today.laterToday()).extracting(SessionView::title).containsExactly("Kỹ năng sống");
+    }
+
+    @Test
     void onlineClassOpensFifteenMinutesBeforeStart() {
         TodayResponse today = serviceAt(TUESDAY.atTime(19, 30)).today(parent, null);
 
