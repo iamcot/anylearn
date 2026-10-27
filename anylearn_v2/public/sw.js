@@ -1,5 +1,7 @@
 // Hand-written service worker. ServiceWorkerRegister registers it at a fixed URL (/sw.js), so a new worker installs
-// only when this file changes; it waits until the person taps "Tải lại" (SKIP_WAITING) instead of swapping under an open page.
+// only when this file changes. A new worker activates at once (skipWaiting + clients.claim): pages and API answers
+// are never cached and static files are content-hashed, so swapping it under an open page is safe and no
+// "new version" banner is needed.
 // Pages and API answers are never cached: they carry personal data (orders, schedules) and must stay fresh.
 const params = new URL(self.location.href).searchParams
 const CACHING_ENABLED = params.get('cache') !== '0'
@@ -10,8 +12,9 @@ const KNOWN_CACHES = [STATIC_CACHE, OFFLINE_CACHE]
 const STATIC_PREFIXES = ['/_next/static/', '/icons/', '/cdn/']
 
 self.addEventListener('install', (event) => {
+  self.skipWaiting()
   if (!CACHING_ENABLED) return
-  event.waitUntil(caches.open(OFFLINE_CACHE).then((cache) => cache.add(OFFLINE_URL)))
+  event.waitUntil(caches.open(OFFLINE_CACHE).then((cache) => cache.add(OFFLINE_URL)).catch(() => {}))
 })
 
 self.addEventListener('activate', (event) => {
