@@ -177,6 +177,17 @@ public final class CompareRules {
     public static FieldNotice fieldNotice(List<Topic> topics) {
         List<Integer> known = new ArrayList<>();
         for (int i = 0; i < topics.size(); i++) if (!topics.get(i).keys().isEmpty()) known.add(i);
+        List<Integer> unknown = new ArrayList<>();
+        for (int i = 0; i < topics.size(); i++) if (topics.get(i).keys().isEmpty()) unknown.add(i);
+        FieldNotice base = isolatedNotice(topics, known);
+        if (unknown.isEmpty() || topics.size() < 2) return base;
+        // Unknown is not "different", but the parent should know the check could not cover those courses.
+        String gap = (unknown.size() == 1 ? "Khóa " : "Các khóa ") + String.join(", ", unknown.stream().map(i -> "\"" + topics.get(i).title() + "\"").toList())
+                + " chưa có thông tin lĩnh vực nên chưa kiểm tra được có cùng lĩnh vực với khóa còn lại không.";
+        return base == null ? new FieldNotice(gap, List.of()) : new FieldNotice(base.text() + " " + gap, base.off());
+    }
+
+    private static FieldNotice isolatedNotice(List<Topic> topics, List<Integer> known) {
         if (known.size() < 2) return null;
         List<Integer> isolated = new ArrayList<>();
         for (int i : known) {

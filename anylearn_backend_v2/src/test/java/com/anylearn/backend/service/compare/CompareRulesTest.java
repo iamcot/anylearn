@@ -82,7 +82,10 @@ class CompareRulesTest {
     @Test
     void allDifferentIsSaidOnceAndUnknownIsNotDifferent() {
         assertThat(CompareRules.fieldNotice(List.of(topic("A", "Thể thao"), topic("B", "Lập trình"))).text()).contains("lĩnh vực khác nhau");
-        assertThat(CompareRules.fieldNotice(List.of(topic("A", "Thể thao"), topic("B", null)))).isNull();
+        var unknownOnly = CompareRules.fieldNotice(List.of(topic("A", "Thể thao"), topic("B", null)));
+        assertThat(unknownOnly.text()).contains("\"B\"").contains("chưa có thông tin lĩnh vực");
+        assertThat(unknownOnly.off()).isEmpty();
+        assertThat(CompareRules.fieldNotice(List.of(topic("A", null), topic("B", null))).off()).isEmpty();
         assertThat(CompareRules.fieldNotice(List.of(topic("A", "Thể thao")))).isNull();
     }
 }
