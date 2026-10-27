@@ -530,3 +530,7 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 ### 27/10/2026 – so sánh khóa học (04.6)
 - Chủ sản phẩm chốt: khách tự chọn khóa để so sánh, dùng AI phân tích thêm từ mô tả. Giữ khách quan: chỉ số liệu có thật, không điểm tổng, không "khóa tốt nhất", chỉ làm nổi giá trị tốt nhất theo từng hàng khi rõ ràng; AI chỉ ghi lại điều mô tả nêu (không khen chê), mục không nêu để trống. Kết quả AI lưu theo mô tả nên mỗi khóa tốn một lần gọi cho tới khi sửa mô tả.
 - Chưa chạy với MySQL thật và chưa gọi Anthropic thật (chỉ test phần luật và kiểu dữ liệu).
+
+### 27/10/2026 – SQL xuất và chuẩn hóa dữ liệu khóa học
+- Chủ sản phẩm nhờ viết SQL xuất dữ liệu khóa học trên prod và SQL tự điền, chuẩn hóa. Có `scripts/prod_export_courses.sql` (chỉ đọc) và `scripts/prod_normalize_courses.sql` (sao lưu, một giao dịch mặc định ROLLBACK, nhật ký `item_autofill_log`). Mới kiểm tra cú pháp bằng trình phân tích, chưa chạy trên MySQL thật; cần chạy thử trên bản sao của prod trước.
+
