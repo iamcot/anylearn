@@ -483,3 +483,13 @@ Menu "Quản lý thành viên" > "Hạng & ưu đãi gia đình".
 - **Phụ huynh thấy ở đâu:** trang "Ưu đãi của tôi" (Tài khoản > Ưu đãi của tôi) gom anyPoint, hạng, ưu đãi gia đình và mã giới thiệu. Thẻ gợi ý khóa học cho bé hiện nhãn "Giảm X% ưu đãi gia đình" khi anh/chị của bé vừa đăng ký trong thời hạn. Đổi % hay số ngày ở trang này thì các nơi trên đổi theo. Voucher chưa nằm trong trang này.
 - **Chưa có:** giảm theo từng đối tác, ưu tiên giữ chỗ, voucher sinh nhật, hỗ trợ ưu tiên.
 - Thay đổi ngưỡng có hiệu lực với lần tính lại tiếp theo (bấm "Tính lại ngay" để áp dụng luôn).
+
+### So sánh khóa học
+
+Không có trang riêng trong admin. Phụ huynh bấm "So sánh" trên khóa học (tối đa 3 khóa) rồi mở bảng `/compare`.
+
+- **Số liệu lấy từ dữ liệu bạn nhập:** học phí, số buổi (từ "chu kỳ" của khóa), lịch của các ca, độ tuổi, có học thử không, địa chỉ cơ sở (để tính khoảng cách), anyPoint. Khóa thiếu thông tin nào thì bảng ghi "Chưa có thông tin", nên nhập đủ các trường này sẽ giúp khóa được so sánh đầy đủ (xem trang "Thiếu thuộc tính").
+- **Không chấm điểm, không xếp hạng.** Chỉ tô đậm giá trị tốt nhất của từng hàng (rẻ nhất, gần nhất) khi có khác biệt rõ.
+- **AI đọc mô tả:** phần "Ý chính trong mô tả khóa học" do AI rút ra từ mô tả khóa (phù hợp với ai, cách học, đã bao gồm, cần chuẩn bị, kết quả mong đợi), chỉ ghi lại điều mô tả nêu, mục không nêu thì trống. **Mô tả viết rõ các ý này thì bảng đầy đủ hơn.** Sửa mô tả thì AI đọc lại ở lần xem tiếp theo (mỗi khóa tốn một lần gọi AI cho tới khi mô tả đổi).
+- Dùng chung công tắc "Gợi ý AI" ở Cài đặt > Vận hành và khóa `ANTHROPIC_API_KEY`: tắt thì không đọc thêm khóa mới (các khóa đã đọc vẫn hiện).
+

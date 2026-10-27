@@ -54,13 +54,18 @@ public class AnthropicClient {
 
     /** Asks for the picks as a tool call, so the answer is always valid JSON `{"picks":[{"id","reason"}]}`. */
     public Answer ask(String system, String user, int maxTokens) {
+        return askTool(system, user, maxTokens, PICK_TOOL);
+    }
+
+    /** Same call with another forced tool: the answer is the tool's JSON input. */
+    public Answer askTool(String system, String user, int maxTokens, Map<String, Object> tool) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("x-api-key", apiKey);
         headers.set("anthropic-version", "2023-06-01");
         Map<String, Object> body = Map.of("model", model, "max_tokens", maxTokens, "system", system,
                 "messages", List.of(Map.of("role", "user", "content", user)),
-                "tools", List.of(PICK_TOOL), "tool_choice", Map.of("type", "tool", "name", "pick_courses"));
+                "tools", List.of(tool), "tool_choice", Map.of("type", "tool", "name", tool.get("name")));
         JsonNode answer = http.postForObject(baseUrl + "/v1/messages", new HttpEntity<>(body, headers), JsonNode.class);
         if (answer == null) throw new IllegalStateException("Empty answer from the AI");
         StringBuilder text = new StringBuilder();

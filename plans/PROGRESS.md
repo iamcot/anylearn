@@ -120,7 +120,7 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 
 | Task | Mô tả | Trạng thái | Ghi chú |
 |---|---|---|---|
-| 04.6 | So sánh khóa học | todo | |
+| 04.6 | So sánh khóa học | done | `/compare`, `GET /api/compare` (số liệu, không chấm điểm) + `/api/compare/highlights` (AI rút ý từ mô tả, lưu `item_compare_facts` V45). Khách tự chọn tối đa 3 khóa |
 | 08.5 | Ưu đãi gia đình (gợi ý) | done | Thẻ gợi ý (luật + AI) có nhãn `familyPercent` khi anh/chị vừa đăng ký trong cửa sổ ngày |
 | 10.2 | Hạng thành viên | done | V44, `service/membership/*`; nhân anyPoint của người mua, huy hiệu trong chat. Chưa có: giữ chỗ ưu tiên, voucher sinh nhật, hỗ trợ ưu tiên |
 | 10.3 | Gói gia đình | done | Bé thứ 2 trở đi giảm %, tính vào giá đơn. Chưa có: % theo từng đối tác, tặng anyPoint thay vì giảm |
@@ -526,3 +526,7 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 ### 27/10/2026 – ưu đãi gom một chỗ, ưu đãi gia đình trong gợi ý (06.5, 08.5)
 - Chủ sản phẩm bảo làm cả hai. Trang `/account/rewards` (mục menu "Ưu đãi của tôi") gom anyPoint, hạng, ưu đãi gia đình, giới thiệu bạn bè. Không có voucher vì voucher sẽ có plan riêng (voucher hiện chưa gắn với người dùng). Nhãn gia đình trên thẻ gợi ý chỉ là xem trước, giá thật tính ở giỏ hàng.
 - Chưa chạy với MySQL thật; truy vấn đếm bạn mời và điểm giới thiệu mới đọc bằng mắt.
+
+### 27/10/2026 – so sánh khóa học (04.6)
+- Chủ sản phẩm chốt: khách tự chọn khóa để so sánh, dùng AI phân tích thêm từ mô tả. Giữ khách quan: chỉ số liệu có thật, không điểm tổng, không "khóa tốt nhất", chỉ làm nổi giá trị tốt nhất theo từng hàng khi rõ ràng; AI chỉ ghi lại điều mô tả nêu (không khen chê), mục không nêu để trống. Kết quả AI lưu theo mô tả nên mỗi khóa tốn một lần gọi cho tới khi sửa mô tả.
+- Chưa chạy với MySQL thật và chưa gọi Anthropic thật (chỉ test phần luật và kiểu dữ liệu).
