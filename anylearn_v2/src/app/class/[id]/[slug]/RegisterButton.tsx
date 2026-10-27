@@ -25,11 +25,17 @@ export default function RegisterButton({ itemId }: { itemId: number }) {
     return () => observer.disconnect()
   }, [])
 
+  // A link that names a learner (?child=, e.g. a suggestion for Bin) keeps that learner on the registration step.
+  const registerUrl = () => {
+    const child = Number(new URLSearchParams(window.location.search).get('child'))
+    return `/add2cart/${itemId}${child ? `?child=${child}` : ''}`
+  }
+
   const handleRegister = () => {
     if (user) {
-      router.push(`/add2cart/${itemId}`)
+      router.push(registerUrl())
     } else {
-      openAuthModal('login', () => router.push(`/add2cart/${itemId}`))
+      openAuthModal('login', () => router.push(registerUrl()))
     }
   }
 

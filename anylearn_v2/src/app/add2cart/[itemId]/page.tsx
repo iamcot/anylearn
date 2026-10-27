@@ -20,6 +20,7 @@ import { useToast } from '@/components/ToastProvider'
 import { BookIcon, CalendarIcon, GiftIcon, PencilIcon, UserIcon } from '@/components/icons'
 import { takePendingChildId } from '@/components/guest/guestLearnerStore'
 import { useChildrenVersion } from '@/components/guest/useGuestLearners'
+import Modal from '@/components/Modal'
 import DuplicateOrderModal from '@/components/orders/DuplicateOrderModal'
 import { usePendingOrders } from '@/components/orders/usePendingOrders'
 import { findDuplicatePendingOrder } from '@/lib/orders/pendingOrders'
@@ -59,6 +60,10 @@ export default function Add2CartPage() {
   const [selectedSchedule, setSelectedSchedule] = useState<number | null>(null)
   const [activities, setActivities] = useState<ActivitySelection>(EMPTY_SELECTION)
   const [startMonth, setStartMonth] = useState('')
+  // The learner a link was made for (e.g. a suggestion for Bin): choosing someone else asks once before going on.
+  const [intendedChild, setIntendedChild] = useState<number | null>(null)
+  const [askOtherLearner, setAskOtherLearner] = useState(false)
+  const [otherLearnerConfirmed, setOtherLearnerConfirmed] = useState(false)
 
   const childrenVersion = useChildrenVersion()
   const [childDraft, setChildDraft] = useState<ChildDraft | null>(null)
@@ -91,6 +96,7 @@ export default function Add2CartPage() {
       const pendingChildId = takePendingChildId()
       const preselected = childId || pendingChildId
       if (preselected && info?.children?.some(c => c.id === preselected)) setSelectedStudent(preselected)
+      if (childId && info?.children?.some(c => c.id === childId)) setIntendedChild(childId)
       const start = params.get('start')
       if (start && /^\d{4}-\d{2}$/.test(start)) setStartMonth(start)
     })
@@ -141,8 +147,9 @@ export default function Add2CartPage() {
   const pendingOrders = usePendingOrders()
   const [duplicateOrder, setDuplicateOrder] = useState<PendingOrder | null>(null)
 
-  const handleAddToCart = async (ignoreDuplicate = false) => {
+  const handleAddToCart = async (ignoreDuplicate = false, learnerConfirmed = false) => {
     if (!token || !data || !user) return
+    if (intendedChild && selectedStudent !== intendedChild && !otherLearnerConfirmed && !learnerConfirmed) { setAskOtherLearner(true); return }
     const duplicate = findDuplicatePendingOrder(pendingOrders, {
       itemId: Number(itemId), learnerId: selectedStudent ?? user.id, scheduleId: selectedSchedule,
     })
@@ -333,6 +340,26 @@ export default function Add2CartPage() {
         <button type="button" onClick={() => handleAddToCart()} className="btn btn--green mb-3 w-full p-4 text-[17px]" disabled={submitting}>
           {submitting ? 'Đang thêm...' : 'Thêm vào giỏ hàng'}
         </button>
+        {askOtherLearner && intendedChild && (
+          <Modal title="Bạn muốn mua cho người khác?" onClose={() => setAskOtherLearner(false)}>
+            <p className="m-0 text-sm text-text">
+              Khóa này được gợi ý cho <strong>{data.children.find(c => c.id === intendedChild)?.name}</strong>, nhưng bạn đang chọn
+              đăng ký cho <strong>{selectedStudent === null ? user.name : data.children.find(c => c.id === selectedStudent)?.name}</strong>.
+              Bạn có muốn đổi lại không?
+            </p>
+            <div className="mt-5 flex flex-col gap-2.5">
+              <button type="button" className="btn btn--green w-full"
+                onClick={() => { setSelectedStudent(intendedChild); setAskOtherLearner(false) }}>
+                Đổi sang {data.children.find(c => c.id === intendedChild)?.name}
+              </button>
+              <button type="button" className="btn btn--outline w-full"
+                onClick={() => { setOtherLearnerConfirmed(true); setAskOtherLearner(false); handleAddToCart(false, true) }}>
+                Vẫn đăng ký cho người này
+              </button>
+            </div>
+          </Modal>
+        )}
+
         {duplicateOrder && (
           <DuplicateOrderModal order={duplicateOrder} onCreateNew={() => handleAddToCart(true)} onClose={() => setDuplicateOrder(null)} />
         )}

@@ -66,7 +66,8 @@ export default function RecommendationCard({ rec, context, token, onHidden }: Pr
       </div>
       <div className="mt-3 flex items-center justify-between gap-2">
         <Link
-          href={getCourseUrl({ id: rec.itemId, seoUrl: rec.seoUrl ?? undefined, title: rec.title })}
+          // ?child= follows the course page to the registration step, so it starts on this learner
+          href={`${getCourseUrl({ id: rec.itemId, seoUrl: rec.seoUrl ?? undefined, title: rec.title })}?child=${rec.learnerId}`}
           onClick={() => { recordRecommendation(rec, context, 'click', token) }}
           className="inline-flex min-h-11 items-center rounded-full bg-green px-5 text-[15px] font-black text-white hover:bg-green-dark"
         >
