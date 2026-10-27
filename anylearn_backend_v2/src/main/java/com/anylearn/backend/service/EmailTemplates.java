@@ -18,7 +18,7 @@ public class EmailTemplates {
         put("email-order_success", new TemplateInfo(
             "Xác nhận đơn hàng",
             "order_success.html",
-            List.of("userName", "orderId", "items", "amount")
+            List.of("userName", "orderId", "items", "amount", "classInfo", "todayUrl")
         ));
         put("email-activity_registration", new TemplateInfo(
             "Đăng ký hoạt động (gửi admin)",
@@ -44,6 +44,26 @@ public class EmailTemplates {
             "Đơn hàng đã hủy",
             "order_cancelled.html",
             List.of("userName", "orderId", "reason")
+        ));
+        put("email-lifecycle_start", new TemplateInfo(
+            "Sắp khai giảng (nhắc trước ngày học đầu)",
+            "lifecycle_start.html",
+            List.of("userName", "learnerName", "itemTitle", "startDate", "daysText", "classInfo", "todayUrl")
+        ));
+        put("email-lifecycle_absent", new TemplateInfo(
+            "Bé vắng học liên tiếp",
+            "lifecycle_absent.html",
+            List.of("userName", "learnerName", "itemTitle", "misses", "todayUrl")
+        ));
+        put("email-lifecycle_survey", new TemplateInfo(
+            "Khảo sát giữa khóa",
+            "lifecycle_survey.html",
+            List.of("userName", "learnerName", "itemTitle", "surveyUrl")
+        ));
+        put("email-lifecycle_renew", new TemplateInfo(
+            "Gia hạn khóa học / nhắc học phí",
+            "lifecycle_renew.html",
+            List.of("userName", "title", "message", "ctaUrl")
         ));
         put("email-admin_notice", new TemplateInfo(
             "Thông báo cho đội anyLEARN (đơn mới, chuyển khoản, hủy đăng ký...)",

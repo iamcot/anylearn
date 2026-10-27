@@ -1,7 +1,9 @@
 package com.anylearn.backend.service.today;
 
 import com.anylearn.backend.dto.today.PackageView;
+import com.anylearn.backend.service.lifecycle.LifecycleSettings;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -12,10 +14,14 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PackageCards {
 
-    private static final int RENEW_WHEN_REMAINING_AT_MOST = 3;
+    private static final int DEFAULT_RENEW_WHEN_REMAINING_AT_MOST = LifecycleSettings.DEFAULT_RENEW_SESSIONS_LEFT;
     private static final int DAYS_TO_KEEP_FINISHED = 30;
 
     private final SessionSchedule schedule;
+
+    // Editable in the back office (plan 07.5); absent in unit tests, then the default applies.
+    @Autowired(required = false)
+    private LifecycleSettings settings;
 
     public record Progress(int used, int total) {
         public int remaining() {
@@ -38,7 +44,7 @@ public class PackageCards {
     }
 
     public boolean shouldShowRenew(int remainingSessions) {
-        return remainingSessions <= RENEW_WHEN_REMAINING_AT_MOST;
+        return remainingSessions <= (settings == null ? DEFAULT_RENEW_WHEN_REMAINING_AT_MOST : settings.renewSessionsLeft());
     }
 
     public boolean isVisible(int remainingSessions, LocalDate endDate, LocalDate today) {

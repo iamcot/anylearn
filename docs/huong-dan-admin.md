@@ -16,6 +16,7 @@ Cập nhật lần cuối: 26/10/2026.
 7. [Bộ sưu tập](#7-bộ-sưu-tập)
 7b. [Trang đối tác, theo dõi, thử điều mới](#7b-trang-đối-tác-theo-dõi-và-thử-điều-mới-cho-con)
 7c. [Đánh giá của phụ huynh](#7c-đánh-giá-của-phụ-huynh)
+7d. [Lộ trình và gợi ý khóa học](#7d-lộ-trình-và-gợi-ý-khóa-học)
 8. [Cấu hình vận hành](#8-cấu-hình-vận-hành)
 9. [Nhu cầu của khách: nhờ tìm khóa, báo giá rẻ hơn, xu hướng tìm kiếm](#9-nhu-cầu-của-khách)
 10. [Thông báo cho team và thanh toán](#10-thông-báo-và-thanh-toán)
@@ -253,6 +254,30 @@ Trang khóa học hiện: điểm trung bình, số đánh giá, tỉ lệ từn
 
 ---
 
+## 7d. Lộ trình và gợi ý khóa học
+
+Phụ huynh thấy tối đa **một thẻ gợi ý mỗi ngày** ở trang Hôm nay của từng bé, và gợi ý cho các bé còn lại ở trang đơn hàng thành công. Mọi gợi ý đều có **lý do** hiển thị ("Bin đang học Tiếng Anh 2, bước tiếp theo của lộ trình Tiếng Anh là Tiếng Anh 3") và nút **Không quan tâm** (ẩn khóa đó cho bé trong số ngày đặt ở mục 8, mặc định 30). Không gợi ý khóa bé đã mua, khóa không hợp tuổi, khóa trùng giờ với lịch đang học.
+
+**Lộ trình** (menu Khóa học > **Lộ trình & gợi ý**): admin tạo chuỗi các **bước** có thứ tự, ví dụ "Bóng đá U13 → U15 → U17". Tên, mô tả, ảnh, rồi tìm khóa bằng khung "tìm khóa + tick" như Bộ sưu tập. Ô "Khóa đã chọn sẽ được" quyết định cách thêm: thành **một bước mới có nhiều khóa** (các khóa là lựa chọn thay thế nhau, ví dụ cùng một trình độ của nhiều đối tác), thành **các bước riêng**, hoặc **thêm vào một bước đã có**. Sắp xếp bước bằng mũi tên, mỗi bước có ghi chú. Cần ít nhất 2 bước. Bé có **một khóa bất kỳ** của bước là coi như đã qua bước đó. Khi gợi ý bước kế tiếp, hệ thống chọn khóa liên quan nhất trong bước đó: ưu tiên khóa của cùng đối tác với khóa bé đã học ở bước trước, rồi đến thứ tự trong bước; khóa không hợp tuổi hoặc trùng lịch bị loại. Bé học (hoặc đã học) một bước sẽ được gợi ý bước kế tiếp mà bé chưa có; khi gói sắp hết buổi, tin nhắc gia hạn cũng nêu bước tiếp theo. Tiến độ của bé không phải nhập: bước nào bé có đơn hoặc lớp thì tính là đã có. Tắt công tắc "Đang dùng" để lộ trình ngừng gợi ý. Khách xem trọn lộ trình ở trang `/pathway/<đường dẫn>` (mỗi bước là một hàng cuộn ngang các khóa, khóa liên quan khóa bé đã học ở bước trước nằm bên trái; bước bé đã qua thu gọn chỉ còn khóa bé đã học kèm nút xem các khóa khác cùng bước; bước bị nhảy cóc có thẻ "Bạn đã bỏ qua bước này" và nút "Đặt lại từ bước này", sau đó gợi ý quay về bước đó cho tới khi bé có khóa của bước), mở từ thẻ gợi ý "Xem toàn bộ lộ trình" và từ khối "Lộ trình học" trên trang khóa học.
+
+**5 loại gợi ý** (tắt/bật ở Cài đặt > Vận hành > Gợi ý khóa học):
+
+| Loại | Gợi ý khi nào |
+|---|---|
+| Lộ trình | Bé có một bước của lộ trình |
+| Anh chị em | Một bé trong tài khoản học ở đối tác nào thì các bé còn lại (hợp tuổi, không trùng giờ) được gợi ý khóa khác của đối tác đó. Cần nhập ngày sinh của bé |
+| Khung giờ trống | Bé có một ngày trong tuần chưa có lớp nào, có lớp vào ngày đó gần khu vực bé đang học (hoặc học online) |
+| Theo mùa | Khóa trong Bộ sưu tập đang trong thời gian hiển thị |
+| Sở thích của bé | Bé có trả lời khảo sát sở thích khi thêm bé (cờ vua, vẽ, bơi...) |
+
+Thứ tự ưu tiên: Lộ trình, Anh chị em, Khung giờ trống, Theo mùa, Sở thích. Cùng một khóa chỉ hiện theo lý do mạnh nhất.
+
+**Hiệu quả**: cuối trang Lộ trình & gợi ý có bảng 30 ngày gần nhất theo từng loại: lượt xem, lượt bấm, tỷ lệ bấm, số bé bấm rồi đặt khóa đó trong 30 ngày. Loại nào kém thì bỏ chọn ở Cài đặt > Vận hành.
+
+Lưu ý: khóa chỉ được gợi ý khi đang bật và đối tác đã ký hợp đồng (cùng quy tắc với trang khách thấy). Nên nhập sẵn vài lộ trình thật, nếu không đợt đầu chỉ có gợi ý anh chị em, khung giờ trống và theo mùa.
+
+---
+
 ## 8. Cấu hình vận hành
 
 Menu **Cài đặt (bánh răng) > Vận hành > Cấu hình tìm kiếm & đơn hàng**. Thay đổi có hiệu lực ngay.
@@ -266,7 +291,32 @@ Menu **Cài đặt (bánh răng) > Vận hành > Cấu hình tìm kiếm & đơn
 | Thưởng khi viết đánh giá (anyPoint) | Cho đánh giá có nhận xét từ 50 ký tự, mỗi đánh giá một lần. 0 = tắt | 20 |
 | Thưởng thêm khi có ảnh (anyPoint) | Cộng thêm khi đánh giá có ít nhất một ảnh. 0 = tắt | 20 |
 | Nhắc phụ huynh viết đánh giá | Nhắc khi học nửa khóa và khi hết khóa (mục 7c) | Bật |
+| Vòng đời học viên | Xem bảng riêng bên dưới | |
+| Gợi ý khóa học | Bật/tắt từng loại gợi ý; số ngày không nhắc lại sau "Không quan tâm" (mục 7d) | Bật cả 5 loại, 30 ngày |
 | Cập nhật chỉ mục ngay | Chạy lại toàn bộ chỉ mục tìm kiếm, gồm cả khóa học và danh sách trường / chuyên gia (mất vài phút) | |
+
+### Vòng đời học viên: nhắc lịch, gia hạn, hậu mãi
+
+Cùng trang cài đặt, thẻ **Vòng đời học viên**. Mọi tin gửi **cả trong app (kèm push) và email**, tôn trọng công tắc thông báo của từng người (Tài khoản > Thông báo). Email sửa nội dung ở **Cài đặt Emails** (4 mẫu mới: "Sắp khai giảng", "Bé vắng học liên tiếp", "Khảo sát giữa khóa", "Gia hạn khóa học / nhắc học phí"; mẫu "Xác nhận đơn hàng" có thêm thông tin lớp).
+
+| Mục | Ý nghĩa | Mặc định |
+|---|---|---|
+| Bật nhắc tự động | Tắt thì không gửi nhắc khai giảng, vắng học, khảo sát (nhắc gia hạn và học phí vẫn chạy) | Bật |
+| Giờ gửi tin | Chỉ gửi trong khoảng giờ này; tin đến hạn ban đêm gửi vào sáng hôm sau | 8 đến 21 giờ |
+| Nhắc trước khai giảng (ngày) | Các mốc, cách nhau dấu phẩy. Tin kèm giờ tập trung, địa điểm, link học online, đồ mang theo lấy từ lớp (Khóa học > Lịch học) | 3, 1 |
+| Bật báo vắng học | Công tắc của tin "bé vắng học liên tiếp". **Mặc định tắt** vì nhiều lớp chưa ghi điểm danh đủ; bật khi phụ huynh và admin đã điểm danh đều | Tắt |
+| Báo khi vắng liên tiếp (buổi) | Phụ huynh nhận tin hỏi thăm kèm cách xin nghỉ / đổi lịch; admin nhận thông báo để gọi. Chỉ áp dụng lớp có điểm danh; buổi đã duyệt nghỉ không tính là vắng; chỉ báo khi lần vắng gần nhất trong 14 ngày | 2 |
+| Khảo sát giữa khóa (%) | Hỏi phụ huynh chấm 1 đến 5 sao khi bé học được tỷ lệ này của số buổi. Câu hỏi hiện đầu trang Hôm nay đến khi trả lời | 50% |
+| Điểm bị coi là thấp | Từ mức này trở xuống, admin nhận thông báo kèm ghi chú của phụ huynh | 2 sao |
+| Nhắc gia hạn gói khi còn (buổi) | Gói mua theo số buổi | 3 buổi |
+| Nhắc gia hạn trước ngày kết thúc (ngày) | Khóa tính theo thời gian | 14 ngày |
+| Nhắc học phí trước hạn (ngày) | Các mốc, cách nhau dấu phẩy. Quá hạn có một nhắc nhẹ nhàng riêng ("chưa nhận được học phí") | 7, 1 |
+| Thưởng anyPoint khi điểm danh đủ | Tặng một lần cho tài khoản phụ huynh khi bé có mặt đủ mọi buổi của khóa (khóa đã kết thúc hết số buổi đã mua); buổi xin nghỉ được duyệt không tính là có mặt. 0 = tắt | 0 |
+| Tặng anyPoint khi gia hạn sớm | Tặng khi phụ huynh bấm Gia hạn lúc gói / kỳ cũ còn hiệu lực và đơn được thanh toán; mỗi lần gia hạn một lần. 0 = tắt | 0 |
+
+**Điểm danh**: phụ huynh bấm "Đã đến lớp" cho buổi hôm nay trên trang Hôm nay, hoặc cho buổi quá khứ (120 ngày gần nhất) bằng cách bấm vào buổi học trong **Tài khoản > Lịch học** rồi "Đánh dấu đã đến lớp". Trang Hôm nay của phụ huynh có khối **Buổi chưa điểm danh** (3 buổi gần nhất trong 30 ngày chưa ai điểm danh, nút "Điểm danh bù"), và trong Lịch học các buổi đó có nhãn "Chưa điểm danh". Admin điểm danh (và bỏ điểm danh) ở menu **Theo dõi lịch học**, cột **Điểm danh** của từng buổi đã diễn ra. Điểm danh là căn cứ của báo vắng học và thưởng đủ buổi, nên nên kiểm tra lại khi bật thưởng.
+
+Lưu ý: nút **Gia hạn** ở trang Hôm nay thêm đúng khóa, đúng bé, đúng lớp vào giỏ rồi mở trang thanh toán; nếu lớp đã đóng đăng ký thì mở trang chọn lại. Khoản tặng hiện trong lịch sử anyPoint của khách là "Thưởng gia hạn sớm". Danh sách mẫu ZNS cần đăng ký: `docs/zns-templates.md`.
 
 Đơn bị hủy do quá hạn mà khách vẫn chuyển khoản: tiền được ghi lại ở mục cần kiểm tra và admin nhận thông báo để xử lý, không mất tiền.
 Khách có đơn của cùng khóa và cùng bé đã thanh toán ở đơn khác thì không bị nhắc.
@@ -330,6 +380,11 @@ Dành cho người cài đặt hệ thống; team admin chỉ cần biết để
 | Không lưu được khóa, báo thiếu địa chỉ | Hình thức cần địa chỉ mà đối tác chưa có | Thêm địa chỉ cho đối tác (bấm dòng cảnh báo đỏ) hoặc đổi loại đối tác sang "App / bán mã code" nếu đúng bản chất |
 | Nút Tìm tự động không có kết quả | Chưa có key Google hoặc địa chỉ quá chung chung | Nhờ người cài đặt kiểm tra key; nhập thêm số nhà và tên đường |
 | Khách bị đăng xuất | Đăng nhập hết hạn (30 ngày không dùng) | Đăng nhập lại |
+| Phụ huynh không nhận nhắc khai giảng / vắng / khảo sát | Đang tắt "Bật nhắc tự động", ngoài giờ gửi, người đó tắt công tắc thông báo, hoặc lớp chưa nhập lịch | Kiểm tra mục 8 (Vòng đời học viên) và lịch của lớp |
+| Không có nhắc vắng học cho một lớp | Công tắc "Bật báo vắng học" đang tắt, hoặc lớp không có điểm danh nào (không đo được) | Điểm danh ít nhất một buổi, hoặc bật nút "Vào lớp" cho lớp online |
+| Bé học đủ buổi nhưng phụ huynh không nhận anyPoint điểm danh | Đặt 0, còn buổi chưa điểm danh (kể cả buổi xin nghỉ được duyệt), khóa chưa hết số buổi đã mua, hoặc đã nhận cho khóa đó | Mở Theo dõi lịch học, điểm danh các buổi còn thiếu; kiểm tra mục 8 |
+| Phụ huynh không nhận anyPoint gia hạn sớm | Đặt 0, đơn chưa thanh toán, đã nhận cho lần gia hạn đó, hoặc gói cũ đã hết khi bấm Gia hạn | Kiểm tra mục 8 và lịch sử anyPoint của khách |
+| Phụ huynh không thấy thẻ gợi ý | Chưa có khóa nào hợp (tuổi, giờ, đã mua), bé chưa nhập ngày sinh (loại Anh chị em), loại gợi ý đang tắt, hoặc đã bấm Không quan tâm | Kiểm tra mục 7d; bé cần có ngày sinh; tạo lộ trình cho khóa đang học |
 | Phụ huynh không viết được đánh giá | Tài khoản chưa có đơn đã giao của khóa đó | Kiểm tra đơn ở mục Đơn hàng; đơn chưa thanh toán chưa được tính |
 | Không tải được ảnh đánh giá | Chưa cấu hình kho ảnh (AWS) | Nhờ người cài đặt (mục 11) |
 | Đối tác không thấy nút Trả lời | Không đăng nhập bằng tài khoản sở hữu khóa | Đăng nhập đúng tài khoản đối tác, mở khóa của họ |
@@ -337,6 +392,7 @@ Dành cho người cài đặt hệ thống; team admin chỉ cần biết để
 | "Thử điều mới" trống | Không có khóa nào khớp tuổi và khu vực | Kiểm tra độ tuổi và tọa độ cơ sở của khóa |
 | Danh sách trường / chuyên gia (trang anySCHOOL, anyPROFESSOR, khối đối tác nổi bật) thiếu người | Chỉ đối tác đã bật **Ký HĐ** mới được liệt kê; hoặc danh sách chưa cập nhật sau khi bật Ký HĐ hàng loạt | Bật Ký HĐ cho đối tác (Thành viên), rồi bấm Cập nhật chỉ mục ngay |
 | Bộ sưu tập không hiện trên trang chủ | Đang tắt, ngoài khoảng ngày, hoặc không còn khóa nào đang mở | Kiểm tra công tắc Hiện, khoảng ngày và danh sách khóa |
+| Khách không thấy "Trả góp 0%" | Tổng đơn dưới mức "Từ đơn" của phương thức (mặc định 3.000.000đ), hoặc đang tắt | Vào Cài đặt > Thanh toán > Phương thức thanh toán, kiểm tra công tắc và hai ô số tiền |
 
 ---
 
@@ -356,3 +412,12 @@ Ghi chú cho người làm phần mềm: file này nằm ở `docs/huong-dan-adm
 ### Khóa chưa có địa chỉ vẫn tìm được bằng "Gần tôi"
 
 Khóa không có địa chỉ riêng (không địa chỉ khóa, không địa chỉ ở các lớp) sẽ được tìm theo **hội sở của đối tác** (không có hội sở thì lấy địa chỉ đầu tiên có tọa độ). Địa chỉ của khóa/lớp luôn được ưu tiên. Đối tác cần có ít nhất một địa chỉ có tọa độ. Sau khi cập nhật hệ thống, bấm **Cài đặt > Vận hành > Lập lại chỉ mục** một lần. Khóa vẫn được cảnh báo "Thiếu thuộc tính" cho đến khi gắn địa chỉ riêng.
+
+### Phương thức thanh toán bật tắt được
+
+Khách thấy danh sách các cách thanh toán ở trang thanh toán và khi thử lại thanh toán đơn. Danh sách này không còn cố định trong code.
+
+- **Nhập ở đâu:** menu người dùng góc phải > "Cài đặt" > nhóm "Thanh toán" > "Phương thức thanh toán". Mỗi dòng có công tắc **Bật**, **Tên hiện cho khách** (để trống = tên mặc định), **Từ đơn** và **Đến đơn** (đồng).
+- **Luật:** phương thức chỉ hiện khi đang bật và tổng tiền các khóa trong giỏ (trước khi trừ mã giảm giá và anyPoint) nằm trong khoảng Từ đơn – Đến đơn; "Đến đơn" = 0 là không giới hạn. Mặc định: Trả góp 0% từ 3.000.000đ; MoMo từ 1.000đ đến 50.000.000đ; còn lại không giới hạn. Phải bật ít nhất một phương thức.
+- **Tắt rồi thì sao:** khách không chọn được, và hệ thống từ chối cả khi ai đó cố gửi phương thức đã tắt. Đơn cũ đã chọn phương thức đó vẫn xử lý bình thường.
+- **Sau khi đổi:** có hiệu lực ngay, không cần làm gì thêm.

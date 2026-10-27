@@ -38,6 +38,12 @@ public class PaymentApprovalService {
     private final ItemRepository itemRepository;
     private final SessionSchedule sessionSchedule;
 
+    // Plan 07: order details for the confirmation email and the early-renewal bonus. Absent in unit tests.
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.anylearn.backend.service.lifecycle.LifecycleService lifecycle;
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.anylearn.backend.service.lifecycle.RenewalService renewals;
+
     @Transactional
     public void approveOrder(Long orderId, String paymentMethod) {
         Order order = orderRepository.findById(orderId).orElse(null);
@@ -80,6 +86,7 @@ public class PaymentApprovalService {
 
                         // Create enrollment record
                         createEnrollment(pending.getItemId(), order.getUserId(), orderId, extra);
+                        if (renewals != null) renewals.onPaid(extra, orderId, order.getUserId());
                     } catch (Exception e) {
                         log.error("Error converting pending_reg {} to reg", pending.getId(), e);
                     }
@@ -130,7 +137,9 @@ public class PaymentApprovalService {
                 .map(Item::getTitle).collect(Collectors.joining("; "));
         notificationService.emailTemplate(order.getUserId(), "order", "email-order_success",
                 "Đơn hàng #" + orderId + " đã thanh toán thành công",
-                Map.of("orderId", String.valueOf(orderId), "items", itemTitles, "amount", EmailTemplateService.money(order.getAmount())));
+                Map.of("orderId", String.valueOf(orderId), "items", itemTitles, "amount", EmailTemplateService.money(order.getAmount()),
+                        "classInfo", lifecycle == null ? "" : lifecycle.classInfoOfOrder(orderId),
+                        "todayUrl", lifecycle == null ? "" : lifecycle.todayUrl(order.getUserId())));
 
         // Create payment Transaction record (order)
         saveTransaction(order.getUserId(), "order", order.getAmount(), paymentMethod, orderId,

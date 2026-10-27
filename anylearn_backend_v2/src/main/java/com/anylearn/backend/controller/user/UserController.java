@@ -27,6 +27,7 @@ import java.util.Map;
 public class UserController {
 
     private final UserService userService;
+    private final com.anylearn.backend.repository.SessionAttendanceRepository sessionAttendanceRepository;
     private final S3Service s3Service;
     private final NotificationService notificationService;
     private final UserTrackingService userTrackingService;
@@ -172,7 +173,13 @@ public class UserController {
         });
         var learnerList = learners.entrySet().stream()
                 .map(e -> java.util.Map.<String, Object>of("id", e.getKey(), "name", e.getValue())).toList();
-        return ApiResponse.ok(java.util.Map.of("enrollments", enrollments, "activities", activities, "learners", learnerList));
+        // Sessions already marked as attended (last 120 days), so the calendar can show and offer the mark.
+        var attendances = new java.util.ArrayList<java.util.Map<String, Object>>();
+        java.time.LocalDate today = java.time.LocalDate.now();
+        learners.keySet().forEach(learnerId -> sessionAttendanceRepository
+                .findByLearnerIdAndSessionDateBetween(learnerId, today.minusDays(120), today).forEach(row ->
+                        attendances.add(java.util.Map.of("learnerId", learnerId, "scheduleId", row.getItemScheduleId(), "date", row.getSessionDate().toString()))));
+        return ApiResponse.ok(java.util.Map.of("enrollments", enrollments, "activities", activities, "learners", learnerList, "attendances", attendances));
     }
 
     private static java.util.Map<String, Object> withLearner(java.util.Map<String, Object> row, Long learnerId, String learnerName) {

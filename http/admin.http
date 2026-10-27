@@ -300,3 +300,41 @@ Content-Type: application/json
   "seasonTo": "2026-08-31",
   "itemIds": []
 }
+
+### Plan 07: run the reminder scan + send due notifications now (admin only; hourly job otherwise)
+POST {{baseUrl}}/admin/lifecycle/run?api_token={{$dotenv ADMIN_TOKEN}}
+
+### Plan 07: read / change the lifecycle settings (same page as the other operation settings)
+GET {{baseUrl}}/admin/settings?api_token={{$dotenv ADMIN_TOKEN}}
+
+###
+PUT {{baseUrl}}/admin/settings?api_token={{$dotenv ADMIN_TOKEN}}
+Content-Type: application/json
+
+{ "lifecycleEnabled": true, "preStartDays": [3, 1], "absentStreak": 2, "surveyPercent": 50, "surveyLowScore": 2,
+  "renewSessionsLeft": 3, "renewDaysBefore": 14, "feeDays": [7, 1], "sendFromHour": 8, "sendToHour": 21,
+  "earlyRenewBonusPoints": 50 }
+
+### Plan 08: pathways (admin)
+GET {{baseUrl}}/admin/pathways?api_token={{$dotenv ADMIN_TOKEN}}
+
+###
+POST {{baseUrl}}/admin/pathways?api_token={{$dotenv ADMIN_TOKEN}}
+Content-Type: application/json
+
+{ "title": "Bóng đá: từ U13 đến U15", "subtitle": "Học liên tục cùng một sân", "active": true,
+  "steps": [ { "itemIds": [1], "note": "" }, { "itemIds": [2, 3], "note": "Hai lớp thay thế nhau, cho bé đã thạo kỹ thuật cơ bản" } ] }
+
+### Plan 08: views, clicks and orders per kind of suggestion (default last 30 days)
+GET {{baseUrl}}/admin/recommendations/stats?from=2026-10-01&to=2026-10-31&api_token={{$dotenv ADMIN_TOKEN}}
+
+### Payment methods (back office page "Phương thức thanh toán")
+GET {{baseUrl}}/admin/payment-methods
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+###
+PUT {{baseUrl}}/admin/payment-methods
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+Content-Type: application/json
+
+{"methods": [{"key": "bank_transfer", "enabled": true, "min": 0, "max": 0, "label": ""}, {"key": "installment", "enabled": true, "min": 3000000, "max": 0, "label": ""}]}

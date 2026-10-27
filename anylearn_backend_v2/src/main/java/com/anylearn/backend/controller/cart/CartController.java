@@ -15,6 +15,7 @@ import java.util.Map;
 public class CartController {
 
     private final CartService cartService;
+    private final com.anylearn.backend.service.payment.PaymentMethodService paymentMethods;
 
     @GetMapping("/cart-info/{itemId}")
     public ApiResponse<?> cartInfo(@PathVariable Long itemId,
@@ -54,6 +55,7 @@ public class CartController {
     public ApiResponse<?> checkout(@RequestBody Map<String, Object> body,
                                    @AuthenticationPrincipal User user) {
         String paymentMethod = (String) body.get("paymentMethod");
+        if (paymentMethod == null || !paymentMethods.isEnabled(paymentMethod)) return ApiResponse.fail("Phương thức thanh toán này hiện không khả dụng");
         String couponCode = (String) body.get("couponCode");
         Integer pointsUsed = body.get("pointsUsed") != null
                 ? Integer.parseInt(String.valueOf(body.get("pointsUsed"))) : null;

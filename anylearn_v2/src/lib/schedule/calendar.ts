@@ -22,6 +22,7 @@ export interface Enrollment {
   cycleAmount?: number
   learnerId?: number
   learnerName?: string
+  scheduleId?: number
 }
 
 export interface Activity {
@@ -37,7 +38,8 @@ export interface Activity {
   learnerName?: string
 }
 
-export type CalendarEvent = { kind: 'enrollment'; data: Enrollment } | { kind: 'activity'; data: Activity }
+/** `date` is the day the event was listed for (an enrollment repeats on many days). */
+export type CalendarEvent = { kind: 'enrollment'; data: Enrollment; date?: string } | { kind: 'activity'; data: Activity }
 
 // The API sends snake_case fields.
 export interface RawEnrollment {
@@ -46,7 +48,7 @@ export interface RawEnrollment {
   date_start?: string; date_end?: string; event_date?: string; start_date?: string; end_date?: string
   schedule_title?: string; location_note?: string; status: string
   cycle_type?: string; cycle_amount?: number | string | null
-  learner_id?: number; learner_name?: string
+  learner_id?: number; learner_name?: string; schedule_id?: number | null
 }
 
 export interface RawActivity {
@@ -77,6 +79,7 @@ export function normalizeEnrollment(raw: RawEnrollment): Enrollment {
     cycleAmount: raw.cycle_amount != null ? Number(raw.cycle_amount) : undefined,
     learnerId: raw.learner_id,
     learnerName: raw.learner_name,
+    scheduleId: raw.schedule_id ?? undefined,
   }
 }
 
@@ -197,7 +200,31 @@ export function activitiesOnDate(activities: Activity[], iso: string): Activity[
 
 export function eventsOnDate(enrollments: Enrollment[], activities: Activity[], iso: string): CalendarEvent[] {
   return [
-    ...enrollmentsOnDate(enrollments, iso).map(data => ({ kind: 'enrollment' as const, data })),
+    ...enrollmentsOnDate(enrollments, iso).map(data => ({ kind: 'enrollment' as const, data, date: iso })),
     ...activitiesOnDate(activities, iso).map(data => ({ kind: 'activity' as const, data })),
   ]
+}
+
+const ATTENDANCE_WINDOW_DAYS = 120
+
+/** What the calendar can do about attendance for an event: nothing, show "attended", or offer the mark. */
+export function attendanceState(event: CalendarEvent, attended: Set<string>, todayIso: string, nowTime?: string): 'none' | 'attended' | 'markable' {
+  if (event.kind !== 'enrollment' || !event.date || !event.data.scheduleId || event.data.learnerId == null) return 'none'
+  if (event.data.scheduleType !== 'recurring' && event.data.scheduleType !== 'event') return 'none'
+  if (event.date > todayIso) return 'none'
+  // Today's class that has not started yet cannot be marked (the API refuses it too).
+  if (event.date === todayIso && nowTime && event.data.timeStart && event.data.timeStart.substring(0, 5) > nowTime) return 'none'
+  if (attended.has(attendanceKey(event.data.learnerId, event.data.scheduleId, event.date))) return 'attended'
+  const oldest = new Date(`${todayIso}T00:00:00`)
+  oldest.setDate(oldest.getDate() - ATTENDANCE_WINDOW_DAYS)
+  return event.date >= toISO(oldest) ? 'markable' : 'none'
+}
+
+export function attendanceKey(learnerId: number, scheduleId: number, iso: string): string {
+  return `${learnerId}|${scheduleId}|${iso}`
+}
+
+/** The session id the attendance API takes: schedule id + day without dashes. */
+export function sessionKeyOf(scheduleId: number, iso: string): string {
+  return `${scheduleId}_${iso.replaceAll('-', '')}`
 }

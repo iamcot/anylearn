@@ -99,6 +99,12 @@ public class EmailTemplateService {
             Map.entry("itemTitle", "Piano cơ bản lúc 17:00 vào ngày mai"), Map.entry("date", "30/10/2026"),
             Map.entry("scheduleInfo", "Mở lịch học để xem chi tiết"), Map.entry("studentName", "Bé An"),
             Map.entry("studentPhone", "0900000000"), Map.entry("activityType", "Học thử"),
+            Map.entry("learnerName", "Bé An"), Map.entry("startDate", "02/11/2026 lúc 17:30"), Map.entry("daysText", "ngày mai"),
+            Map.entry("classInfo", "• Piano cơ bản<br>&nbsp;&nbsp;&nbsp;Giờ tập trung: 17:15<br>&nbsp;&nbsp;&nbsp;Mang theo: Sách bài tập"),
+            Map.entry("todayUrl", "https://anylearn.vn/today"), Map.entry("misses", "2"),
+            Map.entry("surveyUrl", "https://anylearn.vn/today?survey=1"),
+            Map.entry("message", "Bé An còn 2 buổi Piano cơ bản. Gia hạn để học tiếp →"),
+            Map.entry("ctaUrl", "https://anylearn.vn/today"),
             Map.entry("title", "Đơn hàng mới cần duyệt"), Map.entry("content", "Đơn #1234 · Nguyễn Văn A · Piano cơ bản"));
 
     /** Sends the saved (or default) template with sample values, so the team can see how it looks. Returns the problem, or null. */

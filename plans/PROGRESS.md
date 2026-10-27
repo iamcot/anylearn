@@ -91,16 +91,16 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 
 | Task | Mô tả | Trạng thái | Ghi chú |
 |---|---|---|---|
-| 07.1 | Khung lifecycle message | todo | Mở rộng `ScheduleNotificationService` |
-| 07.2 | Xác nhận + trước khai giảng | todo | |
-| 07.3 | Phát hiện vắng học | todo | |
-| 07.4 | Khảo sát giữa khóa | todo | |
-| 07.5 | Gia hạn 1 chạm | todo | |
-| 07.6 | Nhắc học phí theo kỳ | todo | |
-| 08.1 | Lộ trình khóa học | todo | |
-| 08.2 | Engine gợi ý theo luật | todo | |
-| 08.3 | Hiển thị gợi ý | todo | |
-| 08.4 | Đo gợi ý | todo | |
+| 07.1 | Khung lifecycle message | done | `LifecycleService` (hook vào scan hằng giờ của `ScheduleNotificationService`), bảng `lifecycle_messages` (V37, khóa duy nhất nên không gửi trùng), `LifecycleSettings` (khóa `lifecycle/*`, sửa ở Cài đặt > Vận hành), luật thuần `LifecycleRules` + `LifecycleMessages` có test. Mọi tin gửi app + push + email; chỉ gửi trong giờ 8–21 |
+| 07.2 | Xác nhận + trước khai giảng | done | Email xác nhận đơn có thông tin lớp (giờ tập trung, địa điểm, link học, đồ mang) + link `/today`; nhắc trước khai giảng mốc 3, 1 ngày (cấu hình). ZNS chưa nối: xem `docs/zns-templates.md` |
+| 07.3 | Phát hiện vắng học | done | Vắng N buổi liền (mặc định 2), chỉ lớp có điểm danh, buổi đã duyệt nghỉ không tính; phụ huynh nhận tin + admin nhận thông báo |
+| 07.4 | Khảo sát giữa khóa | done | Bảng `enrollment_feedback` (V37), `GET /api/lifecycle/surveys`, `POST /api/lifecycle/feedback`; thẻ `SurveyCard` ở `/today`; điểm thấp (≤ 2) báo admin |
+| 07.5 | Gia hạn 1 chạm | done | `POST /api/lifecycle/renew` đưa đúng khóa/bé/lớp vào giỏ rồi sang `/checkout`; tặng anyPoint (giao dịch `renew_bonus`, mặc định 0, chủ sản phẩm chọn anyPoint thay voucher) khi đơn gia hạn sớm được thanh toán, mỗi lần gia hạn một lần. Ngưỡng buổi / số ngày sửa được trong admin |
+| 07.6 | Nhắc học phí theo kỳ | done | Nhiều mốc trước hạn (mặc định 7 và 1 ngày), quá hạn một nhắc riêng; email cho mọi thông báo `schedule_renewal` (mẫu "Gia hạn khóa học / nhắc học phí") |
+| 08.1 | Lộ trình khóa học | done | V38 `pathways` + `pathway_steps`; trang admin "Lộ trình & gợi ý" (khung tìm khóa + mũi tên + ghi chú từng bước); `GET /api/pathways/{slug}`, `GET /api/items/{id}/pathway` có tiến độ theo bé suy từ đơn và lớp. Sau đó: có trang `/pathway/[slug]` và khối lộ trình trên trang khóa; mỗi bước nhiều khóa thay thế nhau (V39), nhảy cóc có thẻ "đã bỏ qua" + "Đặt lại" |
+| 08.2 | Engine gợi ý theo luật | done | `RecommendationService`: 5 nguồn (lộ trình, anh chị em, khung giờ trống, theo mùa, sở thích), lọc thuần có test (tuổi, đã mua, đã ẩn, trùng giờ). Bỏ "Đi kèm" và "Người khác cũng mua" (chưa đủ dữ liệu) |
+| 08.3 | Hiển thị gợi ý | done | Thẻ gợi ý trên `/today` (tối đa 1 thẻ), gợi ý cho anh chị em ở trang đơn thành công, câu "bước tiếp theo" trong tin nhắc hết buổi; nút "Không quan tâm" ẩn khóa đó 30 ngày (sửa được). Không push |
+| 08.4 | Đo gợi ý | done | Bảng `recommendation_events` (view/click, theo loại gợi ý), báo cáo lượt xem, bấm, đơn trong 30 ngày ở trang Lộ trình & gợi ý; bật/tắt từng loại ở Cài đặt > Vận hành |
 | 06.1 | `/account` dạng menu + "Cần làm ngay" | done | `GET /me/summary`; điện thoại: trang menu + thanh "‹ Tài khoản" thay cho chip cuộn ngang; thẻ "Cần làm ngay": đơn chờ, bé thiếu ngày sinh, khóa chờ đánh giá, thông báo chưa đọc (thẻ cũng gồm nhắc review của 09.5) |
 | 06.2 | Trang từng con | done | `/account/children/[id]` (`GET /me/children/{id}`): khóa học, đơn, sửa, sở thích. Chưa có tiến độ/nhật ký (chưa có dữ liệu) |
 | 06.3 | Đơn hàng chia tab | done | Tab đã có từ 05; thêm lọc theo người học (`?child=ID` + ô chọn); đếm ngược 05.4 chưa làm |
@@ -479,3 +479,19 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 
 ### 26/10/2026 – "Gần tôi" cho khóa chưa có địa chỉ
 - Khóa không có địa chỉ riêng dùng hội sở của đối tác để index vị trí (`_geo`, `locations`, `districtCodes`), cờ `locationFromPartner` trong document, không hiện trên thẻ khóa. Cần chạy reindex một lần sau khi triển khai.
+
+### 26/10/2026 – plan 07 vòng đời đăng ký
+- Backend: `service/lifecycle/*` (`LifecycleService`, `RenewalService`, `EnrollmentFeedbackService`, `LifecycleSettings`, luật thuần + test), V37 (`lifecycle_messages`, `enrollment_feedback`), `LifecycleController` (`/api/lifecycle/*`). `PackageCards`, `FeeCards` và `findEnrollmentsEndingSoon` đọc ngưỡng từ cài đặt thay vì số cứng (3 buổi, 7 ngày).
+- Email mới: `email-lifecycle_start`, `_absent`, `_survey`, `_renew`; `email-order_success` thêm `classInfo`, `todayUrl`. Thông báo hẹn giờ `schedule_renewal` giờ cũng gửi email.
+- Chủ sản phẩm chốt: gửi cả email ngoài ZNS; ưu đãi gia hạn sớm là anyPoint; mọi thông số sửa trong admin. Danh sách đầy đủ mẫu ZNS cần đăng ký: `docs/zns-templates.md`.
+- Chưa làm: gửi ZNS thật (chờ mã mẫu được duyệt); nút gia hạn 1 chạm cho học phí theo kỳ (vẫn đi qua trang add2cart); chưa thử với MySQL thật (đã chạy test thuần, tsc, vitest, build admin).
+
+### 27/10/2026 – plan 08 gợi ý khóa tiếp theo
+- Chủ sản phẩm chốt: bỏ "Đi kèm" / "Người khác cũng mua" đợt này, không push gợi ý, "Không quan tâm" = không nhắc lại 30 ngày (sửa được), dùng sở thích đã khảo sát làm nguồn dự phòng, lộ trình do admin nhập.
+- Backend: V38, `service/recommend/*` (`RecommendationRules` thuần + 11 test, `RecommendationService`, `PathwayService`, `RecommendationSettings`), `RecommendationController`, `AdminPathwayController`. FE: `components/recommendations/*`; admin: trang `Pathways`, mục "Gợi ý khóa học" trong cài đặt vận hành.
+- Seed demo thêm lộ trình Tiếng Anh, ngày sinh cho Bin và Su, một đơn đã thanh toán của Bin để xem gợi ý cho Su; request mẫu trong `http/today.http` và `http/admin.http`.
+- Chưa làm: 08.5 (chờ plan 10), khối lộ trình trên trang khóa học, thông báo gợi ý theo mùa. Chưa thử với MySQL thật (test thuần, tsc, vitest, build admin xanh); câu SQL của engine và báo cáo cần chạy thử với DB thật.
+
+### 27/10/2026 – lộ trình nhiều khóa mỗi bước, điểm danh
+- Mỗi bước lộ trình có nhiều khóa thay thế nhau (V39); gợi ý chọn khóa liên quan nhất (cùng đối tác với khóa bước trước); trang lộ trình cuộn ngang, thu gọn bước đã xong, thẻ "Bạn đã bỏ qua bước này" + "Đặt lại". Chọn cách hiểu "đặt lại" = quay về bước đã bỏ qua để gợi ý đưa bé về đó; chờ chủ sản phẩm xác nhận.
+- Điểm danh: phụ huynh đánh dấu buổi quá khứ (120 ngày) trong Lịch học, admin điểm danh ở Theo dõi lịch học, khối "Buổi chưa điểm danh" ở /today, thưởng anyPoint khi điểm danh đủ, báo vắng mặc định tắt.

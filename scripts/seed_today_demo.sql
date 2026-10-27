@@ -7,6 +7,17 @@ SET @wd0 = LOWER(LEFT(DAYNAME(@today), 3));
 SET @wd1 = LOWER(LEFT(DAYNAME(@today + INTERVAL 1 DAY), 3));
 SET @wd3 = LOWER(LEFT(DAYNAME(@today + INTERVAL 3 DAY), 3));
 
+DELETE FROM recommendation_events WHERE learner_id IN (SELECT id FROM users WHERE phone LIKE '0999000%');
+DELETE FROM recommendation_dismissals WHERE learner_id IN (SELECT id FROM users WHERE phone LIKE '0999000%');
+DELETE FROM pathway_restarts WHERE pathway_id IN (SELECT id FROM pathways WHERE slug LIKE 'demo-%');
+DELETE FROM pathway_steps WHERE pathway_id IN (SELECT id FROM pathways WHERE slug LIKE 'demo-%');
+DELETE FROM pathways WHERE slug LIKE 'demo-%';
+DELETE FROM collection_items WHERE collection_id IN (SELECT id FROM collections WHERE slug LIKE 'demo-%');
+DELETE FROM collections WHERE slug LIKE 'demo-%';
+DELETE FROM learner_interests WHERE learner_id IN (SELECT id FROM users WHERE phone LIKE '0999000%');
+DELETE FROM lifecycle_messages WHERE learner_id IN (SELECT id FROM users WHERE phone LIKE '0999000%');
+DELETE FROM enrollment_feedback WHERE learner_id IN (SELECT id FROM users WHERE phone LIKE '0999000%');
+DELETE FROM notifications WHERE user_id IN (SELECT id FROM users WHERE phone LIKE '0999000%');
 DELETE FROM session_attendances WHERE learner_id IN (SELECT id FROM users WHERE phone LIKE '0999000%');
 DELETE FROM schedule_requests WHERE learner_id IN (SELECT id FROM users WHERE phone LIKE '0999000%');
 DELETE FROM item_user_actions WHERE user_id IN (SELECT id FROM users WHERE phone LIKE '0999000%');
@@ -111,3 +122,110 @@ INSERT INTO orders (user_id, amount, quantity, status, payment) VALUES (@parent,
 SET @order = LAST_INSERT_ID();
 INSERT INTO order_details (order_id, user_id, item_id, unit_price, paid_price, quanity, status)
 VALUES (@order, @parent, @fee, 2500000, 2500000, 1, 'pay_pending');
+
+-- ── Plan 07 (lifecycle reminders) ───────────────────────────────────────────
+-- Bin: [DEMO] Tiếng Anh giao tiếp 2 is past 50% (survey), [DEMO] Kỹ năng sống has 2 sessions left (renew + early bonus),
+--      the fee item is due in 5 days (fee reminder). Su: piano used up and the fee is overdue.
+-- Added below: Bin starts a class tomorrow (D-1), Su starts one in 3 days (D-3), Su missed her last 2 sessions of a maths class.
+SET @wdm1 = LOWER(LEFT(DAYNAME(@today - INTERVAL 1 DAY), 3));
+SET @wdm3 = LOWER(LEFT(DAYNAME(@today - INTERVAL 3 DAY), 3));
+
+INSERT INTO items (title, type, subtype, user_id, status, user_status, is_test, price, date_start, cycle_type, cycle_amount, user_location_id)
+VALUES ('[DEMO] Guitar nhập môn', 'class', 'offline', @minh, 1, 1, 1, 1800000, @today + INTERVAL 1 DAY, 'session', 8, @place);
+SET @guitar = LAST_INSERT_ID();
+INSERT INTO item_schedules (item_id, title, schedule_type, weekdays, date_start, time_start, time_end, gather_time, bring_items, location_note, user_location_id)
+VALUES (@guitar, 'Ca chiều', 'recurring', @wd1, @today + INTERVAL 1 DAY, '15:00', '16:30', '14:45', 'Đàn guitar (nếu có), sổ ghi chép', 'Phòng 101, tầng 1', @place);
+SET @s_guitar = LAST_INSERT_ID();
+INSERT INTO user_course_enrollments (user_id, item_id, schedule_id, start_date, end_date, status)
+VALUES (@bin, @guitar, @s_guitar, @today + INTERVAL 1 DAY, @today + INTERVAL 60 DAY, 'active');
+
+INSERT INTO items (title, type, subtype, user_id, status, user_status, is_test, price, date_start, cycle_type, cycle_amount)
+VALUES ('[DEMO] Cờ vua cơ bản', 'class', 'online', @lan, 1, 1, 1, 900000, @today + INTERVAL 3 DAY, 'session', 8);
+SET @chess = LAST_INSERT_ID();
+INSERT INTO item_schedules (item_id, title, schedule_type, weekdays, date_start, time_start, time_end, meeting_url, gather_time, bring_items)
+VALUES (@chess, 'Ca tối', 'recurring', @wd3, @today + INTERVAL 3 DAY, '19:00', '20:00', 'https://zoom.us/j/5555555555', '18:50', 'Bàn cờ, máy tính có camera');
+SET @s_chess = LAST_INSERT_ID();
+INSERT INTO user_course_enrollments (user_id, item_id, schedule_id, start_date, end_date, status)
+VALUES (@su, @chess, @s_chess, @today + INTERVAL 3 DAY, @today + INTERVAL 60 DAY, 'active');
+
+INSERT INTO items (title, type, subtype, user_id, status, user_status, is_test, price, date_start, cycle_type, cycle_amount, user_location_id)
+VALUES ('[DEMO] Toán tư duy', 'class', 'offline', @lan, 1, 1, 1, 2400000, @today - INTERVAL 10 DAY, 'session', 12, @place);
+SET @math = LAST_INSERT_ID();
+INSERT INTO item_schedules (item_id, title, schedule_type, weekdays, date_start, time_start, time_end, location_note, user_location_id)
+VALUES (@math, 'Ca tối', 'recurring', CONCAT(@wdm1, ',', @wdm3), @today - INTERVAL 10 DAY, '18:00', '19:30', 'Phòng 202', @place);
+SET @s_math = LAST_INSERT_ID();
+INSERT INTO user_course_enrollments (user_id, item_id, schedule_id, start_date, end_date, status)
+VALUES (@su, @math, @s_math, @today - INTERVAL 10 DAY, @today + INTERVAL 40 DAY, 'active');
+-- attended the older sessions (5 to 10 days ago), missed the 2 latest (3 days ago and yesterday)
+INSERT INTO session_attendances (learner_id, item_schedule_id, session_date, status, source, joined_at)
+SELECT @su, @s_math, d, 'attended', 'manual', NOW()
+FROM (SELECT @today - INTERVAL n DAY AS d FROM (SELECT 5 n UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10) x) days
+WHERE LOWER(LEFT(DAYNAME(d), 3)) IN (@wdm1, @wdm3);
+
+-- Local testing settings: send at any hour, a bonus for renewing early. Change them in the back office afterwards.
+DELETE FROM configurations WHERE `key` IN ('lifecycle/send_from_hour', 'lifecycle/send_to_hour', 'lifecycle/early_renew_bonus_points', 'lifecycle/absent_enabled', 'lifecycle/full_attendance_points');
+INSERT INTO configurations (`key`, `value`, `type`, created_at, updated_at) VALUES
+ ('lifecycle/send_from_hour', '0', 'text', NOW(), NOW()),
+ ('lifecycle/send_to_hour', '24', 'text', NOW(), NOW()),
+ ('lifecycle/early_renew_bonus_points', '50', 'text', NOW(), NOW()),
+ -- the absence alert is off by default; on here so the Su scenario below can be seen
+ ('lifecycle/absent_enabled', '1', 'text', NOW(), NOW()),
+ ('lifecycle/full_attendance_points', '20', 'text', NOW(), NOW());
+
+-- To receive the emails, put your address on the parent (the demo accounts have none):
+--   UPDATE users SET email = 'you@example.com' WHERE api_token = 'demo_parent_token';
+
+-- ── Plan 08 (suggestions) ───────────────────────────────────────────────────
+-- Birth dates make age filters and "Su 7 tuổi" texts work.
+UPDATE users SET dob = @today - INTERVAL 9 YEAR, dob_year_only = 0 WHERE id = @bin;
+UPDATE users SET dob = @today - INTERVAL 7 YEAR, dob_year_only = 0 WHERE id = @su;
+
+-- Pathway "Tiếng Anh": step 1 is Bin's running class, step 2 is new. Expect on /today (Bin): "Bin đang học Tiếng Anh giao tiếp 2, bước tiếp theo ... là Tiếng Anh giao tiếp 3".
+INSERT INTO items (title, type, subtype, user_id, status, user_status, is_test, price, date_start, cycle_type, cycle_amount, user_location_id, ages_min, ages_max)
+VALUES ('[DEMO] Tiếng Anh giao tiếp 3', 'class', 'offline', @lan, 1, 1, 1, 3900000, @today + INTERVAL 20 DAY, 'session', 12, @place, 6, 12);
+SET @eng3 = LAST_INSERT_ID();
+INSERT INTO item_schedules (item_id, title, schedule_type, weekdays, date_start, time_start, time_end, location_note, user_location_id)
+VALUES (@eng3, 'Lớp tối', 'recurring', @wd1, @today + INTERVAL 20 DAY, '18:00', '19:30', 'Phòng 204', @place);
+INSERT INTO pathways (slug, title, subtitle, is_active) VALUES ('demo-tieng-anh', '[DEMO] Tiếng Anh giao tiếp', 'Từ giao tiếp 2 đến giao tiếp 3', 1);
+SET @pathway = LAST_INSERT_ID();
+-- Step 2 has two alternatives (one by Cô Lan, one by Thầy Minh); step 3 is a harder course. Expect for Bin: the card suggests the
+-- Cô Lan one (same partner as Bin's step 1 course), the pathway page shows both, Cô Lan's first.
+INSERT INTO items (title, type, subtype, user_id, status, user_status, is_test, price, date_start, cycle_type, cycle_amount, user_location_id, ages_min, ages_max)
+VALUES ('[DEMO] Tiếng Anh giao tiếp 3 (lớp Thầy Minh)', 'class', 'offline', @minh, 1, 1, 1, 3600000, @today + INTERVAL 20 DAY, 'session', 12, @place, 6, 12);
+SET @eng3b = LAST_INSERT_ID();
+INSERT INTO items (title, type, subtype, user_id, status, user_status, is_test, price, date_start, cycle_type, cycle_amount, user_location_id, ages_min, ages_max)
+VALUES ('[DEMO] Tiếng Anh giao tiếp 4', 'class', 'offline', @lan, 1, 1, 1, 4500000, @today + INTERVAL 40 DAY, 'session', 12, @place, 6, 12);
+SET @eng4 = LAST_INSERT_ID();
+INSERT INTO pathway_steps (pathway_id, item_id, step_no, item_order, note) VALUES
+ (@pathway, @eng, 1, 1, NULL),
+ (@pathway, @eng3, 2, 1, 'Dành cho bé đã xong giao tiếp 2'),
+ (@pathway, @eng3b, 2, 2, 'Dành cho bé đã xong giao tiếp 2'),
+ (@pathway, @eng4, 3, 1, 'Nâng cao');
+-- To see a skipped step: give Bin an order or enrollment of "Tiếng Anh giao tiếp 4" without step 2, then open /pathway/demo-tieng-anh?child=<Bin>.
+
+-- A paid order of Bin's guitar class: open /order/<id>?status=success as the parent and Su gets suggestions from Thầy Minh (Bin's partner).
+INSERT INTO orders (user_id, amount, quantity, status, payment) VALUES (@parent, 1800000, 1, 'delivered', 'bank_transfer');
+SET @order2 = LAST_INSERT_ID();
+INSERT INTO order_details (order_id, user_id, item_id, unit_price, paid_price, quanity, status)
+VALUES (@order2, @bin, @guitar, 1800000, 1800000, 1, 'delivered');
+SELECT CONCAT('Demo paid order for the sibling suggestions: /order/', @order2, '?status=success') AS hint;
+
+-- Suggestions only show courses of live partners (active + approved contract, is_signed 99), so mark the two demo partners.
+UPDATE users SET is_signed = 99 WHERE id IN (@lan, @minh);
+
+-- Source "season": a collection in season with a new art course (ages 6-12, nobody owns it). Expect "Đang vào mùa: ..." for a child with a free slot.
+INSERT INTO items (title, type, subtype, user_id, status, user_status, is_test, price, date_start, cycle_type, cycle_amount, user_location_id, ages_min, ages_max)
+VALUES ('[DEMO] Hè vẽ tranh', 'class', 'offline', @minh, 1, 1, 1, 1500000, @today + INTERVAL 10 DAY, 'session', 8, @place, 6, 12);
+SET @art = LAST_INSERT_ID();
+INSERT INTO item_schedules (item_id, title, schedule_type, weekdays, date_start, time_start, time_end, location_note, user_location_id)
+VALUES (@art, 'Lớp sáng', 'recurring', @wd3, @today + INTERVAL 10 DAY, '09:00', '10:30', 'Phòng 101', @place);
+INSERT INTO collections (slug, title, subtitle, season_from, season_to, sort_order, is_active)
+VALUES ('demo-he-vui', '[DEMO] Hè vui', 'Khóa hè cho bé', @today - INTERVAL 5 DAY, @today + INTERVAL 60 DAY, 0, 1);
+INSERT INTO collection_items (collection_id, item_id, sort_order) VALUES (LAST_INSERT_ID(), @art, 0);
+
+-- Source "interest": Su likes art and english (survey of plan 01.5).
+INSERT INTO learner_interests (learner_id, tag, source) VALUES (@su, 'art', 'likes'), (@su, 'english', 'likes');
+
+-- To see a "Không quan tâm" effect: dismiss a card as the parent, it stays hidden 30 days. Reset:
+--   DELETE FROM recommendation_dismissals WHERE user_id = (SELECT id FROM users WHERE api_token = 'demo_parent_token');
+-- Meilisearch based sources (interest) need the courses indexed: POST /admin/reindex once after this seed.

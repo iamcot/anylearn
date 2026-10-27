@@ -16,6 +16,7 @@ const FIXED_REASONS: Record<string, string> = {
   commission_add: 'Cộng anyPoint bổ sung',
   activitybonus: 'Thưởng hoạt động',
   review_reward: 'Thưởng viết đánh giá',
+  renew_bonus: 'Thưởng gia hạn sớm',
   review_reward_revoke: 'Thu hồi anyPoint thưởng đánh giá',
 }
 

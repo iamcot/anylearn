@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.anylearn.backend.repository.OrderDetailRepository;
 import com.anylearn.backend.repository.OrderRepository;
 import com.anylearn.backend.service.payment.MomoService;
+import com.anylearn.backend.service.payment.PaymentMethodService;
 import com.anylearn.backend.service.payment.OnepayService;
 import com.anylearn.backend.service.payment.PaymentApprovalService;
 import com.anylearn.backend.service.payment.VnpayService;
@@ -56,6 +57,7 @@ public class PaymentController {
     private final PaymentConfig paymentConfig;
     private final SepayWebhookService sepayWebhookService;
     private final BankAccountService bankAccountService;
+    private final PaymentMethodService paymentMethods;
 
     // ── Admin approve (bank_transfer) ─────────────────────────────────────────
 
@@ -65,6 +67,12 @@ public class PaymentController {
         String note = body != null && body.get("note") != null ? body.get("note").toString() : "";
         String result = approvalService.adminApproveOrder(orderId, note);
         return "OK".equals(result) ? ApiResponse.ok("Đã xác nhận đơn hàng") : ApiResponse.fail(result);
+    }
+
+    /** Methods the checkout offers for an order total (switched in the back office, page "Phương thức thanh toán"). */
+    @GetMapping("/api/payment/methods")
+    public ApiResponse<?> methods(@RequestParam(defaultValue = "0") long total) {
+        return ApiResponse.ok(paymentMethods.available(total));
     }
 
     // ── Bank transfer info (public) ───────────────────────────────────────────
@@ -193,6 +201,9 @@ public class PaymentController {
         if (order == null) return ApiResponse.fail("Không tìm thấy đơn hàng");
         if (!OrderStatus.NEW.equals(order.getStatus()) && !OrderStatus.PAY_PENDING.equals(order.getStatus()))
             return ApiResponse.fail("Đơn hàng không ở trạng thái chờ thanh toán");
+
+        String requested = body.get("paymentMethod") != null ? String.valueOf(body.get("paymentMethod")) : order.getPayment();
+        if (requested == null || !paymentMethods.isEnabled(requested)) return ApiResponse.fail("Phương thức thanh toán này hiện không khả dụng");
 
         // Allow overriding payment method (e.g. retry with a different method)
         String paymentMethod = body.get("paymentMethod") != null

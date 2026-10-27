@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
-  activitiesOnDate, computeEffectiveEnd, enrollmentsOnDate, eventsOnDate, forLearner, monthRange, mondayOfWeek,
+  activitiesOnDate, attendanceKey, attendanceState, sessionKeyOf, computeEffectiveEnd, enrollmentsOnDate, eventsOnDate, forLearner, monthRange, mondayOfWeek,
   normalizeEnrollment, toISO, weekRange, type Activity, type Enrollment,
 } from './calendar'
 
@@ -104,5 +104,27 @@ describe('forLearner', () => {
   })
   it('keeps only the rows of the picked learner', () => {
     expect(forLearner(rows, 2)).toEqual([{ learnerId: 2 }])
+  })
+})
+
+describe('attendance on the calendar', () => {
+  const enrollment = { id: 1, itemId: 2, itemTitle: 'Toán', scheduleType: 'recurring', status: 'active', learnerId: 7, scheduleId: 100 }
+  const on = (date: string) => ({ kind: 'enrollment' as const, data: enrollment, date })
+
+  it('builds the session id the API expects', () => {
+    expect(sessionKeyOf(100, '2026-10-05')).toBe('100_20261005')
+  })
+
+  it('offers the mark for a past day and shows the tick once marked', () => {
+    const attended = new Set<string>()
+    expect(attendanceState(on('2026-10-05'), attended, '2026-10-27')).toBe('markable')
+    attended.add(attendanceKey(7, 100, '2026-10-05'))
+    expect(attendanceState(on('2026-10-05'), attended, '2026-10-27')).toBe('attended')
+  })
+
+  it('offers nothing for the future, for days older than the window or for rows without a schedule', () => {
+    expect(attendanceState(on('2026-10-28'), new Set(), '2026-10-27')).toBe('none')
+    expect(attendanceState(on('2026-05-01'), new Set(), '2026-10-27')).toBe('none')
+    expect(attendanceState({ kind: 'enrollment', data: { ...enrollment, scheduleId: undefined }, date: '2026-10-05' }, new Set(), '2026-10-27')).toBe('none')
   })
 })

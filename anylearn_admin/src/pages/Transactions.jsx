@@ -108,6 +108,7 @@ const unitOf = (type) => VND_TYPES.has(type) ? 'VND' : 'anyPoint'
               { value: 'exchange_refund', label: 'exchange_refund' },
               { value: 'review_reward', label: 'review_reward' },
               { value: 'review_reward_revoke', label: 'review_reward_revoke' },
+              { value: 'renew_bonus', label: 'renew_bonus' },
               { value: 'order', label: 'order' },
               { value: 'net_revenue', label: 'net_revenue' },
               { value: 'foundation', label: 'foundation' },

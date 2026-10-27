@@ -13,21 +13,23 @@ interface Props {
   initial: ChildDraft
   saving: boolean
   dobRequired?: boolean
+  /** The person edits their own date of birth: the name is shown but not editable. */
+  lockName?: boolean
   onSave: (draft: ChildDraft) => void
   onClose: () => void
 }
 
-export default function ChildFormModal({ initial, saving, dobRequired = true, onSave, onClose }: Props) {
+export default function ChildFormModal({ initial, saving, dobRequired = true, lockName = false, onSave, onClose }: Props) {
   const [name, setName] = useState(initial.name)
   const [dob, setDob] = useState(initial.dob)
   const canSave = !saving && name.trim() !== '' && (!dobRequired || dob !== '')
 
   return (
-    <Modal title={initial.id ? 'Sửa tài khoản con' : 'Thêm tài khoản con'} onClose={onClose} maxWidth="max-w-[360px]">
+    <Modal title={lockName ? 'Ngày sinh của bạn' : initial.id ? 'Sửa tài khoản con' : 'Thêm tài khoản con'} onClose={onClose} maxWidth="max-w-[360px]">
       <div className="flex flex-col gap-3">
         <label className="block">
           <span className="mb-1 block text-xs text-muted">Tên</span>
-          <input value={name} onChange={event => setName(event.target.value)} className="field w-full" placeholder="Tên học sinh" />
+          <input value={name} onChange={event => setName(event.target.value)} disabled={lockName} className="field w-full" placeholder="Tên học sinh" />
         </label>
         <label className="block">
           <span className="mb-1 block text-xs text-muted">Ngày sinh</span>

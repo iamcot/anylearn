@@ -20,10 +20,12 @@ import { useToast } from '@/components/ToastProvider'
 import { BookIcon, CalendarIcon, GiftIcon, PencilIcon, UserIcon } from '@/components/icons'
 import { takePendingChildId } from '@/components/guest/guestLearnerStore'
 import { useChildrenVersion } from '@/components/guest/useGuestLearners'
+import Modal from '@/components/Modal'
 import DuplicateOrderModal from '@/components/orders/DuplicateOrderModal'
 import { usePendingOrders } from '@/components/orders/usePendingOrders'
 import { findDuplicatePendingOrder } from '@/lib/orders/pendingOrders'
 import type { PendingOrder } from '@/lib/api/orders'
+import { getMyProfile, updateProfile } from '@/lib/api/account'
 
 const ACTIVITY_ROW_LABELS: Record<ActivityType, string> = { trial: 'Học thử', test: 'Đăng ký thi đầu vào', visit: 'Tham quan trường' }
 const BILLING_CYCLES = ['month', 'year', 'week', 'day']
@@ -58,10 +60,22 @@ export default function Add2CartPage() {
   const [selectedSchedule, setSelectedSchedule] = useState<number | null>(null)
   const [activities, setActivities] = useState<ActivitySelection>(EMPTY_SELECTION)
   const [startMonth, setStartMonth] = useState('')
+  // The learner a link was made for (e.g. a suggestion for Bin): choosing someone else asks once before going on.
+  const [intendedChild, setIntendedChild] = useState<number | null>(null)
+  const [askOtherLearner, setAskOtherLearner] = useState(false)
+  const [otherLearnerConfirmed, setOtherLearnerConfirmed] = useState(false)
 
   const childrenVersion = useChildrenVersion()
   const [childDraft, setChildDraft] = useState<ChildDraft | null>(null)
   const [savingChild, setSavingChild] = useState(false)
+  // The account owner can be the learner too: their date of birth is edited here as well (age-limited courses need it).
+  const [selfDob, setSelfDob] = useState<string | null>(null)
+  const [editingSelf, setEditingSelf] = useState(false)
+
+  useEffect(() => {
+    if (!token) return
+    getMyProfile(token).then(profile => setSelfDob(profile?.dob ? profile.dob.substring(0, 10) : null))
+  }, [token])
 
   useEffect(() => {
     if (isAuthLoading) return
@@ -82,6 +96,7 @@ export default function Add2CartPage() {
       const pendingChildId = takePendingChildId()
       const preselected = childId || pendingChildId
       if (preselected && info?.children?.some(c => c.id === preselected)) setSelectedStudent(preselected)
+      if (childId && info?.children?.some(c => c.id === childId)) setIntendedChild(childId)
       const start = params.get('start')
       if (start && /^\d{4}-\d{2}$/.test(start)) setStartMonth(start)
     })
@@ -117,13 +132,24 @@ export default function Add2CartPage() {
     setChildDraft(null)
   }
 
+  async function handleSaveSelf(draft: ChildDraft) {
+    if (!token) return
+    setSavingChild(true)
+    const { error: err } = await updateProfile({ dob: draft.dob, dobYearOnly: false }, token)
+    setSavingChild(false)
+    if (err) { toast({ kind: 'error', text: err }); return }
+    setSelfDob(draft.dob)
+    setEditingSelf(false)
+  }
+
   const updateActivity = (type: ActivityType, choice: ActivityChoice) => setActivities(prev => ({ ...prev, [type]: choice }))
 
   const pendingOrders = usePendingOrders()
   const [duplicateOrder, setDuplicateOrder] = useState<PendingOrder | null>(null)
 
-  const handleAddToCart = async (ignoreDuplicate = false) => {
+  const handleAddToCart = async (ignoreDuplicate = false, learnerConfirmed = false) => {
     if (!token || !data || !user) return
+    if (intendedChild && selectedStudent !== intendedChild && !otherLearnerConfirmed && !learnerConfirmed) { setAskOtherLearner(true); return }
     const duplicate = findDuplicatePendingOrder(pendingOrders, {
       itemId: Number(itemId), learnerId: selectedStudent ?? user.id, scheduleId: selectedSchedule,
     })
@@ -189,7 +215,17 @@ export default function Add2CartPage() {
           }
         >
           <div className="flex flex-col gap-2.5 p-4 sm:px-5">
-            <RadioOption name="student" checked={selectedStudent === null} onChange={() => setSelectedStudent(null)} label={`${user.name} (Tôi)`} />
+            <div className="flex items-stretch gap-2">
+              <div className="flex-1">
+                <RadioOption name="student" checked={selectedStudent === null} onChange={() => setSelectedStudent(null)} label={`${user.name} (Tôi)`}
+                  hint={selfDob ? `${calcAge(selfDob)} tuổi` : undefined} />
+              </div>
+              <button type="button" onClick={() => setEditingSelf(true)}
+                aria-label="Sửa ngày sinh của bạn" title="Sửa ngày sinh"
+                className="grid w-11 shrink-0 cursor-pointer place-items-center rounded-xl border border-line bg-white text-ink hover:bg-bg">
+                <PencilIcon className="size-[18px]" />
+              </button>
+            </div>
             {data.children.map(child => (
               <div key={child.id} className="flex items-stretch gap-2">
                 <div className="flex-1">
@@ -210,6 +246,11 @@ export default function Add2CartPage() {
             ))}
           </div>
         </SectionCard>
+
+        {editingSelf && (
+          <ChildFormModal initial={{ name: user.name, dob: selfDob ?? '' }} saving={savingChild} lockName
+            onSave={handleSaveSelf} onClose={() => setEditingSelf(false)} />
+        )}
 
         {childDraft && (
           <ChildFormModal initial={childDraft} saving={savingChild} onSave={handleSaveChild} onClose={() => setChildDraft(null)} />
@@ -299,6 +340,26 @@ export default function Add2CartPage() {
         <button type="button" onClick={() => handleAddToCart()} className="btn btn--green mb-3 w-full p-4 text-[17px]" disabled={submitting}>
           {submitting ? 'Đang thêm...' : 'Thêm vào giỏ hàng'}
         </button>
+        {askOtherLearner && intendedChild && (
+          <Modal title="Bạn muốn mua cho người khác?" onClose={() => setAskOtherLearner(false)}>
+            <p className="m-0 text-sm text-text">
+              Khóa này được gợi ý cho <strong>{data.children.find(c => c.id === intendedChild)?.name}</strong>, nhưng bạn đang chọn
+              đăng ký cho <strong>{selectedStudent === null ? user.name : data.children.find(c => c.id === selectedStudent)?.name}</strong>.
+              Bạn có muốn đổi lại không?
+            </p>
+            <div className="mt-5 flex flex-col gap-2.5">
+              <button type="button" className="btn btn--green w-full"
+                onClick={() => { setSelectedStudent(intendedChild); setAskOtherLearner(false) }}>
+                Đổi sang {data.children.find(c => c.id === intendedChild)?.name}
+              </button>
+              <button type="button" className="btn btn--outline w-full"
+                onClick={() => { setOtherLearnerConfirmed(true); setAskOtherLearner(false); handleAddToCart(false, true) }}>
+                Vẫn đăng ký cho người này
+              </button>
+            </div>
+          </Modal>
+        )}
+
         {duplicateOrder && (
           <DuplicateOrderModal order={duplicateOrder} onCreateNew={() => handleAddToCart(true)} onClose={() => setDuplicateOrder(null)} />
         )}

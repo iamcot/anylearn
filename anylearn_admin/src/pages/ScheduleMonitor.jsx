@@ -1,4 +1,4 @@
-import { Button, Card, DatePicker, Dropdown, Input, Select, Space, Table, Tag, Tooltip, Typography } from 'antd'
+import { App, Button, Card, DatePicker, Dropdown, Input, Popconfirm, Select, Space, Table, Tag, Tooltip, Typography } from 'antd'
 import { CalendarOutlined, DownOutlined, SearchOutlined } from '@ant-design/icons'
 import { useState, useMemo } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -34,6 +34,7 @@ export default function ScheduleMonitor() {
   const [searchVal, setSearchVal] = useState('')
   const [partnerId, setPartnerId] = useState(null)
   const qc = useQueryClient()
+  const { message } = App.useApp()
 
   const fromStr = range[0].format('YYYY-MM-DD')
   const toStr   = range[1].format('YYYY-MM-DD')
@@ -55,6 +56,16 @@ export default function ScheduleMonitor() {
   const remindMutation = useMutation({
     mutationFn: (enrollmentId) => client.post(`/admin/enrollments/${enrollmentId}/remind`),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-schedule-monitor'] }),
+  })
+
+  const attendanceMutation = useMutation({
+    mutationFn: ({ learnerId, scheduleId, date, attended }) =>
+      client.post('/admin/enrollments/attendance', { learnerId, scheduleId, date, attended }),
+    onSuccess: (res) => {
+      if (res.data?.resultCode === 0) return message.error(res.data?.message || 'Không lưu được')
+      qc.invalidateQueries({ queryKey: ['admin-schedule-monitor'] })
+    },
+    onError: () => message.error('Không lưu được điểm danh'),
   })
 
   // Group events by date
@@ -109,6 +120,22 @@ export default function ScheduleMonitor() {
     {
       title: 'Trạng thái', dataIndex: 'status', key: 'status', width: 90,
       render: v => <Tag color={v === 'active' ? 'green' : 'orange'}>{v === 'active' ? 'Đang học' : 'Chờ KG'}</Tag>,
+    },
+    {
+      title: 'Điểm danh', key: 'attendance', width: 120,
+      render: (_, r) => {
+        if (!r.scheduleId || r.date > today.format('YYYY-MM-DD')) return <span style={{ color: '#bbb' }}>—</span>
+        const payload = { learnerId: r.userId, scheduleId: r.scheduleId, date: r.date }
+        return r.attended
+          ? (
+            <Popconfirm title="Bỏ điểm danh buổi này?" okText="Bỏ" cancelText="Thôi"
+              onConfirm={() => attendanceMutation.mutate({ ...payload, attended: false })}>
+              <Tag color="green" style={{ cursor: 'pointer' }}>Đã đến lớp</Tag>
+            </Popconfirm>
+          )
+          : <Button size="small" loading={attendanceMutation.isPending}
+              onClick={() => attendanceMutation.mutate({ ...payload, attended: true })}>Điểm danh</Button>
+      },
     },
     {
       title: 'Nhắc nhở', key: 'remind', width: 130,

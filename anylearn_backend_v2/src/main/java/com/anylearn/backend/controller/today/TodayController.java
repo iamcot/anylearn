@@ -4,6 +4,7 @@ import com.anylearn.backend.dto.response.ApiResponse;
 import com.anylearn.backend.entity.User;
 import com.anylearn.backend.dto.today.ScheduleChangeRequest;
 import com.anylearn.backend.dto.today.SessionActionRequest;
+import com.anylearn.backend.service.today.MissedAttendanceService;
 import com.anylearn.backend.service.today.TodayActions;
 import com.anylearn.backend.service.today.TodayService;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ public class TodayController {
 
     private final TodayService todayService;
     private final TodayActions todayActions;
+    private final MissedAttendanceService missedAttendance;
 
     @GetMapping("/learners")
     public ApiResponse<?> learners(@AuthenticationPrincipal User user) {
@@ -34,6 +36,14 @@ public class TodayController {
                                 @AuthenticationPrincipal User user) {
         if (user == null) return ApiResponse.fail("Unauthorized");
         return ApiResponse.ok(todayService.today(user, learnerId));
+    }
+
+    /** Past sessions nobody marked (last 30 days), newest first: the "Buổi chưa điểm danh" block of /today. */
+    @GetMapping("/missed-attendance")
+    public ApiResponse<?> missed(@RequestParam Long learnerId, @RequestParam(defaultValue = "3") int limit,
+                                 @AuthenticationPrincipal User user) {
+        if (user == null) return ApiResponse.fail("Unauthorized");
+        return ApiResponse.ok(missedAttendance.missed(user, learnerId, limit));
     }
 
     @PostMapping("/join")

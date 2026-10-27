@@ -1,13 +1,14 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { getMeSummary, type MeSummary } from '@/lib/api'
 import AccountCard from '@/components/account/AccountCard'
 import { PendingOrdersPill, PointBadge } from '@/components/account/AccountBadges'
 import { NAV_ITEMS } from '@/components/account/navItems'
-import { ChevronRightIcon } from '@/components/icons'
+import { ChevronRightIcon, LogoutIcon } from '@/components/icons'
 import { ListSkeleton } from '@/components/PageSkeleton'
 
 const ORDERS_HREF = '/account/orders'
@@ -55,7 +56,8 @@ function Children({ summary }: { summary: MeSummary }) {
 
 // The menu: everything the sidebar has, as a list that works with one thumb. On a desktop the sidebar is always there, so only the summary shows.
 export default function AccountHomePage() {
-  const { token, user } = useAuth()
+  const { token, user, logout } = useAuth()
+  const router = useRouter()
   const [summary, setSummary] = useState<MeSummary | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -66,6 +68,20 @@ export default function AccountHomePage() {
 
   return (
     <div className="flex flex-col gap-3">
+      {user && (
+        <div className="flex items-center gap-3 rounded-card border border-line bg-white p-4 lg:hidden">
+          {user.image
+            // eslint-disable-next-line @next/next/no-img-element
+            ? <img src={user.image} alt={user.name} className="size-12 rounded-full border-2 border-line object-cover" />
+            : <div className="grid size-12 shrink-0 place-items-center rounded-full bg-gradient-to-br from-blue to-green text-lg font-extrabold text-white">{user.name?.charAt(0).toUpperCase()}</div>
+          }
+          <div className="min-w-0">
+            <div className="truncate text-base font-extrabold text-ink">{user.name}</div>
+            <div className="truncate text-sm text-muted">{user.phone}</div>
+          </div>
+        </div>
+      )}
+
       <AccountCard title="Cần làm ngay">
         {loading ? <div className="p-5"><ListSkeleton showTitle={false} /></div> : summary ? <Todos summary={summary} /> : <p className="m-0 p-5 text-sm text-muted">Chưa tải được, vui lòng thử lại sau.</p>}
       </AccountCard>
@@ -86,6 +102,12 @@ export default function AccountHomePage() {
                 </Link>
               </li>
             ))}
+            <li className="border-t border-line">
+              <button type="button" onClick={() => { logout(); router.push('/') }}
+                className="flex min-h-12 w-full cursor-pointer items-center gap-3 border-0 bg-transparent px-4 py-3 text-left text-sm font-medium text-red hover:bg-red-soft">
+                <LogoutIcon className="size-[18px] shrink-0" /> Đăng xuất
+              </button>
+            </li>
           </ul>
         </AccountCard>
       </div>

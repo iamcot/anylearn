@@ -42,6 +42,9 @@ public class NotificationService {
     @Autowired(required = false)
     private NotificationPrefsService prefs;
 
+    @Autowired(required = false)
+    private com.anylearn.backend.config.PaymentConfig paymentConfig;
+
     private boolean allowed(Long userId, String type, String channel) {
         return prefs == null || prefs.allows(userId, type, channel);
     }
@@ -125,6 +128,12 @@ public class NotificationService {
             n.setIsSend((byte) 1);
             n.setUpdatedAt(LocalDateTime.now());
             notificationRepository.save(n);
+            if ("schedule_renewal".equals(n.getType())) {
+                String base = paymentConfig == null ? "" : paymentConfig.getFrontendUrl();
+                emailTemplate(n.getUserId(), n.getType(), "email-lifecycle_renew", n.getTitle(),
+                        Map.of("title", String.valueOf(n.getTitle()), "message", String.valueOf(n.getContent()),
+                                "ctaUrl", base + (n.getRoute() == null ? "/today" : n.getRoute())));
+            }
             if ("schedule_reminder".equals(n.getType())) {
                 emailTemplate(n.getUserId(), n.getType(), "email-schedule_reminder", n.getTitle(),
                         Map.of("itemTitle", String.valueOf(n.getContent()), "date", "", "scheduleInfo", "Mở lịch học để xem chi tiết"));
