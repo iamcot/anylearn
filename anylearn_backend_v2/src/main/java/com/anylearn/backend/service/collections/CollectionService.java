@@ -45,6 +45,20 @@ public class CollectionService {
         return cards;
     }
 
+    /** The shown collections that list this course (and where it is still open): "Khóa này thuộc bộ sưu tập" on the course page. */
+    public List<Map<String, Object>> listForItem(Long itemId, LocalDate today) {
+        List<Map<String, Object>> cards = new ArrayList<>();
+        for (Collection collection : collectionRepository.findAllByOrderBySortOrderAscIdAsc()) {
+            if (!isShown(collection, today)) continue;
+            List<Long> visible = visibleItemIds(collection.getId());
+            if (!visible.contains(itemId)) continue;
+            Map<String, Object> card = summary(collection);
+            card.put("itemCount", visible.size());
+            cards.add(card);
+        }
+        return cards;
+    }
+
     public Optional<Map<String, Object>> getPublic(String slug, LocalDate today) {
         return collectionRepository.findBySlug(slug).filter(collection -> isShown(collection, today)).map(collection -> {
             Map<String, Object> page = summary(collection);

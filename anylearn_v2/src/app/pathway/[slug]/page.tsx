@@ -41,11 +41,12 @@ function StepRow({ step, canRestart, onRestart }: { step: PathwayStep; canRestar
   const hidden = step.items.length - owned.length
 
   return (
-    <li className={`rounded-card border p-4 ${step.next ? 'border-green bg-white ring-2 ring-green/20' : 'border-line bg-white'}`}>
-      <div className="mb-3 flex flex-wrap items-center gap-2">
-        <span className={`grid size-8 shrink-0 place-items-center rounded-full text-sm font-extrabold ${step.done ? 'bg-green text-white' : 'bg-bg text-muted'}`}>
-          {step.done ? '✓' : step.stepNo}
-        </span>
+    <li className="group relative pl-11">
+      <span aria-hidden="true" className={`absolute left-[15px] top-8 h-[calc(100%-0.5rem)] w-[3px] group-last:hidden ${step.done ? 'bg-green' : 'bg-line'}`} />
+      <span className={`absolute left-0 top-0 grid size-8 place-items-center rounded-full text-sm font-extrabold ${step.done ? 'bg-green text-white' : step.next ? 'bg-green text-white ring-4 ring-green-soft' : 'border border-line bg-white text-muted'}`}>
+        {step.done ? '✓' : step.stepNo}
+      </span>
+      <div className="mb-3 flex min-h-8 flex-wrap items-center gap-2">
         <span className="text-base font-extrabold text-ink">Bước {step.stepNo}</span>
         {step.done && <span className={`${TAG} bg-green-soft text-green-dark`}>Đã xong</span>}
         {step.next && <span className={`${TAG} bg-green text-white`}>Bước tiếp theo</span>}
@@ -140,7 +141,7 @@ function PathwayView() {
       )}
       {error && <p role="alert" className="mb-3 text-sm text-red">{error}</p>}
 
-      <ol className="m-0 flex list-none flex-col gap-4 p-0">
+      <ol className="m-0 flex list-none flex-col gap-6 p-0">
         {pathway.steps.map(step => (
           <StepRow key={`${learnerId}-${step.stepNo}`} step={step} canRestart={hasLearner} onRestart={() => restart(step.stepNo)} />
         ))}
