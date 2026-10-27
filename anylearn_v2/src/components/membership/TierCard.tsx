@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { getMyTier, type MyTier } from '@/lib/api/membership'
+import TierIcon from './TierIcon'
 import { multiplierLine, nextTierLine, tierProgress, TIER_STYLE } from '@/lib/membership/tier'
 import { formatExactPrice } from '@/lib/format/price'
 
@@ -25,7 +26,7 @@ export default function TierCard() {
       <div className="flex items-center justify-between gap-3">
         <div>
           <div className="text-xs text-muted">Hạng thành viên</div>
-          <span className={`mt-1 inline-block rounded-full px-3 py-1 text-sm font-extrabold ${TIER_STYLE[tier.tier] ?? TIER_STYLE.member}`}>{tier.label}</span>
+          <span className={`mt-1 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-extrabold ${TIER_STYLE[tier.tier] ?? TIER_STYLE.member}`}><TierIcon tier={tier.tier} label={tier.label} />{tier.label}</span>
         </div>
         <div className="text-right text-xs text-muted">
           Đã chi 12 tháng qua
@@ -44,7 +45,7 @@ export default function TierCard() {
         <ul className="m-0 mt-2 flex list-none flex-col gap-1.5 p-0 text-sm">
           {tier.tiers.map(row => (
             <li key={row.key} className="flex items-center justify-between gap-3">
-              <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${TIER_STYLE[row.key] ?? TIER_STYLE.member}`}>{row.label}</span>
+              <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-bold ${TIER_STYLE[row.key] ?? TIER_STYLE.member}`}><TierIcon tier={row.key} label={row.label} className="size-4" />{row.label}</span>
               <span className="text-muted">
                 {row.minSpent > 0 ? `từ ${formatExactPrice(row.minSpent)}` : 'mặc định'} · anyPoint x{row.multiplier.toLocaleString('vi-VN')}
               </span>
