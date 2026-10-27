@@ -9,7 +9,7 @@ import { BookIcon, HeartIcon, SchoolIcon, StarIcon, UserIcon } from '@/component
 
 const CARD_CLASS = 'relative flex flex-col overflow-hidden rounded-2xl border border-line bg-white shadow-card md:grid md:grid-cols-[160px_1fr]'
 const IMAGE_CLASS = 'relative grid aspect-[16/10] place-items-center md:aspect-auto md:min-h-[132px] overflow-hidden bg-gradient-to-br from-green-soft to-blue-soft text-blue/40'
-const CHIP_CLASS = 'rounded-full px-2 py-0.5 text-[11px] font-extrabold md:text-xs'
+const CHIP_CLASS = 'rounded-full px-1.5 py-0.5 text-[10px] font-extrabold md:px-2 md:text-xs'
 
 const SLOT_LABELS: Record<string, string> = {
   weekday_morning: 'Sáng T2-T6', weekday_afternoon: 'Chiều T2-T6', weekday_evening: 'Tối T2-T6',
@@ -75,8 +75,8 @@ export function CourseResultCard({ item }: { item: Item }) {
         <div className="mt-auto pt-1">
           <div className="mb-1 text-base font-extrabold text-red">{formatPrice(item.price)}</div>
           <CardPointsChip points={item.points} className="mb-1" />
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 text-xs text-subtle">
+          <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
+            <div className="flex shrink-0 items-center gap-2 text-xs text-subtle">
               {item.rating != null && item.rating > 0 && (
                 <span className="inline-flex items-center gap-1"><StarIcon filled className="size-3.5 text-star" />{item.rating.toFixed(1)}</span>
               )}
@@ -84,7 +84,7 @@ export function CourseResultCard({ item }: { item: Item }) {
                 <span className="inline-flex items-center gap-1"><HeartIcon filled className="size-3.5 text-red" />{item.num_favorite}</span>
               )}
             </div>
-            <ChevronLabel className="shrink-0 text-xs font-extrabold text-green-dark md:text-sm">Tìm hiểu thêm</ChevronLabel>
+            <ChevronLabel className="ml-auto shrink-0 text-xs font-extrabold text-green-dark md:text-sm">Tìm hiểu thêm</ChevronLabel>
           </div>
         </div>
       </div>
