@@ -267,7 +267,7 @@ UPDATE items i JOIN tmp_sessions t ON t.id = i.id SET i.cycle_type = 'session', 
 
 -- B14. Làm sạch ngày/giờ bắt đầu ở cấp khóa học (items.date_start, time_start, time_end, date_end).
 --      Các trường này vô nghĩa: date_start bị code tự dời +15/+30 ngày mỗi lần xem khóa, time_start/time_end hiếm khi có.
---      Ngày khai giảng thật nằm ở ca học (item_schedules). Cần V46 (date_start cho phép NULL) đã chạy trước khi chạy khối này.
+--      Ngày khai giảng thật nằm ở ca học (item_schedules). Cần V47 (date_start cho phép NULL) đã chạy trước khi chạy khối này.
 --      Khóa có ngày khai giảng tương lai mà chưa có ca nào: liệt kê để đối tác chuyển sang ca học (dữ liệu cũ vẫn còn trong items_bak_n1).
 SELECT 'B14 khóa đang bật có ngày bắt đầu nhưng chưa có ca học (đối tác cần tạo ca)' AS preview, i.id, i.title, i.date_start, i.user_id
 FROM items i
