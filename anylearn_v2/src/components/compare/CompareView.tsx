@@ -83,10 +83,15 @@ export default function CompareView() {
 
   const courses = figures?.courses ?? []
   const rows = visibleRows(courses)
-  const gridStyle = { gridTemplateColumns: `150px repeat(${Math.max(courses.length, 1)}, minmax(170px, 1fr))` }
+  // Column widths per breakpoint come from CSS variables (see the grid's classes) so two courses always fit side by side.
+  const columns = Math.max(courses.length, 1)
+  const gridStyle = {
+    gridTemplateColumns: `var(--lab) repeat(${columns}, minmax(var(--col), 1fr))`,
+    minWidth: `calc(var(--lab) + ${columns} * var(--col))`,
+  }
 
   return (
-    <div className="mx-auto max-w-[1100px] px-4 pb-28 pt-6">
+    <div className="mx-auto min-w-0 max-w-[1100px] overflow-x-clip px-4 pb-28 pt-6">
       <h1 className="m-0 text-2xl font-extrabold text-ink">So sánh khóa học</h1>
       <p className="m-0 mt-1 text-sm text-muted">Chỉ đặt số liệu cạnh nhau, không chấm điểm hay xếp hạng. Bạn tự chọn khóa nào hợp với bé.</p>
 
@@ -114,14 +119,16 @@ export default function CompareView() {
           {figures.fieldNotice && (
             <p role="note" className="mb-3 rounded-xl border border-yellow bg-yellow/10 px-4 py-3 text-sm text-ink">{figures.fieldNotice}</p>
           )}
-          <div className="grid min-w-max gap-px rounded-card border border-line bg-line" style={gridStyle}>
+          <div className="grid gap-px rounded-card border border-line bg-line [--col:128px] [--lab:84px] sm:[--col:190px] sm:[--lab:140px] lg:[--col:250px] lg:[--lab:160px]" style={gridStyle}>
             <div className="bg-white" />
             {courses.map(course => (
               <div key={course.id} className={`flex flex-col gap-2 bg-white p-3 ${figures.offField.includes(courses.indexOf(course)) ? 'ring-2 ring-inset ring-yellow' : ''}`}>
                 {figures.offField.includes(courses.indexOf(course)) && <span className="w-fit rounded-full bg-yellow/30 px-2 py-0.5 text-[11px] font-bold text-ink">Khác lĩnh vực</span>}
                 {course.image && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={course.image} alt="" className="aspect-[16/10] w-full rounded-lg object-cover" />
+                  <div className="relative aspect-[16/10] w-full overflow-hidden rounded-lg bg-slate-100">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={course.image} alt="" loading="lazy" className="absolute inset-0 size-full object-cover" />
+                  </div>
                 )}
                 <Link href={getCourseUrl({ id: course.id, seoUrl: course.seoUrl ?? undefined, title: course.title })} className="text-sm font-extrabold leading-snug text-green-dark no-underline">{course.title}</Link>
                 {course.partnerName && <span className="text-xs text-muted">{course.partnerName}</span>}
@@ -168,7 +175,7 @@ function bestNote(key: string): string {
 function Row({ label, icon, bg, children }: { label: string; icon?: React.ReactNode; bg: string; children: React.ReactNode }) {
   return (
     <>
-      <div className={`flex items-center gap-2 p-3 text-sm font-extrabold text-ink ${bg}`}>{icon}{label}</div>
+      <div className={`flex min-w-0 items-center gap-2 break-words p-2 text-[13px] font-extrabold text-ink sm:p-3 sm:text-sm ${bg}`}>{icon}{label}</div>
       {children}
     </>
   )
