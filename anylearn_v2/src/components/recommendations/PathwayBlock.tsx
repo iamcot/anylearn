@@ -36,7 +36,7 @@ export default function PathwayBlock({ itemId }: { itemId: number }) {
 
   if (pathways.length === 0) return null
   return (
-    <section className="section mt-4 lg:mt-6">
+    <section className="section">
       <div className="container">
         <h2 className="section-kicker mb-5">Lộ trình học</h2>
         <div className="space-y-4">
