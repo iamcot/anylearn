@@ -46,7 +46,7 @@ export default function HomeCourseRow({ block, exclude = new Set(), onShown }: P
   }, [key])
 
   const ready = loaded?.key === key && exclude !== null
-  const items = ready ? pickFresh(loaded.items, exclude, ROW_SIZE) : null
+  const items = ready ? pickFresh(loaded.items, exclude, ROW_SIZE, undefined, block.source === 'topRated') : null
   const shownKey = items ? items.map(item => item.id).join(',') : null
 
   useEffect(() => {

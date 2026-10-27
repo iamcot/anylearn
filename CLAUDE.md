@@ -215,7 +215,7 @@ Thư mục `http/` chứa VS Code REST Client files cho mọi endpoint:
 
 ## Home rows without repeats, top rated
 
-- `HomePersonalRows` (FE) orders "Dành cho {bé}" > "Đang hot gần bạn" > "Top khóa học được đánh giá cao"; each row asks for 24 and `pickFresh` (`lib/home/dedupe.ts`) leaves out ids shown above, fewer than 4 fresh = the row hides. "Hot" = `items.popularity_score` (`PopularityRollupService`: is_hot, boost, views, cart, fav, rating), the same order as the search.
+- `HomePersonalRows` (FE) orders "Dành cho {bé}" > "Đang hot gần bạn" > "Top khóa học được đánh giá cao"; each row asks for 24 and `pickFresh` (`lib/home/dedupe.ts`) leaves out ids shown above, fewer than 4 fresh = the row hides (except the top rated row, which appends repeats after the fresh ones so it never disappears). "Hot" = `items.popularity_score` (`PopularityRollupService`: is_hot, boost, views, cart, fav, rating), the same order as the search.
 - `GET /api/top-rated?limit` (public, `TopRatedService`, `TopRatedRules`): courses by average of published reviews written in the last `review/top_rated_days` (default 90, 7 to 3650, Cài đặt > Vận hành `reviewTopRatedDays`), visible courses only; the response carries the title (<=30 days "trong tháng", <=90 "trong quý", else none).
 
 ## Which courses visitors see

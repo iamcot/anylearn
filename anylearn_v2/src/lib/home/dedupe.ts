@@ -4,8 +4,10 @@ export const ROW_SIZE = 8
 export const MIN_FRESH = 4
 
 // Fresh courses first (not in `exclude`), at most `size`. A row with too few fresh ones is empty.
-export function pickFresh<T extends { id: number }>(items: T[], exclude: ReadonlySet<number>, size = ROW_SIZE, minFresh = MIN_FRESH): T[] {
+// With `keepRepeats` the row never hides: when fresh courses are scarce, the repeated ones follow them (in their own order).
+export function pickFresh<T extends { id: number }>(items: T[], exclude: ReadonlySet<number>, size = ROW_SIZE, minFresh = MIN_FRESH, keepRepeats = false): T[] {
   const fresh = items.filter(item => !exclude.has(item.id))
+  if (keepRepeats) return [...fresh, ...items.filter(item => exclude.has(item.id))].slice(0, size)
   if (exclude.size > 0 && fresh.length < minFresh) return []
   return fresh.slice(0, size)
 }
