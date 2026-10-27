@@ -54,15 +54,15 @@ export default function PathwayBlock({ itemId }: { itemId: number }) {
                     const current = index === currentIndex
                     const course = step.items.find(item => item.itemId === itemId) ?? step.items[0]
                     const bought = step.items.find(item => item.owned)
-                    // Ticked: a step before this course, or one with a bought course. The step being viewed keeps its number unless this very course is bought.
-                    const passed = current ? !!course?.owned : index < currentIndex || !!bought
+                    // Ticked only when a course of the step is bought (for the viewed step: this course). Every other step is a number on a pale dot.
+                    const passed = current ? !!course?.owned : !!bought
                     return (
                       <li key={step.stepNo} aria-current={current ? 'step' : undefined}
                         className="relative flex min-w-0 gap-3 pb-5 last:pb-0 md:flex-1 md:flex-col md:items-center md:gap-2 md:pb-0 md:text-center">
                         {index < pathway.steps.length - 1 && (
                           <span aria-hidden="true" className={`absolute left-[13px] top-7 h-full w-[3px] md:left-1/2 md:top-[13px] md:h-[3px] md:w-full ${passed ? 'bg-green' : 'bg-line'}`} />
                         )}
-                        <span className={`relative z-10 flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-extrabold ${current ? 'bg-green text-white ring-4 ring-green-soft' : passed ? 'bg-green text-white' : 'border border-line bg-white text-muted'}`}>
+                        <span className={`relative z-10 flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-extrabold ${current ? 'bg-green text-white ring-4 ring-green-soft' : passed ? 'bg-green text-white' : 'border border-line bg-bg text-muted'}`}>
                           {passed ? '✓' : step.stepNo}
                         </span>
                         {current && course ? (
