@@ -11,18 +11,18 @@ import CountBadge from './header/CountBadge'
 import MobileMenu from './header/MobileMenu'
 import NotificationBell from './header/NotificationBell'
 import { useNotifications } from './header/useNotifications'
-import { ICON_BUTTON_CLASS, NAV_LINKS, TODAY_NAV_LINKS } from './header/constants'
+import { ICON_BUTTON_CLASS, MEMBER_NAV_LINKS, NAV_LINKS, TODAY_NAV_LINKS } from './header/constants'
 import { BROWSE_HOME_URL, markBrowsing } from '@/lib/today/links'
 import { isNavActive } from '@/lib/today/nav'
 
 export default function Header() {
   const pathname = usePathname()
   const isToday = pathname.startsWith('/today')
-  const navLinks = isToday ? TODAY_NAV_LINKS : NAV_LINKS
   const homeHref = isToday ? BROWSE_HOME_URL : '/'
   const [menuOpen, setMenuOpen] = useState(false)
   const { user, cartCount, openAuthModal } = useAuth()
   const { unreadCount, setUnreadCount } = useNotifications()
+  const navLinks = isToday ? TODAY_NAV_LINKS : user ? [...MEMBER_NAV_LINKS, ...NAV_LINKS] : NAV_LINKS
   const compactMobile = isToday || !!user
 
   const bell = user && <NotificationBell token={user.jwtToken} unreadCount={unreadCount} onUnreadChange={setUnreadCount} />

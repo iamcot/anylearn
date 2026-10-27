@@ -7,6 +7,11 @@ export const NAV_LINKS = [
   { href: '/search', label: 'Tìm kiếm' },
 ]
 
+export const MEMBER_NAV_LINKS = [
+  { href: '/today', label: 'Hôm nay' },
+  { href: '/today/community', label: 'Cộng đồng' },
+]
+
 export const TODAY_NAV_LINKS = TODAY_NAV.filter(item => item.inHeader)
 
 export const ACCOUNT_MENU = [

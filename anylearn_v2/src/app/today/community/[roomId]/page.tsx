@@ -28,7 +28,7 @@ function JoinGate({ room, onJoin }: { room: ChatRoom; onJoin: (name: string) => 
   }
 
   return (
-    <div className="mx-auto max-w-[520px] px-4 py-6">
+    <div className="mx-auto max-w-[520px] px-4 pb-28 pt-6 lg:pb-8">
       <h2 className="text-xl font-black">Vào nhóm {room.title}</h2>
       <label className="mt-4 block text-sm font-bold" htmlFor="chat-name">Tên hiển thị trong nhóm</label>
       <input id="chat-name" value={name} onChange={event => setName(event.target.value)} maxLength={30} placeholder="Ví dụ: Mẹ Bin"

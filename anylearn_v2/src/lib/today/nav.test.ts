@@ -19,9 +19,9 @@ describe('isNavActive', () => {
 })
 
 describe('TODAY_NAV', () => {
-  it('has five tabs and four header items (community is mobile only for now)', () => {
+  it('has five tabs, all in the header', () => {
     expect(TODAY_NAV).toHaveLength(5)
     expect(TODAY_NAV.filter(item => item.inHeader).map(item => item.label))
-      .toEqual(['Hôm nay', 'Lịch', 'Nhật ký', 'Tài khoản'])
+      .toEqual(['Hôm nay', 'Lịch', 'Nhật ký', 'Cộng đồng', 'Tài khoản'])
   })
 })
