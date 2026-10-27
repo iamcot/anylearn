@@ -104,8 +104,7 @@ public class CompareService {
         col.put("ratingAverage", summary.get("average"));
         col.put("ratingCount", summary.get("count"));
         col.put("freeTrial", attributes.hasFreeTrial());
-        // A fee item is is_paymentfee = 1 without a class (same rule as EnrollmentContext); a course with classes still earns anyPoint.
-        col.put("isPaymentFee", Integer.valueOf(1).equals(item.getIsPaymentfee()) && schedules.isEmpty());
+        col.put("isPaymentFee", item.getIsPaymentfee() != null && item.getIsPaymentfee() == 1);
         col.put("points", pointsResolver.buyerPoints(item));
         return col;
     }
