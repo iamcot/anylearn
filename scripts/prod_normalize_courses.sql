@@ -12,7 +12,7 @@
 --     item_locations, item_schedules (chỉ thêm ca mới), users.partner_type. Mọi dòng điền tự động được ghi vào item_autofill_log.
 --   * Sau khi COMMIT: vào admin Cài đặt > Vận hành bấm "Chạy lại chỉ mục tìm kiếm" (POST /admin/reindex).
 --
--- Chỉ điền khi luật rõ ràng (deterministic). Điều không chắc chắn (hình thức lạ, loại đối tác của giáo viên,
+-- Chỉ điền khi luật rõ ràng (deterministic). Điều không chắc chắn (hình thức lạ, loại đối tác của member / admin,
 -- khóa có nhiều địa chỉ) chỉ được liệt kê ở bảng xem trước để người làm nội dung quyết định.
 -- ================================================================
 
@@ -40,6 +40,8 @@ CREATE TABLE IF NOT EXISTS item_autofill_log (
 -- ---------------------------------------------------------------
 -- B. Chuẩn hóa và điền (một giao dịch, mặc định ROLLBACK)
 -- ---------------------------------------------------------------
+-- Chữ (literal) và kết quả hàm trong bảng tạm lấy collation của kết nối; ép về collation của bảng items để khỏi lỗi 1267 (utf8mb4_unicode_ci vs utf8mb4_0900_ai_ci).
+SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci;
 SET @batch = 'n1';
 START TRANSACTION;
 
@@ -79,26 +81,27 @@ INSERT INTO item_autofill_log (batch, item_id, field, old_value, new_value)
 SELECT @batch, id, 'org_price', org_price, NULL FROM items WHERE org_price IS NOT NULL AND org_price < price;
 UPDATE items SET org_price = NULL WHERE org_price IS NOT NULL AND org_price < price;
 
--- B5. Độ tuổi còn trống: lấy từ tên hoặc mô tả ngắn khi có câu "6-12 tuổi" hoặc "từ 5 tuổi" (1 đến 18)
+-- B5. Độ tuổi còn trống (hoặc còn là mặc định 0-30 = không giới hạn): lấy từ tên hoặc mô tả ngắn khi có câu "6-12 tuổi", "0-3 tuổi" hoặc "từ 5 tuổi" (0 đến 18)
 DROP TEMPORARY TABLE IF EXISTS tmp_ages;
 CREATE TEMPORARY TABLE tmp_ages AS
-SELECT id, title, ages_from, ages_to FROM (
-  SELECT id, title,
+SELECT id, title, ages_from, ages_to, old_text FROM (
+  SELECT id, title, old_text,
     CAST(REGEXP_SUBSTR(COALESCE(range_text, from_text), '[0-9]{1,2}') AS UNSIGNED) AS ages_from,
     CASE WHEN range_text IS NOT NULL THEN CAST(REGEXP_SUBSTR(range_text, '[0-9]{1,2}', 1, 2) AS UNSIGNED) END AS ages_to
   FROM (
-    SELECT id, title,
+    SELECT id, title, old_text,
       REGEXP_SUBSTR(txt, '[0-9]{1,2} ?(-|–|đến|tới) ?[0-9]{1,2} ?tuổi') AS range_text,
       REGEXP_SUBSTR(txt, 'từ [0-9]{1,2} tuổi')                          AS from_text
-    FROM (SELECT id, title, CONCAT(title, ' ', COALESCE(short_content, '')) AS txt
-          FROM items WHERE ages_min IS NULL AND ages_max IS NULL) src
+    FROM (SELECT id, title, CONCAT(title, ' ', COALESCE(short_content, '')) AS txt,
+                 CASE WHEN ages_min IS NULL AND ages_max IS NULL THEN NULL ELSE '0-30' END AS old_text
+          FROM items WHERE (ages_min IS NULL AND ages_max IS NULL) OR (ages_min = 0 AND ages_max = 30)) src
   ) found
   WHERE range_text IS NOT NULL OR from_text IS NOT NULL
 ) q
-WHERE ages_from BETWEEN 1 AND 18 AND (ages_to IS NULL OR (ages_to BETWEEN ages_from AND 18));
-SELECT 'B5 xem lại độ tuổi sẽ điền' AS preview, t.id, t.title, t.ages_from, t.ages_to FROM tmp_ages t ORDER BY t.id;
+WHERE ages_from BETWEEN 0 AND 18 AND (ages_to IS NULL OR (ages_to BETWEEN ages_from AND 18));
+SELECT 'B5 xem lại độ tuổi sẽ điền' AS preview, t.id, t.title, t.old_text AS old_ages, t.ages_from, t.ages_to FROM tmp_ages t ORDER BY t.id;
 INSERT INTO item_autofill_log (batch, item_id, field, old_value, new_value)
-SELECT @batch, id, 'ages', NULL, CONCAT(ages_from, '-', COALESCE(ages_to, '')) FROM tmp_ages;
+SELECT @batch, id, 'ages', old_text, CONCAT(ages_from, '-', COALESCE(ages_to, '')) FROM tmp_ages;
 UPDATE items i JOIN tmp_ages t ON t.id = i.id SET i.ages_min = t.ages_from, i.ages_max = t.ages_to;
 
 -- B6. Lĩnh vực: khóa chưa có danh mục mà cột cũ items.item_category_id trỏ tới một danh mục còn tồn tại
@@ -136,11 +139,23 @@ FROM tmp_tags t JOIN items i ON i.id = t.item_id GROUP BY t.item_id, i.title ORD
 INSERT INTO item_autofill_log (batch, item_id, field, old_value, new_value) SELECT @batch, item_id, 'tag', NULL, tag_name FROM tmp_tags;
 INSERT IGNORE INTO item_tags (item_id, tag_id) SELECT item_id, tag_id FROM tmp_tags;
 
--- B9. Loại đối tác: tài khoản role = 'school' chưa có loại thì đặt "school" (Trường học).
---     Giáo viên (role = 'teacher') và đối tác bán mã code (app) cần chọn tay: xem bảng bên dưới.
+-- B9. Loại đối tác (chỉ tài khoản chưa có loại): đoán theo vai trò và tên, xem bảng xem trước rồi sửa tay chỗ sai.
+--     role = 'school': tên có "trung tâm" / "center" → center; "CLB" / "câu lạc bộ" / "club" → club; còn lại → school.
+--     role = 'teacher' → tutor (gia sư / giáo viên cá nhân; chuyên gia thì đổi tay thành expert).
+--     member / admin và đối tác bán mã code (app) cần chọn tay: xem bảng cuối.
+DROP TEMPORARY TABLE IF EXISTS tmp_ptype;
+CREATE TEMPORARY TABLE tmp_ptype AS
+SELECT id, name, role, partner_type AS old_type,
+  CASE WHEN role = 'teacher' THEN 'tutor'
+       WHEN LOWER(name) REGEXP 'trung tâm|center|centre' THEN 'center'
+       WHEN LOWER(name) REGEXP 'clb|câu lạc bộ|club' THEN 'club'
+       ELSE 'school' END AS new_type
+FROM users WHERE role IN ('school', 'teacher') AND (partner_type IS NULL OR partner_type = '');
+SELECT 'B9 xem lại loại đối tác sẽ đặt' AS preview, new_type, role, COUNT(*) AS partners, GROUP_CONCAT(name ORDER BY name SEPARATOR ' | ') AS names
+FROM tmp_ptype GROUP BY new_type, role;
 INSERT INTO item_autofill_log (batch, user_id, field, old_value, new_value)
-SELECT @batch, id, 'partner_type', partner_type, 'school' FROM users WHERE role = 'school' AND (partner_type IS NULL OR partner_type = '');
-UPDATE users SET partner_type = 'school' WHERE role = 'school' AND (partner_type IS NULL OR partner_type = '');
+SELECT @batch, id, 'partner_type', old_type, new_type FROM tmp_ptype;
+UPDATE users u JOIN tmp_ptype t ON t.id = u.id SET u.partner_type = t.new_type;
 SELECT 'B9 đối tác còn thiếu loại (chọn tay)' AS preview, u.id, u.name, u.role,
        GROUP_CONCAT(DISTINCT i.subtype ORDER BY i.subtype) AS subtypes, COUNT(DISTINCT i.id) AS items
 FROM users u JOIN items i ON i.user_id = u.id AND i.is_test = 0
@@ -235,6 +250,38 @@ SELECT @batch, item_id, 'schedule', NULL, CONCAT(COALESCE(weekdays, ''), ' ', CO
 INSERT INTO item_schedules (item_id, title, schedule_type, weekdays, time_start, time_end, user_location_id, status)
 SELECT item_id, 'Ca linh hoạt', 'open', weekdays, time_start, time_end, NULLIF(user_location_id, 0), 1 FROM tmp_sched;
 
+-- B13. Số buổi: khóa có kiểu chu kỳ "buổi" (hoặc chưa có kiểu) nhưng chưa có số lượng, tên ghi rõ "12 buổi" / "24 Buổi".
+--      Bỏ qua tên ghi tần suất ("2 buổi/tuần", "mỗi tuần 3 buổi") hoặc có nhiều con số buổi khác nhau (không chắc là tổng số buổi).
+DROP TEMPORARY TABLE IF EXISTS tmp_sessions;
+CREATE TEMPORARY TABLE tmp_sessions AS
+SELECT id, title, CAST(REGEXP_SUBSTR(REGEXP_SUBSTR(LOWER(title), '[0-9]{1,3} ?buổi'), '[0-9]{1,3}') AS UNSIGNED) AS n
+FROM items
+WHERE is_test = 0 AND (cycle_amount IS NULL OR cycle_amount <= 0) AND (cycle_type IS NULL OR cycle_type = 'session')
+  AND COALESCE(subtype, '') NOT IN ('digital', 'video')
+  AND LOWER(title) REGEXP '[0-9]{1,3} ?buổi'
+  AND LOWER(title) NOT REGEXP '[0-9] ?buổi ?(/|một|mỗi|trên) ?(tuần|thang|tháng|ngày)|(mỗi|một|1) tuần [0-9]+ buổi'
+  AND REGEXP_SUBSTR(LOWER(title), '[0-9]{1,3} ?buổi', 1, 2) IS NULL;
+DELETE FROM tmp_sessions WHERE n IS NULL OR n < 1 OR n > 200;
+SELECT 'B13 xem lại số buổi sẽ điền' AS preview, id, title, n FROM tmp_sessions ORDER BY id;
+INSERT INTO item_autofill_log (batch, item_id, field, old_value, new_value)
+SELECT @batch, i.id, 'sessions', CONCAT(COALESCE(i.cycle_type, ''), ':', COALESCE(i.cycle_amount, '')), CONCAT('session:', t.n) FROM tmp_sessions t JOIN items i ON i.id = t.id;
+UPDATE items i JOIN tmp_sessions t ON t.id = i.id SET i.cycle_type = 'session', i.cycle_amount = t.n;
+
+-- B14. Làm sạch ngày/giờ bắt đầu ở cấp khóa học (items.date_start, time_start, time_end, date_end).
+--      Các trường này vô nghĩa: date_start bị code tự dời +15/+30 ngày mỗi lần xem khóa, time_start/time_end hiếm khi có.
+--      Ngày khai giảng thật nằm ở ca học (item_schedules). Cần V47 (date_start cho phép NULL) đã chạy trước khi chạy khối này.
+--      Khóa có ngày khai giảng tương lai mà chưa có ca nào: liệt kê để đối tác chuyển sang ca học (dữ liệu cũ vẫn còn trong items_bak_n1).
+SELECT 'B14 khóa đang bật có ngày bắt đầu nhưng chưa có ca học (đối tác cần tạo ca)' AS preview, i.id, i.title, i.date_start, i.user_id
+FROM items i
+WHERE i.status = 1 AND i.user_status = 1 AND i.is_test = 0 AND i.date_start >= CURDATE()
+  AND NOT EXISTS (SELECT 1 FROM item_schedules s WHERE s.item_id = i.id AND s.status = 1)
+ORDER BY i.date_start, i.id;
+INSERT INTO item_autofill_log (batch, item_id, field, old_value, new_value)
+SELECT @batch, id, 'item_dates', CONCAT_WS('|', date_start, time_start, time_end, date_end), NULL
+FROM items WHERE date_start IS NOT NULL OR time_start IS NOT NULL OR time_end IS NOT NULL OR date_end IS NOT NULL;
+UPDATE items SET date_start = NULL, time_start = NULL, time_end = NULL, date_end = NULL
+WHERE date_start IS NOT NULL OR time_start IS NOT NULL OR time_end IS NOT NULL OR date_end IS NOT NULL;
+
 -- B12. Báo cáo cuối: những gì đã tự điền và những gì còn thiếu cho khóa đang hiển thị
 SELECT field, COUNT(*) AS rows_changed FROM item_autofill_log WHERE batch = @batch GROUP BY field ORDER BY field;
 SELECT
@@ -247,7 +294,7 @@ SELECT
 FROM items i JOIN users u ON u.id = i.user_id
 WHERE i.is_test = 0 AND i.status = 1 AND i.user_status = 1 AND u.status = 1 AND u.is_signed = 99;
 
--- Đổi ROLLBACK thành COMMIT khi đã xem xong các bảng xem trước (B5, B7, B8, B9, B10, B11) và hài lòng.
+-- Đổi ROLLBACK thành COMMIT khi đã xem xong các bảng xem trước (B5, B7, B8, B9, B10, B11, B13, B14) và hài lòng.
 ROLLBACK;
 -- COMMIT;
 
@@ -262,6 +309,7 @@ ROLLBACK;
 -- DELETE FROM items_categories; INSERT INTO items_categories SELECT * FROM items_categories_bak_n1;
 -- DELETE FROM item_locations;  INSERT INTO item_locations  SELECT * FROM item_locations_bak_n1;
 -- UPDATE users u JOIN users_partner_type_bak_n1 b ON b.id = u.id SET u.partner_type = b.partner_type;
+-- UPDATE items i JOIN items_bak_n1 b ON b.id = i.id SET i.date_start = b.date_start, i.time_start = b.time_start, i.time_end = b.time_end, i.date_end = b.date_end;  -- B14
 -- Ca học linh hoạt đã tạo (B11) là các dòng mới, xóa theo nhật ký:
 -- DELETE s FROM item_schedules s JOIN item_autofill_log l ON l.item_id = s.item_id AND l.batch = 'n1' AND l.field = 'schedule'
 --  WHERE s.title = 'Ca linh hoạt' AND s.schedule_type = 'open';

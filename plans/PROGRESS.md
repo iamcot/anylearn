@@ -534,3 +534,5 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 ### 27/10/2026 – SQL xuất và chuẩn hóa dữ liệu khóa học
 - Chủ sản phẩm nhờ viết SQL xuất dữ liệu khóa học trên prod và SQL tự điền, chuẩn hóa. Có `scripts/prod_export_courses.sql` (chỉ đọc) và `scripts/prod_normalize_courses.sql` (sao lưu, một giao dịch mặc định ROLLBACK, nhật ký `item_autofill_log`). Mới kiểm tra cú pháp bằng trình phân tích, chưa chạy trên MySQL thật; cần chạy thử trên bản sao của prod trước.
 
+
+- Đối chiếu script prod với `export_all.tsv` (dữ liệu thật): sửa `all_caps` của file export (so sánh BINARY, trước đó 1478/1497 tên bị báo sai); B5 điền tuổi cả khi là mặc định 0-30; B9 điền `partner_type` cho giáo viên (tutor), tên có "trung tâm" (center), "clb" (club), còn lại school; B13 mới điền số buổi (`cycle_amount`) từ tên "N buổi" (~48 khóa). B6 không tác dụng (mọi `item_category_id` = 0). B10 sửa được 179/353 khóa offline thiếu địa chỉ, 174 khóa của đối tác nhiều cơ sở vẫn làm tay. B11 chưa mô phỏng được (export không có mô tả). Còn mở: khóa `extra` có `date_start` tương lai có nên đặt ngày bắt đầu cho ca linh hoạt không.

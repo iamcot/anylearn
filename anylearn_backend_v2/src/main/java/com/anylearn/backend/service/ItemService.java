@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.util.*;
 
 @Service
@@ -29,19 +28,6 @@ public class ItemService {
     public Map<String, Object> pdpData(Long itemId, User currentUser) {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new IllegalArgumentException("Trang không tồn tại"));
-
-        // Auto-shift past date_start
-        LocalDate today = LocalDate.now();
-        if (item.getDateStart() != null && today.isAfter(item.getDateStart())) {
-            if ("extra".equals(item.getSubtype()) || "offline".equals(item.getSubtype())) {
-                item.setDateStart(today.plusDays(30));
-            } else {
-                item.setDateStart(today.plusDays(15));
-            }
-            item.setDateEnd(null);
-            itemRepository.save(item);
-            meilisearchService.indexItem(item.getId());
-        }
 
         User author = userRepository.findById(item.getUserId()).orElse(null);
         boolean visible = author != null && com.anylearn.backend.service.search.ItemVisibility.isVisible(
