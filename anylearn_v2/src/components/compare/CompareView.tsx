@@ -10,6 +10,19 @@ import { getCompareFigures, getCompareHighlights, type CompareFigures, type Comp
 import { idsFromQuery } from '@/lib/compare/selection'
 import { removeCompare, useCompareList } from '@/lib/compare/store'
 import { NO_INFO, visibleRows } from '@/lib/compare/rows'
+import { CheckIcon as CheckIconAlias } from '@/components/icons'
+import {
+  BookIcon, CalculatorIcon, CalendarIcon, CardIcon, ClockIcon, CoinIcon, GiftIcon, ListIcon, MonitorIcon, PinIcon, SparkleIcon, StarIcon, TagIcon, UsersIcon,
+} from '@/components/icons'
+
+const ROW_ICONS: Record<string, React.ComponentType<React.SVGProps<SVGSVGElement>>> = {
+  tag: TagIcon, format: MonitorIcon, price: CardIcon, sessions: ListIcon, perSession: CalculatorIcon, classes: CalendarIcon,
+  ages: UsersIcon, distance: PinIcon, rating: StarIcon, trial: GiftIcon, points: CoinIcon,
+}
+const FACT_ICONS = [UsersIcon, BookIcon, CheckIconAlias, ClockIcon, StarIcon]
+
+/** Rows alternate white and grey, for both the label and the cells. */
+const zebra = (index: number) => (index % 2 === 0 ? 'bg-white' : 'bg-slate-100')
 
 /** Plan 04.6: the courses the parent picked, side by side. Figures from the system; the AI only rewrites what each description says. */
 export default function CompareView() {
@@ -64,10 +77,10 @@ export default function CompareView() {
 
   const courses = figures?.courses ?? []
   const rows = visibleRows(courses)
-  const gridStyle = { gridTemplateColumns: `130px repeat(${Math.max(courses.length, 1)}, minmax(170px, 1fr))` }
+  const gridStyle = { gridTemplateColumns: `150px repeat(${Math.max(courses.length, 1)}, minmax(170px, 1fr))` }
 
   return (
-    <div className="mx-auto max-w-[1100px] px-4 py-6">
+    <div className="mx-auto max-w-[1100px] px-4 pb-28 pt-6">
       <h1 className="m-0 text-2xl font-extrabold text-ink">So sánh khóa học</h1>
       <p className="m-0 mt-1 text-sm text-muted">Chỉ đặt số liệu cạnh nhau, không chấm điểm hay xếp hạng. Bạn tự chọn khóa nào hợp với bé.</p>
 
@@ -101,22 +114,25 @@ export default function CompareView() {
               </div>
             ))}
 
-            {rows.map(row => (
-              <Row key={row.key} label={row.label}>
-                {courses.map((course, index) => {
-                  const text = row.cell(course)
-                  const isBest = row.bestKey != null && figures.best[row.bestKey] === index
-                  return (
-                    <div key={course.id} className={`whitespace-pre-line bg-white p-3 text-sm ${isBest ? 'font-extrabold text-green-dark' : text ? 'text-ink' : 'text-muted'}`}>
-                      {text ?? NO_INFO}
-                      {isBest && <span className="ml-1 text-[11px] font-bold">{bestNote(row.key)}</span>}
-                    </div>
-                  )
-                })}
-              </Row>
-            ))}
+            {rows.map((row, rowIndex) => {
+              const Icon = ROW_ICONS[row.icon]
+              return (
+                <Row key={row.key} label={row.label} icon={Icon ? <Icon className="size-4 shrink-0 text-green-dark" /> : null} bg={zebra(rowIndex)}>
+                  {courses.map((course, index) => {
+                    const text = row.cell(course)
+                    const isBest = row.bestKey != null && figures.best[row.bestKey] === index
+                    return (
+                      <div key={course.id} className={`whitespace-pre-line p-3 text-sm ${zebra(rowIndex)} ${isBest ? 'font-extrabold text-green-dark' : text ? 'text-ink' : 'text-muted'}`}>
+                        {text ?? NO_INFO}
+                        {isBest && <span className="ml-1 text-[11px] font-bold">{bestNote(row.key)}</span>}
+                      </div>
+                    )
+                  })}
+                </Row>
+              )
+            })}
 
-            <HighlightRows courses={courses.map(c => c.id)} figures={figures} highlights={highlights} />
+            <HighlightRows courses={courses.map(c => c.id)} figures={figures} highlights={highlights} startIndex={rows.length} />
           </div>
           {figures.mixedFormats && (
             <p className="mt-2 text-xs text-muted">Các khóa khác hình thức (online với học trực tiếp), nên giá mỗi buổi chỉ để tham khảo.</p>
@@ -134,36 +150,39 @@ function bestNote(key: string): string {
   return key === 'points' ? '(nhiều nhất)' : key === 'distanceKm' ? '(gần nhất)' : '(thấp nhất)'
 }
 
-function Row({ label, children }: { label: string; children: React.ReactNode }) {
+function Row({ label, icon, bg, children }: { label: string; icon?: React.ReactNode; bg: string; children: React.ReactNode }) {
   return (
     <>
-      <div className="bg-slate-50 p-3 text-xs font-bold text-muted">{label}</div>
+      <div className={`flex items-center gap-2 p-3 text-sm font-extrabold text-ink ${bg}`}>{icon}{label}</div>
       {children}
     </>
   )
 }
 
-function HighlightRows({ courses, figures, highlights }: { courses: number[]; figures: CompareFigures; highlights: CompareHighlights | null }) {
+function HighlightRows({ courses, figures, highlights, startIndex }: { courses: number[]; figures: CompareFigures; highlights: CompareHighlights | null; startIndex: number }) {
   if (highlights && !highlights.enabled && Object.values(highlights.courses).every(facts => Object.keys(facts).length === 0)) return null
   const labels = Object.entries(figures.factLabels)
   return (
     <>
-      <div className="col-span-full bg-slate-50 px-3 py-2 text-xs font-bold text-muted">
-        Ý chính trong mô tả khóa học
-        <span className="ml-1 font-normal">(AI đọc và ghi lại điều mô tả nêu, không đánh giá. Xem mô tả đầy đủ ở trang khóa học.)</span>
+      <div className="col-span-full flex flex-wrap items-center gap-2 bg-green-soft px-3 py-2.5 text-sm font-extrabold text-green-dark">
+        <SparkleIcon className="size-5" /> AI phân tích
+        <span className="text-xs font-normal text-ink">Ý chính trong mô tả khóa học, chỉ ghi lại điều mô tả nêu, không đánh giá. Xem mô tả đầy đủ ở trang khóa học.</span>
       </div>
-      {labels.map(([key, label]) => (
-        <Row key={key} label={label}>
-          {courses.map(id => {
-            const text = highlights?.courses[String(id)]?.[key]
-            return (
-              <div key={id} className={`bg-white p-3 text-sm ${text ? 'text-ink' : 'text-muted'}`}>
-                {highlights === null ? 'Đang đọc mô tả…' : text ?? 'Mô tả không nêu'}
-              </div>
-            )
-          })}
-        </Row>
-      ))}
+      {labels.map(([key, label], index) => {
+        const Icon = FACT_ICONS[index % FACT_ICONS.length]
+        return (
+          <Row key={key} label={label} icon={<Icon className="size-4 shrink-0 text-green-dark" />} bg={zebra(startIndex + index)}>
+            {courses.map(id => {
+              const text = highlights?.courses[String(id)]?.[key]
+              return (
+                <div key={id} className={`p-3 text-sm ${zebra(startIndex + index)} ${text ? 'text-ink' : 'text-muted'}`}>
+                  {highlights === null ? 'AI đang đọc mô tả…' : text ?? 'Mô tả không nêu'}
+                </div>
+              )
+            })}
+          </Row>
+        )
+      })}
     </>
   )
 }

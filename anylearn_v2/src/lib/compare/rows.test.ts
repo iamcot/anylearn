@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { CompareCourse } from '@/lib/api/compare'
-import { visibleRows } from './rows'
+import { pointsText, visibleRows } from './rows'
 
 const base: CompareCourse = {
   id: 1, title: 'A', image: null, seoUrl: null, subtype: 'offline', categories: [], partnerId: 1, partnerName: 'P', price: 1_000_000, orgPrice: null,
@@ -23,5 +23,16 @@ describe('visibleRows', () => {
   it('writes the rating with its count', () => {
     const row = visibleRows([{ ...base, ratingAverage: 4.5, ratingCount: 12 }]).find(r => r.key === 'rating')!
     expect(row.cell({ ...base, ratingAverage: 4.5, ratingCount: 12 })).toBe('4,5 sao từ 12 đánh giá')
+  })
+})
+
+describe('pointsText', () => {
+  it('adds the share of the price', () => {
+    expect(pointsText(120, 2_000_000)).toBe('120 anyPoint (~6% giá mua)')
+    expect(pointsText(30, 2_000_000)).toBe('30 anyPoint (~1,5% giá mua)')
+  })
+  it('has no share without a price, and nothing without points', () => {
+    expect(pointsText(50, null)).toBe('50 anyPoint')
+    expect(pointsText(0, 1_000_000)).toBeNull()
   })
 })

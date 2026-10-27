@@ -56,6 +56,8 @@ class CompareRulesTest {
         assertThat(CompareRules.scheduleLine("mon,wed", "18:00", "19:30")).isEqualTo("T2, T4 · 18:00-19:30");
         assertThat(CompareRules.scheduleLine(null, "9:00", null)).isEqualTo("9:00");
         assertThat(CompareRules.scheduleLine(null, null, null)).isEmpty();
+        assertThat(CompareRules.scheduleLine(null, null, null, true)).isEqualTo("Linh hoạt, chọn ngày bắt đầu");
+        assertThat(CompareRules.scheduleLine("sat", "09:00", "10:30", true)).isEqualTo("T7 · 09:00-10:30 (linh hoạt)");
     }
 
     private static Topic topic(String title, String category, String... tags) {

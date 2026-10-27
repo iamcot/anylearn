@@ -250,3 +250,11 @@ export const CameraIcon = (props: IconProps) => (
 export const ShieldCheckIcon = (props: IconProps) => (
   <Icon {...props}><path d="M12 3 5 6v5c0 4.5 3 8 7 10 4-2 7-5.5 7-10V6z" /><path d="m9 12 2 2 4-4" /></Icon>
 )
+
+/** The AI mark: a big and a small four-point star. */
+export const SparkleIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M11 3l1.9 5.1L18 10l-5.1 1.9L11 17l-1.9-5.1L4 10l5.1-1.9L11 3z" />
+    <path d="M19 15l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7.7-2z" />
+  </Icon>
+)

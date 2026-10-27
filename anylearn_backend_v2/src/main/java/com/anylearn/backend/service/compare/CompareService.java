@@ -86,7 +86,7 @@ public class CompareService {
         col.put("orgPrice", item.getOrgPrice() != null && item.getPrice() != null && item.getOrgPrice() > item.getPrice() ? item.getOrgPrice() : null);
         col.put("sessions", sessions);
         col.put("pricePerSession", attributes.pricePerSession());
-        col.put("schedules", schedules.stream().map(s -> CompareRules.scheduleLine(s.getWeekdays(), s.getTimeStart(), s.getTimeEnd()))
+        col.put("schedules", schedules.stream().map(s -> CompareRules.scheduleLine(s.getWeekdays(), s.getTimeStart(), s.getTimeEnd(), "open".equals(s.getScheduleType())))
                 .filter(line -> !line.isEmpty()).distinct().limit(4).toList());
         col.put("dateStart", item.getDateStart() == null ? null : item.getDateStart().toString());
         col.put("ages", ages(item));

@@ -138,6 +138,17 @@ public final class CompareRules {
 
     /** "T2, T4 · 18:00-19:30" from a class's weekdays and times; empty when it has none. */
     public static String scheduleLine(String weekdays, String timeStart, String timeEnd) {
+        return scheduleLine(weekdays, timeStart, timeEnd, false);
+    }
+
+    /** As above; a flexible ("open") class says so, and with no day or time it is just "Linh hoạt". */
+    public static String scheduleLine(String weekdays, String timeStart, String timeEnd, boolean flexible) {
+        String line = plainScheduleLine(weekdays, timeStart, timeEnd);
+        if (!flexible) return line;
+        return line.isEmpty() ? "Linh hoạt, chọn ngày bắt đầu" : line + " (linh hoạt)";
+    }
+
+    private static String plainScheduleLine(String weekdays, String timeStart, String timeEnd) {
         List<String> days = new ArrayList<>();
         if (weekdays != null) {
             for (String day : weekdays.split(",")) {
