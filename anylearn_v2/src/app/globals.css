@@ -248,6 +248,9 @@ body {
   .search-row--home {
     grid-template-columns: auto 1fr auto;
   }
+  /* Same look as the search page form: pill field, 58px tall */
+  .search-row--home .field { min-height: 58px; border-radius: 9999px; padding: 0 24px; font-size: 17px; border-color: var(--color-blue-line); }
+  .search-row--home .btn { min-height: 58px; padding-left: 32px; padding-right: 32px; font-size: 16px; }
   .field {
     min-height: 50px;
     border-radius: 18px;

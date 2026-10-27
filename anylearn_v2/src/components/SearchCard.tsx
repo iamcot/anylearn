@@ -79,7 +79,7 @@ export default function SearchCard({ variant = 'home', initialTags = [] }: Props
           onChange={e => setQuery(e.target.value)}
         />
         <button type="submit" className="btn btn--green">
-          {variant === 'about' ? 'Tìm ngay' : 'Tìm khóa học'}
+          Tìm kiếm
         </button>
       </div>
 
