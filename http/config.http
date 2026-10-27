@@ -82,3 +82,9 @@ Authorization: Bearer {{$dotenv JWT_TOKEN}}
 ### The signed-in person opened a course page
 POST {{baseUrl}}/item/1/view
 Authorization: Bearer {{$dotenv JWT_TOKEN}}
+
+### So sánh khóa học: số liệu (plan 04.6), tối đa 3 id; lat/lng là vị trí nhà để tính khoảng cách
+GET {{baseUrl}}/compare?ids=1,2,3&lat=10.76&lng=106.70
+
+### So sánh khóa học: AI rút ý từ mô tả (lưu theo khóa, gọi lại không tốn thêm)
+GET {{baseUrl}}/compare/highlights?ids=1,2,3

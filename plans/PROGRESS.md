@@ -32,7 +32,7 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 - [ ] Câu chữ chính sách hoàn tiền trong "Lời hứa anyLEARN" (plan 10.1).
 - [ ] Hệ số điểm theo hạng thành viên có chấp nhận chi phí không (plan 10.2).
 - [ ] Trả góp: cách đối tác nhận tiền theo kỳ (plan 10.4).
-- [ ] Chat lớp: giáo viên có được vào nhóm không; nội quy và điều khoản cộng đồng (plan 11).
+- [x] Chat lớp (plan 11): giáo viên vào nhóm để trả lời, admin chủ động thêm người hỗ trợ; nội quy chỉ chủ đề học, không đả kích, không tôn giáo/chính trị, tôn trọng nhau (27/10/2026). Còn cần chủ sản phẩm duyệt câu chữ điều khoản sử dụng.
 
 ## Bảng task
 
@@ -105,25 +105,25 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 06.2 | Trang từng con | done | `/account/children/[id]` (`GET /me/children/{id}`): khóa học, đơn, sửa, sở thích. Chưa có tiến độ/nhật ký (chưa có dữ liệu) |
 | 06.3 | Đơn hàng chia tab | done | Tab đã có từ 05; thêm lọc theo người học (`?child=ID` + ô chọn); đếm ngược 05.4 chưa làm |
 | 06.4 | Cài đặt thông báo | done | Bảng `user_notification_prefs` (V36), 5 nhóm × app/email/zalo, mặc định bật; chặn trong `NotificationService` (chuông, push, email, thông báo hẹn giờ). Kênh zalo chỉ lưu lựa chọn, ZNS chưa gửi theo bảng này; chat lớp (plan 11) chưa có |
-| 06.5 | Ưu đãi gom một chỗ | todo | |
+| 06.5 | Ưu đãi gom một chỗ | done | `/account/rewards`, `GET /api/me/rewards`: anyPoint + hạn, hạng, ưu đãi gia đình, mã giới thiệu (số bạn mời, điểm nhận). Voucher chưa có (chờ plan voucher) |
 | 02.5 | Hạn điểm cho member (lô điểm) | done | 28/10/2026 chủ sản phẩm chốt 12 tháng, tính từ 01/01/2027 (sớm nhất 01/01/2028 mới xóa). V42 `point_lots` (lô mở = số dư member hiện có), mọi cộng/trừ `wallet_c` qua `WalletService` cập nhật lô (trừ lô cũ nhất trước), job 00:10 xóa điểm quá hạn (transaction `points_expired`). Thời hạn, ngày bắt đầu, công tắc sửa ở Cài đặt > Vận hành. Trang giải thích `/info/anypoint-expiry`. Điểm đơn hủy hoàn lại thành lô mới |
 | 02.6 | Nhắc điểm sắp hết hạn | done | Nhắc 30 và 7 ngày trước (thông báo + push, nhóm tắt được "points"); dòng hạn ở /account/anypoint. Chưa làm: ZNS (chờ template), gợi ý 2–3 khóa kèm nhắc, nhắc khi có điểm mà giỏ không dùng |
 | 09.4 | Đối tác trả lời + báo cáo review | done | Đối tác trả lời ngay trên trang khóa học; nút "Báo cáo" (V34 `review_reports`), admin lọc "Đối tác báo cáo", Giữ/Ẩn, số đỏ trên menu |
 | 09.5 | Nhắc viết review | done | Nhắc ở nửa khóa và khi hết khóa (mỗi mốc 1 lần), quét mỗi giờ; thẻ "Khóa học chờ đánh giá" đã có ở "Cần làm ngay" (plan 06.1) |
 | 09.6 | Thưởng điểm review | done | 20 anyPoint cho nhận xét từ 50 ký tự + 20 khi có ảnh (chỉnh được, mặc định do mình chọn, chờ chủ sản phẩm xác nhận); thu hồi khi ẩn/xóa; chưa dùng `point_lots` (chờ 02.5) |
-| 11.1 | Chat MVP backend | todo | |
-| 11.2 | Chat MVP FE | todo | |
-| 11.3 | Thông báo chat | todo | |
-| 11.4 | Kiểm duyệt chat | todo | |
+| 11.1 | Chat MVP backend | done | V43 (`chat_rooms/members/messages/reports`), `service/chat/*`, `/api/chat/*`. Phòng + thành viên tạo khi người dùng mở danh sách (theo enrollment của tài khoản hoặc con), rời nhóm khi hết khóa quá `chat/retention_days`; chưa có job đối soát đêm. Tin mới đẩy qua SSE hiện có (sự kiện `chat`), FE poll 10 giây dự phòng. Giới hạn tin/phút. Chưa có ảnh |
+| 11.2 | Chat MVP FE | done | `/today/community` (danh sách nhóm), `/today/community/[roomId]` (chọn tên + đồng ý nội quy, tin theo ngày, trả lời, báo cáo), badge chưa đọc ở tab Cộng đồng. Chưa làm: ảnh, nút "Nhóm lớp" ở trang ca học/PDP |
+| 11.3 | Thông báo chat | partial | Thông báo cả lớp của giáo viên/đối tác luôn báo (chuông + push). Chưa gộp 30 phút/phòng cho tin thường, chưa tắt tiếng từng nhóm |
+| 11.4 | Kiểm duyệt chat | done | Admin: trang "Chat lớp" (báo cáo, ẩn tin, tạm khóa 7 ngày/khóa chat, khóa phòng, thêm giáo viên/người hỗ trợ, từ cấm, nội quy, bật/tắt). Giáo viên/đối tác: ghim, ẩn tin, thông báo cả lớp. Từ cấm lọc trước khi gửi |
 
 ### Giai đoạn 4 – mở rộng
 
 | Task | Mô tả | Trạng thái | Ghi chú |
 |---|---|---|---|
-| 04.6 | So sánh khóa học | todo | |
-| 08.5 | Ưu đãi gia đình (gợi ý) | todo | Cùng 10.3 |
-| 10.2 | Hạng thành viên | todo | |
-| 10.3 | Gói gia đình | todo | |
+| 04.6 | So sánh khóa học | done | `/compare`, `GET /api/compare` (số liệu, không chấm điểm) + `/api/compare/highlights` (AI rút ý từ mô tả, lưu `item_compare_facts` V45). Khách tự chọn tối đa 3 khóa |
+| 08.5 | Ưu đãi gia đình (gợi ý) | done | Thẻ gợi ý (luật + AI) có nhãn `familyPercent` khi anh/chị vừa đăng ký trong cửa sổ ngày |
+| 10.2 | Hạng thành viên | done | V44, `service/membership/*`; nhân anyPoint của người mua, huy hiệu trong chat. Chưa có: giữ chỗ ưu tiên, voucher sinh nhật, hỗ trợ ưu tiên |
+| 10.3 | Gói gia đình | done | Bé thứ 2 trở đi giảm %, tính vào giá đơn. Chưa có: % theo từng đối tác, tặng anyPoint thay vì giảm |
 | 10.4 | Trả góp / đóng theo kỳ | todo | Chờ chủ sản phẩm |
 | 11.5 | Chat mở rộng | todo | |
 | 13.8 | Thay app cũ trên store bằng bản bọc web (TWA / Capacitor), cùng package/bundle id | todo | Theo kết quả 13.0; có thể kéo lên sớm |
@@ -507,7 +507,30 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 - AI trả sai format làm bị gọi lại nhiều lần: đổi sang tool call bắt buộc, prompt mềm hơn, giải mã `&amp;` trong tên khóa, tối đa 4 khóa mỗi đối tác trong danh sách gửi; câu trả lời không dùng được thì lưu danh sách theo luật cho cả ngày (V41 `status`), có token và có nút 👍/👎.
 - Admin: "Lượt mở danh sách", "Lượt xem khóa (bấm từ danh sách)", tỷ lệ danh sách có bấm; hiện số lần AI lỗi.
 
+### 27/10/2026 – chat lớp MVP có kiểm duyệt (plan 11, Nhóm chat người cùng lớp)
+- Chủ sản phẩm chốt: giáo viên vào nhóm để trả lời, admin thêm người hỗ trợ được; nội quy xoay quanh chủ đề học, không đả kích, không tôn giáo/chính trị, tôn trọng nhau. Đối tác của khóa tự là người kiểm duyệt (công tắc `chat/partner_moderator`), giáo viên khác admin thêm bằng tay ở Chat lớp > Nhóm lớp > Quản lý.
+- Backend V43 (số sau V42 của nhánh hạn dùng anyPoint chưa merge), FE `components/chat`, `app/today/community`, admin `ChatModeration`. Chưa thử với MySQL thật (môi trường không có DB): test thuần `ChatRulesTest`, vitest, tsc, eslint, build admin xanh.
+- Chưa làm: ảnh trong chat, gộp thông báo 30 phút, tắt tiếng từng nhóm, job đối soát đêm, nút "Nhóm lớp" ở PDP, câu chữ điều khoản sử dụng.
+
 ### 27/10/2026 – hạn dùng anyPoint (02.5/02.6) và lượt xem khóa theo người dùng
 - Hạn dùng anyPoint: bảng `point_lots` + `point_expiry_reminders` (V42), `service/points/expiry/*`, cài đặt `points/expiry_*`. Mặc định bật, 12 tháng, từ 01/01/2027: trước 01/01/2028 job không xóa gì. Có test cho luật (`PointExpiryRulesTest`), ví (`WalletServicePointLotsTest`) và job (`PointExpiryServiceTest`).
 - Lượt mở PDP theo người dùng: bảng `item_view_days` (V42; một dòng cho mỗi người, khóa, ngày; giữ 60 ngày, dọn lúc 03:30), FE gọi `POST /api/item/{id}/view` khi đã đăng nhập. 5 khóa vừa xem trong 30 ngày được thêm vào prompt gợi ý AI. Lượt xem từ danh sách AI trong admin không đổi. Bảng `item_events` cũ (mỗi lượt một dòng, cả khách) vẫn giữ cho điểm phổ biến.
+
+- Đổi theo chủ sản phẩm (27/10/2026): phòng chat theo **khóa học** thay vì theo ca; không cần ca học; tên thành viên tự gắn thêm lớp đang học (`chat_members.class_label`), phụ huynh được báo trước khi vào. Sửa thẳng V43 vì chưa merge.
+
+### 27/10/2026 – hạng thành viên và ưu đãi gia đình (plan 10.2, 10.3)
+- Chủ sản phẩm bảo làm 10.2 (hạng thành viên) và 10.3 (gói gia đình), chấp nhận hệ số điểm làm tăng chi phí (mặc định x1,2 / x1,5 / x2, chỉnh được ở admin, đặt 1 là không thưởng). Ưu đãi gia đình: giảm % cho bé thứ 2 trở lên (mặc định 5%, 30 ngày), chưa theo đối tác và chưa có kiểu "thêm điểm".
+- Backend V44 `member_tiers`, `service/membership/*` (`MemberTierRules`, `FamilyDiscountRules` thuần + test), `CartService` (giảm giá dòng, hệ số điểm), `PaymentApprovalService` (tính lại hạng), `MembershipController`, `AdminMembershipController`. FE `TierCard`, dòng "Ưu đãi gia đình" ở checkout, huy hiệu hạng trong chat. Admin: trang "Hạng & gia đình".
+- Chưa làm: ưu tiên giữ chỗ, voucher sinh nhật, hỗ trợ ưu tiên (quyền lợi khác của 10.2), điểm thêm thay cho giảm giá, giảm theo đối tác. Chưa chạy với MySQL thật; `contextLoads` cần DB nên không chạy được ở đây.
+
+### 27/10/2026 – ưu đãi gom một chỗ, ưu đãi gia đình trong gợi ý (06.5, 08.5)
+- Chủ sản phẩm bảo làm cả hai. Trang `/account/rewards` (mục menu "Ưu đãi của tôi") gom anyPoint, hạng, ưu đãi gia đình, giới thiệu bạn bè. Không có voucher vì voucher sẽ có plan riêng (voucher hiện chưa gắn với người dùng). Nhãn gia đình trên thẻ gợi ý chỉ là xem trước, giá thật tính ở giỏ hàng.
+- Chưa chạy với MySQL thật; truy vấn đếm bạn mời và điểm giới thiệu mới đọc bằng mắt.
+
+### 27/10/2026 – so sánh khóa học (04.6)
+- Chủ sản phẩm chốt: khách tự chọn khóa để so sánh, dùng AI phân tích thêm từ mô tả. Giữ khách quan: chỉ số liệu có thật, không điểm tổng, không "khóa tốt nhất", chỉ làm nổi giá trị tốt nhất theo từng hàng khi rõ ràng; AI chỉ ghi lại điều mô tả nêu (không khen chê), mục không nêu để trống. Kết quả AI lưu theo mô tả nên mỗi khóa tốn một lần gọi cho tới khi sửa mô tả.
+- Chưa chạy với MySQL thật và chưa gọi Anthropic thật (chỉ test phần luật và kiểu dữ liệu).
+
+### 27/10/2026 – SQL xuất và chuẩn hóa dữ liệu khóa học
+- Chủ sản phẩm nhờ viết SQL xuất dữ liệu khóa học trên prod và SQL tự điền, chuẩn hóa. Có `scripts/prod_export_courses.sql` (chỉ đọc) và `scripts/prod_normalize_courses.sql` (sao lưu, một giao dịch mặc định ROLLBACK, nhật ký `item_autofill_log`). Mới kiểm tra cú pháp bằng trình phân tích, chưa chạy trên MySQL thật; cần chạy thử trên bản sao của prod trước.
 

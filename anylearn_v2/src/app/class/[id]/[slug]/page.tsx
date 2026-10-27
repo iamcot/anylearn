@@ -20,6 +20,8 @@ import { BookIcon, CheckIcon, SchoolIcon, UserIcon } from '@/components/icons'
 import { formatPrice } from '@/lib/format/price'
 import { CYCLE_LABELS, SUBTYPE_LABELS } from '@/config/itemLabels'
 import { formatSchedule } from '@/lib/format/schedule'
+import CompareToggle from '@/components/compare/CompareToggle'
+import CompareWhenActive from '@/components/compare/CompareWhenActive'
 
 function formatAge(min?: number, max?: number) {
   if (!min && !max) return null
@@ -110,6 +112,7 @@ export default async function PdpPage({ params }: Props) {
 
               <div className="mb-3.5 flex flex-wrap items-center gap-4">
                 <FavButton itemId={item.id} initialFaved={is_fav} initialCount={num_favorite} />
+                <CompareToggle itemId={item.id} title={item.title} image={item.image} variant="inline" />
                 <a href="#reviews-section" className="flex min-h-11 items-center gap-1.5 no-underline">
                   {rating != null && rating > 0 ? (
                     <>
@@ -193,7 +196,7 @@ export default async function PdpPage({ params }: Props) {
                 </div>
               )}
 
-              <RegisterButton itemId={item.id} />
+              <RegisterButton itemId={item.id} price={item.price} />
               <ActivityButton itemId={item.id}
                 activiyTrial={item.activiyTrial} activiyTest={item.activiyTest} activiyVisit={item.activiyVisit} />
               <PromiseStrip />
@@ -242,6 +245,7 @@ export default async function PdpPage({ params }: Props) {
                         {it.title}
                       </div>
                       <div className="text-[15px] font-extrabold text-red">{formatPrice(it.price)}</div>
+                      <CompareWhenActive itemId={it.id} title={it.title} image={it.image} className="mt-1" />
                     </Link>
                   ))}
                 </ScrollRow>
@@ -297,6 +301,7 @@ export default async function PdpPage({ params }: Props) {
                       </div>
                       <div className="text-sm font-extrabold text-red">{formatPrice(it.price)}</div>
                     </div>
+                    <CompareWhenActive itemId={it.id} title={it.title} image={it.image} />
                   </article>
                 </Link>
               ))}

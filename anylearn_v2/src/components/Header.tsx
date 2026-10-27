@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
+import HeaderBack from './header/HeaderBack'
 import UpcomingEventsBar from './UpcomingEventsBar'
 import { CartIcon, MenuIcon, SearchIcon } from './icons'
 import AccountMenu from './header/AccountMenu'
@@ -11,18 +12,19 @@ import CountBadge from './header/CountBadge'
 import MobileMenu from './header/MobileMenu'
 import NotificationBell from './header/NotificationBell'
 import { useNotifications } from './header/useNotifications'
-import { ICON_BUTTON_CLASS, NAV_LINKS, TODAY_NAV_LINKS } from './header/constants'
+import { ICON_BUTTON_CLASS, MEMBER_NAV_LINKS, NAV_LINKS } from './header/constants'
+import { ZALO_SUPPORT_URL } from '@/config/promise'
 import { BROWSE_HOME_URL, markBrowsing } from '@/lib/today/links'
 import { isNavActive } from '@/lib/today/nav'
 
 export default function Header() {
   const pathname = usePathname()
   const isToday = pathname.startsWith('/today')
-  const navLinks = isToday ? TODAY_NAV_LINKS : NAV_LINKS
   const homeHref = isToday ? BROWSE_HOME_URL : '/'
   const [menuOpen, setMenuOpen] = useState(false)
   const { user, cartCount, openAuthModal } = useAuth()
   const { unreadCount, setUnreadCount } = useNotifications()
+  const navLinks = user || isToday ? MEMBER_NAV_LINKS : NAV_LINKS
   const compactMobile = isToday || !!user
 
   const bell = user && <NotificationBell token={user.jwtToken} unreadCount={unreadCount} onUnreadChange={setUnreadCount} />
@@ -32,14 +34,17 @@ export default function Header() {
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-line/90 min-h-[76px]">
       <div className="container flex items-center justify-between gap-6 h-[76px]">
 
-        <Link href={homeHref} onClick={isToday ? markBrowsing : undefined} className="flex items-center no-underline">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/cdn/anylearn/img/LogoanyLEARN.svg" alt="anyLEARN" className="h-[60px]" />
-        </Link>
+        <div className="flex min-w-0 items-center">
+          <HeaderBack />
+          <Link href={homeHref} onClick={isToday ? markBrowsing : undefined} className="flex items-center no-underline">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/cdn/anylearn/img/LogoanyLEARN.svg" alt="anyLEARN" className="h-[60px]" />
+          </Link>
+        </div>
 
         <nav className="hidden lg:flex gap-6 items-center">
           {navLinks.map(({ href, label }) => {
-            const active = isToday && isNavActive(pathname, href)
+            const active = isNavActive(pathname, href)
             return (
               <Link key={label} href={href}
                 aria-current={active ? 'page' : undefined}
@@ -51,6 +56,11 @@ export default function Header() {
         </nav>
 
         <div className="hidden lg:flex items-center gap-2.5">
+          <Link href="/search" onClick={isToday ? markBrowsing : undefined} aria-label="Tìm khóa học" className={ICON_BUTTON_CLASS}><SearchIcon /></Link>
+          <a href={ZALO_SUPPORT_URL} target="_blank" rel="noopener noreferrer" aria-label="Chat Zalo với anyLEARN" className={ICON_BUTTON_CLASS}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/cdn/img/zalo.png" alt="" className="size-6 object-contain" />
+          </a>
           <Link href="/checkout" aria-label="Giỏ hàng" className={ICON_BUTTON_CLASS}>
             <CartIcon />
             <CountBadge count={cartCount} />
@@ -69,6 +79,10 @@ export default function Header() {
             <Link href="/search" onClick={isToday ? markBrowsing : undefined} aria-label="Tìm khóa học"
               className={ICON_BUTTON_CLASS}><SearchIcon /></Link>
           )}
+          <a href={ZALO_SUPPORT_URL} target="_blank" rel="noopener noreferrer" aria-label="Chat Zalo với anyLEARN" className={ICON_BUTTON_CLASS}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/cdn/img/zalo.png" alt="" className="size-6 object-contain" />
+          </a>
           <Link href="/checkout" aria-label="Giỏ hàng" className={ICON_BUTTON_CLASS}>
             <CartIcon />
             <CountBadge count={cartCount} />

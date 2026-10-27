@@ -29,6 +29,8 @@ export interface CartItem {
   orgPrice?: number
   // anyPoints the buyer earns for this line once the order is approved
   points?: number
+  // VND off this line by the family offer (second child and later), 0 when none
+  familyDiscount?: number
   dateStart?: string
   authorName?: string
   studentName?: string
@@ -53,6 +55,8 @@ export interface OrderData {
   transferNote?: string
   // anyPoints credited to the buyer for this order
   pointsEarned?: number
+  // VND taken off the order by the family offer
+  familyDiscount?: number
   // When the order is cancelled if it is still unpaid (only while it waits for payment)
   expiresAt?: string
 }

@@ -1,8 +1,8 @@
 import { Avatar, Badge, Dropdown, Flex, Layout, List, Menu, Popover, Spin, Typography } from 'antd'
 import {
-  AppstoreOutlined, BranchesOutlined, RobotOutlined, AuditOutlined, BankOutlined, CreditCardOutlined, BellOutlined, BookOutlined, CalendarOutlined, DashboardOutlined, DollarOutlined, FileTextOutlined,
+  RobotOutlined, AuditOutlined, BankOutlined, CreditCardOutlined, BellOutlined, BookOutlined, CalendarOutlined, DashboardOutlined, DollarOutlined, FileTextOutlined,
   CustomerServiceOutlined, FundOutlined, LineChartOutlined, SearchOutlined, LogoutOutlined, MailOutlined, ApiOutlined, OrderedListOutlined, SettingOutlined, SolutionOutlined, SwapOutlined,
-  TeamOutlined, UserOutlined,
+  TeamOutlined, UserOutlined, MessageOutlined, CrownOutlined,
 } from '@ant-design/icons'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
@@ -26,25 +26,28 @@ const NAV_GROUPS = [
     { key: '/users',            icon: <TeamOutlined />,        label: 'Thành viên' },
     { key: '/activities',       icon: <SolutionOutlined />,    label: 'Hoạt động' },
     { key: '/schedule-requests', icon: <CustomerServiceOutlined />, label: 'Nghỉ / đổi lịch' },
-    { key: '/course-requests',  icon: <SearchOutlined />,      label: 'Nhờ tìm khóa học' },
-    { key: '/price-reports',    icon: <DollarOutlined />,      label: 'Báo giá rẻ hơn' },
   ] },
   { key: 'g-courses', type: 'group', label: 'Khóa học', children: [
     { key: '/items',            icon: <BookOutlined />,        label: 'Khóa học'   },
     { key: '/schedule-monitor', icon: <CalendarOutlined />,    label: 'Lịch học'   },
-    { key: '/collections',      icon: <AppstoreOutlined />,    label: 'Bộ sưu tập' },
-    { key: '/pathways',         icon: <BranchesOutlined />,    label: 'Lộ trình & gợi ý' },
-    { key: '/ai-suggestions',   icon: <RobotOutlined />,       label: 'Gợi ý AI' },
   ] },
   { key: 'g-content', type: 'group', label: 'Nội dung & phân tích', children: [
     { key: '/articles',         icon: <FileTextOutlined />,    label: 'Bài viết'   },
     { key: '/search-insights',  icon: <LineChartOutlined />,   label: 'Xu hướng nhu cầu' },
+    { key: '/ai-suggestions',   icon: <RobotOutlined />,       label: 'Gợi ý AI' },
   ] },
 ]
 const NAV_ITEMS = NAV_GROUPS.flatMap(group => group.children)
 
+// Things people ask the team for sit in the top bar, left of the bell, with the red number of what waits.
+const HEADER_LINKS = [
+  { key: '/course-requests', icon: <SearchOutlined />, label: 'Nhờ tìm' },
+  { key: '/price-reports',   icon: <DollarOutlined />, label: 'Rẻ hơn' },
+  { key: '/chat',            icon: <MessageOutlined />, label: 'Chat lớp' },
+]
+
 // Pages opened from the course list belong to "Khóa học" in the menu.
-const COURSE_SUBPAGES = ['/tags', '/item-gaps', '/reviews']
+const COURSE_SUBPAGES = ['/tags', '/item-gaps', '/reviews', '/collections', '/pathways']
 
 // The red number on a menu item: how many records wait for the team (key = path, value = field of GET /admin/badges).
 const BADGE_FIELDS = {
@@ -54,6 +57,7 @@ const BADGE_FIELDS = {
   '/schedule-requests': 'scheduleRequests',
   '/course-requests': 'courseRequests',
   '/price-reports': 'priceReports',
+  '/chat': 'chatReports',
 }
 
 function withBadges(groups, counts) {
@@ -173,6 +177,7 @@ export default function AppShell() {
     ] },
     { key: 'g-ops', type: 'group', label: 'Vận hành', children: [
       { key: 'operations', icon: <SettingOutlined />, label: 'Cấu hình tìm kiếm & đơn hàng', onClick: () => navigate('/operations') },
+      { key: 'membership', icon: <CrownOutlined />, label: 'Hạng & ưu đãi gia đình', onClick: () => navigate('/membership') },
     ] },
     { key: 'g-money', type: 'group', label: 'Thanh toán', children: [
       { key: 'bank-account', icon: <BankOutlined />, label: 'Tài khoản ngân hàng', onClick: () => navigate('/bank-account') },
@@ -183,7 +188,9 @@ export default function AppShell() {
 
   const selectedKey = COURSE_SUBPAGES.some(path => location.pathname.startsWith(path))
     ? '/items'
-    : NAV_ITEMS.find(i => location.pathname.startsWith(i.key))?.key ?? '/dashboard'
+    : HEADER_LINKS.some(link => location.pathname.startsWith(link.key)) || location.pathname.startsWith('/membership')
+      ? ''
+      : NAV_ITEMS.find(i => location.pathname.startsWith(i.key))?.key ?? '/dashboard'
 
   const { data: badgeCounts, refetch: refetchBadges } = useQuery({
     queryKey: ['admin-badges'],
@@ -213,6 +220,17 @@ export default function AppShell() {
           </Flex>
 
           <Flex align="center" gap={20}>
+            {HEADER_LINKS.map(link => {
+              const active = location.pathname.startsWith(link.key)
+              return (
+                <Badge key={link.key} count={badgeCounts?.[BADGE_FIELDS[link.key]] ?? 0} overflowCount={99} size="small" offset={[4, 2]}>
+                  <Flex align="center" gap={6} onClick={() => navigate(link.key)}
+                    style={{ cursor: 'pointer', fontSize: 14, fontWeight: active ? 600 : 400, color: active ? '#1677ff' : undefined }}>
+                    {link.icon}<span>{link.label}</span>
+                  </Flex>
+                </Badge>
+              )
+            })}
             <Popover
               title={
                 <Flex justify="space-between" align="center">

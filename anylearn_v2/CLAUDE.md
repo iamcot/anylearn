@@ -59,7 +59,6 @@ ALLOWED_DEV_ORIGINS=192.168.1.10            # optional, comma-separated LAN IPs 
 | `PromoSlider` | `components/PromoSlider.tsx` | Promo banner carousel |
 | `ScrollRow` | `components/ScrollRow.tsx` | Horizontal scroll carousel |
 | `BackButton` | `components/BackButton.tsx` | Back navigation |
-| `FloatContact` | `components/FloatContact.tsx` | Fixed "Need help?" floating button |
 
 ## Auth System
 
@@ -197,7 +196,7 @@ getCourseUrl(item)  // Generates /class/:id/:slug with Vietnamese diacritic stri
 
 ## /today
 
-- Routes: `/today`, `/today/diary` and `/today/community` (coming soon), `/join/[sessionId]`. `SiteChrome` hides the global header/footer on these routes.
+- Routes: `/today`, `/today/fun` ("Vui học", coming soon) and `/today/community`, `/join/[sessionId]`. `SiteChrome` hides the global header/footer on these routes.
 - Code: `src/components/today/*`, `src/lib/today/*` (types, api, format helpers with vitest tests), flags in `src/lib/features.ts`.
 - Styling follows the rest of the site (site logo, body font, `blue`/`green`/`ink`/`muted`/`line` tokens, pill buttons). The mockup is a layout reference only.
 - `/today` uses the global `Header` (`components/Header.tsx` detects `/today`): nav items come from `src/lib/today/nav.ts`, the logo links to `/?browse=1`, and on mobile the hamburger is replaced by a search icon. Bottom tabs are `components/AppTabs.tsx`, rendered by `SiteChrome` for every logged-in person below `lg` (1024px) on every page; below `lg` a logged-in person also gets the compact header (logo, search, cart, bell, no hamburger). The account tab shows the user avatar. `/account` uses a sticky scrollable chip bar on mobile instead of the side menu.

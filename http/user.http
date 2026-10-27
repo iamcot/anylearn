@@ -104,3 +104,7 @@ Content-Type: application/json
 
 ### Delete account
 GET {{baseUrl}}/user/delete?api_token={{apiToken}}
+
+### Ưu đãi của tôi: giới thiệu + ưu đãi gia đình (plan 06.5)
+GET {{baseUrl}}/me/rewards
+Authorization: Bearer {{jwtToken}}

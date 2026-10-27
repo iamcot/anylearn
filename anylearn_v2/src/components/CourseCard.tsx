@@ -5,6 +5,7 @@ import { SUBTYPE_LABELS } from '@/config/itemLabels'
 import { BookIcon, HeartIcon, StarIcon, UserIcon } from './icons'
 import CardPointsChip from '@/components/points/CardPointsChip'
 import ChevronLabel from '@/components/ChevronLabel'
+import CompareToggle from '@/components/compare/CompareToggle'
 
 interface Props {
   item: Item
@@ -65,16 +66,17 @@ export default function CourseCard({ item }: Props) {
             {formatPrice(item.price)}
           </div>
           <CardPointsChip points={item.points} className="mb-1.5" />
+          <div className="mb-2 flex items-center gap-2 text-xs text-muted">
+            {item.rating != null && item.rating > 0 && (
+              <span className="inline-flex items-center gap-1"><StarIcon filled className="size-3.5 text-star" />{item.rating.toFixed(1)}</span>
+            )}
+            {item.num_favorite != null && item.num_favorite > 0 && (
+              <span className="inline-flex items-center gap-1"><HeartIcon filled className="size-3.5 text-red" />{item.num_favorite}</span>
+            )}
+          </div>
           <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 text-xs text-muted">
-              {item.rating != null && item.rating > 0 && (
-                <span className="inline-flex items-center gap-1"><StarIcon filled className="size-3.5 text-star" />{item.rating.toFixed(1)}</span>
-              )}
-              {item.num_favorite != null && item.num_favorite > 0 && (
-                <span className="inline-flex items-center gap-1"><HeartIcon filled className="size-3.5 text-red" />{item.num_favorite}</span>
-              )}
-            </div>
-            <ChevronLabel className="shrink-0 text-sm font-extrabold text-green-dark">Tìm hiểu thêm</ChevronLabel>
+            <CompareToggle itemId={item.id} title={item.title} image={item.image} variant="text" />
+            <ChevronLabel className="shrink-0 text-sm font-extrabold text-green-dark">Tìm hiểu</ChevronLabel>
           </div>
         </div>
       </div>

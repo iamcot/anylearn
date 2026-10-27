@@ -17,6 +17,8 @@ export interface Recommendation {
   pathwayProgress?: { stepNo: number; done: boolean; skipped: boolean; next: boolean }[]
   reasonCode: string
   reasonText: string
+  /** Family offer percent this child would get on the course (plan 08.5); absent when none. */
+  familyPercent?: number
 }
 
 type Result<T> = Promise<{ data: T | null; error?: string }>

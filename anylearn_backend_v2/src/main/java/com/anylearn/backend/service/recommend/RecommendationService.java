@@ -68,6 +68,7 @@ public class RecommendationService {
     private final MeilisearchService meilisearchService;
     private final RecommendationSettings settings;
     private final Clock clock;
+    private final com.anylearn.backend.service.membership.FamilyDiscountService familyDiscounts;
 
     /** A course to suggest and why; `{title}` in the text is replaced by the course title. */
     private record Seed(Long itemId, String source, String reasonCode, String text, int score) {}
@@ -137,6 +138,7 @@ public class RecommendationService {
             map.put("source", RecommendationRules.AI);
             map.put("reasonCode", "ai");
             map.put("reasonText", reasons.getOrDefault(id, ""));
+            addFamilyOffer(map, ctx);
             out.add(map);
         }
         return out;
@@ -371,6 +373,12 @@ public class RecommendationService {
         return RecommendationRules.rank(eligible, limit);
     }
 
+    /** Plan 08.5: a child whose sibling registered recently sees the family percent on the card (absent when none). */
+    private void addFamilyOffer(Map<String, Object> card, LearnerContext ctx) {
+        int percent = familyDiscounts.offerPercent(ctx.user().getUserId(), ctx.info().id(), ctx.info().self());
+        if (percent > 0) card.put("familyPercent", percent);
+    }
+
     private List<Map<String, Object>> present(LearnerContext ctx, List<Candidate> ranked) {
         if (ranked.isEmpty()) return List.of();
         Map<Long, Item> items = itemRepository.findAllById(ranked.stream().map(Candidate::itemId).toList()).stream()
@@ -389,6 +397,7 @@ public class RecommendationService {
             map.put("source", candidate.source());
             map.put("reasonCode", candidate.reasonCode());
             map.put("reasonText", candidate.reasonText());
+            addFamilyOffer(map, ctx);
             if (RecommendationRules.PATHWAY.equals(candidate.source())) {
                 String slug = pathwaySlugOf(candidate.itemId(), ctx.owned());
                 map.put("pathwaySlug", slug);

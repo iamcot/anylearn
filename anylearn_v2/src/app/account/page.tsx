@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { getMeSummary, type MeSummary } from '@/lib/api'
 import AccountCard from '@/components/account/AccountCard'
+import TierCard from '@/components/membership/TierCard'
 import { PendingOrdersPill, PointBadge } from '@/components/account/AccountBadges'
 import { NAV_ITEMS } from '@/components/account/navItems'
 import { ChevronRightIcon, LogoutIcon } from '@/components/icons'
@@ -81,6 +82,8 @@ export default function AccountHomePage() {
           </div>
         </div>
       )}
+
+      <TierCard />
 
       <AccountCard title="Cần làm ngay">
         {loading ? <div className="p-5"><ListSkeleton showTitle={false} /></div> : summary ? <Todos summary={summary} /> : <p className="m-0 p-5 text-sm text-muted">Chưa tải được, vui lòng thử lại sau.</p>}

@@ -1,13 +1,13 @@
-import { TODAY_NAV } from '@/lib/today/nav'
-
 export const NAV_LINKS = [
   { href: '/info', label: 'Giới thiệu' },
   { href: '/search?mode=school', label: 'anySCHOOL' },
   { href: '/search?mode=teacher', label: 'anyPROFESSOR' },
-  { href: '/search', label: 'Tìm kiếm' },
 ]
 
-export const TODAY_NAV_LINKS = TODAY_NAV.filter(item => item.inHeader)
+export const MEMBER_NAV_LINKS = [
+  { href: '/today', label: 'Hôm nay' },
+  { href: '/today/community', label: 'Cộng đồng' },
+]
 
 export const ACCOUNT_MENU = [
   { href: '/today', label: 'Hôm nay' },

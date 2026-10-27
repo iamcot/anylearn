@@ -5,9 +5,10 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useIsClient } from '@/components/useIsClient'
+import { formatPrice } from '@/lib/format/price'
 import GuestLearnerPicker from '@/components/guest/GuestLearnerPicker'
 
-export default function RegisterButton({ itemId }: { itemId: number }) {
+export default function RegisterButton({ itemId, price }: { itemId: number; price?: number | null }) {
   const { user, openAuthModal } = useAuth()
   const router = useRouter()
   const [sticky, setSticky] = useState(false)
@@ -40,11 +41,18 @@ export default function RegisterButton({ itemId }: { itemId: number }) {
   }
 
   // Logged-in people have the bottom tabs below lg, so the bar sits above them.
-  const bottomClass = user ? 'bottom-[calc(var(--app-tabs-h)+0.5rem)] lg:bottom-4' : 'bottom-4'
+  // While a comparison is open its bar sits above the tabs and the register bar stacks above that (--compare-bar-h).
+  const bottomClass = user
+    ? 'bottom-[calc(var(--app-tabs-h)+var(--compare-bar-h,0px)+0.5rem)] lg:bottom-[calc(var(--compare-bar-h,0px)+1rem)]'
+    : 'bottom-[calc(var(--compare-bar-h,0px)+1rem)]'
 
   const stickyBar = sticky ? (
-    <div className={`fixed left-1/2 z-[45] flex w-[min(calc(100vw-32px),1180px)] -translate-x-1/2 justify-center rounded-[18px] bg-white px-4 py-3 shadow-raised ${bottomClass}`}>
-      <button type="button" onClick={handleRegister} className="btn btn--green w-full max-w-[480px] py-3 text-[15px] md:w-1/2">
+    <div className={`fixed left-1/2 z-[45] flex w-[min(calc(100vw-32px),1180px)] -translate-x-1/2 items-center justify-between gap-3 rounded-[18px] bg-white px-4 py-3 shadow-raised ${bottomClass}`}>
+      <div className="min-w-0">
+        <div className="text-[11px] font-bold text-muted">Giá mua</div>
+        <div className="truncate text-lg font-extrabold leading-tight text-red">{formatPrice(price ?? 0)}</div>
+      </div>
+      <button type="button" onClick={handleRegister} className="btn btn--green min-w-0 flex-1 py-3 text-[15px] sm:max-w-[320px] sm:flex-none sm:px-10">
         Đăng ký ngay
       </button>
     </div>

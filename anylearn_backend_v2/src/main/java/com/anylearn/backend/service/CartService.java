@@ -55,6 +55,8 @@ public class CartService {
     private final ItemTrackingService itemTrackingService;
     private final UserCourseEnrollmentRepository enrollmentRepository;
     private final FeeCards feeCards;
+    private final com.anylearn.backend.service.membership.FamilyDiscountService familyDiscountService;
+    private final com.anylearn.backend.service.membership.MemberTierService memberTierService;
 
     private static final int POINT_RATE = 1000; // 1 anyPoint = 1,000 VND (kept for reference)
 
@@ -222,6 +224,8 @@ public class CartService {
 
     public List<Map<String, Object>> getCart(User currentUser) {
         List<ItemUserAction> cartItems = findCartItems(currentUser.getId());
+        Map<Long, Long> familyOff = familyDiscounts(cartItems, currentUser);
+        double tierBoost = memberTierService.multiplier(currentUser);
         List<Map<String, Object>> result = new ArrayList<>();
         for (ItemUserAction action : cartItems) {
             Item item = itemRepository.findById(action.getItemId()).orElse(null);
@@ -233,7 +237,8 @@ public class CartService {
             row.put("image", item.getImage());
             row.put("price", item.getPrice());
             row.put("orgPrice", item.getOrgPrice());
-            row.put("points", itemPointsResolver.buyerPoints(item));
+            row.put("points", com.anylearn.backend.service.membership.MemberTierRules.boost(itemPointsResolver.buyerPoints(item), tierBoost));
+            row.put("familyDiscount", familyOff.getOrDefault(action.getId(), 0L));
             row.put("dateStart", item.getDateStart());
             userRepository.findById(item.getUserId()).ifPresent(u -> row.put("authorName", u.getName()));
             putLearner(row, action, currentUser);
@@ -260,6 +265,21 @@ public class CartService {
             result.add(row);
         }
         return result;
+    }
+
+    /** Family offer per cart line id (plan 10.3): the second child and later of the account. */
+    private Map<Long, Long> familyDiscounts(List<ItemUserAction> cartItems, User account) {
+        List<com.anylearn.backend.service.membership.FamilyDiscountRules.Line> lines = new ArrayList<>();
+        for (ItemUserAction action : cartItems) {
+            Item item = itemRepository.findById(action.getItemId()).orElse(null);
+            if (item == null) continue;
+            Long learnerId = learnerIdOf(action, account);
+            User learner = userRepository.findById(learnerId).orElse(null);
+            boolean child = learner != null && learner.getIsChild() != null && learner.getIsChild() == 1;
+            lines.add(new com.anylearn.backend.service.membership.FamilyDiscountRules.Line(
+                    action.getId(), learnerId, child, item.getPrice() != null ? item.getPrice() : 0L));
+        }
+        return familyDiscountService.forCart(account, lines);
     }
 
     /** The learner of a cart line: the chosen child, or the account itself. */
@@ -337,6 +357,9 @@ public class CartService {
             });
         }
         for (Item item : items) totalAmount += item.getPrice() != null ? item.getPrice() : 0;
+        // Family offer: the second child and later pay less on their lines; the order amount is what is really paid.
+        Map<Long, Long> familyOff = familyDiscounts(cartItems, currentUser);
+        for (Long off : familyOff.values()) totalAmount -= off;
 
         // Create Order
         Order order = new Order();
@@ -359,7 +382,7 @@ public class CartService {
             detail.setOrderId(order.getId());
             detail.setItemId(item.getId());
             detail.setUnitPrice(item.getPrice() != null ? item.getPrice() : 0L);
-            detail.setPaidPrice(item.getPrice() != null ? item.getPrice() : 0L);
+            detail.setPaidPrice(Math.max(0L, (item.getPrice() != null ? item.getPrice() : 0L) - familyOff.getOrDefault(cartItem.getId(), 0L)));
             detail.setQuanity(1);
             detail.setStatus(OrderStatus.NEW);
             detail.setCreatedAt(LocalDateTime.now());
@@ -576,6 +599,8 @@ public class CartService {
         view.put("amount", order.getAmount());
         view.put("transferNote", TransferNote.forOrder(order.getId()));
         view.put("pointsEarned", pointsEarned);
+        view.put("familyDiscount", details.stream().mapToLong(d -> Math.max(0L,
+                (d.getUnitPrice() != null ? d.getUnitPrice() : 0L) - (d.getPaidPrice() != null ? d.getPaidPrice() : 0L))).sum());
         if (order.getCreatedAt() != null) {
             view.put("expiresAt", PendingOrderRules.expiresAt(order.getCreatedAt(), orderFollowUpSettings.autoCancelHours()).toString());
         }
@@ -618,13 +643,17 @@ public class CartService {
             }
 
             // 2. Buyer direct reward → wallet_c pending
-            if (bd.buyerPoints() > 0) {
+            long buyerPoints = bd.buyerPoints();
+            if (buyerPoints > 0 && "member".equals(buyer.getRole())) {
+                buyerPoints = com.anylearn.backend.service.membership.MemberTierRules.boost(buyerPoints, memberTierService.multiplier(buyer));
+            }
+            if (buyerPoints > 0) {
                 String label = item.getTitle();
                 if (detail.getUserId() != null && !detail.getUserId().equals(buyer.getId())) {
                     label += userRepository.findById(detail.getUserId())
                             .map(u -> " [" + u.getName() + "]").orElse("");
                 }
-                saveTx(buyer.getId(), null, "commission", bd.buyerPoints(), "wallet_c", detail.getId(),
+                saveTx(buyer.getId(), null, "commission", buyerPoints, "wallet_c", detail.getId(),
                         "Nhận anyPoint từ khóa học đã mua: " + label);
             }
 

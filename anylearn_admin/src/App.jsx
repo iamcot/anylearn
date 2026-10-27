@@ -9,6 +9,8 @@ import Activities from './pages/Activities'
 import Audit from './pages/Audit'
 import CourseRequests from './pages/CourseRequests'
 import PriceReports from './pages/PriceReports'
+import ChatModeration from './pages/ChatModeration'
+import Membership from './pages/Membership'
 import Tags from './pages/Tags'
 import Collections from './pages/Collections'
 import Pathways from './pages/Pathways'
@@ -97,6 +99,8 @@ export default function App() {
                   <Route path="schedule-requests" element={<ScheduleRequests />} />
                   <Route path="course-requests" element={<CourseRequests />} />
                   <Route path="price-reports" element={<PriceReports />} />
+                  <Route path="chat" element={<ChatModeration />} />
+                  <Route path="membership" element={<Membership />} />
                   <Route path="tags" element={<Tags />} />
                   <Route path="collections" element={<Collections />} />
                   <Route path="pathways" element={<Pathways />} />

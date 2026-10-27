@@ -187,7 +187,7 @@ Trang chủ có các khối: tìm kiếm + chip, **Dành cho {tên bé}**, **Đa
 
 ## 7. Bộ sưu tập
 
-Trang **Khóa học > Bộ sưu tập**: danh sách khóa do biên tập chọn, ví dụ "Chuẩn bị vào lớp 6", "Hè không màn hình", "Cuối tuần cả nhà".
+Trang **Bộ sưu tập** (nút ở đầu trang Khóa học, cạnh Tags): danh sách khóa do biên tập chọn, ví dụ "Chuẩn bị vào lớp 6", "Hè không màn hình", "Cuối tuần cả nhà".
 
 **Tạo bộ sưu tập**
 1. Bấm **Tạo bộ sưu tập**. Nhập tên, mô tả ngắn, ảnh bìa. Đường dẫn tự tạo từ tên (có thể sửa; chỉ gồm chữ thường không dấu, số, dấu gạch ngang).
@@ -261,7 +261,7 @@ Trang khóa học hiện: điểm trung bình, số đánh giá, tỉ lệ từn
 
 Phụ huynh thấy tối đa **một thẻ gợi ý mỗi ngày** ở trang Hôm nay của từng bé, và gợi ý cho các bé còn lại ở trang đơn hàng thành công. Mọi gợi ý đều có **lý do** hiển thị ("Bin đang học Tiếng Anh 2, bước tiếp theo của lộ trình Tiếng Anh là Tiếng Anh 3") và nút **Không quan tâm** (ẩn khóa đó cho bé trong số ngày đặt ở mục 8, mặc định 30). Không gợi ý khóa bé đã mua, khóa không hợp tuổi, khóa trùng giờ với lịch đang học.
 
-**Lộ trình** (menu Khóa học > **Lộ trình & gợi ý**): admin tạo chuỗi các **bước** có thứ tự, ví dụ "Bóng đá U13 → U15 → U17". Tên, mô tả, ảnh, rồi tìm khóa bằng khung "tìm khóa + tick" như Bộ sưu tập. Ô "Khóa đã chọn sẽ được" quyết định cách thêm: thành **một bước mới có nhiều khóa** (các khóa là lựa chọn thay thế nhau, ví dụ cùng một trình độ của nhiều đối tác), thành **các bước riêng**, hoặc **thêm vào một bước đã có**. Sắp xếp bước bằng mũi tên, mỗi bước có ghi chú. Cần ít nhất 2 bước. Bé có **một khóa bất kỳ** của bước là coi như đã qua bước đó. Khi gợi ý bước kế tiếp, hệ thống chọn khóa liên quan nhất trong bước đó: ưu tiên khóa của cùng đối tác với khóa bé đã học ở bước trước, rồi đến thứ tự trong bước; khóa không hợp tuổi hoặc trùng lịch bị loại. Bé học (hoặc đã học) một bước sẽ được gợi ý bước kế tiếp mà bé chưa có; khi gói sắp hết buổi, tin nhắc gia hạn cũng nêu bước tiếp theo. Tiến độ của bé không phải nhập: bước nào bé có đơn hoặc lớp thì tính là đã có. Tắt công tắc "Đang dùng" để lộ trình ngừng gợi ý. Khách xem trọn lộ trình ở trang `/pathway/<đường dẫn>` (mỗi bước là một hàng cuộn ngang các khóa, khóa liên quan khóa bé đã học ở bước trước nằm bên trái; bước bé đã qua thu gọn chỉ còn khóa bé đã học kèm nút xem các khóa khác cùng bước; bước bị nhảy cóc có thẻ "Bạn đã bỏ qua bước này" và nút "Đặt lại từ bước này", sau đó gợi ý quay về bước đó cho tới khi bé có khóa của bước), mở từ thẻ gợi ý "Xem toàn bộ lộ trình" và từ khối "Lộ trình học" trên trang khóa học.
+**Lộ trình** (nút **Lộ trình** ở đầu trang Khóa học, cạnh Tags): admin tạo chuỗi các **bước** có thứ tự, ví dụ "Bóng đá U13 → U15 → U17". Tên, mô tả, ảnh, rồi tìm khóa bằng khung "tìm khóa + tick" như Bộ sưu tập. Ô "Khóa đã chọn sẽ được" quyết định cách thêm: thành **một bước mới có nhiều khóa** (các khóa là lựa chọn thay thế nhau, ví dụ cùng một trình độ của nhiều đối tác), thành **các bước riêng**, hoặc **thêm vào một bước đã có**. Sắp xếp bước bằng mũi tên, mỗi bước có ghi chú. Cần ít nhất 2 bước. Bé có **một khóa bất kỳ** của bước là coi như đã qua bước đó. Khi gợi ý bước kế tiếp, hệ thống chọn khóa liên quan nhất trong bước đó: ưu tiên khóa của cùng đối tác với khóa bé đã học ở bước trước, rồi đến thứ tự trong bước; khóa không hợp tuổi hoặc trùng lịch bị loại. Bé học (hoặc đã học) một bước sẽ được gợi ý bước kế tiếp mà bé chưa có; khi gói sắp hết buổi, tin nhắc gia hạn cũng nêu bước tiếp theo. Tiến độ của bé không phải nhập: bước nào bé có đơn hoặc lớp thì tính là đã có. Tắt công tắc "Đang dùng" để lộ trình ngừng gợi ý. Khách xem trọn lộ trình ở trang `/pathway/<đường dẫn>` (mỗi bước là một hàng cuộn ngang các khóa, khóa liên quan khóa bé đã học ở bước trước nằm bên trái; bước bé đã qua thu gọn chỉ còn khóa bé đã học kèm nút xem các khóa khác cùng bước; bước bị nhảy cóc có thẻ "Bạn đã bỏ qua bước này" và nút "Đặt lại từ bước này", sau đó gợi ý quay về bước đó cho tới khi bé có khóa của bước), mở từ thẻ gợi ý "Xem toàn bộ lộ trình" và từ khối "Lộ trình học" trên trang khóa học.
 
 **5 loại gợi ý** (tắt/bật ở Cài đặt > Vận hành > Gợi ý khóa học):
 
@@ -275,7 +275,7 @@ Phụ huynh thấy tối đa **một thẻ gợi ý mỗi ngày** ở trang Hôm
 
 Thứ tự ưu tiên: Lộ trình, Anh chị em, Khung giờ trống, Theo mùa, Sở thích. Cùng một khóa chỉ hiện theo lý do mạnh nhất.
 
-**Hiệu quả**: cuối trang Lộ trình & gợi ý có bảng 30 ngày gần nhất theo từng loại: lượt xem, lượt bấm, tỷ lệ bấm, số bé bấm rồi đặt khóa đó trong 30 ngày. Loại nào kém thì bỏ chọn ở Cài đặt > Vận hành.
+**Hiệu quả**: cuối trang Lộ trình có bảng 30 ngày gần nhất theo từng loại: lượt xem, lượt bấm, tỷ lệ bấm, số bé bấm rồi đặt khóa đó trong 30 ngày. Loại nào kém thì bỏ chọn ở Cài đặt > Vận hành.
 
 Lưu ý: khóa chỉ được gợi ý khi đang bật và đối tác đã ký hợp đồng (cùng quy tắc với trang khách thấy). Nên nhập sẵn vài lộ trình thật, nếu không đợt đầu chỉ có gợi ý anh chị em, khung giờ trống và theo mùa.
 
@@ -348,8 +348,8 @@ Khách có đơn của cùng khóa và cùng bé đã thanh toán ở đơn khá
 
 ## 9. Nhu cầu của khách
 
-- **Nhờ tìm khóa học** (Quản lý thành viên > Nhờ tìm khóa học): khách điền "Nhờ anyLEARN tìm giúp" khi không thấy khóa cần. Trạng thái: mới, đang liên hệ, đã có khóa phù hợp, chưa có đối tác, đã đóng. Chọn "đã có khóa phù hợp" phải nhập mã khóa; khách có tài khoản sẽ được báo kèm link. Mỗi số điện thoại gửi tối đa 3 yêu cầu mỗi ngày.
-- **Báo giá rẻ hơn**: khách báo giá thấp hơn ở nơi khác. Các trạng thái: mới, đang kiểm tra, đã xử lý (khách có tài khoản được cảm ơn), từ chối. Đây là cam kết "giá bằng hoặc rẻ hơn tại trường".
+- **Nhờ tìm khóa học** (thanh trên cùng, bên trái chuông: "Nhờ tìm"): khách điền "Nhờ anyLEARN tìm giúp" khi không thấy khóa cần. Trạng thái: mới, đang liên hệ, đã có khóa phù hợp, chưa có đối tác, đã đóng. Chọn "đã có khóa phù hợp" phải nhập mã khóa; khách có tài khoản sẽ được báo kèm link. Mỗi số điện thoại gửi tối đa 3 yêu cầu mỗi ngày.
+- **Rẻ hơn** (thanh trên cùng, bên trái chuông; trước đây là "Báo giá rẻ hơn"): khách báo giá thấp hơn ở nơi khác. Các trạng thái: mới, đang kiểm tra, đã xử lý (khách có tài khoản được cảm ơn), từ chối. Đây là cam kết "giá bằng hoặc rẻ hơn tại trường".
 - **Xu hướng nhu cầu** (Nội dung & phân tích): từ khóa được tìm nhiều, từ khóa tìm không ra kết quả (xuất CSV để tìm đối tác mới), nhu cầu theo độ tuổi, khu vực, lĩnh vực; lĩnh vực nhiều lượt xem mà ít đơn.
 
 Mỗi lần khách tìm (chỉ trang kết quả đầu) được ghi lại theo trình duyệt, kèm bộ lọc và số kết quả. Tìm lại cùng từ khóa trong vòng 10 giây được tính là một lần tìm đã chỉnh bộ lọc.
@@ -363,7 +363,7 @@ Mỗi lần khách tìm (chỉ trang kết quả đầu) được ghi lại theo
 - **Kiểm toán anyPoint**: kiểm tra số dư điểm của thành viên.
 - Luôn viết **anyPoint** (không viết "điểm"); giá trị quy đổi ghi "~120.000đ".
 - **Hoạt động (đăng ký học thử, test đầu vào, tham quan):** menu Quản lý thành viên > Hoạt động. Mỗi dòng chờ duyệt có hai nút **Duyệt** và **Từ chối**; bấm nút nào cũng mở hộp để nhập nội dung gửi khách qua thông báo. Duyệt: ghi thêm giờ, địa điểm, đồ cần mang (không bắt buộc). Từ chối: **bắt buộc** nhập lý do. Nếu người đăng ký là bé thì thông báo gửi cho phụ huynh. Nội dung đã gửi hiện lại dưới trạng thái của dòng đó.
-- **Số đỏ trên menu:** các mục **Đơn hàng** (đơn khách đã bấm thanh toán, đang chờ), **anyPoints** (nạp/rút đang chờ duyệt), **Hoạt động** (đăng ký chưa duyệt), **Nghỉ / đổi lịch** (yêu cầu chờ xử lý), **Nhờ tìm khóa học** (mọi yêu cầu chưa ở trạng thái "Đã đóng", gồm mới, đang liên hệ, đã có khóa phù hợp, chưa có đối tác) và **Báo giá rẻ hơn** (mọi báo cáo chưa ở trạng thái cuối "Đã chỉnh giá" hoặc "Không đúng", gồm mới và đang kiểm tra) hiện số bản ghi chưa xử lý xong; số tự cập nhật mỗi phút và mỗi khi chuyển trang. Hết việc thì số biến mất.
+- **Số đỏ trên menu và thanh trên cùng:** các mục **Đơn hàng** (đơn khách đã bấm thanh toán, đang chờ), **anyPoints** (nạp/rút đang chờ duyệt), **Hoạt động** (đăng ký chưa duyệt), **Nghỉ / đổi lịch** (yêu cầu chờ xử lý), **Nhờ tìm** (thanh trên cùng) (mọi yêu cầu chưa ở trạng thái "Đã đóng", gồm mới, đang liên hệ, đã có khóa phù hợp, chưa có đối tác) và **Rẻ hơn** (thanh trên cùng) (mọi báo cáo chưa ở trạng thái cuối "Đã chỉnh giá" hoặc "Không đúng", gồm mới và đang kiểm tra) hiện số bản ghi chưa xử lý xong; số tự cập nhật mỗi phút và mỗi khi chuyển trang. Hết việc thì số biến mất.
 - **anyPoint khách nhìn thấy:** trang khóa học, giỏ hàng và đơn hàng hiện "+X anyPoint" (tính bằng đúng cách tính lúc tạo đơn, chỉnh ở cấu hình hoa hồng của khóa); ở bước thanh toán khách bật "Dùng anyPoint"; trang Tài khoản > anyPoint và `/info/anypoint` giải thích cách nhận và dùng. Mỗi khóa mỗi khác nên chữ chung không ghi số cụ thể.
 - **Đơn chờ thanh toán:** khách thấy thẻ "Đơn đang chờ thanh toán" ở `/today` và Tài khoản; đặt trùng khóa và bé thì được hỏi. Thời gian nhắc và tự hủy chỉnh ở mục 8. Số liệu đơn chờ, được nhắc, trả tiền sau nhắc, hết hạn nằm ở trang tổng quan.
 - **Cài app và thông báo đẩy:** website cài được như app (Android hiện nút cài, iPhone có hướng dẫn thêm vào màn hình chính). Thông báo đẩy cần `VAPID_*` (mục 11); khách bật ở Tài khoản > Thông báo.
@@ -448,6 +448,17 @@ Khách thấy danh sách các cách thanh toán ở trang thanh toán và khi th
 - **Tắt rồi thì sao:** khách không chọn được, và hệ thống từ chối cả khi ai đó cố gửi phương thức đã tắt. Đơn cũ đã chọn phương thức đó vẫn xử lý bình thường.
 - **Sau khi đổi:** có hiệu lực ngay, không cần làm gì thêm.
 
+### Chat lớp và kiểm duyệt
+
+Phụ huynh cùng một lớp (có bé đăng ký cùng một khóa học, kể cả khác ca) trao đổi trong **Nhóm lớp** ở tab "Cộng đồng" trên app. Phụ huynh chỉ thấy tên hiển thị tự chọn (ví dụ "Mẹ Bin"), không thấy số điện thoại hay email. Tài khoản của bé không vào chat.
+
+- **Mỗi khóa học một nhóm**, tự tạo khi có người đăng ký (đã thanh toán) và mở tab Cộng đồng; khóa không chia ca vẫn có nhóm. Tên phụ huynh trong nhóm được hệ thống thêm lớp đang học, ví dụ "Mẹ Bin · Thứ 2 18:00", và phụ huynh được báo điều này khi vào nhóm. Đối tác của khóa học tự là người kiểm duyệt (ghim tin, ẩn tin, gửi thông báo cả lớp). Hết khóa, thành viên còn đọc được số ngày đặt trong Cài đặt rồi tự rời nhóm.
+- **Xử lý báo cáo:** menu "Quản lý thành viên" > "Chat lớp" > tab "Báo cáo tin nhắn" (số đỏ ở menu là báo cáo chờ xử lý). Các nút: Ẩn tin; Ẩn tin + khóa 7 ngày; Ẩn tin + khóa chat (khóa người gửi ở mọi nhóm); Bỏ qua (không vi phạm). Tin bị ẩn hiện "Tin nhắn này đã bị ẩn" cho mọi người.
+- **Thêm giáo viên / người hỗ trợ:** tab "Nhóm lớp" > Quản lý > nhập **ID người dùng**, chọn "Kiểm duyệt (giáo viên)" để người đó nhắn, ghim, ẩn tin, gửi thông báo cả lớp. Cũng ở đây: cho thành viên rời nhóm, khóa/mở khóa chat, ẩn tin cũ, khóa cả nhóm (mọi người chỉ đọc, giáo viên vẫn nhắn được).
+- **Tab "Người bị khóa chat"** để mở khóa. **Tab "Cài đặt":** bật/tắt chat toàn hệ thống, đối tác có tự là người kiểm duyệt không, số tin tối đa mỗi phút (mặc định 20), số ngày còn đọc được sau khi hết khóa (mặc định 30), danh sách từ cấm (tin chứa từ cấm không gửi được), và nội quy hiện khi vào nhóm lần đầu.
+- Nội quy mặc định: chỉ chủ đề học, tôn trọng nhau không đả kích, không tôn giáo, chính trị, không quảng cáo/chèo kéo, không chia sẻ số điện thoại, địa chỉ, ảnh trẻ. Câu chữ điều khoản sử dụng cho phần cộng đồng cần chủ sản phẩm duyệt.
+- Có hiệu lực ngay, không cần lập lại chỉ mục. Chưa có: gửi ảnh, tắt tiếng từng nhóm, gộp thông báo tin mới.
+
 ### Hạn dùng anyPoint
 
 Điểm của thành viên mua khóa học có hạn dùng; điểm của đối tác không bao giờ hết hạn. Khách đọc giải thích ở trang `/info/anypoint-expiry` và thấy dòng "X anyPoint dùng được đến hết ngày …" dưới số dư ở Tài khoản > anyPoint.
@@ -461,3 +472,24 @@ Khách thấy danh sách các cách thanh toán ở trang thanh toán và khi th
 
 Hệ thống ghi mỗi người đã đăng nhập mở khóa nào, gộp theo ngày (một dòng cho mỗi người, khóa và ngày), giữ 60 ngày rồi tự xóa. Gợi ý AI dùng 5 khóa vừa xem trong 30 ngày làm một tín hiệu. Không có gì phải nhập hay cấu hình.
 
+
+### Hạng thành viên và ưu đãi gia đình
+
+Menu "Cài đặt" (đáy menu trái) > nhóm "Vận hành" > "Hạng & ưu đãi gia đình".
+
+- **Hạng thành viên:** Thành viên, Bạc, Vàng, Kim cương theo tổng tiền các đơn đã hoàn tất trong 12 tháng gần nhất. Chỉ tài khoản thành viên (không phải đối tác). Mặc định: Bạc từ 3.000.000đ, Vàng từ 10.000.000đ, Kim cương từ 30.000.000đ. Hạng tự tính lại mỗi đêm và mỗi khi một đơn của người đó được thanh toán; nút "Tính lại ngay" để tính cho mọi người.
+- **Quyền lợi hiện có:** hệ số nhân anyPoint khi mua (mặc định Bạc x1,2, Vàng x1,5, Kim cương x2). Hệ số chỉ áp cho phần anyPoint người mua tự nhận, không đổi điểm của đối tác hay người giới thiệu. **Hệ số làm tăng chi phí anyPoint**; đặt bằng 1 để không thưởng thêm. Trang khóa học vẫn hiện điểm cơ bản, giỏ hàng và đơn hiện điểm đã nhân. Phụ huynh thấy hạng, thanh tiến độ và "Còn X đ nữa lên hạng Y" ở đầu Tài khoản và trang anyPoint; trong nhóm chat lớp, hạng Bạc/Vàng/Kim cương hiện bên cạnh tên.
+- **Ưu đãi gia đình:** bé thứ 2 trở lên của cùng tài khoản được giảm % (mặc định 5%) khi đăng ký trong số ngày cài đặt (mặc định 30) kể từ lúc bé khác đăng ký, hoặc cùng một giỏ hàng. Bé đầu tiên không được giảm; đơn bị hủy không tính. Giỏ hàng hiện dòng "Ưu đãi gia đình", số tiền chuyển khoản trên đơn là số đã giảm. Đặt 0% hoặc tắt công tắc để dừng.
+- **Phụ huynh thấy ở đâu:** trang "Ưu đãi của tôi" (Tài khoản > Ưu đãi của tôi) gom anyPoint, hạng, ưu đãi gia đình và mã giới thiệu. Thẻ gợi ý khóa học cho bé hiện nhãn "Giảm X% ưu đãi gia đình" khi anh/chị của bé vừa đăng ký trong thời hạn. Đổi % hay số ngày ở trang này thì các nơi trên đổi theo. Voucher chưa nằm trong trang này.
+- **Chưa có:** giảm theo từng đối tác, ưu tiên giữ chỗ, voucher sinh nhật, hỗ trợ ưu tiên.
+- Thay đổi ngưỡng có hiệu lực với lần tính lại tiếp theo (bấm "Tính lại ngay" để áp dụng luôn).
+
+### So sánh khóa học
+
+Không có trang riêng trong admin. Phụ huynh bấm "So sánh" trên khóa học (tối đa 3 khóa) rồi mở bảng `/compare`.
+
+- **Số liệu lấy từ dữ liệu bạn nhập:** học phí, số buổi (từ "chu kỳ" của khóa), lịch của các ca, độ tuổi, có học thử không, địa chỉ cơ sở (để tính khoảng cách), anyPoint. Khóa thiếu thông tin nào thì bảng ghi "Chưa có thông tin", nên nhập đủ các trường này sẽ giúp khóa được so sánh đầy đủ (xem trang "Thiếu thuộc tính").
+- **Không chấm điểm, không xếp hạng.** Chỉ tô đậm giá trị tốt nhất của từng hàng (rẻ nhất, gần nhất) khi có khác biệt rõ.
+- **AI đọc mô tả:** phần "Ý chính trong mô tả khóa học" do AI rút ra từ mô tả khóa (phù hợp với ai, cách học, đã bao gồm, cần chuẩn bị, kết quả mong đợi), chỉ ghi lại điều mô tả nêu, mục không nêu thì trống. **Mô tả viết rõ các ý này thì bảng đầy đủ hơn.** Sửa mô tả thì AI đọc lại ở lần xem tiếp theo (mỗi khóa tốn một lần gọi AI cho tới khi mô tả đổi).
+- Dùng chung công tắc "Gợi ý AI" ở Cài đặt > Vận hành và khóa `ANTHROPIC_API_KEY`: tắt thì không đọc thêm khóa mới (các khóa đã đọc vẫn hiện).
+- **Cảnh báo khác lĩnh vực:** nếu một khóa không chung danh mục hoặc tag nào với các khóa còn lại, bảng so sánh ghi chú "khác lĩnh vực". Vì vậy cần gán đúng danh mục và tag cho khóa; khóa chưa có danh mục và tag thì không bị cảnh báo.

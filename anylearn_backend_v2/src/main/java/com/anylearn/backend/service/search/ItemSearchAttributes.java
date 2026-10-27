@@ -60,7 +60,7 @@ public record ItemSearchAttributes(
                 .or(() -> located.stream().findFirst());
     }
 
-    static int weekdaysPerWeek(List<ItemSchedule> schedules) {
+    public static int weekdaysPerWeek(List<ItemSchedule> schedules) {
         return schedules.stream().mapToInt(s -> s.getWeekdays() == null || s.getWeekdays().isBlank()
                 ? 0 : s.getWeekdays().split(",").length).max().orElse(0);
     }
