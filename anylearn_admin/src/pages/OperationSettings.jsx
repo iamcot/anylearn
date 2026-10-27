@@ -99,6 +99,10 @@ export default function OperationSettings() {
             extra="Cách nhau bằng dấu phẩy. Ví dụ 3, 1: nhắc trước 3 ngày và trước 1 ngày, kèm giờ tập trung, địa điểm, đồ mang theo của lớp.">
             <Input style={{ width: 240 }} />
           </Form.Item>
+          <Form.Item name="absentEnabled" label="Bật báo vắng học" valuePropName="checked"
+            extra="Đang tắt mặc định vì nhiều lớp chưa ghi điểm danh đầy đủ, bật khi phụ huynh và admin đã điểm danh đều.">
+            <Switch />
+          </Form.Item>
           <Form.Item name="absentStreak" label="Báo khi vắng liên tiếp (buổi)" rules={[{ required: true, message: 'Nhập số buổi' }]}
             extra="Phụ huynh nhận tin hỏi thăm (kèm cách xin nghỉ / đổi lịch) và admin nhận thông báo. Chỉ áp dụng lớp có điểm danh. Buổi đã được duyệt nghỉ không tính là vắng.">
             <InputNumber min={1} max={20} precision={0} addonAfter="buổi" style={{ width: 160 }} />
@@ -125,6 +129,10 @@ export default function OperationSettings() {
           </Form.Item>
           <Form.Item name="earlyRenewBonusPoints" label="Tặng anyPoint khi gia hạn sớm" rules={[{ required: true, message: 'Nhập số anyPoint' }]}
             extra="Tặng khi phụ huynh gia hạn lúc gói / kỳ học phí cũ còn hiệu lực, sau khi đơn được thanh toán. Mỗi lần gia hạn tặng một lần. Nhập 0 để tắt.">
+            <InputNumber min={0} max={100000} precision={0} addonAfter="anyPoint" style={{ width: 200 }} />
+          </Form.Item>
+          <Form.Item name="fullAttendancePoints" label="Thưởng anyPoint khi điểm danh đủ" rules={[{ required: true, message: 'Nhập số anyPoint' }]}
+            extra="Tặng một lần cho tài khoản phụ huynh khi bé có mặt đủ mọi buổi của khóa (buổi xin nghỉ được duyệt không tính là có mặt). Điểm danh do phụ huynh bấm trong Lịch học hoặc admin bấm ở Theo dõi lịch học. Nhập 0 để tắt.">
             <InputNumber min={0} max={100000} precision={0} addonAfter="anyPoint" style={{ width: 200 }} />
           </Form.Item>
         </Card>

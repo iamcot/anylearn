@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { API_BASE } from '@/lib/apiBase'
+import { markAttended as markAttendedApi } from '@/lib/today/api'
 import {
-  eventsOnDate, forLearner, mondayOfWeek, monthRange, normalizeActivity, normalizeEnrollment, toISO, weekRange,
+  attendanceKey, attendanceState, eventsOnDate, forLearner, sessionKeyOf, mondayOfWeek, monthRange, normalizeActivity, normalizeEnrollment, toISO, weekRange,
   type Activity, type Enrollment, type RawActivity, type RawEnrollment,
 } from '@/lib/schedule/calendar'
 import AccountCard from '@/components/account/AccountCard'
@@ -42,6 +43,7 @@ export default function SchedulePage() {
   const [viewMode, setViewMode] = useState<ViewMode>('calendar')
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selected, setSelected] = useState<Selected | null>(null)
+  const [attended, setAttended] = useState<Set<string>>(new Set())
   const [learners, setLearners] = useState<{ id: number; name: string }[]>([])
   const [learnerId, setLearnerId] = useState<number | null>(null)
 
@@ -56,10 +58,23 @@ export default function SchedulePage() {
         setEnrollments(((data.enrollments ?? []) as RawEnrollment[]).map(normalizeEnrollment))
         setActivities(((data.activities ?? []) as RawActivity[]).map(normalizeActivity))
         setLearners(data.learners ?? [])
+        setAttended(new Set(((data.attendances ?? []) as { learnerId: number; scheduleId: number; date: string }[])
+          .map(row => attendanceKey(row.learnerId, row.scheduleId, row.date))))
       })
       .catch(() => {})
       .finally(() => setLoading(false))
   }, [user])
+
+  // Past sessions can be marked here too (the backend accepts any session that has started).
+  const markAttended = async (): Promise<string | null> => {
+    const event = selected?.event
+    if (!user || !event || event.kind !== 'enrollment' || !event.date || !event.data.scheduleId || event.data.learnerId == null) return null
+    const { error } = await markAttendedApi(event.data.learnerId, sessionKeyOf(event.data.scheduleId, event.date), user.jwtToken)
+    if (error) return error
+    const key = attendanceKey(event.data.learnerId, event.data.scheduleId, event.date)
+    setAttended(previous => new Set(previous).add(key))
+    return null
+  }
 
   const select: SelectEvent = (event, position) => setSelected({ event, position })
 
@@ -146,7 +161,8 @@ export default function SchedulePage() {
       )}
 
       {selected && (
-        <EventPopup event={selected.event} position={selected.position} onClose={() => setSelected(null)} onCancelActivity={handleCancelActivity} />
+        <EventPopup event={selected.event} position={selected.position} onClose={() => setSelected(null)} onCancelActivity={handleCancelActivity}
+          attendance={attendanceState(selected.event, attended, toISO(new Date()))} onMarkAttended={markAttended} />
       )}
     </AccountCard>
   )

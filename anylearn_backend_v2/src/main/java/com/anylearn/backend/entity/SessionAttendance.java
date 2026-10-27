@@ -14,6 +14,7 @@ public class SessionAttendance {
     public static final String STATUS_ATTENDED = "attended";
     public static final String SOURCE_MANUAL = "manual";
     public static final String SOURCE_JOIN = "join";
+    public static final String SOURCE_ADMIN = "admin";
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

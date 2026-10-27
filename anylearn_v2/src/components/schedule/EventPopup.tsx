@@ -19,6 +19,9 @@ interface Props {
   position: { x: number; y: number }
   onClose: () => void
   onCancelActivity: (id: number) => void
+  /** 'markable' shows the "Đã đến lớp" button, 'attended' the tick; onMarkAttended resolves to an error text or null. */
+  attendance?: 'none' | 'attended' | 'markable'
+  onMarkAttended?: () => Promise<string | null>
 }
 
 function DetailRow({ label, children }: { label: string; children: React.ReactNode }) {
@@ -57,8 +60,10 @@ function EnrollmentDetails({ enrollment }: { enrollment: Enrollment }) {
   )
 }
 
-export default function EventPopup({ event, position, onClose, onCancelActivity }: Props) {
+export default function EventPopup({ event, position, onClose, onCancelActivity, attendance = 'none', onMarkAttended }: Props) {
   const [confirming, setConfirming] = useState(false)
+  const [marking, setMarking] = useState(false)
+  const [markError, setMarkError] = useState('')
   const [cancelling, setCancelling] = useState(false)
   const activity = event.kind === 'activity' ? event.data : null
   const isDesktop = window.innerWidth >= DESKTOP_MIN_WIDTH
@@ -99,7 +104,20 @@ export default function EventPopup({ event, position, onClose, onCancelActivity 
           {event.kind === 'enrollment' && <EnrollmentDetails enrollment={event.data} />}
           {activity?.date && <DetailRow label="Ngày">{activity.date}</DetailRow>}
           {activity?.note && <DetailRow label="Ghi chú">{activity.note}</DetailRow>}
+          {event.kind === 'enrollment' && event.date && <DetailRow label="Ngày học">{formatDay(event.date)}</DetailRow>}
         </div>
+
+        {attendance === 'attended' && <p className="mb-0 mt-3 text-[13px] font-bold text-green-dark">✓ Đã đến lớp</p>}
+        {attendance === 'markable' && onMarkAttended && (
+          <div className="mt-3">
+            <button type="button" disabled={marking}
+              onClick={async () => { setMarking(true); setMarkError(''); const error = await onMarkAttended(); setMarking(false); if (error) setMarkError(error) }}
+              className="min-h-11 w-full cursor-pointer rounded-full border-0 bg-green px-4 text-sm font-bold text-white disabled:opacity-60">
+              {marking ? 'Đang lưu...' : 'Đánh dấu đã đến lớp'}
+            </button>
+            {markError && <p className="mb-0 mt-2 text-xs text-red">{markError}</p>}
+          </div>
+        )}
 
         {event.kind === 'enrollment' && <OrderItemRating itemId={event.data.itemId} />}
 

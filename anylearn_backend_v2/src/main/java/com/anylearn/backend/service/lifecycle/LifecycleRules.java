@@ -62,6 +62,12 @@ public final class LifecycleRules {
         return misses;
     }
 
+    /** Full attendance: the course is over (its `total` sessions have all ended) and each of those sessions has an attendance. Oldest first. */
+    public static boolean fullAttendance(List<Boolean> attendedOldestFirst, int total) {
+        if (total <= 0 || attendedOldestFirst.size() < total) return false;
+        return attendedOldestFirst.subList(0, total).stream().allMatch(Boolean::booleanValue);
+    }
+
     /** Messages only go out inside the sending hours (fromHour inclusive, toHour exclusive). */
     public static boolean inWindow(int hour, int fromHour, int toHour) {
         return hour >= fromHour && hour < toHour;

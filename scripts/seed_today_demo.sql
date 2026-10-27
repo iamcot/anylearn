@@ -162,11 +162,14 @@ FROM (SELECT @today - INTERVAL n DAY AS d FROM (SELECT 5 n UNION SELECT 6 UNION 
 WHERE LOWER(LEFT(DAYNAME(d), 3)) IN (@wdm1, @wdm3);
 
 -- Local testing settings: send at any hour, a bonus for renewing early. Change them in the back office afterwards.
-DELETE FROM configurations WHERE `key` IN ('lifecycle/send_from_hour', 'lifecycle/send_to_hour', 'lifecycle/early_renew_bonus_points');
+DELETE FROM configurations WHERE `key` IN ('lifecycle/send_from_hour', 'lifecycle/send_to_hour', 'lifecycle/early_renew_bonus_points', 'lifecycle/absent_enabled', 'lifecycle/full_attendance_points');
 INSERT INTO configurations (`key`, `value`, `type`, created_at, updated_at) VALUES
  ('lifecycle/send_from_hour', '0', 'text', NOW(), NOW()),
  ('lifecycle/send_to_hour', '24', 'text', NOW(), NOW()),
- ('lifecycle/early_renew_bonus_points', '50', 'text', NOW(), NOW());
+ ('lifecycle/early_renew_bonus_points', '50', 'text', NOW(), NOW()),
+ -- the absence alert is off by default; on here so the Su scenario below can be seen
+ ('lifecycle/absent_enabled', '1', 'text', NOW(), NOW()),
+ ('lifecycle/full_attendance_points', '20', 'text', NOW(), NOW());
 
 -- To receive the emails, put your address on the parent (the demo accounts have none):
 --   UPDATE users SET email = 'you@example.com' WHERE api_token = 'demo_parent_token';
