@@ -46,6 +46,9 @@ public class ScheduleNotificationService {
     private LifecycleSettings settings;
     @Autowired(required = false)
     private LifecycleService lifecycle;
+    // Plan 08: the next course of a pathway is named in the "running out of sessions" message.
+    @Autowired(required = false)
+    private com.anylearn.backend.service.recommend.RecommendationService recommendations;
 
     private static final Map<String, Integer> WEEKDAY_MAP = Map.of(
             "mon", 1, "tue", 2, "wed", 3, "thu", 4, "fri", 5, "sat", 6, "sun", 0
@@ -162,7 +165,8 @@ public class ScheduleNotificationService {
         notificationService.createScheduledNotification(
                 accountId, "schedule_renewal", "Sắp hết buổi học",
                 "%s %s %s. Gia hạn để học tiếp →".formatted(displayName(learner), left, pack.title())
-                        + LifecycleMessages.bonusSuffix(pack.remaining() > 0 && settings != null ? settings.earlyRenewBonusPoints() : 0),
+                        + LifecycleMessages.bonusSuffix(pack.remaining() > 0 && settings != null ? settings.earlyRenewBonusPoints() : 0)
+                        + (recommendations == null ? "" : recommendations.nextStepText(learner.getId(), pack.itemId())),
                 todayRoute(learner), "renew-sessions:" + pack.enrollmentId(), LocalDateTime.now(clock).plusHours(2));
     }
 
