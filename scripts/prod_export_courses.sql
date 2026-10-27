@@ -106,11 +106,11 @@ ORDER BY problem, i.id;
 -- Q5. Tên khóa học có khoảng trắng thừa, viết hoa toàn bộ, hoặc trùng nhau giữa các đối tác
 SELECT i.id, i.title,
   (i.title <> TRIM(i.title) OR i.title LIKE '%  %')            AS extra_spaces,
-  (i.title = UPPER(i.title) AND CHAR_LENGTH(i.title) > 8)      AS all_caps,
+  (BINARY i.title = BINARY UPPER(i.title) AND CHAR_LENGTH(i.title) > 8)      AS all_caps,
   (SELECT COUNT(*) FROM items d WHERE d.id <> i.id AND d.is_test = 0 AND LOWER(TRIM(d.title)) = LOWER(TRIM(i.title))) AS same_title_elsewhere
 FROM items i
 WHERE i.is_test = 0
-  AND (i.title <> TRIM(i.title) OR i.title LIKE '%  %' OR (i.title = UPPER(i.title) AND CHAR_LENGTH(i.title) > 8)
+  AND (i.title <> TRIM(i.title) OR i.title LIKE '%  %' OR (BINARY i.title = BINARY UPPER(i.title) AND CHAR_LENGTH(i.title) > 8)
        OR EXISTS (SELECT 1 FROM items d WHERE d.id <> i.id AND d.is_test = 0 AND LOWER(TRIM(d.title)) = LOWER(TRIM(i.title))))
 ORDER BY i.title;
 
