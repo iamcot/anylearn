@@ -1,6 +1,6 @@
 'use client'
 
-import dynamic from 'next/dynamic'
+import Link from 'next/link'
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { getCategories, getSearchOptions, getUserProfile, type Category, type PublicUserProfile, type SearchOptions } from '@/lib/api'
@@ -36,8 +36,6 @@ interface FetchedResults extends SearchResults {
 }
 
 // The URL is the single source of truth: every control rewrites it and the effect below fetches for it.
-// The map script touches `window`, so the popup is only loaded in the browser and only when it opens.
-const NearbyMapModal = dynamic(() => import('@/components/search/NearbyMapModal'), { ssr: false })
 
 function SearchPageInner() {
   const searchParams = useSearchParams()
@@ -50,7 +48,6 @@ function SearchPageInner() {
   const [profile, setProfile] = useState<PublicUserProfile | null>(null)
   const [options, setOptions] = useState<SearchOptions>({ districts: [], tags: [] })
   const [filtersOpen, setFiltersOpen] = useState(false)
-  const [mapOpen, setMapOpen] = useState(false)
   const { token } = useAuth()
   const learnerChips = useLearnerChips()
   const { history, remember, clear: clearHistory } = useSearchHistory()
@@ -163,10 +160,6 @@ function SearchPageInner() {
         />
       )}
 
-      {mapOpen && state.adv.near && (
-        <NearbyMapModal center={state.adv.near} radiusKm={state.adv.radiusKm} onClose={() => setMapOpen(false)} />
-      )}
-
       <section className="section py-6 lg:py-10">
         <div className="container">
           {state.mode === 'class' && <FilterDrawer {...filterProps} open={filtersOpen} onOpenChange={setFiltersOpen} total={total} loading={loading} />}
@@ -177,9 +170,9 @@ function SearchPageInner() {
             <div className="mb-[18px] flex items-end justify-between gap-3">
               <div className="shrink-0">
                 <h2 ref={headingRef} className="m-0 scroll-mt-24 whitespace-nowrap text-lg font-extrabold text-ink md:text-3xl">Kết quả phù hợp {state.mode === 'class' && state.adv.near && GOOGLE_MAPS_KEY && (
-                    <button type="button" onClick={() => setMapOpen(true)} className="inline-flex min-h-11 cursor-pointer items-center gap-1 border-0 bg-transparent p-0 text-sm font-bold text-green-dark">
+                    <Link href={`/search/map?${paramsKey}`} className="inline-flex min-h-11 cursor-pointer items-center gap-1 text-sm font-bold text-green-dark no-underline">
                       <MapIcon className="size-4" />Xem bản đồ
-                    </button>
+                    </Link>
                   )}</h2>
                 <p className="mb-0 mt-1 flex flex-wrap items-center gap-x-3 text-muted">
                   <span>{loading ? 'Đang tìm kiếm...' : `${total} kết quả`}</span>

@@ -145,7 +145,7 @@ export default function CompareView() {
                     const isBest = row.bestKey != null && figures.best[row.bestKey] === index && text != null
                     return (
                       <div key={course.id} className={`whitespace-pre-line p-3 text-sm ${zebra(rowIndex)} ${isBest ? 'font-extrabold text-green-dark' : text ? 'text-ink' : 'text-muted'}`}>
-                        {text ?? NO_INFO}
+                        {text ? withStarIcon(text) : NO_INFO}
                         {isBest && <span className="ml-1 text-[11px] font-bold">{bestNote(row.key)}</span>}
                       </div>
                     )
@@ -166,6 +166,13 @@ export default function CompareView() {
       )}
     </div>
   )
+}
+
+// The rating text carries a "★" where the page draws the star icon.
+function withStarIcon(text: string) {
+  const parts = text.split('★')
+  if (parts.length < 2) return text
+  return <>{parts[0]}<StarIcon filled className="mx-0.5 inline size-3.5 -translate-y-px text-star" />{parts.slice(1).join('★')}</>
 }
 
 function bestNote(key: string): string {

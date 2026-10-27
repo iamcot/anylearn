@@ -42,11 +42,16 @@ public class PartnerController {
         double radius = radiusKm != null && radiusKm > 0 ? Math.min(radiusKm, 100) : operationSettingsService.nearRadiusKm();
         double[] box = NearbyPartners.boundingBox(lat, lng, radius);
         List<NearbyPartners.Branch> branches = jdbc.query(
-                "SELECT a.id, a.name, a.image, a.introduce, l.lat, l.lng FROM users a JOIN user_locations l ON l.user_id = a.id AND l.status = 1 "
+                "SELECT a.id, a.name, a.image, a.introduce, l.lat, l.lng, "
+                        + "(SELECT AVG(iua.value + 0) FROM item_user_actions iua JOIN items i ON i.id = iua.item_id LEFT JOIN review_details d ON d.review_id = iua.id "
+                        + "WHERE iua.type = 'rating' AND i.user_id = a.id AND COALESCE(d.status, 'published') = 'published') AS rating, "
+                        + "(SELECT COUNT(*) FROM item_user_actions iua JOIN items i ON i.id = iua.item_id LEFT JOIN review_details d ON d.review_id = iua.id "
+                        + "WHERE iua.type = 'rating' AND i.user_id = a.id AND COALESCE(d.status, 'published') = 'published') AS rating_count FROM users a JOIN user_locations l ON l.user_id = a.id AND l.status = 1 "
                         + "WHERE a.role = 'school' AND " + com.anylearn.backend.service.search.ItemVisibility.AUTHOR_LIVE_SQL
                         + " AND l.lat BETWEEN ? AND ? AND l.lng BETWEEN ? AND ?",
                 (rs, row) -> new NearbyPartners.Branch(rs.getLong("id"), rs.getString("name"), rs.getString("image"),
-                        rs.getString("introduce"), rs.getDouble("lat"), rs.getDouble("lng")),
+                        rs.getString("introduce"), rs.getDouble("lat"), rs.getDouble("lng"),
+                        rs.getObject("rating") == null ? null : rs.getDouble("rating"), rs.getLong("rating_count")),
                 box[0], box[1], box[2], box[3]);
         return ApiResponse.ok(Map.of("radiusKm", radius, "partners", NearbyPartners.inRadius(branches, lat, lng, radius)));
     }

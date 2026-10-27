@@ -40,6 +40,8 @@ export interface NearbyPartner {
   name: string
   image?: string | null
   intro: string
+  rating?: number | null
+  ratingCount?: number
   lat: number
   lng: number
   distanceKm: number
