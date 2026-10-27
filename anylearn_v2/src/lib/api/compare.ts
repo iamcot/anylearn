@@ -54,7 +54,7 @@ async function get<T>(path: string): Promise<T | null> {
 }
 
 export function getCompareFigures(ids: number[], point?: { lat: number; lng: number } | null): Promise<CompareFigures | null> {
-  const near = point ? `&lat=${point.lat}&lng=${point.lng}` : ''
+  const near = point && Number.isFinite(point.lat) && Number.isFinite(point.lng) ? `&lat=${point.lat}&lng=${point.lng}` : ''
   return get<CompareFigures>(`/compare?ids=${ids.join(',')}${near}`)
 }
 

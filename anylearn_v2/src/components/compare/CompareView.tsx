@@ -47,7 +47,7 @@ export default function CompareView() {
 
   useEffect(() => {
     if (!token) return
-    getHomePoint(token).then(home => setPoint(home ? { lat: home.lat, lng: home.lng } : null))
+    getHomePoint(token).then(home => setPoint(home && Number.isFinite(home.lat) && Number.isFinite(home.lng) ? { lat: home.lat, lng: home.lng } : null))
   }, [token])
 
   // The address always carries the picks, so it can be shared.

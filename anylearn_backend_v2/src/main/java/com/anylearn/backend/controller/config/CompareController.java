@@ -20,11 +20,22 @@ public class CompareController {
     private final CompareAiService ai;
 
     @GetMapping
-    public ApiResponse<?> figures(@RequestParam String ids, @RequestParam(required = false) Double lat, @RequestParam(required = false) Double lng) {
+    public ApiResponse<?> figures(@RequestParam String ids, @RequestParam(required = false) String lat, @RequestParam(required = false) String lng) {
         List<Long> parsed = CompareRules.parseIds(ids);
-        Map<String, Object> result = compare.compare(parsed, lat, lng);
+        Map<String, Object> result = compare.compare(parsed, number(lat), number(lng));
         result.put("factLabels", CompareRules.FACT_LABELS);
         return ApiResponse.ok(result);
+    }
+
+    /** A position the browser could not give arrives as "undefined" or empty: treat it as no position, never as an error. */
+    private static Double number(String value) {
+        if (value == null) return null;
+        try {
+            double parsed = Double.parseDouble(value.trim());
+            return Double.isFinite(parsed) ? parsed : null;
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     @GetMapping("/highlights")
