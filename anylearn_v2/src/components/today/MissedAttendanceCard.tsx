@@ -28,7 +28,7 @@ function Row({ session, token, onDone }: { session: MissedSession; token: string
         {error && <div className="text-xs text-red">{error}</div>}
       </div>
       <button type="button" onClick={mark} disabled={busy}
-        className="min-h-11 shrink-0 cursor-pointer rounded-full border-0 bg-green px-4 text-sm font-bold text-white disabled:opacity-60">
+        className="min-h-11 shrink-0 cursor-pointer rounded-full border border-line bg-white px-4 text-sm font-bold text-blue hover:bg-bg disabled:opacity-60">
         {busy ? '...' : 'Điểm danh bù'}
       </button>
     </li>
