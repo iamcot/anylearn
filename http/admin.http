@@ -327,3 +327,6 @@ Content-Type: application/json
 
 ### Plan 08: views, clicks and orders per kind of suggestion (default last 30 days)
 GET {{baseUrl}}/admin/recommendations/stats?from=2026-10-01&to=2026-10-31&api_token={{$dotenv ADMIN_TOKEN}}
+
+### AI suggestions: usage, clicks, orders, feedback (last 30 days by default)
+GET {{baseUrl}}/admin/ai-suggestions/stats?from=2026-10-01&to=2026-10-31&api_token={{$dotenv ADMIN_TOKEN}}

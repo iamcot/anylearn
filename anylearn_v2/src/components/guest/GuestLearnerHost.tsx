@@ -13,6 +13,7 @@ import {
   type GuestLearner,
 } from '@/lib/guest/guestLearners'
 import GuestLearnerSheet from './GuestLearnerSheet'
+import { pushGuestInterests } from './pushGuestInterests'
 import { getGuestStore, notifyChildrenChanged, saveGuestStore, setPendingChildId } from './guestLearnerStore'
 import { importGuestLearners } from './importGuestLearners'
 import { useGuestLearners, useGuestSheetOpen } from './useGuestLearners'
@@ -56,7 +57,9 @@ function LoginLeftovers() {
   const resolvedToken = useRef<string | null>(null)
 
   useEffect(() => {
-    if (!token || resolvedToken.current === token) return
+    if (!token) return
+    if (store.interests?.self) pushGuestInterests(token, 'self', { self: true })
+    if (resolvedToken.current === token) return
     if (!hasGuestLearners(store)) {
       // Nothing left to place: forget the rest of the guest answer (a shared phone must not keep it for the next visitor).
       if (store !== EMPTY_GUEST_STORE) saveGuestStore(EMPTY_GUEST_STORE)
@@ -71,6 +74,7 @@ function LoginLeftovers() {
         setPendingChildId(chosenMatch.child.id)
         notifyChildrenChanged()
       }
+      matched.forEach(match => pushGuestInterests(token, match.guest.localId, { childId: match.child.id }))
       saveGuestStore(withoutLearners(getGuestStore(), matched.map(match => match.guest.localId)))
       if (matched.length > 0) {
         // No question is asked for a child the account already has, so say what happened instead of staying silent.

@@ -40,6 +40,9 @@ app:
     expiration-ms: ${JWT_EXPIRATION_MS:2592000000}
   google-maps:
     api-key: ${GOOGLE_MAPS_API_KEY:}
+  ai:
+    api-key: ${ANTHROPIC_API_KEY:}
+    model: claude-haiku-5-5
 
 meilisearch:
   host: ${MEILI_HOST:http://localhost:7700}

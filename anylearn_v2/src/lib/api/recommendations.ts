@@ -1,7 +1,7 @@
 import { authFetch } from './client'
 
-export type RecommendationSource = 'pathway' | 'sibling' | 'free_slot' | 'season' | 'interest'
-export type RecommendationContext = 'today' | 'order_success'
+export type RecommendationSource = 'pathway' | 'sibling' | 'free_slot' | 'season' | 'interest' | 'ai'
+export type RecommendationContext = 'today' | 'order_success' | 'ai_suggest'
 
 export interface Recommendation {
   itemId: number

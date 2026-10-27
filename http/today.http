@@ -93,3 +93,24 @@ GET {{baseUrl}}/pathways/demo-tieng-anh?learnerId=1&api_token={{parentToken}}
 
 ###
 GET {{baseUrl}}/items/1/pathway?learnerId=1&api_token={{parentToken}}
+
+### AI suggestions: today's list for a learner (first call of the day asks the AI, later calls read the saved answer)
+POST {{baseUrl}}/ai-suggestions?api_token={{parentToken}}
+Content-Type: application/json
+
+{ "learnerId": 1 }
+
+### AI suggestions: thumbs down with quick reasons (id from the answer above)
+POST {{baseUrl}}/ai-suggestions/1/feedback?api_token={{parentToken}}
+Content-Type: application/json
+
+{ "rating": -1, "reasons": ["too_far", "too_expensive"], "comment": "Muốn lớp gần nhà hơn" }
+
+### AI suggestions: is the feature on (public)
+GET {{baseUrl}}/ai-suggestions/status
+
+### The account owner's own interest survey
+PUT {{baseUrl}}/user/interests?api_token={{parentToken}}
+Content-Type: application/json
+
+{ "likes": ["chess", "art"], "wants": ["english"], "budget": "500_1000" }

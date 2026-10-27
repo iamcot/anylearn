@@ -146,6 +146,21 @@ export default function OperationSettings() {
           </Form.Item>
         </Card>
 
+        <Card title="Gợi ý khóa học bằng AI" style={{ marginBottom: 16 }}>
+          <Form.Item name="aiSuggestEnabled" label="Bật gợi ý bằng AI" valuePropName="checked"
+            extra="Tắt thì nút &quot;Gợi ý khóa học bằng AI&quot; biến mất khỏi trang chủ và /today. Cần có khóa API của Anthropic trên máy chủ (ANTHROPIC_API_KEY). Xem số liệu ở trang &quot;Gợi ý AI&quot;.">
+            <Switch />
+          </Form.Item>
+          <Form.Item name="aiCandidateCount" label="Số khóa gửi cho AI" rules={[{ required: true, message: 'Nhập số khóa' }]}
+            extra="Hệ thống lọc trước theo tuổi, lịch, khóa đã mua rồi chỉ gửi bấy nhiêu khóa (mỗi khóa một dòng ngắn) cho AI. Nhiều khóa thì chọn kỹ hơn nhưng tốn token hơn. Từ 10 đến 100, mặc định 50.">
+            <InputNumber min={10} max={100} precision={0} addonAfter="khóa" style={{ width: 160 }} />
+          </Form.Item>
+          <Form.Item name="aiResultCount" label="Số khóa AI trả về" rules={[{ required: true, message: 'Nhập số khóa' }]}
+            extra="Số khóa hiện cho phụ huynh. Nên chọn số chia hết cho 2, 3 và 4 (ví dụ 12) để lưới hiện đủ hàng trên điện thoại, máy tính bảng và máy tính. Từ 4 đến 24, mặc định 12, không lớn hơn số khóa gửi đi.">
+            <InputNumber min={4} max={24} precision={0} addonAfter="khóa" style={{ width: 160 }} />
+          </Form.Item>
+        </Card>
+
         <Card title="Chỉ mục tìm kiếm" style={{ marginBottom: 16 }}>
           <Typography.Paragraph type="secondary">
             Tìm kiếm tự cập nhật khi sửa từng khóa học, và chạy lại toàn bộ lúc 5 giờ sáng mỗi ngày. Bấm nút này sau khi sửa

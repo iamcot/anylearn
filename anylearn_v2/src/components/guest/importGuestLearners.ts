@@ -2,6 +2,7 @@ import { saveChild, updateProfile } from '@/lib/api'
 import {
   EMPTY_GUEST_STORE, dobFromBirthYear, selectedGuestLearner, withoutLearners, type GuestLearner,
 } from '@/lib/guest/guestLearners'
+import { pushGuestInterests } from './pushGuestInterests'
 import { getGuestStore, notifyChildrenChanged, saveGuestStore, setPendingChildId } from './guestLearnerStore'
 
 export interface ImportResult {
@@ -30,6 +31,7 @@ export async function importGuestLearners(token: string, only?: GuestLearner[]):
     }
     created++
     if (learner.localId === selected?.localId) setPendingChildId(data.id)
+    await pushGuestInterests(token, learner.localId, { childId: data.id })
     saveGuestStore(withoutLearners(getGuestStore(), [learner.localId]))
   }
 
@@ -39,6 +41,7 @@ export async function importGuestLearners(token: string, only?: GuestLearner[]):
 }
 
 async function finishSelfAnswer(token: string) {
+  await pushGuestInterests(token, 'self', { self: true })
   const store = getGuestStore()
   if (store.audience === 'self' && store.selfBirthYear) {
     await updateProfile({ dob: dobFromBirthYear(store.selfBirthYear), dobYearOnly: true }, token)

@@ -34,7 +34,7 @@ export function getGuestStore(): GuestLearnerStore {
 
 export function saveGuestStore(next: GuestLearnerStore) {
   try {
-    if (next === EMPTY_GUEST_STORE || (next.learners.length === 0 && !next.audience && !next.dismissedAt)) {
+    if (next === EMPTY_GUEST_STORE || (next.learners.length === 0 && !next.audience && !next.dismissedAt && !next.interests)) {
       localStorage.removeItem(GUEST_LEARNERS_KEY)
     } else {
       localStorage.setItem(GUEST_LEARNERS_KEY, JSON.stringify(next))

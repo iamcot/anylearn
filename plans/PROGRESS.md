@@ -491,3 +491,9 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 - Backend: V38, `service/recommend/*` (`RecommendationRules` thuần + 11 test, `RecommendationService`, `PathwayService`, `RecommendationSettings`), `RecommendationController`, `AdminPathwayController`. FE: `components/recommendations/*`; admin: trang `Pathways`, mục "Gợi ý khóa học" trong cài đặt vận hành.
 - Seed demo thêm lộ trình Tiếng Anh, ngày sinh cho Bin và Su, một đơn đã thanh toán của Bin để xem gợi ý cho Su; request mẫu trong `http/today.http` và `http/admin.http`.
 - Chưa làm: 08.5 (chờ plan 10), khối lộ trình trên trang khóa học, thông báo gợi ý theo mùa. Chưa thử với MySQL thật (test thuần, tsc, vitest, build admin xanh); câu SQL của engine và báo cáo cần chạy thử với DB thật.
+
+### 27/10/2026 – gợi ý khóa học bằng AI (Haiku)
+- Chủ sản phẩm chốt: luật làm bộ lọc trước, gửi AI 50 khóa lấy 12 (admin chỉnh được cả hai), mỗi người học một lần gọi AI mỗi ngày, được bỏ qua khảo sát, có nút "Tìm kiếm thêm" cuối trang, admin bật/tắt và xem số liệu, 👍/👎 kèm lý do nhanh quay lại làm đầu vào cho prompt lần sau.
+- Backend: V39, `service/ai/*` (`AnthropicClient`, `AiSuggestionService`, `AiSuggestionRules` thuần + test, `AiSuggestionReport`), `AiSuggestionController`, `AdminAiSuggestionController`; `RecommendationService.pool/cardsFor`; khảo sát cho tài khoản chính (`/api/user/interests`, dấu "đã trả lời" kể cả bỏ qua). Env mới `ANTHROPIC_API_KEY` (workflow, env example, README đã thêm; cần tạo secret GitHub cùng tên).
+- FE: thẻ `AiSuggestEntry` (trang chủ, /today), trang `/ai-suggest`, khảo sát lưu localStorage cho khách và tự đẩy vào tài khoản khi đăng nhập/đăng ký/tạo bé. Admin: mục cài đặt AI, trang "Gợi ý AI".
+- Chưa làm / chưa thử: gọi Anthropic thật và MySQL thật (môi trường không có DB; test thuần, tsc, vitest, build admin xanh); đồng bộ khảo sát khi phụ huynh tự thêm bé trùng tên với bé trong khảo sát khách (chỉ có khi đăng ký/đăng nhập).

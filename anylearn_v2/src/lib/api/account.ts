@@ -96,6 +96,8 @@ export interface ChildInterests {
   likes: string[]
   wants: string[]
   budget: string | null
+  // True once saved, even when every question was skipped (the app then stops asking).
+  answered?: boolean
 }
 
 export async function getChildInterests(childId: number, token: string): Promise<ChildInterests | null> {
@@ -105,6 +107,17 @@ export async function getChildInterests(childId: number, token: string): Promise
 
 export async function saveChildInterests(childId: number, answers: ChildInterests, token: string): Promise<{ error?: string }> {
   const { error } = await authFetch(`/user/children/${childId}/interests`, token, { method: 'PUT', body: JSON.stringify(answers) })
+  return { error }
+}
+
+// The same survey for the account owner.
+export async function getMyInterests(token: string): Promise<ChildInterests | null> {
+  const { data } = await authFetch<ChildInterests>('/user/interests', token)
+  return data ?? null
+}
+
+export async function saveMyInterests(answers: ChildInterests, token: string): Promise<{ error?: string }> {
+  const { error } = await authFetch('/user/interests', token, { method: 'PUT', body: JSON.stringify(answers) })
   return { error }
 }
 

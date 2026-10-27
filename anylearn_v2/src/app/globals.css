@@ -327,3 +327,17 @@ body {
 .nav-progress-bar {
   animation: nav-progress 8s cubic-bezier(0.1, 0.6, 0.2, 1) forwards;
 }
+
+/* AI suggestions page: the icon in the middle floats and the sparkles twinkle while the answer is made. */
+@keyframes ai-float {
+  0%, 100% { transform: translateY(0) rotate(-4deg) scale(1); }
+  50% { transform: translateY(-14px) rotate(6deg) scale(1.08); }
+}
+@keyframes ai-twinkle {
+  0%, 100% { opacity: 0.2; transform: scale(0.7); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ai-float { animation: ai-float 2.2s ease-in-out infinite; }
+  .ai-twinkle { animation: ai-twinkle 1.6s ease-in-out infinite; }
+}
