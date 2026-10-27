@@ -9,7 +9,7 @@
 --   * Phần B chạy trong MỘT giao dịch và KẾT THÚC BẰNG ROLLBACK. Chạy lần đầu để xem các bảng xem trước.
 --     Hài lòng thì đổi dòng cuối ROLLBACK thành COMMIT rồi chạy lại từ phần B.
 --   * Chạy trong giờ ít người dùng. Dữ liệu sửa là các cột của items, item_tags, items_categories,
---     item_locations, users.partner_type. Mọi dòng điền tự động được ghi vào item_autofill_log.
+--     item_locations, item_schedules (chỉ thêm ca mới), users.partner_type. Mọi dòng điền tự động được ghi vào item_autofill_log.
 --   * Sau khi COMMIT: vào admin Cài đặt > Vận hành bấm "Chạy lại chỉ mục tìm kiếm" (POST /admin/reindex).
 --
 -- Chỉ điền khi luật rõ ràng (deterministic). Điều không chắc chắn (hình thức lạ, loại đối tác của giáo viên,
@@ -164,7 +164,78 @@ INSERT INTO item_autofill_log (batch, item_id, field, old_value, new_value) SELE
 INSERT IGNORE INTO item_locations (item_id, user_location_id) SELECT item_id, location_id FROM tmp_addr;
 UPDATE items i JOIN tmp_addr a ON a.item_id = i.id SET i.user_location_id = a.location_id;
 
--- B11. Báo cáo cuối: những gì đã tự điền và những gì còn thiếu cho khóa đang hiển thị
+-- B11. Ca học linh hoạt: khóa đang bật, không phải bản test, không phải khóa thu phí / video / kỹ thuật số, CHƯA có ca học nào.
+--      Đọc tên + mô tả (bỏ thẻ HTML). Nếu bài viết có câu giới thiệu lịch rõ ràng thì tạo MỘT ca kiểu "Linh hoạt"
+--      (schedule_type = 'open': học viên chọn ngày bắt đầu sau, luôn cho đăng ký):
+--        * thứ trong tuần: "T2, T4, T6", "Thứ 2 - Thứ 6", "thứ 3 và thứ 5" (một danh sách HOẶC một khoảng, không trộn; chủ nhật chưa đọc)
+--        * giờ học: "18:00-19:30", "18h - 19h30" (giờ bắt đầu 5 đến 21, kết thúc sau bắt đầu)
+--        * hoặc có từ báo hiệu lịch linh hoạt ("linh hoạt", "linh động", "sắp xếp lịch", "theo thỏa thuận", "học bất cứ lúc nào"...)
+--      Không đọc được gì thì không tạo ca. Địa chỉ của ca lấy từ địa chỉ chính của khóa nếu có.
+DROP TEMPORARY TABLE IF EXISTS tmp_n;
+CREATE TEMPORARY TABLE tmp_n (n INT NOT NULL PRIMARY KEY);
+INSERT INTO tmp_n (n) VALUES (1),(2),(3),(4),(5),(6),(7),(8),(9),(10);
+
+DROP TEMPORARY TABLE IF EXISTS tmp_sched_found;
+CREATE TEMPORARY TABLE tmp_sched_found AS
+SELECT item_id, title, user_location_id,
+  REGEXP_SUBSTR(txt, '\\b(thứ|t) ?[2-7]( ?(,|-|–|và|/|đến) ?(thứ |t)?[2-7])*')                                        AS day_text,
+  REGEXP_SUBSTR(txt, '[0-9]{1,2}(h|:)[0-9]{0,2} ?(-|–|đến) ?[0-9]{1,2}(h|:)[0-9]{0,2}')                               AS time_text,
+  (txt REGEXP 'linh hoạt|linh động|linh hoat|sắp xếp (lịch|giờ|ca)|xếp lịch|thỏa thuận|thoả thuận|tùy chọn (giờ|lịch|ca)|chọn (giờ|lịch|ca) học|bất cứ lúc nào|bất kỳ lúc nào|nhận học viên liên tục|khai giảng liên tục') AS flexible
+FROM (
+  SELECT i.id AS item_id, i.title, i.user_location_id,
+         LEFT(REGEXP_REPLACE(REGEXP_REPLACE(CONCAT(i.title, ' ', COALESCE(i.short_content, ''), ' ', COALESCE(i.content, '')), '<[^>]+>', ' '), '&nbsp;', ' '), 8000) AS txt
+  FROM items i
+  WHERE i.is_test = 0 AND i.status = 1 AND COALESCE(i.is_paymentfee, 0) = 0
+    AND COALESCE(i.subtype, '') NOT IN ('digital', 'video')
+    AND NOT EXISTS (SELECT 1 FROM item_schedules s WHERE s.item_id = i.id AND s.status = 1)
+) src;
+
+DROP TEMPORARY TABLE IF EXISTS tmp_sched_days;
+CREATE TEMPORARY TABLE tmp_sched_days AS
+SELECT f.item_id, GROUP_CONCAT(ELT(n.n - 1, 'mon', 'tue', 'wed', 'thu', 'fri', 'sat') ORDER BY n.n) AS weekdays
+FROM tmp_sched_found f JOIN tmp_n n ON n.n BETWEEN 2 AND 7
+WHERE f.day_text IS NOT NULL
+  AND NOT (f.day_text REGEXP '(-|–|đến)' AND f.day_text REGEXP ',|và|/')
+  AND ( (f.day_text REGEXP '(-|–|đến)'
+          AND n.n BETWEEN CAST(REGEXP_SUBSTR(f.day_text, '[2-7]', 1, 1) AS UNSIGNED) AND CAST(REGEXP_SUBSTR(f.day_text, '[2-7]', 1, 2) AS UNSIGNED))
+     OR (NOT f.day_text REGEXP '(-|–|đến)' AND f.day_text REGEXP CONCAT('[^0-9]', n.n, '([^0-9]|$)')) )
+GROUP BY f.item_id;
+
+DROP TEMPORARY TABLE IF EXISTS tmp_sched_times;
+CREATE TEMPORARY TABLE tmp_sched_times AS
+SELECT item_id,
+  CONCAT(LPAD(h1, 2, '0'), ':', LPAD(m1, 2, '0')) AS time_start,
+  CONCAT(LPAD(h2, 2, '0'), ':', LPAD(m2, 2, '0')) AS time_end
+FROM (
+  SELECT item_id,
+    CAST(REGEXP_SUBSTR(t1, '^[0-9]{1,2}') AS UNSIGNED) AS h1, COALESCE(CAST(REGEXP_SUBSTR(t1, '[0-9]{2}$') AS UNSIGNED), 0) AS m1,
+    CAST(REGEXP_SUBSTR(t2, '^[0-9]{1,2}') AS UNSIGNED) AS h2, COALESCE(CAST(REGEXP_SUBSTR(t2, '[0-9]{2}$') AS UNSIGNED), 0) AS m2
+  FROM (
+    SELECT item_id,
+      REGEXP_SUBSTR(time_text, '[0-9]{1,2}(h|:)[0-9]{0,2}', 1, 1) AS t1,
+      REGEXP_SUBSTR(time_text, '[0-9]{1,2}(h|:)[0-9]{0,2}', 1, 2) AS t2
+    FROM tmp_sched_found WHERE time_text IS NOT NULL
+  ) tok
+) hm
+WHERE h1 BETWEEN 5 AND 21 AND h2 BETWEEN 6 AND 22 AND m1 < 60 AND m2 < 60 AND h1 * 60 + m1 < h2 * 60 + m2;
+
+DROP TEMPORARY TABLE IF EXISTS tmp_sched;
+CREATE TEMPORARY TABLE tmp_sched AS
+SELECT f.item_id, f.title, f.user_location_id, d.weekdays, t.time_start, t.time_end, f.flexible, f.day_text, f.time_text
+FROM tmp_sched_found f
+LEFT JOIN tmp_sched_days d ON d.item_id = f.item_id
+LEFT JOIN tmp_sched_times t ON t.item_id = f.item_id
+WHERE d.weekdays IS NOT NULL OR t.time_start IS NOT NULL OR f.flexible = 1;
+
+SELECT 'B11 xem lại ca học linh hoạt sẽ tạo' AS preview, s.item_id, s.title, s.day_text AS matched_days, s.time_text AS matched_time,
+       s.weekdays, s.time_start, s.time_end, s.flexible AS says_flexible, s.user_location_id
+FROM tmp_sched s ORDER BY s.item_id;
+INSERT INTO item_autofill_log (batch, item_id, field, old_value, new_value)
+SELECT @batch, item_id, 'schedule', NULL, CONCAT(COALESCE(weekdays, ''), ' ', COALESCE(time_start, ''), '-', COALESCE(time_end, '')) FROM tmp_sched;
+INSERT INTO item_schedules (item_id, title, schedule_type, weekdays, time_start, time_end, user_location_id, status)
+SELECT item_id, 'Ca linh hoạt', 'open', weekdays, time_start, time_end, NULLIF(user_location_id, 0), 1 FROM tmp_sched;
+
+-- B12. Báo cáo cuối: những gì đã tự điền và những gì còn thiếu cho khóa đang hiển thị
 SELECT field, COUNT(*) AS rows_changed FROM item_autofill_log WHERE batch = @batch GROUP BY field ORDER BY field;
 SELECT
   COUNT(*)                                                                    AS live_items,
@@ -176,7 +247,7 @@ SELECT
 FROM items i JOIN users u ON u.id = i.user_id
 WHERE i.is_test = 0 AND i.status = 1 AND i.user_status = 1 AND u.status = 1 AND u.is_signed = 99;
 
--- Đổi ROLLBACK thành COMMIT khi đã xem xong các bảng xem trước (B5, B7, B8, B9, B10) và hài lòng.
+-- Đổi ROLLBACK thành COMMIT khi đã xem xong các bảng xem trước (B5, B7, B8, B9, B10, B11) và hài lòng.
 ROLLBACK;
 -- COMMIT;
 
@@ -191,4 +262,7 @@ ROLLBACK;
 -- DELETE FROM items_categories; INSERT INTO items_categories SELECT * FROM items_categories_bak_n1;
 -- DELETE FROM item_locations;  INSERT INTO item_locations  SELECT * FROM item_locations_bak_n1;
 -- UPDATE users u JOIN users_partner_type_bak_n1 b ON b.id = u.id SET u.partner_type = b.partner_type;
+-- Ca học linh hoạt đã tạo (B11) là các dòng mới, xóa theo nhật ký:
+-- DELETE s FROM item_schedules s JOIN item_autofill_log l ON l.item_id = s.item_id AND l.batch = 'n1' AND l.field = 'schedule'
+--  WHERE s.title = 'Ca linh hoạt' AND s.schedule_type = 'open';
 -- Các bảng *_bak_n1 và item_autofill_log có thể xóa sau khi kiểm tra xong (DROP TABLE).
