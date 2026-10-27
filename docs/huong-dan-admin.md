@@ -348,8 +348,8 @@ Khách có đơn của cùng khóa và cùng bé đã thanh toán ở đơn khá
 
 ## 9. Nhu cầu của khách
 
-- **Nhờ tìm khóa học** (Quản lý thành viên > Nhờ tìm khóa học): khách điền "Nhờ anyLEARN tìm giúp" khi không thấy khóa cần. Trạng thái: mới, đang liên hệ, đã có khóa phù hợp, chưa có đối tác, đã đóng. Chọn "đã có khóa phù hợp" phải nhập mã khóa; khách có tài khoản sẽ được báo kèm link. Mỗi số điện thoại gửi tối đa 3 yêu cầu mỗi ngày.
-- **Báo giá rẻ hơn**: khách báo giá thấp hơn ở nơi khác. Các trạng thái: mới, đang kiểm tra, đã xử lý (khách có tài khoản được cảm ơn), từ chối. Đây là cam kết "giá bằng hoặc rẻ hơn tại trường".
+- **Nhờ tìm khóa học** (thanh trên cùng, bên trái chuông: "Nhờ tìm"): khách điền "Nhờ anyLEARN tìm giúp" khi không thấy khóa cần. Trạng thái: mới, đang liên hệ, đã có khóa phù hợp, chưa có đối tác, đã đóng. Chọn "đã có khóa phù hợp" phải nhập mã khóa; khách có tài khoản sẽ được báo kèm link. Mỗi số điện thoại gửi tối đa 3 yêu cầu mỗi ngày.
+- **Rẻ hơn** (thanh trên cùng, bên trái chuông; trước đây là "Báo giá rẻ hơn"): khách báo giá thấp hơn ở nơi khác. Các trạng thái: mới, đang kiểm tra, đã xử lý (khách có tài khoản được cảm ơn), từ chối. Đây là cam kết "giá bằng hoặc rẻ hơn tại trường".
 - **Xu hướng nhu cầu** (Nội dung & phân tích): từ khóa được tìm nhiều, từ khóa tìm không ra kết quả (xuất CSV để tìm đối tác mới), nhu cầu theo độ tuổi, khu vực, lĩnh vực; lĩnh vực nhiều lượt xem mà ít đơn.
 
 Mỗi lần khách tìm (chỉ trang kết quả đầu) được ghi lại theo trình duyệt, kèm bộ lọc và số kết quả. Tìm lại cùng từ khóa trong vòng 10 giây được tính là một lần tìm đã chỉnh bộ lọc.
@@ -363,7 +363,7 @@ Mỗi lần khách tìm (chỉ trang kết quả đầu) được ghi lại theo
 - **Kiểm toán anyPoint**: kiểm tra số dư điểm của thành viên.
 - Luôn viết **anyPoint** (không viết "điểm"); giá trị quy đổi ghi "~120.000đ".
 - **Hoạt động (đăng ký học thử, test đầu vào, tham quan):** menu Quản lý thành viên > Hoạt động. Mỗi dòng chờ duyệt có hai nút **Duyệt** và **Từ chối**; bấm nút nào cũng mở hộp để nhập nội dung gửi khách qua thông báo. Duyệt: ghi thêm giờ, địa điểm, đồ cần mang (không bắt buộc). Từ chối: **bắt buộc** nhập lý do. Nếu người đăng ký là bé thì thông báo gửi cho phụ huynh. Nội dung đã gửi hiện lại dưới trạng thái của dòng đó.
-- **Số đỏ trên menu:** các mục **Đơn hàng** (đơn khách đã bấm thanh toán, đang chờ), **anyPoints** (nạp/rút đang chờ duyệt), **Hoạt động** (đăng ký chưa duyệt), **Nghỉ / đổi lịch** (yêu cầu chờ xử lý), **Nhờ tìm khóa học** (mọi yêu cầu chưa ở trạng thái "Đã đóng", gồm mới, đang liên hệ, đã có khóa phù hợp, chưa có đối tác) và **Báo giá rẻ hơn** (mọi báo cáo chưa ở trạng thái cuối "Đã chỉnh giá" hoặc "Không đúng", gồm mới và đang kiểm tra) hiện số bản ghi chưa xử lý xong; số tự cập nhật mỗi phút và mỗi khi chuyển trang. Hết việc thì số biến mất.
+- **Số đỏ trên menu và thanh trên cùng:** các mục **Đơn hàng** (đơn khách đã bấm thanh toán, đang chờ), **anyPoints** (nạp/rút đang chờ duyệt), **Hoạt động** (đăng ký chưa duyệt), **Nghỉ / đổi lịch** (yêu cầu chờ xử lý), **Nhờ tìm** (thanh trên cùng) (mọi yêu cầu chưa ở trạng thái "Đã đóng", gồm mới, đang liên hệ, đã có khóa phù hợp, chưa có đối tác) và **Rẻ hơn** (thanh trên cùng) (mọi báo cáo chưa ở trạng thái cuối "Đã chỉnh giá" hoặc "Không đúng", gồm mới và đang kiểm tra) hiện số bản ghi chưa xử lý xong; số tự cập nhật mỗi phút và mỗi khi chuyển trang. Hết việc thì số biến mất.
 - **anyPoint khách nhìn thấy:** trang khóa học, giỏ hàng và đơn hàng hiện "+X anyPoint" (tính bằng đúng cách tính lúc tạo đơn, chỉnh ở cấu hình hoa hồng của khóa); ở bước thanh toán khách bật "Dùng anyPoint"; trang Tài khoản > anyPoint và `/info/anypoint` giải thích cách nhận và dùng. Mỗi khóa mỗi khác nên chữ chung không ghi số cụ thể.
 - **Đơn chờ thanh toán:** khách thấy thẻ "Đơn đang chờ thanh toán" ở `/today` và Tài khoản; đặt trùng khóa và bé thì được hỏi. Thời gian nhắc và tự hủy chỉnh ở mục 8. Số liệu đơn chờ, được nhắc, trả tiền sau nhắc, hết hạn nằm ở trang tổng quan.
 - **Cài app và thông báo đẩy:** website cài được như app (Android hiện nút cài, iPhone có hướng dẫn thêm vào màn hình chính). Thông báo đẩy cần `VAPID_*` (mục 11); khách bật ở Tài khoản > Thông báo.
@@ -475,7 +475,7 @@ Hệ thống ghi mỗi người đã đăng nhập mở khóa nào, gộp theo n
 
 ### Hạng thành viên và ưu đãi gia đình
 
-Menu "Quản lý thành viên" > "Hạng & ưu đãi gia đình".
+Menu "Cài đặt" (đáy menu trái) > nhóm "Vận hành" > "Hạng & ưu đãi gia đình".
 
 - **Hạng thành viên:** Thành viên, Bạc, Vàng, Kim cương theo tổng tiền các đơn đã hoàn tất trong 12 tháng gần nhất. Chỉ tài khoản thành viên (không phải đối tác). Mặc định: Bạc từ 3.000.000đ, Vàng từ 10.000.000đ, Kim cương từ 30.000.000đ. Hạng tự tính lại mỗi đêm và mỗi khi một đơn của người đó được thanh toán; nút "Tính lại ngay" để tính cho mọi người.
 - **Quyền lợi hiện có:** hệ số nhân anyPoint khi mua (mặc định Bạc x1,2, Vàng x1,5, Kim cương x2). Hệ số chỉ áp cho phần anyPoint người mua tự nhận, không đổi điểm của đối tác hay người giới thiệu. **Hệ số làm tăng chi phí anyPoint**; đặt bằng 1 để không thưởng thêm. Trang khóa học vẫn hiện điểm cơ bản, giỏ hàng và đơn hiện điểm đã nhân. Phụ huynh thấy hạng, thanh tiến độ và "Còn X đ nữa lên hạng Y" ở đầu Tài khoản và trang anyPoint; trong nhóm chat lớp, hạng Bạc/Vàng/Kim cương hiện bên cạnh tên.
