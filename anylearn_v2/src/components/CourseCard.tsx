@@ -76,7 +76,7 @@ export default function CourseCard({ item }: Props) {
           </div>
           <div className="flex items-center justify-between gap-2">
             <CompareToggle itemId={item.id} title={item.title} image={item.image} variant="text" />
-            <ChevronLabel className="shrink-0 text-sm font-extrabold text-green-dark">Tìm hiểu thêm</ChevronLabel>
+            <ChevronLabel className="shrink-0 text-sm font-extrabold text-green-dark">Tìm hiểu</ChevronLabel>
           </div>
         </div>
       </div>

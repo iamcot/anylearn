@@ -86,7 +86,7 @@ export function CourseResultCard({ item }: { item: Item }) {
           </div>
           <div className="flex items-center justify-between gap-2">
             <CompareToggle itemId={item.id} title={item.title} image={item.image} variant="text" />
-            <ChevronLabel className="shrink-0 text-xs font-extrabold text-green-dark md:text-sm">Tìm hiểu thêm</ChevronLabel>
+            <ChevronLabel className="shrink-0 text-xs font-extrabold text-green-dark md:text-sm">Tìm hiểu</ChevronLabel>
           </div>
         </div>
       </div>
