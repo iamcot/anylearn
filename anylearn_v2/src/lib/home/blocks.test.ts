@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { forYouBlock, homeQuickLinks, hotNearBlock } from './blocks'
+import { forYouBlock, homeQuickLinks, hotNearBlock, topRatedBlock } from './blocks'
 
 describe('forYouBlock', () => {
   it('is the popular list when nobody is chosen', () => {
@@ -37,5 +37,12 @@ describe('homeQuickLinks', () => {
     expect(links['Online']).toBe('/search?hinhthuc=online')
     expect(links['Gần tôi']).toBe('/search?locate=1')
     expect(links['Cuối tuần']).toContain('slot=weekend_morning')
+  })
+})
+
+describe('topRatedBlock', () => {
+  it('reads from the top rated list, not the search', () => {
+    expect(topRatedBlock().source).toBe('topRated')
+    expect(topRatedBlock().seeAllHref).toBeUndefined()
   })
 })

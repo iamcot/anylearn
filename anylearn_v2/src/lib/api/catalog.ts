@@ -245,6 +245,17 @@ export async function searchItems(q: string, page = 0, pageSize = 20, options: S
   return result ?? { items: [], total: 0, page, pageSize }
 }
 
+export interface TopRatedResult {
+  title: string
+  days: number
+  items: Item[]
+}
+
+// Courses with the best reviews of the last `days` days (the back office sets the period; the title follows it).
+export async function getTopRated(limit = 24): Promise<TopRatedResult | null> {
+  return apiFetch<TopRatedResult>(`/top-rated?limit=${limit}`)
+}
+
 export interface SearchOptions {
   districts: { code: string; name: string }[]
   tags: { id: number; name: string; group: string }[]

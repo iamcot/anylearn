@@ -89,7 +89,7 @@ public class AiSuggestionService {
     private Map<String, Object> askAi(User account, Pool pool, List<Long> ranked, Map<Long, String> ruleReasons, int results, LocalDate today) {
         Map<Long, Item> items = itemRepository.findAllById(ranked).stream().collect(Collectors.toMap(Item::getId, i -> i));
         ranked = capPerPartner(ranked, items);
-        AnthropicClient.Answer answer = anthropic.ask(AiSuggestionRules.systemPrompt(results), userPrompt(pool, items, ranked), 1800);
+        AnthropicClient.Answer answer = anthropic.ask(AiSuggestionRules.systemPrompt(results), userPrompt(account, pool, items, ranked), 1800);
         Map<Long, String> picks = AiSuggestionRules.parsePicks(answer.text(), Set.copyOf(ranked), results);
         // The call is paid for either way: an unusable answer saves the rule ranking, so the learner is not asked again today.
         boolean usable = !picks.isEmpty();
@@ -149,7 +149,7 @@ public class AiSuggestionService {
 
     // ── Prompt ───────────────────────────────────────────────────────────────
 
-    private String userPrompt(Pool pool, Map<Long, Item> items, List<Long> order) {
+    private String userPrompt(User account, Pool pool, Map<Long, Item> items, List<Long> order) {
         StringBuilder text = new StringBuilder("NGƯỜI HỌC\n");
         text.append("- Tên: ").append(pool.learnerName()).append(pool.self() ? " (người lớn tự học)" : "").append('\n');
         if (pool.ageBounds() != null) {
@@ -163,6 +163,7 @@ public class AiSuggestionService {
                   UNION SELECT item_id FROM order_details WHERE user_id = ? AND status NOT LIKE 'cancel%') LIMIT 10""",
                 String.class, pool.learnerId(), pool.learnerId());
         if (!learned.isEmpty()) text.append("- Đã học / đã mua: ").append(String.join("; ", learned)).append('\n');
+        appendAccountSignals(text, account.getId(), pool.self());
         appendFeedback(text, pool.learnerId());
 
         Map<Long, List<String>> tags = tagsOf(items.keySet());
@@ -180,6 +181,29 @@ public class AiSuggestionService {
                     .append(" | ").append(clean(c.reasonText(), 70)).append('\n');
         }
         return text.toString();
+    }
+
+    /** What the account (the parent, or the adult learner) liked, put in the cart, follows and searched lately. Never per child, so it is labelled. */
+    private void appendAccountSignals(StringBuilder text, Long accountId, boolean self) {
+        String who = self ? "" : "phụ huynh ";
+        appendSignal(text, who + "đã thích", jdbc.queryForList("""
+                SELECT i.title FROM item_user_actions a JOIN items i ON i.id = a.item_id
+                WHERE a.user_id = ? AND a.type = 'fav' AND a.value = '1' ORDER BY a.id DESC LIMIT 5""", String.class, accountId), 60);
+        appendSignal(text, who + "đang để trong giỏ", jdbc.queryForList("""
+                SELECT i.title FROM item_user_actions a JOIN items i ON i.id = a.item_id
+                WHERE a.user_id = ? AND a.type = 'cart' ORDER BY a.id DESC LIMIT 5""", String.class, accountId), 60);
+        appendSignal(text, who + "đang theo dõi đối tác", jdbc.queryForList("""
+                SELECT u.name FROM follows f JOIN users u ON u.id = f.partner_id
+                WHERE f.user_id = ? ORDER BY f.created_at DESC LIMIT 5""", String.class, accountId), 50);
+        appendSignal(text, who + "tìm gần đây", jdbc.queryForList("""
+                SELECT keyword FROM search_logs
+                WHERE user_id = ? AND keyword IS NOT NULL AND keyword <> '' AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+                GROUP BY keyword ORDER BY MAX(id) DESC LIMIT 5""", String.class, accountId), 40);
+    }
+
+    private void appendSignal(StringBuilder text, String label, List<String> values, int maxChars) {
+        List<String> cleaned = values.stream().map(v -> clean(v, maxChars)).filter(v -> !v.isBlank()).toList();
+        if (!cleaned.isEmpty()) text.append("- ").append(label.substring(0, 1).toUpperCase()).append(label.substring(1)).append(": ").append(String.join("; ", cleaned)).append('\n');
     }
 
     private void appendInterests(StringBuilder text, Long learnerId) {

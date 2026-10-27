@@ -77,6 +77,10 @@ export default function OperationSettings() {
             extra="Cộng thêm khi đánh giá có ít nhất một ảnh. Ẩn hoặc xóa đánh giá thì anyPoint đã thưởng bị thu hồi. Nhập 0 để tắt.">
             <InputNumber min={0} max={10000} precision={0} addonAfter="anyPoint" style={{ width: 200 }} />
           </Form.Item>
+          <Form.Item name="reviewTopRatedDays" label="Top khóa học được đánh giá cao: tính đánh giá trong (ngày)" rules={[{ required: true, message: 'Nhập số ngày' }]}
+            extra="Trang chủ xếp khóa theo điểm đánh giá trung bình của các đánh giá viết trong khoảng này. Từ 30 ngày trở xuống tiêu đề ghi “trong tháng”, từ 31 đến 90 ngày ghi “trong quý”, nhiều hơn thì không ghi thời gian. Ít khách thì để rộng (mặc định 90), nhiều đánh giá thì thu hẹp lại.">
+            <InputNumber min={7} max={3650} precision={0} addonAfter="ngày" style={{ width: 200 }} />
+          </Form.Item>
           <Form.Item name="reviewRemindEnabled" label="Nhắc phụ huynh viết đánh giá" valuePropName="checked"
             extra="Gửi thông báo khi bé học được nửa khóa và khi khóa kết thúc (mỗi mốc một lần), nếu chưa viết đánh giá.">
             <Switch />

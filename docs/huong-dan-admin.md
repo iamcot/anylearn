@@ -172,10 +172,12 @@ Phổ biến nhất (mặc định), mới nhất, giá thấp/cao, khai giảng
 
 ## 6. Trang chủ
 
-Trang chủ có các khối: tìm kiếm + chip, **Dành cho {tên bé}**, **Đang hot gần bạn**, **Bộ sưu tập**, **Chuyên gia và đối tác nổi bật**, nhờ tìm giúp, bài viết.
+Trang chủ có các khối: tìm kiếm + chip, **Dành cho {tên bé}**, **Đang hot gần bạn**, **Top khóa học được đánh giá cao**, **Bộ sưu tập**, **Chuyên gia và đối tác nổi bật**, nhờ tìm giúp, bài viết.
 
 - **Dành cho {bé}**: khóa phổ biến nhất hợp tuổi bé đang chọn. Khách chưa đăng nhập: dùng độ tuổi khách đã khai; chưa khai thì hiện "Khóa học được quan tâm nhiều".
 - **Đang hot gần bạn**: chỉ hiện với tài khoản có **địa chỉ nhà đã lưu có tọa độ** (dùng bán kính "Gần tôi").
+- **Top khóa học được đánh giá cao**: các khóa có điểm đánh giá trung bình cao nhất trong các đánh giá viết gần đây (chỉ tính đánh giá đang hiện). Khoảng thời gian chỉnh ở Cài đặt > Vận hành (mục 8); tiêu đề tự đổi: từ 30 ngày trở xuống "trong tháng", đến 90 ngày "trong quý", dài hơn thì không ghi thời gian.
+- **Không lặp khóa giữa các khối**: khối phía dưới bỏ các khóa đã hiện ở khối phía trên (Dành cho > Đang hot gần bạn > Top đánh giá cao). Khối nào còn dưới 4 khóa mới thì tự ẩn. "Hot" tính theo điểm ưu tiên (điểm ưu tiên admin cho khóa/đối tác, đánh dấu Hot, lượt xem, giỏ hàng, yêu thích, đánh giá), nên muốn đẩy một khóa lên thì tăng điểm ưu tiên.
 - **Bộ sưu tập**: xem mục 7. Không có bộ nào đang bật thì khối ẩn.
 - **Chuyên gia và đối tác nổi bật**: tự động lấy 4 trường và 4 giáo viên được tìm nhiều nhất trong số đối tác **đã ký hợp đồng** (công tắc Ký HĐ bật, mục 2.2), bấm vào mở trang đối tác (mục 7b). Muốn đưa ai lên cao hơn thì tăng điểm ưu tiên của họ.
 - Khối **Thử điều mới cho con** là một thẻ nổi bật giải thích ngắn: chọn theo tuổi bé, ưu tiên gần nhà (cần địa chỉ nhà trong tài khoản), mỗi ngày một danh sách mới. Bấm "Khám phá hôm nay" để mở danh sách (mục 7b).
@@ -309,6 +311,7 @@ Menu **Cài đặt (bánh răng) > Vận hành > Cấu hình tìm kiếm & đơn
 | Tự hủy đơn quá hạn | Bật/tắt việc tự hủy đơn chưa thanh toán | Bật |
 | Hủy đơn sau (giờ) | Đơn chưa thanh toán bị hủy sau thời gian này kể từ lúc đặt. Điểm anyPoint đã dùng được hoàn lại | 72 giờ |
 | Thưởng khi viết đánh giá (anyPoint) | Cho đánh giá có nhận xét từ 50 ký tự, mỗi đánh giá một lần. 0 = tắt | 20 |
+| Tính đánh giá cao trong (ngày) | Khoảng thời gian lấy đánh giá cho khối "Top khóa học được đánh giá cao" trên trang chủ (7 đến 3650) | 90 ngày |
 | Thưởng thêm khi có ảnh (anyPoint) | Cộng thêm khi đánh giá có ít nhất một ảnh. 0 = tắt | 20 |
 | Nhắc phụ huynh viết đánh giá | Nhắc khi học nửa khóa và khi hết khóa (mục 7c) | Bật |
 | Vòng đời học viên | Xem bảng riêng bên dưới | |
