@@ -53,8 +53,8 @@ export default function PathwayBlock({ itemId }: { itemId: number }) {
                   {pathway.steps.map((step, index) => {
                     const current = index === currentIndex
                     const bought = step.items.find(item => item.owned)
-                    // A step is ticked when it comes before this course or the account already bought a course of it.
-                    const passed = index < currentIndex || !!bought
+                    // Ticked: a step before this course, or one with a bought course. The step being viewed keeps its number unless this very course is bought.
+                    const passed = current ? !!course?.owned : index < currentIndex || !!bought
                     const course = step.items.find(item => item.itemId === itemId) ?? step.items[0]
                     return (
                       <li key={step.stepNo} aria-current={current ? 'step' : undefined}
