@@ -1,5 +1,6 @@
 'use client'
 
+import { clearBrowsing } from '@/lib/today/links'
 import { createContext, useContext, useState, useEffect, useCallback, useMemo, useSyncExternalStore, ReactNode } from 'react'
 import { AuthUser, loginApi, registerApi, getCart } from '@/lib/api'
 import { API_BASE } from '@/lib/apiBase'
@@ -95,6 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { user: u, error } = await loginApi(phone, password)
     if (error || !u) return { error: error || 'Đăng nhập thất bại' }
     writeStoredUser(u)
+    clearBrowsing()
     return {}
   }
 
@@ -105,6 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // step (add2cart) already lists them. A failure never blocks registering; leftovers are offered after the next login.
     await importGuestLearners(u.jwtToken).catch(() => {})
     writeStoredUser(u)
+    clearBrowsing()
     return {}
   }
 
@@ -112,6 +115,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     if (token) void forgetPushDevice(token)
     writeStoredUser(null)
+    clearBrowsing()
   }
 
   const openAuthModal = (tab: 'login' | 'register' = 'login', onSuccess?: () => void) => {
