@@ -1,5 +1,5 @@
 import { App, Badge, Button, Input, Select, Space, Switch, Table, Tag, Tooltip, Typography } from 'antd'
-import { FireOutlined, InfoCircleOutlined, PlusOutlined, RightOutlined, StarOutlined, TagsOutlined, WarningOutlined } from '@ant-design/icons'
+import { AppstoreOutlined, BranchesOutlined, FireOutlined, InfoCircleOutlined, PlusOutlined, RightOutlined, StarOutlined, TagsOutlined, WarningOutlined } from '@ant-design/icons'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import client from '../api/client'
@@ -177,6 +177,8 @@ export default function Items() {
         </div>
         <Space wrap>
           <Button icon={<TagsOutlined />} onClick={() => navigate('/tags')}>Tags</Button>
+          <Button icon={<AppstoreOutlined />} onClick={() => navigate('/collections')}>Bộ sưu tập</Button>
+          <Button icon={<BranchesOutlined />} onClick={() => navigate('/pathways')}>Lộ trình</Button>
           <Button icon={<WarningOutlined />} onClick={() => navigate('/item-gaps')}>Thiếu thuộc tính</Button>
           <Badge count={(badges?.reviewsResubmitted ?? 0) + (badges?.reviewsReported ?? 0)} size="small" offset={[-4, 4]}>
             <Button icon={<StarOutlined />} onClick={() => navigate('/reviews')}>Xem tất cả đánh giá</Button>

@@ -187,7 +187,7 @@ Trang chủ có các khối: tìm kiếm + chip, **Dành cho {tên bé}**, **Đa
 
 ## 7. Bộ sưu tập
 
-Trang **Khóa học > Bộ sưu tập**: danh sách khóa do biên tập chọn, ví dụ "Chuẩn bị vào lớp 6", "Hè không màn hình", "Cuối tuần cả nhà".
+Trang **Bộ sưu tập** (nút ở đầu trang Khóa học, cạnh Tags): danh sách khóa do biên tập chọn, ví dụ "Chuẩn bị vào lớp 6", "Hè không màn hình", "Cuối tuần cả nhà".
 
 **Tạo bộ sưu tập**
 1. Bấm **Tạo bộ sưu tập**. Nhập tên, mô tả ngắn, ảnh bìa. Đường dẫn tự tạo từ tên (có thể sửa; chỉ gồm chữ thường không dấu, số, dấu gạch ngang).
@@ -261,7 +261,7 @@ Trang khóa học hiện: điểm trung bình, số đánh giá, tỉ lệ từn
 
 Phụ huynh thấy tối đa **một thẻ gợi ý mỗi ngày** ở trang Hôm nay của từng bé, và gợi ý cho các bé còn lại ở trang đơn hàng thành công. Mọi gợi ý đều có **lý do** hiển thị ("Bin đang học Tiếng Anh 2, bước tiếp theo của lộ trình Tiếng Anh là Tiếng Anh 3") và nút **Không quan tâm** (ẩn khóa đó cho bé trong số ngày đặt ở mục 8, mặc định 30). Không gợi ý khóa bé đã mua, khóa không hợp tuổi, khóa trùng giờ với lịch đang học.
 
-**Lộ trình** (menu Khóa học > **Lộ trình & gợi ý**): admin tạo chuỗi các **bước** có thứ tự, ví dụ "Bóng đá U13 → U15 → U17". Tên, mô tả, ảnh, rồi tìm khóa bằng khung "tìm khóa + tick" như Bộ sưu tập. Ô "Khóa đã chọn sẽ được" quyết định cách thêm: thành **một bước mới có nhiều khóa** (các khóa là lựa chọn thay thế nhau, ví dụ cùng một trình độ của nhiều đối tác), thành **các bước riêng**, hoặc **thêm vào một bước đã có**. Sắp xếp bước bằng mũi tên, mỗi bước có ghi chú. Cần ít nhất 2 bước. Bé có **một khóa bất kỳ** của bước là coi như đã qua bước đó. Khi gợi ý bước kế tiếp, hệ thống chọn khóa liên quan nhất trong bước đó: ưu tiên khóa của cùng đối tác với khóa bé đã học ở bước trước, rồi đến thứ tự trong bước; khóa không hợp tuổi hoặc trùng lịch bị loại. Bé học (hoặc đã học) một bước sẽ được gợi ý bước kế tiếp mà bé chưa có; khi gói sắp hết buổi, tin nhắc gia hạn cũng nêu bước tiếp theo. Tiến độ của bé không phải nhập: bước nào bé có đơn hoặc lớp thì tính là đã có. Tắt công tắc "Đang dùng" để lộ trình ngừng gợi ý. Khách xem trọn lộ trình ở trang `/pathway/<đường dẫn>` (mỗi bước là một hàng cuộn ngang các khóa, khóa liên quan khóa bé đã học ở bước trước nằm bên trái; bước bé đã qua thu gọn chỉ còn khóa bé đã học kèm nút xem các khóa khác cùng bước; bước bị nhảy cóc có thẻ "Bạn đã bỏ qua bước này" và nút "Đặt lại từ bước này", sau đó gợi ý quay về bước đó cho tới khi bé có khóa của bước), mở từ thẻ gợi ý "Xem toàn bộ lộ trình" và từ khối "Lộ trình học" trên trang khóa học.
+**Lộ trình** (nút **Lộ trình** ở đầu trang Khóa học, cạnh Tags): admin tạo chuỗi các **bước** có thứ tự, ví dụ "Bóng đá U13 → U15 → U17". Tên, mô tả, ảnh, rồi tìm khóa bằng khung "tìm khóa + tick" như Bộ sưu tập. Ô "Khóa đã chọn sẽ được" quyết định cách thêm: thành **một bước mới có nhiều khóa** (các khóa là lựa chọn thay thế nhau, ví dụ cùng một trình độ của nhiều đối tác), thành **các bước riêng**, hoặc **thêm vào một bước đã có**. Sắp xếp bước bằng mũi tên, mỗi bước có ghi chú. Cần ít nhất 2 bước. Bé có **một khóa bất kỳ** của bước là coi như đã qua bước đó. Khi gợi ý bước kế tiếp, hệ thống chọn khóa liên quan nhất trong bước đó: ưu tiên khóa của cùng đối tác với khóa bé đã học ở bước trước, rồi đến thứ tự trong bước; khóa không hợp tuổi hoặc trùng lịch bị loại. Bé học (hoặc đã học) một bước sẽ được gợi ý bước kế tiếp mà bé chưa có; khi gói sắp hết buổi, tin nhắc gia hạn cũng nêu bước tiếp theo. Tiến độ của bé không phải nhập: bước nào bé có đơn hoặc lớp thì tính là đã có. Tắt công tắc "Đang dùng" để lộ trình ngừng gợi ý. Khách xem trọn lộ trình ở trang `/pathway/<đường dẫn>` (mỗi bước là một hàng cuộn ngang các khóa, khóa liên quan khóa bé đã học ở bước trước nằm bên trái; bước bé đã qua thu gọn chỉ còn khóa bé đã học kèm nút xem các khóa khác cùng bước; bước bị nhảy cóc có thẻ "Bạn đã bỏ qua bước này" và nút "Đặt lại từ bước này", sau đó gợi ý quay về bước đó cho tới khi bé có khóa của bước), mở từ thẻ gợi ý "Xem toàn bộ lộ trình" và từ khối "Lộ trình học" trên trang khóa học.
 
 **5 loại gợi ý** (tắt/bật ở Cài đặt > Vận hành > Gợi ý khóa học):
 
@@ -275,7 +275,7 @@ Phụ huynh thấy tối đa **một thẻ gợi ý mỗi ngày** ở trang Hôm
 
 Thứ tự ưu tiên: Lộ trình, Anh chị em, Khung giờ trống, Theo mùa, Sở thích. Cùng một khóa chỉ hiện theo lý do mạnh nhất.
 
-**Hiệu quả**: cuối trang Lộ trình & gợi ý có bảng 30 ngày gần nhất theo từng loại: lượt xem, lượt bấm, tỷ lệ bấm, số bé bấm rồi đặt khóa đó trong 30 ngày. Loại nào kém thì bỏ chọn ở Cài đặt > Vận hành.
+**Hiệu quả**: cuối trang Lộ trình có bảng 30 ngày gần nhất theo từng loại: lượt xem, lượt bấm, tỷ lệ bấm, số bé bấm rồi đặt khóa đó trong 30 ngày. Loại nào kém thì bỏ chọn ở Cài đặt > Vận hành.
 
 Lưu ý: khóa chỉ được gợi ý khi đang bật và đối tác đã ký hợp đồng (cùng quy tắc với trang khách thấy). Nên nhập sẵn vài lộ trình thật, nếu không đợt đầu chỉ có gợi ý anh chị em, khung giờ trống và theo mùa.
 

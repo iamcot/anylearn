@@ -1,6 +1,6 @@
 import { Avatar, Badge, Dropdown, Flex, Layout, List, Menu, Popover, Spin, Typography } from 'antd'
 import {
-  AppstoreOutlined, BranchesOutlined, RobotOutlined, AuditOutlined, BankOutlined, CreditCardOutlined, BellOutlined, BookOutlined, CalendarOutlined, DashboardOutlined, DollarOutlined, FileTextOutlined,
+  RobotOutlined, AuditOutlined, BankOutlined, CreditCardOutlined, BellOutlined, BookOutlined, CalendarOutlined, DashboardOutlined, DollarOutlined, FileTextOutlined,
   CustomerServiceOutlined, FundOutlined, LineChartOutlined, SearchOutlined, LogoutOutlined, MailOutlined, ApiOutlined, OrderedListOutlined, SettingOutlined, SolutionOutlined, SwapOutlined,
   TeamOutlined, UserOutlined, MessageOutlined, CrownOutlined,
 } from '@ant-design/icons'
@@ -30,13 +30,11 @@ const NAV_GROUPS = [
   { key: 'g-courses', type: 'group', label: 'Khóa học', children: [
     { key: '/items',            icon: <BookOutlined />,        label: 'Khóa học'   },
     { key: '/schedule-monitor', icon: <CalendarOutlined />,    label: 'Lịch học'   },
-    { key: '/collections',      icon: <AppstoreOutlined />,    label: 'Bộ sưu tập' },
-    { key: '/pathways',         icon: <BranchesOutlined />,    label: 'Lộ trình & gợi ý' },
-    { key: '/ai-suggestions',   icon: <RobotOutlined />,       label: 'Gợi ý AI' },
   ] },
   { key: 'g-content', type: 'group', label: 'Nội dung & phân tích', children: [
     { key: '/articles',         icon: <FileTextOutlined />,    label: 'Bài viết'   },
     { key: '/search-insights',  icon: <LineChartOutlined />,   label: 'Xu hướng nhu cầu' },
+    { key: '/ai-suggestions',   icon: <RobotOutlined />,       label: 'Gợi ý AI' },
   ] },
 ]
 const NAV_ITEMS = NAV_GROUPS.flatMap(group => group.children)
@@ -49,7 +47,7 @@ const HEADER_LINKS = [
 ]
 
 // Pages opened from the course list belong to "Khóa học" in the menu.
-const COURSE_SUBPAGES = ['/tags', '/item-gaps', '/reviews']
+const COURSE_SUBPAGES = ['/tags', '/item-gaps', '/reviews', '/collections', '/pathways']
 
 // The red number on a menu item: how many records wait for the team (key = path, value = field of GET /admin/badges).
 const BADGE_FIELDS = {
