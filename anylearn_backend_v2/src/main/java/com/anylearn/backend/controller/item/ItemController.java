@@ -36,6 +36,7 @@ public class ItemController {
     private final ItemRepository itemRepository;
     private final S3Service s3Service;
     private final ItemTrackingService itemTrackingService;
+    private final com.anylearn.backend.service.itemview.ItemViewService itemViewService;
     private final ItemUserActionRepository itemUserActionRepository;
     private final OrderDetailRepository orderDetailRepository;
     private final MeilisearchService meilisearchService;
@@ -49,6 +50,14 @@ public class ItemController {
                                @AuthenticationPrincipal User currentUser) {
         itemTrackingService.record(id, currentUser != null ? currentUser.getId() : null, "view");
         return ApiResponse.ok(itemService.pdpData(id, currentUser));
+    }
+
+    /** The signed-in person opened this course page (called by the page in the browser, since the server render has no token). */
+    @PostMapping("/item/{id}/view")
+    public ApiResponse<?> viewed(@PathVariable Long id, @AuthenticationPrincipal User currentUser) {
+        if (currentUser == null) return ApiResponse.fail("Unauthorized");
+        itemViewService.record(currentUser.getId(), id);
+        return ApiResponse.ok("OK");
     }
 
     @GetMapping("/item/{itemId}/reviews")

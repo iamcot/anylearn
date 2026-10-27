@@ -15,7 +15,7 @@ public final class NotificationTopics {
     public static final String ZALO = "zalo";
     public static final List<String> CHANNELS = List.of(APP, EMAIL, ZALO);
 
-    public static final List<String> TOPICS = List.of("schedule", "payment", "renewal", "review", "promo");
+    public static final List<String> TOPICS = List.of("schedule", "payment", "renewal", "review", "promo", "points");
 
     private static final Map<String, String> TOPIC_OF_TYPE = Map.of(
             "schedule_reminder", "schedule",
@@ -26,7 +26,8 @@ public final class NotificationTopics {
             "new_course", "promo",
             "lifecycle_start", "schedule",
             "lifecycle_absent", "schedule",
-            "lifecycle_survey", "review");
+            "lifecycle_survey", "review",
+            "points_expiring", "points");
 
     private NotificationTopics() {}
 

@@ -34,6 +34,8 @@ import java.util.*;
 @Slf4j
 public class CartService {
 
+    private final WalletService walletService;
+
     private final ItemUserActionRepository itemUserActionRepository;
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
@@ -446,8 +448,7 @@ public class CartService {
             long maxDeductible = user.getWalletC() != null ? user.getWalletC() : 0;
             long deductPoints = Math.min(pointsUsed, maxDeductible);
             if (deductPoints > 0) {
-                user.setWalletC(maxDeductible - deductPoints);
-                userRepository.save(user);
+                walletService.debitWalletC(user.getId(), deductPoints); // also spends the lots that expire first
 
                 Transaction pointsTx = new Transaction();
                 pointsTx.setUserId(currentUser.getId());

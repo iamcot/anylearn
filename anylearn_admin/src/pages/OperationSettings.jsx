@@ -68,6 +68,21 @@ export default function OperationSettings() {
           </Form.Item>
         </Card>
 
+        <Card title="Hạn dùng anyPoint (chỉ thành viên mua hàng)" style={{ marginBottom: 16 }}>
+          <Form.Item name="pointExpiryEnabled" label="Bật hạn dùng anyPoint" valuePropName="checked"
+            extra="Tắt thì không điểm nào bị xóa và không gửi nhắc. Điểm của đối tác không bao giờ hết hạn.">
+            <Switch />
+          </Form.Item>
+          <Form.Item name="pointExpiryMonths" label="Hạn dùng (tháng)" rules={[{ required: true, message: 'Nhập số tháng' }]}
+            extra="Mỗi lần nhận điểm có hạn dùng từ ngày nhận (hoặc từ ngày bắt đầu bên dưới nếu nhận trước đó). Từ 1 đến 120 tháng, mặc định 12.">
+            <InputNumber min={1} max={120} precision={0} addonAfter="tháng" style={{ width: 180 }} />
+          </Form.Item>
+          <Form.Item name="pointExpiryStartDate" label="Bắt đầu tính hạn từ ngày" rules={[{ required: true, message: 'Chọn ngày' }]}
+            extra="Mặc định 01/01/2027, nghĩa là sớm nhất 01/01/2028 mới có điểm bị xóa. Điểm nhận trước ngày này cũng tính hạn từ ngày này. Hệ thống kiểm tra mỗi ngày lúc 00:10, nhắc thành viên trước 30 và 7 ngày. Đổi số tháng hoặc ngày ở đây áp dụng cho cả điểm đang có.">
+            <Input type="date" style={{ width: 200 }} />
+          </Form.Item>
+        </Card>
+
         <Card title="Đánh giá khóa học" style={{ marginBottom: 16 }}>
           <Form.Item name="reviewPointsText" label="Thưởng khi viết đánh giá (anyPoint)" rules={[{ required: true, message: 'Nhập số anyPoint' }]}
             extra="Cho đánh giá có nhận xét từ 50 ký tự. Mỗi đánh giá chỉ được thưởng một lần, sửa lại không nhận thêm. Nhập 0 để tắt.">
