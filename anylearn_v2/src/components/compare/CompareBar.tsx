@@ -23,10 +23,14 @@ export default function CompareBar() {
       <div className="mx-auto flex max-w-[1100px] items-center gap-3">
         <div className="flex min-w-0 flex-1 gap-2 overflow-x-auto">
           {list.map(entry => (
-            <span key={entry.id} className="inline-flex max-w-[200px] shrink-0 items-center gap-1 rounded-full border border-green bg-green-soft py-1 pl-3 pr-1 text-xs font-bold text-green-dark">
+            <span key={entry.id} className="inline-flex max-w-[220px] shrink-0 items-center gap-2 rounded-full border border-green bg-green-soft p-0.5 text-xs font-bold text-green-dark">
+              {entry.image
+                // eslint-disable-next-line @next/next/no-img-element
+                ? <img src={entry.image} alt="" className="size-9 shrink-0 rounded-full bg-white object-cover" />
+                : <span aria-hidden className="grid size-9 shrink-0 place-items-center rounded-full bg-white text-sm font-black text-green-dark">{entry.title.trim().charAt(0).toUpperCase()}</span>}
               <span className="truncate">{entry.title}</span>
               <button type="button" onClick={() => removeCompare(entry.id)} aria-label={`Bỏ ${entry.title}`}
-                className="grid size-8 shrink-0 cursor-pointer place-items-center rounded-full border-0 bg-transparent text-green-dark hover:bg-white hover:text-red">
+                className="grid size-9 shrink-0 cursor-pointer place-items-center rounded-full border-0 bg-transparent text-green-dark hover:bg-white hover:text-red">
                 <CloseIcon className="size-5" />
               </button>
             </span>
