@@ -176,7 +176,7 @@ function SearchPageInner() {
 
             <div className="mb-[18px] flex items-end justify-between gap-4">
               <div>
-                <h2 ref={headingRef} className="m-0 scroll-mt-24 text-xl font-extrabold text-ink md:text-3xl">Kết quả phù hợp {state.mode === 'class' && state.adv.near && GOOGLE_MAPS_KEY && (
+                <h2 ref={headingRef} className="m-0 scroll-mt-24 whitespace-nowrap text-lg font-extrabold text-ink md:text-3xl">Kết quả phù hợp {state.mode === 'class' && state.adv.near && GOOGLE_MAPS_KEY && (
                     <button type="button" onClick={() => setMapOpen(true)} className="inline-flex min-h-11 cursor-pointer items-center gap-1 border-0 bg-transparent p-0 text-sm font-bold text-green-dark">
                       <MapIcon className="size-4" />Xem bản đồ
                     </button>
@@ -201,7 +201,7 @@ function SearchPageInner() {
             {loading && <ResultRowsSkeleton />}
 
             {results && state.mode === 'class' && results.items.length > 0 && (
-              <div className="grid gap-3 lg:grid-cols-2 xl:grid-cols-3">
+              <div className="grid grid-cols-2 gap-3 lg:grid-cols-2 xl:grid-cols-3">
                 {results.items.map(item => <CourseResultCard key={item.id} item={item} />)}
               </div>
             )}

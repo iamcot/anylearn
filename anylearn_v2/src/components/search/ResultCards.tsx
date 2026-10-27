@@ -7,8 +7,8 @@ import ChevronLabel from '@/components/ChevronLabel'
 import { trackSearchClick } from '@/components/search/searchTracking'
 import { BookIcon, HeartIcon, SchoolIcon, StarIcon, UserIcon } from '@/components/icons'
 
-const CARD_CLASS = 'relative grid grid-cols-[112px_1fr] overflow-hidden rounded-2xl border border-line bg-white shadow-card md:grid-cols-[160px_1fr]'
-const IMAGE_CLASS = 'relative grid min-h-[132px] place-items-center overflow-hidden bg-gradient-to-br from-green-soft to-blue-soft text-blue/40'
+const CARD_CLASS = 'relative flex flex-col overflow-hidden rounded-2xl border border-line bg-white shadow-card md:grid md:grid-cols-[160px_1fr]'
+const IMAGE_CLASS = 'relative grid aspect-[16/10] place-items-center md:aspect-auto md:min-h-[132px] overflow-hidden bg-gradient-to-br from-green-soft to-blue-soft text-blue/40'
 const CHIP_CLASS = 'rounded-full px-2 py-0.5 text-[11px] font-extrabold md:text-xs'
 
 const SLOT_LABELS: Record<string, string> = {
@@ -34,7 +34,7 @@ function CourseFacts({ item }: { item: Item }) {
 }
 
 export function CourseResultCard({ item }: { item: Item }) {
-  const categories = item.categoryTitles ? item.categoryTitles.split('|') : []
+  const categories = item.categoryTitles ? item.categoryTitles.split('|').slice(0, 2) : []
 
   return (
     <article className={CARD_CLASS}>
@@ -72,7 +72,6 @@ export function CourseResultCard({ item }: { item: Item }) {
           ))}
         </div>
         <CourseFacts item={item} />
-        {item.shortContent && <p className="m-0 line-clamp-2 flex-1 text-xs text-muted md:text-sm">{item.shortContent}</p>}
         <div className="mt-auto pt-1">
           <div className="mb-1 text-base font-extrabold text-red">{formatPrice(item.price)}</div>
           <CardPointsChip points={item.points} className="mb-1" />

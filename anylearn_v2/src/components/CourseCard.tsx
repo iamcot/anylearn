@@ -32,7 +32,7 @@ export default function CourseCard({ item }: Props) {
 
       {/* Body */}
       <div className="p-[18px] flex flex-col flex-1">
-        <h3 className="m-0 mb-1.5 text-green-dark leading-[1.35] text-lg font-extrabold">
+        <h3 className="m-0 mb-1.5 text-green-dark leading-[1.35] text-base font-extrabold line-clamp-3">
           {item.title}
         </h3>
 
@@ -58,11 +58,7 @@ export default function CourseCard({ item }: Props) {
           )}
         </div>
 
-        {item.shortContent && (
-          <p className="text-muted text-sm m-0 mb-3.5 flex-1 line-clamp-2">
-            {item.shortContent}
-          </p>
-        )}
+        <div className="flex-1" />
 
         <div className="mt-auto">
           <div className="text-red font-extrabold text-lg mb-1.5">
