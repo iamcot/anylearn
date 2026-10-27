@@ -142,7 +142,7 @@ export default function CompareView() {
                 <Row key={row.key} label={row.label} icon={Icon ? <Icon className="size-4 shrink-0 text-green-dark" /> : null} bg={zebra(rowIndex)}>
                   {courses.map((course, index) => {
                     const text = row.cell(course)
-                    const isBest = row.bestKey != null && figures.best[row.bestKey] === index
+                    const isBest = row.bestKey != null && figures.best[row.bestKey] === index && text != null && text !== 'Không có'
                     return (
                       <div key={course.id} className={`whitespace-pre-line p-3 text-sm ${zebra(rowIndex)} ${isBest ? 'font-extrabold text-green-dark' : text ? 'text-ink' : 'text-muted'}`}>
                         {text ?? NO_INFO}
@@ -181,6 +181,17 @@ function Row({ label, icon, bg, children }: { label: string; icon?: React.ReactN
   )
 }
 
+/** Three dots that pulse one after the other while the AI reads the descriptions. */
+function Thinking() {
+  return (
+    <span role="status" aria-label="AI đang đọc mô tả" className="inline-flex items-center gap-1 text-green-dark">
+      {[0, 1, 2].map(i => (
+        <span key={i} className="size-2 animate-bounce rounded-full bg-green" style={{ animationDelay: `${i * 150}ms` }} />
+      ))}
+    </span>
+  )
+}
+
 function HighlightRows({ courses, figures, highlights, startIndex }: { courses: number[]; figures: CompareFigures; highlights: CompareHighlights | null; startIndex: number }) {
   if (highlights && !highlights.enabled && Object.values(highlights.courses).every(facts => Object.keys(facts).length === 0)) return null
   const labels = Object.entries(figures.factLabels)
@@ -198,7 +209,7 @@ function HighlightRows({ courses, figures, highlights, startIndex }: { courses: 
               const text = highlights?.courses[String(id)]?.[key]
               return (
                 <div key={id} className={`p-3 text-sm ${zebra(startIndex + index)} ${text ? 'text-ink' : 'text-muted'}`}>
-                  {highlights === null ? 'AI đang đọc mô tả…' : text ?? 'Mô tả không nêu'}
+                  {highlights === null ? <Thinking /> : text ?? 'Mô tả không nêu'}
                 </div>
               )
             })}

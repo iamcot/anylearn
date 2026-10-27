@@ -133,7 +133,12 @@ public class CompareService {
         putBest(best, "price", courses, true);
         putBest(best, "pricePerSession", courses, true);
         putBest(best, "distanceKm", courses, true);
-        putBest(best, "points", courses, false);
+        // Only real anyPoint figures compete: a fee item or a course with none must never be marked "most".
+        List<Number> points = courses.stream()
+                .map(c -> Boolean.TRUE.equals(c.get("isPaymentFee")) || !(c.get("points") instanceof Number n) || n.doubleValue() <= 0 ? null : (Number) c.get("points"))
+                .toList();
+        Integer pointsBest = CompareRules.bestIndex(points, false);
+        if (pointsBest != null) best.put("points", pointsBest);
         return best;
     }
 
