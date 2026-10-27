@@ -59,7 +59,6 @@ ALLOWED_DEV_ORIGINS=192.168.1.10            # optional, comma-separated LAN IPs 
 | `PromoSlider` | `components/PromoSlider.tsx` | Promo banner carousel |
 | `ScrollRow` | `components/ScrollRow.tsx` | Horizontal scroll carousel |
 | `BackButton` | `components/BackButton.tsx` | Back navigation |
-| `FloatContact` | `components/FloatContact.tsx` | Fixed "Need help?" floating button |
 
 ## Auth System
 
