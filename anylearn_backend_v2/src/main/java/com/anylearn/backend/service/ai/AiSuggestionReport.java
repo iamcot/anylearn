@@ -31,24 +31,27 @@ public class AiSuggestionReport {
         out.put("model", anthropic.model());
 
         Map<String, Object> usage = jdbc.queryForMap("""
-                SELECT COUNT(*) AS suggestions, COUNT(DISTINCT learner_id) AS learners, COALESCE(SUM(input_tokens),0) AS input_tokens,
+                SELECT COUNT(*) AS suggestions, COALESCE(SUM(status <> 'ai'),0) AS fallbacks, COUNT(DISTINCT learner_id) AS learners, COALESCE(SUM(input_tokens),0) AS input_tokens,
                        COALESCE(SUM(output_tokens),0) AS output_tokens, COALESCE(AVG(candidates),0) AS avg_candidates
                 FROM ai_suggestions WHERE day >= ? AND day <= ?""", from, to);
         out.put("suggestions", number(usage.get("suggestions")));
+        out.put("fallbacks", number(usage.get("fallbacks")));
         out.put("learners", number(usage.get("learners")));
         out.put("inputTokens", number(usage.get("input_tokens")));
         out.put("outputTokens", number(usage.get("output_tokens")));
 
-        long views = count("SELECT COUNT(*) FROM recommendation_events WHERE source = ? AND event = 'view' AND created_at >= ? AND created_at < ?", start, end);
+        // A list opened = one learner on one day with a shown course; "lượt xem khóa" = a course opened from the list.
+        long listsOpened = count("SELECT COUNT(DISTINCT learner_id, DATE(created_at)) FROM recommendation_events WHERE source = ? AND event = 'view' AND created_at >= ? AND created_at < ?", start, end);
+        long listsClicked = count("SELECT COUNT(DISTINCT learner_id, DATE(created_at)) FROM recommendation_events WHERE source = ? AND event = 'click' AND created_at >= ? AND created_at < ?", start, end);
         long clicks = count("SELECT COUNT(*) FROM recommendation_events WHERE source = ? AND event = 'click' AND created_at >= ? AND created_at < ?", start, end);
         long orders = count("""
                 SELECT COUNT(DISTINCT e.learner_id, e.item_id) FROM recommendation_events e
                 JOIN order_details od ON od.item_id = e.item_id AND od.user_id = e.learner_id AND od.created_at >= e.created_at
                   AND od.created_at < DATE_ADD(e.created_at, INTERVAL 30 DAY) AND od.status NOT LIKE 'cancel%'
                 WHERE e.source = ? AND e.event = 'click' AND e.created_at >= ? AND e.created_at < ?""", start, end);
-        out.put("views", views);
+        out.put("listsOpened", listsOpened);
         out.put("clicks", clicks);
-        out.put("clickRate", views == 0 ? 0 : Math.round(clicks * 1000.0 / views) / 10.0);
+        out.put("clickRate", listsOpened == 0 ? 0 : Math.min(100, Math.round(listsClicked * 1000.0 / listsOpened) / 10.0));
         out.put("orders", orders);
 
         Map<String, Object> feedback = jdbc.queryForMap("""

@@ -501,3 +501,8 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 ### 27/10/2026 – lộ trình nhiều khóa mỗi bước, điểm danh
 - Mỗi bước lộ trình có nhiều khóa thay thế nhau (V39); gợi ý chọn khóa liên quan nhất (cùng đối tác với khóa bước trước); trang lộ trình cuộn ngang, thu gọn bước đã xong, thẻ "Bạn đã bỏ qua bước này" + "Đặt lại". Chọn cách hiểu "đặt lại" = quay về bước đã bỏ qua để gợi ý đưa bé về đó; chờ chủ sản phẩm xác nhận.
 - Điểm danh: phụ huynh đánh dấu buổi quá khứ (120 ngày) trong Lịch học, admin điểm danh ở Theo dõi lịch học, khối "Buổi chưa điểm danh" ở /today, thưởng anyPoint khi điểm danh đủ, báo vắng mặc định tắt.
+
+### 27/10/2026 – gợi ý AI: sửa sau khi chủ sản phẩm thử
+- Khối "Thử điều mới cho {bé}" ở trang chủ dùng thẳng AI (thêm dòng "Gợi ý từ AI"), bỏ thẻ riêng ở trang chủ; trang AI có nút "Về trang chủ".
+- AI trả sai format làm bị gọi lại nhiều lần: đổi sang tool call bắt buộc, prompt mềm hơn, giải mã `&amp;` trong tên khóa, tối đa 4 khóa mỗi đối tác trong danh sách gửi; câu trả lời không dùng được thì lưu danh sách theo luật cho cả ngày (V41 `status`), có token và có nút 👍/👎.
+- Admin: "Lượt mở danh sách", "Lượt xem khóa (bấm từ danh sách)", tỷ lệ danh sách có bấm; hiện số lần AI lỗi.

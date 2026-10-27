@@ -6,7 +6,6 @@ import TodayRedirect from '@/components/TodayRedirect'
 import { BookIcon, PlayIcon } from '@/components/icons'
 import ChevronLabel from '@/components/ChevronLabel'
 import CourseRequestCta from '@/components/search/CourseRequestCta'
-import AiSuggestEntry from '@/components/aisuggest/AiSuggestEntry'
 import HomeLearnerRow from '@/components/home/HomeLearnerRow'
 import HomeQuickChips from '@/components/home/HomeQuickChips'
 import HomePersonalRows from '@/components/home/HomePersonalRows'
@@ -43,10 +42,6 @@ export default async function HomePage() {
       </section>
 
       <PromoSlider promos={promos} />
-
-      <section className="empty:hidden pt-6">
-        <div className="container empty:hidden"><AiSuggestEntry /></div>
-      </section>
 
       <HomePersonalRows />
       <CollectionsRow collections={collections} />

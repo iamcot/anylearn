@@ -34,13 +34,13 @@ export default function AiSuggestions() {
       )}
 
       <Row gutter={[16, 16]}>
-        <Col xs={12} md={6}><Card loading={isLoading}><Statistic title="Lượt gợi ý (gọi AI)" value={s?.suggestions ?? 0} /></Card></Col>
+        <Col xs={12} md={6}><Card loading={isLoading}><Statistic title="Lần gọi AI" value={s?.suggestions ?? 0} suffix={s?.fallbacks ? `(${s.fallbacks} lỗi, dùng luật)` : } /></Card></Col>
         <Col xs={12} md={6}><Card loading={isLoading}><Statistic title="Số bé / người học" value={s?.learners ?? 0} /></Card></Col>
         <Col xs={12} md={6}><Card loading={isLoading}><Statistic title="Token gửi đi" value={s?.inputTokens ?? 0} /></Card></Col>
         <Col xs={12} md={6}><Card loading={isLoading}><Statistic title="Token nhận về" value={s?.outputTokens ?? 0} /></Card></Col>
-        <Col xs={12} md={6}><Card loading={isLoading}><Statistic title="Lượt xem khóa" value={s?.views ?? 0} /></Card></Col>
-        <Col xs={12} md={6}><Card loading={isLoading}><Statistic title="Lượt bấm" value={s?.clicks ?? 0} /></Card></Col>
-        <Col xs={12} md={6}><Card loading={isLoading}><Statistic title="Tỷ lệ bấm" value={s?.clickRate ?? 0} suffix="%" /></Card></Col>
+        <Col xs={12} md={6}><Card loading={isLoading}><Statistic title="Lượt mở danh sách" value={s?.listsOpened ?? 0} /></Card></Col>
+        <Col xs={12} md={6}><Card loading={isLoading}><Statistic title="Lượt xem khóa (bấm từ danh sách)" value={s?.clicks ?? 0} /></Card></Col>
+        <Col xs={12} md={6}><Card loading={isLoading}><Statistic title="Danh sách có bấm xem khóa" value={s?.clickRate ?? 0} suffix="%" /></Card></Col>
         <Col xs={12} md={6}><Card loading={isLoading}><Statistic title="Có đơn (30 ngày sau khi bấm)" value={s?.orders ?? 0} /></Card></Col>
       </Row>
 

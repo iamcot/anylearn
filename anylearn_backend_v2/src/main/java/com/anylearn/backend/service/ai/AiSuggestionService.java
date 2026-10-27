@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.HtmlUtils;
 
 import java.time.Clock;
 import java.time.LocalDate;
@@ -39,6 +40,7 @@ import java.util.stream.Collectors;
 public class AiSuggestionService {
 
     private static final int SUMMARY_CHARS = 90;
+    private static final int MAX_PER_PARTNER = 4;
     private static final Map<String, String> BUDGET_WORDS = Map.of(
             "lt500", "dưới 500.000đ", "500_1000", "500.000đ đến 1 triệu", "1000_2000", "1 đến 2 triệu", "gt2000", "trên 2 triệu");
     private static final ObjectMapper JSON = new ObjectMapper();
@@ -86,21 +88,39 @@ public class AiSuggestionService {
 
     private Map<String, Object> askAi(User account, Pool pool, List<Long> ranked, Map<Long, String> ruleReasons, int results, LocalDate today) {
         Map<Long, Item> items = itemRepository.findAllById(ranked).stream().collect(Collectors.toMap(Item::getId, i -> i));
-        AnthropicClient.Answer answer = anthropic.ask(AiSuggestionRules.systemPrompt(results), userPrompt(pool, items), 1800);
+        ranked = capPerPartner(ranked, items);
+        AnthropicClient.Answer answer = anthropic.ask(AiSuggestionRules.systemPrompt(results), userPrompt(pool, items, ranked), 1800);
         Map<Long, String> picks = AiSuggestionRules.parsePicks(answer.text(), Set.copyOf(ranked), results);
-        if (picks.isEmpty()) throw new IllegalStateException("The AI answer had no valid picks");
+        // The call is paid for either way: an unusable answer saves the rule ranking, so the learner is not asked again today.
+        boolean usable = !picks.isEmpty();
+        if (!usable) log.warn("AI answer for learner {} had no valid picks: {}", pool.learnerId(), answer.text().length() > 500 ? answer.text().substring(0, 500) : answer.text());
         Map<Long, String> finalPicks = AiSuggestionRules.topUp(picks, ranked, ruleReasons, results);
         List<Map<String, Object>> stored = finalPicks.entrySet().stream()
                 .map(e -> Map.<String, Object>of("itemId", e.getKey(), "reason", e.getValue())).toList();
         Long id;
         try {
-            jdbc.update("INSERT INTO ai_suggestions (user_id, learner_id, day, model, candidates, input_tokens, output_tokens, items_json) VALUES (?,?,?,?,?,?,?,?)",
-                    account.getId(), pool.learnerId(), today, anthropic.model(), ranked.size(), answer.inputTokens(), answer.outputTokens(), toJson(stored));
+            jdbc.update("INSERT INTO ai_suggestions (user_id, learner_id, day, model, status, candidates, input_tokens, output_tokens, items_json) VALUES (?,?,?,?,?,?,?,?,?)",
+                    account.getId(), pool.learnerId(), today, anthropic.model(), usable ? "ai" : "fallback", ranked.size(), answer.inputTokens(), answer.outputTokens(), toJson(stored));
             id = jdbc.queryForObject("SELECT id FROM ai_suggestions WHERE learner_id = ? AND day = ?", Long.class, pool.learnerId(), today);
         } catch (DuplicateKeyException e) {
             return answer(account, pool.learnerId(), savedFor(pool.learnerId(), today));
         }
-        return result(id, true, pool.learnerName(), recommendations.cardsFor(account, pool.learnerId(), new ArrayList<>(finalPicks.keySet()), finalPicks));
+        return result(id, usable, pool.learnerName(), recommendations.cardsFor(account, pool.learnerId(), new ArrayList<>(finalPicks.keySet()), finalPicks));
+    }
+
+    /** No more than a few courses of one partner in the shortlist (a partner with many packages would fill it); the rest go last. */
+    private static List<Long> capPerPartner(List<Long> ranked, Map<Long, Item> items) {
+        Map<Long, Integer> perPartner = new HashMap<>();
+        List<Long> kept = new ArrayList<>();
+        List<Long> over = new ArrayList<>();
+        for (Long id : ranked) {
+            Item item = items.get(id);
+            Long partner = item == null ? null : item.getUserId();
+            if (partner == null || perPartner.merge(partner, 1, Integer::sum) <= MAX_PER_PARTNER) kept.add(id);
+            else over.add(id);
+        }
+        kept.addAll(over);
+        return kept;
     }
 
     private Map<String, Object> answer(User account, Long learnerId, Map<String, Object> saved) {
@@ -110,7 +130,7 @@ public class AiSuggestionService {
         }
         Long id = ((Number) saved.get("id")).longValue();
         String name = learnerLoader.require(account, learnerId).self() ? "Bạn" : learnerLoader.require(account, learnerId).name();
-        return result(id, true, name, recommendations.cardsFor(account, learnerId, new ArrayList<>(reasons.keySet()), reasons));
+        return result(id, "ai".equals(saved.get("status")), name, recommendations.cardsFor(account, learnerId, new ArrayList<>(reasons.keySet()), reasons));
     }
 
     private Map<String, Object> result(Long id, boolean ai, String learnerName, List<Map<String, Object>> items) {
@@ -123,13 +143,13 @@ public class AiSuggestionService {
     }
 
     private Map<String, Object> savedFor(Long learnerId, LocalDate day) {
-        List<Map<String, Object>> rows = jdbc.queryForList("SELECT id, items_json FROM ai_suggestions WHERE learner_id = ? AND day = ?", learnerId, day);
+        List<Map<String, Object>> rows = jdbc.queryForList("SELECT id, status, items_json FROM ai_suggestions WHERE learner_id = ? AND day = ?", learnerId, day);
         return rows.isEmpty() ? null : rows.get(0);
     }
 
     // ── Prompt ───────────────────────────────────────────────────────────────
 
-    private String userPrompt(Pool pool, Map<Long, Item> items) {
+    private String userPrompt(Pool pool, Map<Long, Item> items, List<Long> order) {
         StringBuilder text = new StringBuilder("NGƯỜI HỌC\n");
         text.append("- Tên: ").append(pool.learnerName()).append(pool.self() ? " (người lớn tự học)" : "").append('\n');
         if (pool.ageBounds() != null) {
@@ -147,8 +167,11 @@ public class AiSuggestionService {
 
         Map<Long, List<String>> tags = tagsOf(items.keySet());
         text.append("\nDANH SÁCH ỨNG VIÊN (id | tên | hình thức | tuổi | giá | tag | mô tả | ghi chú của hệ thống)\n");
-        for (Candidate c : pool.candidates()) {
-            Item item = items.get(c.itemId());
+        Map<Long, Candidate> byId = pool.candidates().stream().collect(Collectors.toMap(Candidate::itemId, c -> c, (a, b) -> a));
+        for (Long id : order) {
+            Candidate c = byId.get(id);
+            Item item = items.get(id);
+            if (c == null) continue;
             if (item == null) continue;
             text.append(c.itemId()).append(" | ").append(clean(item.getTitle(), 80)).append(" | ").append(item.getSubtype() == null ? "" : item.getSubtype())
                     .append(" | ").append(ageRange(item)).append(" | ").append(item.getPrice() == null ? "?" : (item.getPrice() / 1000) + "k")
@@ -226,7 +249,7 @@ public class AiSuggestionService {
 
     private static String clean(String text, int max) {
         if (text == null) return "";
-        String plain = text.replaceAll("<[^>]*>", " ").replaceAll("[|\\r\\n]+", " ").replaceAll("\\s+", " ").trim();
+        String plain = HtmlUtils.htmlUnescape(text).replaceAll("<[^>]*>", " ").replaceAll("[|\\r\\n]+", " ").replaceAll("\\s+", " ").trim();
         return plain.length() > max ? plain.substring(0, max) : plain;
     }
 

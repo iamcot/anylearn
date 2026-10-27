@@ -12,10 +12,18 @@ import { useAuth } from '@/context/AuthContext'
 import { runAiSuggest, type AiSuggestResult } from '@/lib/api/aiSuggest'
 import { getLearners } from '@/lib/today/api'
 import { pickLearnerId } from '@/lib/today/learners'
+import { BROWSE_HOME_URL } from '@/lib/today/links'
 import type { LearnersData } from '@/lib/today/types'
 
 function Frame({ children }: { children: React.ReactNode }) {
-  return <div className="mx-auto max-w-[1100px] px-4 pb-28 pt-5 lg:px-0 lg:pb-12 lg:pt-8">{children}</div>
+  return (
+    <div className="mx-auto max-w-[1100px] px-4 pb-28 pt-5 lg:px-0 lg:pb-12 lg:pt-8">
+      <Link href={BROWSE_HOME_URL} className="mb-3 inline-flex min-h-11 items-center gap-1 text-sm font-bold text-muted no-underline hover:text-ink">
+        <span aria-hidden>‹</span> Về trang chủ
+      </Link>
+      {children}
+    </div>
+  )
 }
 
 function GuestView() {

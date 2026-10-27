@@ -14,7 +14,7 @@ export default function HomePersonalRows() {
     <>
       <HomeCourseRow block={forYouBlock(context)} />
       {hot && <HomeCourseRow block={hot} />}
-      <DiscoverCard childName={context.learner?.name} near={!!context.near} />
+      <DiscoverCard childName={context.learner?.name} chipKey={context.learner?.chipKey} near={!!context.near} />
     </>
   )
 }

@@ -1,40 +1,28 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import ChildInterestsModal from '@/components/ChildInterestsModal'
-import { getGuestStore, openGuestSheet } from '@/components/guest/guestLearnerStore'
 import { useGuestLearners } from '@/components/guest/useGuestLearners'
 import { useIsClient } from '@/components/useIsClient'
 import LearnerChips from '@/components/today/LearnerChips'
-import { AI_SUGGEST_PATH } from '@/config/aiSuggest'
 import { useAuth } from '@/context/AuthContext'
-import { getChildInterests, getMyInterests } from '@/lib/api'
-import { isAiSuggestEnabled } from '@/lib/api/aiSuggest'
-import { interestsOfGuest, selectedGuestPerson } from '@/lib/guest/guestLearners'
+import { selectedGuestPerson } from '@/lib/guest/guestLearners'
 import { getLearners } from '@/lib/today/api'
 import type { LearnerView } from '@/lib/today/types'
+import { useAiSuggestFlow, type AiLearner } from './useAiSuggestFlow'
 
 interface Props {
   // The learner chosen by the page (/today). Without it the card has its own picker.
-  learner?: { id: number; name: string; self: boolean }
+  learner?: AiLearner
 }
 
-type Asking = { id: number; name: string; self: boolean } | { guestKey: string; name: string }
-
-/** "Gợi ý khóa học bằng AI": asks the short interest survey once per learner (skippable), then opens the suggestions page. */
+/** "Gợi ý khóa học bằng AI" card of /today (the home page uses the "Thử điều mới" card instead). */
 export default function AiSuggestEntry({ learner }: Props) {
   const { token, isAuthLoading } = useAuth()
-  const router = useRouter()
   const isClient = useIsClient()
   const guestStore = useGuestLearners()
-  const [enabled, setEnabled] = useState(false)
   const [learners, setLearners] = useState<LearnerView[]>([])
   const [pickedId, setPickedId] = useState<number | null>(null)
-  const [asking, setAsking] = useState<Asking | null>(null)
-  const [busy, setBusy] = useState(false)
 
-  useEffect(() => { isAiSuggestEnabled().then(setEnabled) }, [])
   useEffect(() => {
     if (!token || learner) return
     let cancelled = false
@@ -42,34 +30,13 @@ export default function AiSuggestEntry({ learner }: Props) {
     return () => { cancelled = true }
   }, [token, learner])
 
+  const current = learner ?? learners.find(item => item.id === pickedId)
+  const { enabled, busy, start, modal } = useAiSuggestFlow(current ? { id: current.id, name: current.name, self: current.self } : undefined)
+
   if (!isClient || isAuthLoading || !enabled) return null
 
   const guest = token ? undefined : selectedGuestPerson(guestStore)
-  const current = learner ?? learners.find(item => item.id === pickedId)
   const name = token ? (current ? (current.self ? 'bạn' : current.name) : '') : (guest ? (guest.name === 'Tôi' ? 'bạn' : guest.name) : '')
-
-  const go = (id?: number) => router.push(id ? `${AI_SUGGEST_PATH}?learner=${id}` : AI_SUGGEST_PATH)
-
-  async function start() {
-    if (token) {
-      if (!current) return
-      setBusy(true)
-      const answers = current.self ? await getMyInterests(token) : await getChildInterests(current.id, token)
-      setBusy(false)
-      if (answers?.answered) return go(current.id)
-      return setAsking({ id: current.id, name: current.name, self: current.self })
-    }
-    const person = selectedGuestPerson(getGuestStore())
-    if (!person) return openGuestSheet()
-    if (interestsOfGuest(getGuestStore(), person.key)) return go()
-    setAsking({ guestKey: person.key, name: person.name })
-  }
-
-  const finishAsking = () => {
-    const done = asking
-    setAsking(null)
-    if (done) go('id' in done ? done.id : undefined)
-  }
 
   return (
     <section className="rounded-[20px] border border-green-line bg-gradient-to-br from-green-soft to-blue-soft p-4 sm:p-5">
@@ -85,20 +52,7 @@ export default function AiSuggestEntry({ learner }: Props) {
       {token && !learner && learners.length > 1 && pickedId != null && (
         <div className="mt-3"><LearnerChips learners={learners} selectedId={pickedId} onSelect={setPickedId} /></div>
       )}
-
-      {asking && (
-        <ChildInterestsModal
-          childId={'id' in asking ? asking.id : 0}
-          childName={asking.name}
-          token={token ?? undefined}
-          isSelf={'id' in asking ? asking.self : asking.guestKey === 'self'}
-          guestKey={'guestKey' in asking ? asking.guestKey : undefined}
-          rememberSkip
-          onClose={() => setAsking(null)}
-          onSaved={finishAsking}
-          onSkipped={finishAsking}
-        />
-      )}
+      {modal}
     </section>
   )
 }

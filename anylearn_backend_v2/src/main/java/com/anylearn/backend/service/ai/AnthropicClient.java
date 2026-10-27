@@ -41,19 +41,37 @@ public class AnthropicClient {
         return model;
     }
 
+    private static final Map<String, Object> PICK_TOOL = Map.of(
+            "name", "pick_courses",
+            "description", "Ghi lại các khóa học đã chọn cho người học, hợp nhất xếp trước.",
+            "input_schema", Map.of("type", "object",
+                    "properties", Map.of("picks", Map.of("type", "array", "items", Map.of("type", "object",
+                            "properties", Map.of(
+                                    "id", Map.of("type", "integer", "description", "id của khóa học trong danh sách ứng viên"),
+                                    "reason", Map.of("type", "string", "description", "lý do ngắn bằng tiếng Việt")),
+                            "required", List.of("id", "reason")))),
+                    "required", List.of("picks")));
+
+    /** Asks for the picks as a tool call, so the answer is always valid JSON `{"picks":[{"id","reason"}]}`. */
     public Answer ask(String system, String user, int maxTokens) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("x-api-key", apiKey);
         headers.set("anthropic-version", "2023-06-01");
         Map<String, Object> body = Map.of("model", model, "max_tokens", maxTokens, "system", system,
-                "messages", List.of(Map.of("role", "user", "content", user)));
+                "messages", List.of(Map.of("role", "user", "content", user)),
+                "tools", List.of(PICK_TOOL), "tool_choice", Map.of("type", "tool", "name", "pick_courses"));
         JsonNode answer = http.postForObject(baseUrl + "/v1/messages", new HttpEntity<>(body, headers), JsonNode.class);
         if (answer == null) throw new IllegalStateException("Empty answer from the AI");
         StringBuilder text = new StringBuilder();
         for (JsonNode block : answer.path("content")) {
+            if ("tool_use".equals(block.path("type").asText())) return new Answer(block.path("input").toString(), usage(answer, "input_tokens"), usage(answer, "output_tokens"));
             if ("text".equals(block.path("type").asText())) text.append(block.path("text").asText());
         }
-        return new Answer(text.toString(), answer.path("usage").path("input_tokens").asInt(0), answer.path("usage").path("output_tokens").asInt(0));
+        return new Answer(text.toString(), usage(answer, "input_tokens"), usage(answer, "output_tokens"));
+    }
+
+    private static int usage(JsonNode answer, String field) {
+        return answer.path("usage").path(field).asInt(0);
     }
 }
