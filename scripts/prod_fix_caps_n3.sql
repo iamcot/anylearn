@@ -17,7 +17,7 @@ SET @batch = 'n3';
 START TRANSACTION;
 
 DROP TEMPORARY TABLE IF EXISTS tmp_n3_titles;
-CREATE TEMPORARY TABLE tmp_n3_titles (item_id BIGINT NOT NULL PRIMARY KEY, old_title VARCHAR(500) NOT NULL, new_title VARCHAR(500) NOT NULL);
+CREATE TEMPORARY TABLE tmp_n3_titles (item_id BIGINT NOT NULL PRIMARY KEY, old_title VARCHAR(500) NOT NULL, new_title VARCHAR(500) NOT NULL) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 INSERT INTO tmp_n3_titles (item_id, old_title, new_title) VALUES
   (41,'SUMMER CAMP','Summer Camp'),
   (42,'MC CƠ BẢN','MC cơ bản'),

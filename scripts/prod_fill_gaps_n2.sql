@@ -134,7 +134,7 @@ UPDATE items i JOIN tmp_n2_ages t ON t.item_id = i.id SET i.ages_min = t.a_from,
 
 -- Số buổi / chu kỳ: (id khóa, kiểu, số lượng), chỉ khi số lượng đang trống
 DROP TEMPORARY TABLE IF EXISTS tmp_n2_sessions;
-CREATE TEMPORARY TABLE tmp_n2_sessions (item_id BIGINT NOT NULL PRIMARY KEY, c_type VARCHAR(20) NOT NULL, c_amount INT NOT NULL);
+CREATE TEMPORARY TABLE tmp_n2_sessions (item_id BIGINT NOT NULL PRIMARY KEY, c_type VARCHAR(20) NOT NULL, c_amount INT NOT NULL) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 INSERT INTO tmp_n2_sessions (item_id, c_type, c_amount) VALUES
   (137,'session',1),
   (139,'session',1),
