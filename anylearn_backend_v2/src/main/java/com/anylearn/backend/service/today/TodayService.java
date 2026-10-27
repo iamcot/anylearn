@@ -97,6 +97,7 @@ public class TodayService {
                 .filter(context -> !context.isFee() && (context.mode() == SessionMode.EXTRA) == extra)
                 .flatMap(context -> schedule.sessionsIn(context, window).stream())
                 .filter(session -> !leaveKeys.contains(session.key().toString()))
+                .distinct() // two enrollments of one class (a renewal while the old one still runs) must show a session once
                 .toList();
     }
 

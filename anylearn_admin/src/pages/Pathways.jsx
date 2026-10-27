@@ -1,4 +1,4 @@
-import { Button, Card, Drawer, Form, Input, Popconfirm, Space, Switch, Table, Tag, Typography, message } from 'antd'
+import { Button, Card, Drawer, Form, Input, Popconfirm, Select, Space, Switch, Table, Tag, Typography, message } from 'antd'
 import { ArrowDownOutlined, ArrowUpOutlined, CloseOutlined, DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons'
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -34,7 +34,8 @@ function move(list, index, delta) {
 function PathwayEditor({ id, onClose }) {
   const qc = useQueryClient()
   const [form] = Form.useForm()
-  const [steps, setSteps] = useState([])
+  const [steps, setSteps] = useState([]) // [{ key, note, courses: [{ id, title, image, price }] }]
+  const [target, setTarget] = useState('merge') // where the picked courses go: merge (one new step) | split (a step each) | a step key
   const [slugTouched, setSlugTouched] = useState(false)
   const [loadedId, setLoadedId] = useState(null)
 
@@ -44,7 +45,10 @@ function PathwayEditor({ id, onClose }) {
     queryFn: async () => {
       const data = await client.get(`/admin/pathways/${id}`).then(r => r.data?.data)
       form.setFieldsValue(data)
-      setSteps((data.steps ?? []).map(s => ({ id: s.itemId, title: s.title, image: s.image, price: s.price, note: s.note ?? '' })))
+      setSteps((data.steps ?? []).map(s => ({
+        key: `s${s.stepNo}`, note: s.note ?? '',
+        courses: (s.items ?? []).map(i => ({ id: i.itemId, title: i.title, image: i.image, price: i.price })),
+      })))
       setSlugTouched(true)
       setLoadedId(id)
       return data
@@ -55,7 +59,7 @@ function PathwayEditor({ id, onClose }) {
     mutationFn: (values) => {
       const body = {
         title: values.title, slug: values.slug, subtitle: values.subtitle, cover: values.cover,
-        active: values.active !== false, steps: steps.map(s => ({ itemId: s.id, note: s.note })),
+        active: values.active !== false, steps: steps.map(s => ({ itemIds: s.courses.map(c => c.id), note: s.note })),
       }
       return (id === 'new' ? client.post('/admin/pathways', body) : client.put(`/admin/pathways/${id}`, body)).then(r => r.data)
     },
@@ -67,8 +71,20 @@ function PathwayEditor({ id, onClose }) {
     },
   })
 
-  const addItems = (picked) => setSteps(current => [...current, ...picked.filter(p => !current.some(c => c.id === p.id))
-    .map(p => ({ id: p.id, title: p.title, image: p.image, price: p.price, note: '' }))])
+  const addedIds = steps.flatMap(s => s.courses.map(c => c.id))
+  let keySeed = Date.now()
+  const addItems = (picked) => {
+    const fresh = picked.filter(p => !addedIds.includes(p.id)).map(p => ({ id: p.id, title: p.title, image: p.image, price: p.price }))
+    if (fresh.length === 0) return
+    setSteps(current => {
+      if (target === 'merge') return [...current, { key: `n${keySeed++}`, note: '', courses: fresh }]
+      if (target === 'split') return [...current, ...fresh.map(course => ({ key: `n${keySeed++}`, note: '', courses: [course] }))]
+      return current.map(step => (step.key === target ? { ...step, courses: [...step.courses, ...fresh] } : step))
+    })
+  }
+  const removeCourse = (stepKey, courseId) => setSteps(current => current
+    .map(step => (step.key === stepKey ? { ...step, courses: step.courses.filter(c => c.id !== courseId) } : step))
+    .filter(step => step.courses.length > 0))
   const slug = Form.useWatch('slug', form)
 
   return (
@@ -96,35 +112,48 @@ function PathwayEditor({ id, onClose }) {
 
       <Typography.Title level={5} style={{ marginTop: 8 }}>Các bước theo thứ tự ({steps.length})</Typography.Title>
       <Typography.Paragraph type="secondary">
-        Bé học xong hoặc đang học một bước sẽ được gợi ý bước kế tiếp. Dùng mũi tên để sắp xếp.
+        Mỗi bước có một hoặc nhiều khóa để khách chọn. Bé có một khóa bất kỳ của bước là coi như đã qua bước đó; khi gợi ý, hệ thống chọn khóa liên quan nhất trong bước kế tiếp (ưu tiên cùng đối tác với khóa bé đã học ở bước trước). Dùng mũi tên để sắp xếp các bước.
       </Typography.Paragraph>
-      <Table
-        size="small" rowKey="id" dataSource={steps} pagination={false} locale={{ emptyText: 'Chưa có bước nào. Tìm và thêm ở bên dưới.' }}
-        columns={[
-          { title: 'Bước', key: 'n', width: 56, render: (_, __, index) => index + 1 },
-          { title: 'Khóa học', key: 'title', render: (_, r) => (
-            <Space>
-              {r.image ? <img src={r.image} alt="" style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 6 }} /> : <div style={{ width: 40, height: 40, background: '#f0f0f0', borderRadius: 6 }} />}
-              <div style={{ fontWeight: 500 }}>{r.title}</div>
-            </Space>
-          ) },
-          { title: 'Ghi chú', key: 'note', width: 240, render: (_, r, index) => (
-            <Input size="small" value={r.note} maxLength={300} placeholder="Ví dụ: dành cho bé đã thạo kỹ thuật cơ bản"
-              onChange={e => setSteps(steps.map((s, i) => (i === index ? { ...s, note: e.target.value } : s)))} />
-          ) },
-          { title: 'Giá', dataIndex: 'price', key: 'price', width: 100, align: 'right', render: fmtVND },
-          { title: '', key: 'actions', width: 120, render: (_, __, index) => (
+      {steps.length === 0 && <Typography.Paragraph type="secondary">Chưa có bước nào. Tìm và thêm ở bên dưới.</Typography.Paragraph>}
+      {steps.map((step, index) => (
+        <Card key={step.key} size="small" style={{ marginBottom: 10 }}
+          title={`Bước ${index + 1}`}
+          extra={(
             <Space size={2}>
               <Button size="small" type="text" icon={<ArrowUpOutlined />} disabled={index === 0} onClick={() => setSteps(move(steps, index, -1))} />
               <Button size="small" type="text" icon={<ArrowDownOutlined />} disabled={index === steps.length - 1} onClick={() => setSteps(move(steps, index, 1))} />
-              <Button size="small" type="text" danger icon={<CloseOutlined />} onClick={() => setSteps(steps.filter((_, i) => i !== index))} />
+              <Popconfirm title="Xóa cả bước này?" okText="Xóa" cancelText="Thôi" onConfirm={() => setSteps(steps.filter((_, i) => i !== index))}>
+                <Button size="small" type="text" danger icon={<CloseOutlined />} />
+              </Popconfirm>
             </Space>
-          ) },
-        ]}
-      />
+          )}>
+          <Input size="small" value={step.note} maxLength={300} placeholder="Ghi chú của bước, ví dụ: dành cho bé đã thạo kỹ thuật cơ bản" style={{ marginBottom: 8 }}
+            onChange={e => setSteps(steps.map((s, i) => (i === index ? { ...s, note: e.target.value } : s)))} />
+          <Table size="small" rowKey="id" dataSource={step.courses} pagination={false} showHeader={false}
+            columns={[
+              { key: 'title', render: (_, r) => (
+                <Space>
+                  {r.image ? <img src={r.image} alt="" style={{ width: 36, height: 36, objectFit: 'cover', borderRadius: 6 }} /> : <div style={{ width: 36, height: 36, background: '#f0f0f0', borderRadius: 6 }} />}
+                  <div style={{ fontWeight: 500 }}>{r.title}</div>
+                </Space>
+              ) },
+              { key: 'price', dataIndex: 'price', width: 100, align: 'right', render: fmtVND },
+              { key: 'x', width: 48, render: (_, r) => <Button size="small" type="text" danger icon={<CloseOutlined />} onClick={() => removeCourse(step.key, r.id)} /> },
+            ]} />
+        </Card>
+      ))}
 
       <Typography.Title level={5} style={{ marginTop: 24 }}>Thêm khóa học</Typography.Title>
-      <CollectionCoursePicker addedIds={steps.map(s => s.id)} onAdd={addItems} />
+      <Space style={{ marginBottom: 8 }} wrap>
+        <span>Khóa đã chọn sẽ được:</span>
+        <Select value={target} onChange={setTarget} style={{ minWidth: 340 }}
+          options={[
+            { value: 'merge', label: 'Thêm thành một bước mới (các khóa vừa chọn là lựa chọn thay thế nhau)' },
+            { value: 'split', label: 'Thêm thành các bước riêng (mỗi khóa một bước)' },
+            ...steps.map((s, i) => ({ value: s.key, label: `Thêm vào Bước ${i + 1}` })),
+          ]} />
+      </Space>
+      <CollectionCoursePicker addedIds={addedIds} onAdd={addItems} />
     </Drawer>
   )
 }

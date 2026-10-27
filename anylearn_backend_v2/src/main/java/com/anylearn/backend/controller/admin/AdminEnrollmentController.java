@@ -1,7 +1,10 @@
 package com.anylearn.backend.controller.admin;
 
 import com.anylearn.backend.dto.response.ApiResponse;
+import com.anylearn.backend.entity.SessionAttendance;
 import com.anylearn.backend.entity.User;
+import com.anylearn.backend.repository.SessionAttendanceRepository;
+import com.anylearn.backend.service.lifecycle.AttendanceRewardService;
 import com.anylearn.backend.repository.UserCourseEnrollmentRepository;
 import com.anylearn.backend.service.NotificationService;
 import jakarta.persistence.EntityManager;
@@ -21,6 +24,8 @@ public class AdminEnrollmentController {
     private final EntityManager em;
     private final UserCourseEnrollmentRepository enrollmentRepository;
     private final NotificationService notificationService;
+    private final SessionAttendanceRepository attendanceRepository;
+    private final AttendanceRewardService attendanceRewards;
 
     private static final Map<String, Integer> WD_MAP = Map.of(
         "mon",1,"tue",2,"wed",3,"thu",4,"fri",5,"sat",6,"sun",0);
@@ -67,11 +72,14 @@ public class AdminEnrollmentController {
                 .getResultList();
 
         List<Map<String, Object>> events = new ArrayList<>();
+        Map<Long, Long> scheduleOf = new HashMap<>();
 
         for (Object[] r : rows) {
             long   enrollId   = toLong(r[0]);
             long   userId     = toLong(r[1]);
             long   itemId     = toLong(r[2]);
+            long   scheduleId = toLong(r[3]);
+            scheduleOf.put(enrollId, scheduleId);
             String startDate  = r[4] != null ? r[4].toString().substring(0,10) : null;
             String endDate    = r[5] != null ? r[5].toString().substring(0,10) : null;
             String status     = r[6] != null ? r[6].toString() : "";
@@ -145,8 +153,62 @@ public class AdminEnrollmentController {
             }
         }
 
+        markAttendance(events, scheduleOf, fromDate, toDate);
         events.sort(Comparator.comparing(e -> String.valueOf(e.get("date"))));
         return ApiResponse.ok(events);
+    }
+
+    /** Adds scheduleId and `attended` to the class rows (the rows an admin can mark). */
+    private void markAttendance(List<Map<String, Object>> events, Map<Long, Long> scheduleOf, LocalDate from, LocalDate to) {
+        Set<String> attended = new HashSet<>();
+        for (SessionAttendance row : attendanceRepository.findBySessionDateBetween(from, to)) {
+            attended.add(row.getLearnerId() + "|" + row.getItemScheduleId() + "|" + row.getSessionDate());
+        }
+        for (Map<String, Object> event : events) {
+            String type = String.valueOf(event.get("scheduleType"));
+            if (!"recurring".equals(type) && !"event".equals(type)) continue;
+            Long scheduleId = scheduleOf.get(((Number) event.get("enrollmentId")).longValue());
+            if (scheduleId == null || scheduleId == 0) continue;
+            event.put("scheduleId", scheduleId);
+            event.put("attended", attended.contains(event.get("userId") + "|" + scheduleId + "|" + event.get("date")));
+        }
+    }
+
+    /** Marks or unmarks a learner's attendance of one class day (any day up to today). Body: learnerId, scheduleId, date, attended. */
+    @PostMapping("/attendance")
+    public ApiResponse<?> setAttendance(@AuthenticationPrincipal User user, @RequestBody Map<String, Object> body) {
+        if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
+        if (!(body.get("learnerId") instanceof Number learner) || !(body.get("scheduleId") instanceof Number schedule) || !(body.get("date") instanceof String dateText)) {
+            return ApiResponse.fail("Thiếu thông tin buổi học");
+        }
+        LocalDate date;
+        try {
+            date = LocalDate.parse(dateText);
+        } catch (Exception e) {
+            return ApiResponse.fail("Ngày không hợp lệ");
+        }
+        if (date.isAfter(LocalDate.now())) return ApiResponse.fail("Buổi học chưa diễn ra");
+        Number enrolled = (Number) em.createNativeQuery(
+                "SELECT COUNT(*) FROM user_course_enrollments WHERE user_id = ?1 AND schedule_id = ?2")
+                .setParameter(1, learner.longValue()).setParameter(2, schedule.longValue()).getSingleResult();
+        if (enrolled.intValue() == 0) return ApiResponse.fail("Học viên không học lớp này");
+
+        var existing = attendanceRepository.findByLearnerIdAndItemScheduleIdAndSessionDate(learner.longValue(), schedule.longValue(), date);
+        boolean attended = !Boolean.FALSE.equals(body.get("attended"));
+        if (attended && existing.isEmpty()) {
+            SessionAttendance row = new SessionAttendance();
+            row.setLearnerId(learner.longValue());
+            row.setItemScheduleId(schedule.longValue());
+            row.setSessionDate(date);
+            row.setSource(SessionAttendance.SOURCE_ADMIN);
+            row.setCreatedAt(LocalDateTime.now());
+            row.setUpdatedAt(LocalDateTime.now());
+            attendanceRepository.save(row);
+            attendanceRewards.checkLearner(learner.longValue());
+        } else if (!attended && existing.isPresent()) {
+            attendanceRepository.delete(existing.get());
+        }
+        return ApiResponse.ok(Map.of("attended", attended));
     }
 
     @PostMapping("/{id}/remind")

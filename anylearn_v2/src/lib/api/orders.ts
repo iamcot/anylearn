@@ -61,3 +61,14 @@ export async function initiatePayment(
     body: JSON.stringify({ orderId, ...(paymentMethod ? { paymentMethod } : {}) }),
   })
 }
+
+export interface PaymentMethodOption {
+  value: string
+  label: string
+}
+
+/** Methods offered for an order total; null when the call fails (the caller keeps its built-in list). */
+export async function getPaymentMethods(total: number, token: string): Promise<PaymentMethodOption[] | null> {
+  const { data } = await authFetch<PaymentMethodOption[]>(`/payment/methods?total=${Math.round(total)}`, token)
+  return Array.isArray(data) && data.length > 0 ? data : null
+}

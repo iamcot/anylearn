@@ -114,3 +114,18 @@ PUT {{baseUrl}}/user/interests?api_token={{parentToken}}
 Content-Type: application/json
 
 { "likes": ["chess", "art"], "wants": ["english"], "budget": "500_1000" }
+
+### Sessions that ended in the last 30 days with no attendance (the "Buổi chưa điểm danh" block of /today), newest first
+GET {{baseUrl}}/today/missed-attendance?learnerId=1&limit=3&api_token={{parentToken}}
+
+### Mark a past session now (sessionKey = scheduleId_yyyyMMdd)
+POST {{baseUrl}}/today/attendance?api_token={{parentToken}}
+Content-Type: application/json
+
+{ "learnerId": 1, "sessionKey": "1_20261020" }
+
+### Plan 08: go back to a step the learner skipped ("Đặt lại")
+POST {{baseUrl}}/pathways/demo-tieng-anh/restart?api_token={{parentToken}}
+Content-Type: application/json
+
+{ "learnerId": 1, "stepNo": 2 }

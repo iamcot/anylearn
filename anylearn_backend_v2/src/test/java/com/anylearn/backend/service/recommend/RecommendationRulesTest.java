@@ -8,6 +8,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -80,14 +81,48 @@ class RecommendationRulesTest {
                 List.of(slot(DayOfWeek.MONDAY, "17:00", "18:00"))).isPresent());
     }
 
+    // steps: [10 or 11] -> [20] -> [30 or 31 or 32]
+    private static final List<List<Long>> PATH = List.of(List.of(10L, 11L), List.of(20L), List.of(30L, 31L, 32L));
+
     @Test
-    void nextStepSkipsStepsTheLearnerAlreadyHas() {
-        List<Long> steps = List.of(10L, 11L, 12L);
-        assertEquals(11L, RecommendationRules.nextStep(steps, 10L, Set.of(10L)).orElseThrow());
-        assertEquals(12L, RecommendationRules.nextStep(steps, 10L, Set.of(10L, 11L)).orElseThrow());
-        assertTrue(RecommendationRules.nextStep(steps, 12L, Set.of(12L)).isEmpty());
-        assertTrue(RecommendationRules.nextStep(steps, 99L, Set.of()).isEmpty());
-        assertEquals(2, RecommendationRules.doneSteps(steps, Set.of(10L, 12L, 77L)));
+    void aStepIsDoneWhenTheLearnerHasAnyOfItsCourses() {
+        assertTrue(RecommendationRules.hasStep(PATH.get(0), Set.of(11L)));
+        assertFalse(RecommendationRules.hasStep(PATH.get(0), Set.of(20L)));
+        assertEquals(2, RecommendationRules.doneSteps(PATH, Set.of(11L, 31L, 77L)));
+        assertEquals(2, RecommendationRules.highestDone(PATH, Set.of(11L, 31L)));
+        assertEquals(-1, RecommendationRules.highestDone(PATH, Set.of(77L)));
+    }
+
+    @Test
+    void theNextStepFollowsTheLastStepTheLearnerHas() {
+        assertEquals(1, RecommendationRules.nextStepIndex(PATH, Set.of(10L), Set.of()).getAsInt());
+        assertEquals(2, RecommendationRules.nextStepIndex(PATH, Set.of(11L, 20L), Set.of()).getAsInt());
+        assertTrue(RecommendationRules.nextStepIndex(PATH, Set.of(10L, 20L, 32L), Set.of()).isEmpty());   // finished
+        assertTrue(RecommendationRules.nextStepIndex(PATH, Set.of(77L), Set.of()).isEmpty());             // not on this pathway
+    }
+
+    @Test
+    void jumpingAheadSkipsTheStepsInBetween() {
+        assertEquals(Set.of(0, 1), RecommendationRules.skippedSteps(PATH, Set.of(31L), Set.of()));
+        assertEquals(Set.of(1), RecommendationRules.skippedSteps(PATH, Set.of(10L, 31L), Set.of()));
+        assertEquals(Set.of(), RecommendationRules.skippedSteps(PATH, Set.of(10L, 20L), Set.of()));
+        // after a jump the suggestion goes on after the last step they have
+        assertTrue(RecommendationRules.nextStepIndex(PATH, Set.of(10L, 31L), Set.of()).isEmpty());
+    }
+
+    @Test
+    void goingBackToASkippedStepMakesItTheNextOneAgain() {
+        assertEquals(1, RecommendationRules.nextStepIndex(PATH, Set.of(10L, 31L), Set.of(1)).getAsInt());
+        assertEquals(Set.of(), RecommendationRules.skippedSteps(PATH, Set.of(10L, 31L), Set.of(1)));
+        // once they have that step the restart no longer holds the suggestion back
+        assertTrue(RecommendationRules.nextStepIndex(PATH, Set.of(10L, 20L, 31L), Set.of(1)).isEmpty());
+    }
+
+    @Test
+    void coursesOfTheSamePartnerComeFirstInAStep() {
+        Map<Long, Long> partnerOf = Map.of(30L, 1L, 31L, 2L, 32L, 2L);
+        assertEquals(List.of(31L, 32L, 30L), RecommendationRules.relatedFirst(PATH.get(2), partnerOf, Set.of(2L)));
+        assertEquals(List.of(30L, 31L, 32L), RecommendationRules.relatedFirst(PATH.get(2), partnerOf, Set.of()));
     }
 
     @Test

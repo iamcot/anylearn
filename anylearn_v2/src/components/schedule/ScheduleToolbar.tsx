@@ -19,18 +19,18 @@ const NAV_BUTTON = 'grid size-11 cursor-pointer place-items-center rounded-lg bo
 export default function ScheduleToolbar({ period, viewMode, label, onPeriodChange, onViewModeChange, onNavigate }: Props) {
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-      <div className="flex overflow-hidden rounded-lg border border-line">
+      <div className="order-1 flex overflow-hidden rounded-lg border border-line">
         <button type="button" aria-pressed={period === 'month'} onClick={() => onPeriodChange('month')} className={segment(period === 'month')}>Tháng</button>
         <button type="button" aria-pressed={period === 'week'} onClick={() => onPeriodChange('week')} className={`${segment(period === 'week')} border-l border-line`}>Tuần</button>
       </div>
 
-      <div className="flex items-center gap-1">
+      <div className="order-3 flex basis-full items-center justify-between gap-1 sm:order-2 sm:basis-auto sm:justify-start">
         <button type="button" aria-label="Kỳ trước" onClick={() => onNavigate(-1)} className={NAV_BUTTON}><ChevronLeftIcon /></button>
         <span className="min-w-[150px] text-center text-[13px] font-medium text-text">{label}</span>
         <button type="button" aria-label="Kỳ sau" onClick={() => onNavigate(1)} className={NAV_BUTTON}><ChevronRightIcon /></button>
       </div>
 
-      <div className="flex overflow-hidden rounded-lg border border-line">
+      <div className="order-2 ml-auto flex overflow-hidden rounded-lg border border-line sm:order-3">
         <button type="button" aria-label="Xem dạng lịch" aria-pressed={viewMode === 'calendar'} onClick={() => onViewModeChange('calendar')} className={segment(viewMode === 'calendar')}>
           <CalendarIcon className="size-4" />
         </button>

@@ -12,7 +12,9 @@ import com.anylearn.backend.repository.UserRepository;
 import com.anylearn.backend.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import com.anylearn.backend.service.lifecycle.AttendanceRewardService;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
@@ -40,6 +42,10 @@ public class TodayActions {
     private final NotificationService notifications;
     private final Clock clock;
 
+    /** Optional so the class can be built by hand in tests; gives the full-attendance reward once a session is marked. */
+    @Autowired(required = false)
+    private AttendanceRewardService rewards;
+
     private record FoundSession(Learner learner, Session session, EnrollmentContext context) {
     }
 
@@ -63,6 +69,7 @@ public class TodayActions {
             throw new IllegalArgumentException("Buổi học chưa bắt đầu");
         }
         saveAttendance(found, SessionAttendance.SOURCE_MANUAL, now);
+        if (rewards != null) rewards.checkLearner(found.learner().id());
     }
 
     public RequestResponse requestChange(User account, Long learnerId, String sessionKey, String type, String note) {

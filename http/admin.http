@@ -323,10 +323,21 @@ POST {{baseUrl}}/admin/pathways?api_token={{$dotenv ADMIN_TOKEN}}
 Content-Type: application/json
 
 { "title": "Bóng đá: từ U13 đến U15", "subtitle": "Học liên tục cùng một sân", "active": true,
-  "steps": [ { "itemId": 1, "note": "" }, { "itemId": 2, "note": "Cho bé đã thạo kỹ thuật cơ bản" } ] }
+  "steps": [ { "itemIds": [1], "note": "" }, { "itemIds": [2, 3], "note": "Hai lớp thay thế nhau, cho bé đã thạo kỹ thuật cơ bản" } ] }
 
 ### Plan 08: views, clicks and orders per kind of suggestion (default last 30 days)
 GET {{baseUrl}}/admin/recommendations/stats?from=2026-10-01&to=2026-10-31&api_token={{$dotenv ADMIN_TOKEN}}
 
 ### AI suggestions: usage, clicks, orders, feedback (last 30 days by default)
 GET {{baseUrl}}/admin/ai-suggestions/stats?from=2026-10-01&to=2026-10-31&api_token={{$dotenv ADMIN_TOKEN}}
+
+### Payment methods (back office page "Phương thức thanh toán")
+GET {{baseUrl}}/admin/payment-methods
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+###
+PUT {{baseUrl}}/admin/payment-methods
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+Content-Type: application/json
+
+{"methods": [{"key": "bank_transfer", "enabled": true, "min": 0, "max": 0, "label": ""}, {"key": "installment", "enabled": true, "min": 3000000, "max": 0, "label": ""}]}

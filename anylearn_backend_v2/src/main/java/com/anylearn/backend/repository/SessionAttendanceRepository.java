@@ -12,4 +12,6 @@ public interface SessionAttendanceRepository extends JpaRepository<SessionAttend
             Long learnerId, Long itemScheduleId, LocalDate sessionDate);
 
     List<SessionAttendance> findByLearnerIdAndSessionDateBetween(Long learnerId, LocalDate from, LocalDate to);
+
+    List<SessionAttendance> findBySessionDateBetween(LocalDate from, LocalDate to);
 }

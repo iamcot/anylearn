@@ -34,7 +34,7 @@ function PendingCard({ fee }: { fee: FeeView }) {
       <p className="mt-1 text-sm text-muted">
         anyLEARN đang kiểm tra khoản thanh toán của bạn. Bạn không cần đóng lại.
       </p>
-      <Link href="/account/orders" className="mt-3 inline-flex min-h-11 items-center text-sm font-bold text-blue">
+      <Link href="/account/orders" className="mt-3 inline-flex min-h-11 items-center text-sm font-bold text-green-dark">
         Xem đơn hàng
       </Link>
     </section>

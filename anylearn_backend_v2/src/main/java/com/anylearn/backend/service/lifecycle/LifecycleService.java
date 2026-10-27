@@ -63,6 +63,7 @@ public class LifecycleService {
     private final NotificationService notificationService;
     private final PaymentConfig paymentConfig;
     private final Clock clock;
+    private final AttendanceRewardService attendanceRewards;
 
     /** Runs every hour. Messages are only sent inside the sending hours; a step skipped at night is picked up in the morning. */
     public void scan() {
@@ -85,7 +86,8 @@ public class LifecycleService {
         for (EnrollmentContext context : data.contexts()) {
             if (!context.hasSchedule() || context.isFee()) continue;
             beforeStart(learner, context, now);
-            absences(learner, context, now);
+            if (settings.absentEnabled()) absences(learner, context, now);
+            attendanceRewards.check(learner, context, now);
             midCourse(learner, context, now);
         }
     }

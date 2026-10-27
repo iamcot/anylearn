@@ -1,5 +1,5 @@
 import { authFetch } from '@/lib/api'
-import type { JoinData, LearnersData, RequestType, TodayData } from './types'
+import type { JoinData, LearnersData, MissedAttendance, RequestType, TodayData } from './types'
 
 type Result<T> = Promise<{ data: T | null; error?: string }>
 
@@ -13,6 +13,10 @@ export function getLearners(token: string): Result<LearnersData> {
 
 export function getToday(learnerId: number, token: string): Result<TodayData> {
   return authFetch<TodayData>(`/today?learnerId=${learnerId}`, token)
+}
+
+export function getMissedAttendance(learnerId: number, token: string, limit = 3): Result<MissedAttendance> {
+  return authFetch<MissedAttendance>(`/today/missed-attendance?learnerId=${learnerId}&limit=${limit}`, token)
 }
 
 export function joinSession(learnerId: number, sessionKey: string, token: string): Result<JoinData> {

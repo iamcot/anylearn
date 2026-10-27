@@ -62,7 +62,8 @@ public class RecommendationController {
     @GetMapping("/pathways/{slug}")
     public ApiResponse<?> pathway(@PathVariable String slug, @RequestParam(required = false) Long learnerId,
                                   @AuthenticationPrincipal User user) {
-        return pathwayService.getPublic(slug, ownedBy(user, learnerId)).<ApiResponse<?>>map(ApiResponse::ok)
+        Long learner = validLearner(user, learnerId);
+        return pathwayService.getPublic(slug, learner, ownedBy(user, learner)).<ApiResponse<?>>map(ApiResponse::ok)
                 .orElseGet(() -> ApiResponse.fail("Không tìm thấy lộ trình"));
     }
 
@@ -70,16 +71,34 @@ public class RecommendationController {
     @GetMapping("/items/{id}/pathway")
     public ApiResponse<?> itemPathway(@PathVariable Long id, @RequestParam(required = false) Long learnerId,
                                       @AuthenticationPrincipal User user) {
-        return ApiResponse.ok(pathwayService.forItem(id, ownedBy(user, learnerId)));
+        Long learner = validLearner(user, learnerId);
+        return ApiResponse.ok(pathwayService.forItem(id, learner, ownedBy(user, learner)));
+    }
+
+    /** "Đặt lại": go back to a step that was skipped. Body: learnerId, stepNo. */
+    @PostMapping("/pathways/{slug}/restart")
+    public ApiResponse<?> restart(@PathVariable String slug, @RequestBody Map<String, Object> body, @AuthenticationPrincipal User user) {
+        if (user == null) return ApiResponse.fail("Unauthorized");
+        Long learner = validLearner(user, number(body, "learnerId"));
+        Long stepNo = number(body, "stepNo");
+        if (learner == null || stepNo == null) return ApiResponse.fail("Thiếu thông tin");
+        return pathwayService.restart(slug, learner, user.getId(), stepNo.intValue())
+                ? ApiResponse.ok() : ApiResponse.fail("Không tìm thấy bước này");
+    }
+
+    /** The learner id when the caller may ask about them (themselves or a child), else null. */
+    private Long validLearner(User user, Long learnerId) {
+        if (user == null || learnerId == null) return null;
+        try {
+            learnerLoader.require(user, learnerId);
+            return learnerId;
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
     private Set<Long> ownedBy(User user, Long learnerId) {
-        if (user == null || learnerId == null) return Set.of();
-        try {
-            learnerLoader.require(user, learnerId);
-        } catch (IllegalArgumentException e) {
-            return Set.of();
-        }
+        if (learnerId == null) return Set.of();
         return new HashSet<>(jdbc.queryForList("""
                 SELECT item_id FROM user_course_enrollments WHERE user_id = ?
                 UNION SELECT item_id FROM order_details WHERE user_id = ? AND status NOT LIKE 'cancel%'""", Long.class, learnerId, learnerId));

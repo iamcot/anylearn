@@ -26,6 +26,8 @@ public class LifecycleSettings {
     public static final String KEY_SEND_FROM_HOUR = "lifecycle/send_from_hour";
     public static final String KEY_SEND_TO_HOUR = "lifecycle/send_to_hour";
     public static final String KEY_RENEW_BONUS_POINTS = "lifecycle/early_renew_bonus_points";
+    public static final String KEY_ABSENT_ENABLED = "lifecycle/absent_enabled";
+    public static final String KEY_FULL_ATTENDANCE_POINTS = "lifecycle/full_attendance_points";
 
     public static final List<Integer> DEFAULT_PRE_START_DAYS = List.of(3, 1);
     public static final List<Integer> DEFAULT_FEE_DAYS = List.of(7, 1);
@@ -89,6 +91,16 @@ public class LifecycleSettings {
         return LifecycleRules.intOr(read(KEY_RENEW_BONUS_POINTS).orElse(null), 0, 0, 100000);
     }
 
+    /** The absence alert is off until the team switches it on (attendance is often not recorded yet). */
+    public boolean absentEnabled() {
+        return read(KEY_ABSENT_ENABLED).map(String::trim).filter("1"::equals).isPresent();
+    }
+
+    /** anyPoint given once to the account when a learner attended every session of a course; 0 = no reward. */
+    public int fullAttendancePoints() {
+        return LifecycleRules.intOr(read(KEY_FULL_ATTENDANCE_POINTS).orElse(null), 0, 0, 100000);
+    }
+
     private Optional<String> read(String key) {
         return configurationRepository.findByKey(key).map(row -> row.getValue()).filter(value -> value != null && !value.isBlank());
     }
@@ -98,6 +110,7 @@ public class LifecycleSettings {
         Map<String, Object> map = new LinkedHashMap<>();
         map.put("lifecycleEnabled", enabled());
         map.put("preStartDays", preStartDays());
+        map.put("absentEnabled", absentEnabled());
         map.put("absentStreak", absentStreak());
         map.put("surveyPercent", surveyPercent());
         map.put("surveyLowScore", surveyLowScore());
@@ -107,6 +120,7 @@ public class LifecycleSettings {
         map.put("sendFromHour", sendFromHour());
         map.put("sendToHour", sendToHour());
         map.put("earlyRenewBonusPoints", earlyRenewBonusPoints());
+        map.put("fullAttendancePoints", fullAttendancePoints());
         return map;
     }
 
@@ -121,7 +135,8 @@ public class LifecycleSettings {
                 {"renewDaysBefore", KEY_RENEW_DAYS_BEFORE, "1", "90", "Số ngày trước khi hết khóa để nhắc gia hạn"},
                 {"sendFromHour", KEY_SEND_FROM_HOUR, "0", "23", "Giờ bắt đầu gửi"},
                 {"sendToHour", KEY_SEND_TO_HOUR, "1", "24", "Giờ ngừng gửi"},
-                {"earlyRenewBonusPoints", KEY_RENEW_BONUS_POINTS, "0", "100000", "anyPoint tặng khi gia hạn sớm"}};
+                {"earlyRenewBonusPoints", KEY_RENEW_BONUS_POINTS, "0", "100000", "anyPoint tặng khi gia hạn sớm"},
+                {"fullAttendancePoints", KEY_FULL_ATTENDANCE_POINTS, "0", "100000", "anyPoint thưởng khi điểm danh đủ"}};
         for (String[] def : numbers) {
             if (!body.containsKey(def[0])) continue;
             Integer value = body.get(def[0]) instanceof Number n ? n.intValue() : null;
@@ -143,6 +158,7 @@ public class LifecycleSettings {
         int from = rows.containsKey(KEY_SEND_FROM_HOUR) ? Integer.parseInt(rows.get(KEY_SEND_FROM_HOUR)) : sendFromHour();
         int to = rows.containsKey(KEY_SEND_TO_HOUR) ? Integer.parseInt(rows.get(KEY_SEND_TO_HOUR)) : sendToHour();
         if (to <= from) return "Giờ ngừng gửi phải sau giờ bắt đầu gửi";
+        if (body.get("absentEnabled") instanceof Boolean absent) rows.put(KEY_ABSENT_ENABLED, absent ? "1" : "0");
         if (body.get("lifecycleEnabled") instanceof Boolean enabled) rows.put(KEY_ENABLED, enabled ? "1" : "0");
         rows.forEach(this::write);
         return null;

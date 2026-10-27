@@ -19,6 +19,14 @@ describe('resolveNotificationRoute', () => {
   })
 })
 
+describe('today routes', () => {
+  it('opens /today with the child and survey of a lifecycle notification', () => {
+    expect(resolveNotificationRoute('/today?child=5&survey=9')).toBe('/today?child=5&survey=9')
+    expect(resolveNotificationRoute('/today')).toBe('/today')
+    expect(resolveNotificationRoute('/todayx')).toBeNull()
+  })
+})
+
 describe('notificationOpenUrl', () => {
   it('keeps id, route and extra content', () => {
     expect(notificationOpenUrl(9, '/pdp', '42')).toBe('/notifications/open?id=9&route=%2Fpdp&extra=42')

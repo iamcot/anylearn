@@ -90,3 +90,17 @@ export interface JoinData {
   meetingId: string | null
   passcode: string | null
 }
+
+/** A session that ended in the last 30 days with no attendance and no approved leave. */
+export interface MissedSession {
+  sessionKey: string
+  learnerId: number
+  itemTitle: string
+  date: string
+  start: string | null
+}
+
+export interface MissedAttendance {
+  total: number
+  items: MissedSession[]
+}

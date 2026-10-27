@@ -58,6 +58,15 @@ class LifecycleRulesTest {
     }
 
     @Test
+    void fullAttendanceNeedsTheWholeCourseOverAndEverySessionAttended() {
+        assertTrue(LifecycleRules.fullAttendance(List.of(true, true, true), 3));
+        assertFalse(LifecycleRules.fullAttendance(List.of(true, true), 3));            // the course is not over yet
+        assertFalse(LifecycleRules.fullAttendance(List.of(true, false, true), 3));     // a session was missed
+        assertTrue(LifecycleRules.fullAttendance(List.of(true, true, true, false), 3)); // extra sessions after the course do not count
+        assertFalse(LifecycleRules.fullAttendance(List.of(), 0));
+    }
+
+    @Test
     void sendingWindowIncludesStartExcludesEnd() {
         assertTrue(LifecycleRules.inWindow(8, 8, 21));
         assertTrue(LifecycleRules.inWindow(20, 8, 21));

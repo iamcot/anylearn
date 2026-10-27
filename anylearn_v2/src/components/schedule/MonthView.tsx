@@ -1,5 +1,6 @@
 'use client'
 
+import MissedBadge from './MissedBadge'
 import { useState } from 'react'
 import { eventsOnDate, toISO, type Activity, type CalendarEvent, type Enrollment } from '@/lib/schedule/calendar'
 import EventChip from './EventChip'
@@ -45,6 +46,7 @@ function DayAgenda({ events, onSelect }: { events: CalendarEvent[]; onSelect: Se
           className="flex min-h-11 w-full cursor-pointer items-center gap-2.5 border-0 bg-transparent px-1 text-left">
           <span className={`size-2.5 shrink-0 rounded-full ${eventColorClass(event)}`} />
           <span className="flex-1 text-sm font-medium text-ink">{eventLabel(event)}</span>
+          <MissedBadge event={event} />
         </button>
       ))}
     </div>
