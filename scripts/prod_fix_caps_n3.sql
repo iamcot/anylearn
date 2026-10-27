@@ -43,7 +43,7 @@ INSERT INTO tmp_n3_titles (item_id, old_title, new_title) VALUES
   (287,'LẬP TRÌNH TYNKER ONLINE','Lập trình Tynker online'),
   (288,'THẾ GIỚI MINECRAFT CỦA BÉ','Thế giới Minecraft của bé'),
   (289,'SIÊU NHÂN LẬP TRÌNH WEBSITE','Siêu nhân lập trình website'),
-  (291,'LẬP TRÌNH GAME & ỨNG DỤNG','Lập trình Game & ứng dụng'),
+  (291,'LẬP TRÌNH GAME & ỨNG DỤNG','Lập trình game & ứng dụng'),
   (312,'SUPER SUMMER CAMP (TUẦN 3)','Super Summer Camp (tuần 3)'),
   (313,'LẬP TRÌNH ROBLOX','Lập trình Roblox'),
   (321,'PUBLIC SPEAKING KID - ONLINE 4','Public Speaking Kid - online 4'),
