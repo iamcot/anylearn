@@ -245,6 +245,7 @@ export default async function PdpPage({ params }: Props) {
                         {it.title}
                       </div>
                       <div className="text-[15px] font-extrabold text-red">{formatPrice(it.price)}</div>
+                      <CompareWhenActive itemId={it.id} title={it.title} image={it.image} className="mt-1" />
                     </Link>
                   ))}
                 </ScrollRow>
