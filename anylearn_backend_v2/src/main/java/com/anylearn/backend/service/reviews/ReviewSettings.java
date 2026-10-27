@@ -13,6 +13,8 @@ public class ReviewSettings {
     public static final String KEY_POINTS_MEDIA = "review/points_media";
     public static final String KEY_REMIND_ENABLED = "review/remind_enabled";
 
+    public static final String KEY_TOP_RATED_DAYS = "review/top_rated_days";
+
     private final ConfigurationRepository configurationRepository;
 
     public ReviewSettings(ConfigurationRepository configurationRepository) {
@@ -25,6 +27,10 @@ public class ReviewSettings {
 
     public int pointsForMedia() {
         return ReviewRewardRules.configured(read(KEY_POINTS_MEDIA).orElse(null), ReviewRewardRules.DEFAULT_MEDIA_POINTS);
+    }
+
+    public int topRatedDays() {
+        return TopRatedRules.days(read(KEY_TOP_RATED_DAYS).orElse(null));
     }
 
     public boolean remindEnabled() {

@@ -7,6 +7,7 @@ import com.anylearn.backend.service.recommend.RecommendationSettings;
 import com.anylearn.backend.service.order.OrderFollowUpSettings;
 import com.anylearn.backend.service.reviews.ReviewRewardRules;
 import com.anylearn.backend.service.reviews.ReviewSettings;
+import com.anylearn.backend.service.reviews.TopRatedRules;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -46,6 +47,7 @@ public class OperationSettingsService {
         map.put("reviewPointsText", reviewSettings.pointsForText());
         map.put("reviewPointsMedia", reviewSettings.pointsForMedia());
         map.put("reviewRemindEnabled", reviewSettings.remindEnabled());
+        map.put("reviewTopRatedDays", reviewSettings.topRatedDays());
         map.putAll(lifecycleSettings.current());
         map.putAll(recommendationSettings.current());
         return map;
@@ -79,6 +81,11 @@ public class OperationSettingsService {
             String problem = ReviewRewardRules.problem(pointsMedia, "Điểm thưởng thêm khi có ảnh");
             if (problem != null) return problem;
         }
+        Integer topRatedDays = integer(body.get("reviewTopRatedDays"));
+        if (body.containsKey("reviewTopRatedDays")) {
+            String problem = TopRatedRules.problem(topRatedDays);
+            if (problem != null) return problem;
+        }
 
         String lifecycleProblem = lifecycleSettings.save(body);
         if (lifecycleProblem != null) return lifecycleProblem;
@@ -89,6 +96,7 @@ public class OperationSettingsService {
         if (body.containsKey("autoCancelHours")) write(OrderFollowUpSettings.KEY_AUTO_CANCEL_HOURS, String.valueOf(cancelHours));
         if (body.containsKey("reviewPointsText")) write(ReviewSettings.KEY_POINTS_TEXT, String.valueOf(pointsText));
         if (body.containsKey("reviewPointsMedia")) write(ReviewSettings.KEY_POINTS_MEDIA, String.valueOf(pointsMedia));
+        if (body.containsKey("reviewTopRatedDays")) write(ReviewSettings.KEY_TOP_RATED_DAYS, String.valueOf(topRatedDays));
         if (body.get("reviewRemindEnabled") instanceof Boolean remindReview) write(ReviewSettings.KEY_REMIND_ENABLED, remindReview ? "1" : "0");
         if (body.get("autoCancelEnabled") instanceof Boolean enabled) write(OrderFollowUpSettings.KEY_AUTO_CANCEL_ENABLED, enabled ? "1" : "0");
         return null;

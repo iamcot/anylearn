@@ -19,7 +19,9 @@ export interface HomeBlock {
   sort: string
   age?: string
   extra: [string, string][]
-  seeAllHref: string
+  seeAllHref?: string
+  // Which list fills the row: the search (default) or the courses with the best recent reviews.
+  source?: 'topRated'
 }
 
 const BASE_STATE: SearchState = { q: '', mode: 'class', sort: 'popular', page: 0, filters: DEFAULT_FILTERS, adv: DEFAULT_ADVANCED }
@@ -60,6 +62,11 @@ export function hotNearBlock(ctx: HomeContext): HomeBlock | null {
     extra: [['nearLat', String(near.lat)], ['nearLng', String(near.lng)]],
     seeAllHref: buildSearchUrl(state),
   }
+}
+
+// "Top khóa học được đánh giá cao": the title and the period come from the server (back office setting).
+export function topRatedBlock(): HomeBlock {
+  return { title: 'Top khóa học được đánh giá cao', sort: 'rating', extra: [], source: 'topRated' }
 }
 
 // Chips under the home search box: each opens the search with that filter on.

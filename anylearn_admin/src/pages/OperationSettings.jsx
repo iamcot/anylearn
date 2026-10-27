@@ -77,6 +77,10 @@ export default function OperationSettings() {
             extra="Cộng thêm khi đánh giá có ít nhất một ảnh. Ẩn hoặc xóa đánh giá thì anyPoint đã thưởng bị thu hồi. Nhập 0 để tắt.">
             <InputNumber min={0} max={10000} precision={0} addonAfter="anyPoint" style={{ width: 200 }} />
           </Form.Item>
+          <Form.Item name="reviewTopRatedDays" label="Top khóa học được đánh giá cao: tính đánh giá trong (ngày)" rules={[{ required: true, message: 'Nhập số ngày' }]}
+            extra="Trang chủ xếp khóa theo điểm đánh giá trung bình của các đánh giá viết trong khoảng này. Từ 30 ngày trở xuống tiêu đề ghi “trong tháng”, từ 31 đến 90 ngày ghi “trong quý”, nhiều hơn thì không ghi thời gian. Ít khách thì để rộng (mặc định 90), nhiều đánh giá thì thu hẹp lại.">
+            <InputNumber min={7} max={3650} precision={0} addonAfter="ngày" style={{ width: 200 }} />
+          </Form.Item>
           <Form.Item name="reviewRemindEnabled" label="Nhắc phụ huynh viết đánh giá" valuePropName="checked"
             extra="Gửi thông báo khi bé học được nửa khóa và khi khóa kết thúc (mỗi mốc một lần), nếu chưa viết đánh giá.">
             <Switch />
@@ -151,6 +155,21 @@ export default function OperationSettings() {
           <Form.Item name="recommendDismissDays" label={'Không nhắc lại sau khi bấm "Không quan tâm" (ngày)'} rules={[{ required: true, message: 'Nhập số ngày' }]}
             extra="Gợi ý đó sẽ không hiện lại cho bé này trong số ngày này. Từ 1 đến 365.">
             <InputNumber min={1} max={365} precision={0} addonAfter="ngày" style={{ width: 160 }} />
+          </Form.Item>
+        </Card>
+
+        <Card title="Gợi ý khóa học bằng AI" style={{ marginBottom: 16 }}>
+          <Form.Item name="aiSuggestEnabled" label="Bật gợi ý bằng AI" valuePropName="checked"
+            extra="Tắt thì nút &quot;Gợi ý khóa học bằng AI&quot; biến mất khỏi trang chủ và /today. Cần có khóa API của Anthropic trên máy chủ (ANTHROPIC_API_KEY). Xem số liệu ở trang &quot;Gợi ý AI&quot;.">
+            <Switch />
+          </Form.Item>
+          <Form.Item name="aiCandidateCount" label="Số khóa gửi cho AI" rules={[{ required: true, message: 'Nhập số khóa' }]}
+            extra="Hệ thống lọc trước theo tuổi, lịch, khóa đã mua rồi chỉ gửi bấy nhiêu khóa (mỗi khóa một dòng ngắn) cho AI. Nhiều khóa thì chọn kỹ hơn nhưng tốn token hơn. Từ 10 đến 100, mặc định 50.">
+            <InputNumber min={10} max={100} precision={0} addonAfter="khóa" style={{ width: 160 }} />
+          </Form.Item>
+          <Form.Item name="aiResultCount" label="Số khóa AI trả về" rules={[{ required: true, message: 'Nhập số khóa' }]}
+            extra="Số khóa hiện cho phụ huynh. Nên chọn số chia hết cho 2, 3 và 4 (ví dụ 12) để lưới hiện đủ hàng trên điện thoại, máy tính bảng và máy tính. Từ 4 đến 24, mặc định 12, không lớn hơn số khóa gửi đi.">
+            <InputNumber min={4} max={24} precision={0} addonAfter="khóa" style={{ width: 160 }} />
           </Form.Item>
         </Card>
 

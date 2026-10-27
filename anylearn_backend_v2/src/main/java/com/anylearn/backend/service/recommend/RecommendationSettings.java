@@ -17,6 +17,13 @@ public class RecommendationSettings {
     public static final String KEY_SOURCES = "recommend/sources";
     public static final String KEY_DISMISS_DAYS = "recommend/dismiss_days";
 
+    public static final String KEY_AI_ENABLED = "recommend/ai_enabled";
+    public static final String KEY_AI_CANDIDATES = "recommend/ai_candidates";
+    public static final String KEY_AI_RESULTS = "recommend/ai_results";
+
+    public static final int DEFAULT_AI_CANDIDATES = 50;
+    public static final int DEFAULT_AI_RESULTS = 12;
+
     private final ConfigurationRepository configurationRepository;
 
     public RecommendationSettings(ConfigurationRepository configurationRepository) {
@@ -42,10 +49,39 @@ public class RecommendationSettings {
         }).orElse(RecommendationRules.DEFAULT_DISMISS_DAYS);
     }
 
+    /** AI suggestions are on unless an admin switched them off (a missing API key turns them off as well, see AiSuggestionService). */
+    public boolean aiEnabled() {
+        return configurationRepository.findByKey(KEY_AI_ENABLED).map(Configuration::getValue).map(v -> !"0".equals(v.trim())).orElse(true);
+    }
+
+    /** How many courses the rule engine sends to the AI. */
+    public int aiCandidates() {
+        return boundedInt(KEY_AI_CANDIDATES, DEFAULT_AI_CANDIDATES, 10, 100);
+    }
+
+    /** How many courses the AI returns to the parent. */
+    public int aiResults() {
+        return boundedInt(KEY_AI_RESULTS, DEFAULT_AI_RESULTS, 4, 24);
+    }
+
+    private int boundedInt(String key, int fallback, int min, int max) {
+        return configurationRepository.findByKey(key).map(Configuration::getValue).map(value -> {
+            try {
+                int number = Integer.parseInt(value.trim());
+                return number >= min && number <= max ? number : fallback;
+            } catch (NumberFormatException e) {
+                return fallback;
+            }
+        }).orElse(fallback);
+    }
+
     public Map<String, Object> current() {
         Map<String, Object> map = new LinkedHashMap<>();
         map.put("recommendSources", sources());
         map.put("recommendDismissDays", dismissDays());
+        map.put("aiSuggestEnabled", aiEnabled());
+        map.put("aiCandidateCount", aiCandidates());
+        map.put("aiResultCount", aiResults());
         return map;
     }
 
@@ -56,6 +92,21 @@ public class RecommendationSettings {
             if (days == null || days < 1 || days > 365) return "Số ngày không nhắc lại phải từ 1 đến 365";
             write(KEY_DISMISS_DAYS, String.valueOf(days));
         }
+        if (body.containsKey("aiCandidateCount")) {
+            Integer count = body.get("aiCandidateCount") instanceof Number n ? n.intValue() : null;
+            if (count == null || count < 10 || count > 100) return "Số khóa gửi cho AI phải từ 10 đến 100";
+        }
+        if (body.containsKey("aiResultCount")) {
+            Integer count = body.get("aiResultCount") instanceof Number n ? n.intValue() : null;
+            if (count == null || count < 4 || count > 24) return "Số khóa AI trả về phải từ 4 đến 24";
+        }
+        if (body.containsKey("aiCandidateCount") && body.containsKey("aiResultCount")
+                && ((Number) body.get("aiResultCount")).intValue() > ((Number) body.get("aiCandidateCount")).intValue()) {
+            return "Số khóa AI trả về không được lớn hơn số khóa gửi đi";
+        }
+        if (body.containsKey("aiCandidateCount")) write(KEY_AI_CANDIDATES, String.valueOf(((Number) body.get("aiCandidateCount")).intValue()));
+        if (body.containsKey("aiResultCount")) write(KEY_AI_RESULTS, String.valueOf(((Number) body.get("aiResultCount")).intValue()));
+        if (body.get("aiSuggestEnabled") instanceof Boolean on) write(KEY_AI_ENABLED, on ? "1" : "0");
         if (body.get("recommendSources") instanceof List<?> list) {
             List<String> sources = list.stream().map(String::valueOf).filter(RecommendationRules::validSource).distinct().toList();
             write(KEY_SOURCES, String.join(",", sources));

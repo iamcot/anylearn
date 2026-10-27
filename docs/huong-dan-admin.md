@@ -17,6 +17,7 @@ Cập nhật lần cuối: 26/10/2026.
 7b. [Trang đối tác, theo dõi, thử điều mới](#7b-trang-đối-tác-theo-dõi-và-thử-điều-mới-cho-con)
 7c. [Đánh giá của phụ huynh](#7c-đánh-giá-của-phụ-huynh)
 7d. [Lộ trình và gợi ý khóa học](#7d-lộ-trình-và-gợi-ý-khóa-học)
+7e. [Gợi ý khóa học bằng AI](#7e-gợi-ý-khóa-học-bằng-ai)
 8. [Cấu hình vận hành](#8-cấu-hình-vận-hành)
 9. [Nhu cầu của khách: nhờ tìm khóa, báo giá rẻ hơn, xu hướng tìm kiếm](#9-nhu-cầu-của-khách)
 10. [Thông báo cho team và thanh toán](#10-thông-báo-và-thanh-toán)
@@ -171,10 +172,12 @@ Phổ biến nhất (mặc định), mới nhất, giá thấp/cao, khai giảng
 
 ## 6. Trang chủ
 
-Trang chủ có các khối: tìm kiếm + chip, **Dành cho {tên bé}**, **Đang hot gần bạn**, **Bộ sưu tập**, **Chuyên gia và đối tác nổi bật**, nhờ tìm giúp, bài viết.
+Trang chủ có các khối: tìm kiếm + chip, **Dành cho {tên bé}**, **Đang hot gần bạn**, **Top khóa học được đánh giá cao**, **Bộ sưu tập**, **Chuyên gia và đối tác nổi bật**, nhờ tìm giúp, bài viết.
 
 - **Dành cho {bé}**: khóa phổ biến nhất hợp tuổi bé đang chọn. Khách chưa đăng nhập: dùng độ tuổi khách đã khai; chưa khai thì hiện "Khóa học được quan tâm nhiều".
 - **Đang hot gần bạn**: chỉ hiện với tài khoản có **địa chỉ nhà đã lưu có tọa độ** (dùng bán kính "Gần tôi").
+- **Top khóa học được đánh giá cao**: các khóa có điểm đánh giá trung bình cao nhất trong các đánh giá viết gần đây (chỉ tính đánh giá đang hiện). Khoảng thời gian chỉnh ở Cài đặt > Vận hành (mục 8); tiêu đề tự đổi: từ 30 ngày trở xuống "trong tháng", đến 90 ngày "trong quý", dài hơn thì không ghi thời gian.
+- **Không lặp khóa giữa các khối**: khối phía dưới bỏ các khóa đã hiện ở khối phía trên (Dành cho > Đang hot gần bạn > Top đánh giá cao). Khối nào còn dưới 4 khóa mới thì tự ẩn. "Hot" tính theo điểm ưu tiên (điểm ưu tiên admin cho khóa/đối tác, đánh dấu Hot, lượt xem, giỏ hàng, yêu thích, đánh giá), nên muốn đẩy một khóa lên thì tăng điểm ưu tiên.
 - **Bộ sưu tập**: xem mục 7. Không có bộ nào đang bật thì khối ẩn.
 - **Chuyên gia và đối tác nổi bật**: tự động lấy 4 trường và 4 giáo viên được tìm nhiều nhất trong số đối tác **đã ký hợp đồng** (công tắc Ký HĐ bật, mục 2.2), bấm vào mở trang đối tác (mục 7b). Muốn đưa ai lên cao hơn thì tăng điểm ưu tiên của họ.
 - Khối **Thử điều mới cho con** là một thẻ nổi bật giải thích ngắn: chọn theo tuổi bé, ưu tiên gần nhà (cần địa chỉ nhà trong tài khoản), mỗi ngày một danh sách mới. Bấm "Khám phá hôm nay" để mở danh sách (mục 7b).
@@ -278,6 +281,25 @@ Lưu ý: khóa chỉ được gợi ý khi đang bật và đối tác đã ký 
 
 ---
 
+## 7e. Gợi ý khóa học bằng AI
+
+**Khách thấy gì.** Khối "Thử điều mới cho {bé}" ở trang chủ dùng thẳng AI khi tính năng đang bật (thêm dòng thứ tư "Gợi ý từ AI"; tắt AI thì khối quay về danh sách theo luật như cũ). Trang /today có thẻ "Gợi ý khóa học bằng AI". Bấm "Khám phá hôm nay", nếu người học (bản thân hoặc một bé) chưa làm khảo sát sở thích thì hiện popup ba câu hỏi (có nút Bỏ qua, bỏ qua cũng được ghi nhận, không hỏi lại). Sau đó mở trang riêng với thanh tiến trình và các câu vui, rồi hiện một lưới khóa học, mỗi khóa có một dòng lý do. Cuối trang có 👍/👎 kèm lý do nhanh và nút "Tìm kiếm thêm" dẫn sang trang tìm kiếm. Khách chưa đăng nhập vẫn làm được khảo sát (lưu trên trình duyệt) và được yêu cầu đăng nhập để nhận gợi ý; câu trả lời tự chuyển vào tài khoản khi đăng nhập, đăng ký hoặc khi bé được tạo từ thông tin khách đã nhập.
+
+**Cách hoạt động (để biết vì sao tiết kiệm).** Hệ thống lọc trước bằng luật của mục 7d (đúng tuổi, không trùng lịch, chưa mua, khóa đang hiện cho khách) và thêm khóa theo sở thích, điều phụ huynh muốn bé học, khóa phổ biến cùng tuổi. Chỉ số khóa đã chọn (mặc định 50) được gửi cho AI, mỗi khóa một dòng ngắn (tên, hình thức, tuổi, giá, tag, mô tả ngắn) cùng hồ sơ người học. AI trả về các khóa hợp nhất kèm lý do. Kết quả được lưu theo từng người học theo ngày: **mỗi người học chỉ gọi AI một lần mỗi ngày**; tài khoản nhiều bé thì mỗi bé một lần. AI đang tắt hoặc không gọi được (mạng, hết hạn mức) thì khách thấy gợi ý theo luật và lần sau thử gọi lại. Nếu AI đã trả lời nhưng không dùng được thì danh sách theo luật được lưu cho cả ngày (vẫn tính một lần gọi và có token), trang Gợi ý AI ghi số lần này là "lỗi, dùng luật". Mỗi đối tác tối đa 4 khóa trong số khóa gửi cho AI.
+
+**Cài đặt** (Cài đặt > Vận hành > Gợi ý khóa học bằng AI):
+- Bật gợi ý bằng AI: tắt thì thẻ gợi ý biến mất khỏi trang chủ và /today.
+- Số khóa gửi cho AI (10 đến 100, mặc định 50): nhiều thì chọn kỹ hơn nhưng tốn token hơn.
+- Số khóa AI trả về (4 đến 24, mặc định 12, không lớn hơn số khóa gửi): chọn số chia hết cho 2, 3, 4 như 12 để lưới đủ hàng trên mọi màn hình. Thay đổi áp dụng cho các lần gợi ý mới, danh sách đã lưu trong ngày giữ nguyên.
+
+**Số liệu.** Menu Khóa học > **Gợi ý AI**: số lần gọi AI (kèm số lần lỗi phải dùng luật), số người học, token gửi và nhận, lượt mở danh sách, lượt xem khóa (chỉ tính khi khách bấm vào khóa từ danh sách), tỷ lệ danh sách có bấm xem khóa, số bé đặt khóa trong 30 ngày sau khi bấm, số 👍 và 👎, lý do bị chê nhiều nhất và danh sách phản hồi kèm góp ý.
+
+**Phản hồi cải thiện gợi ý thế nào.** Với mỗi bé, 3 phản hồi gần nhất (khóa đã gợi ý, thích hay chưa hài lòng, lý do, góp ý) và 3 lý do bị chê nhiều nhất của toàn hệ thống trong 30 ngày được đưa vào lần gợi ý sau để AI tránh lặp lại. Không cần huấn luyện lại gì.
+
+**Cần có.** Khóa API của Anthropic đặt ở biến `ANTHROPIC_API_KEY` trên máy chủ (mục 11). Không có thì trang Gợi ý AI báo "chưa có khóa" và thẻ gợi ý ẩn.
+
+---
+
 ## 8. Cấu hình vận hành
 
 Menu **Cài đặt (bánh răng) > Vận hành > Cấu hình tìm kiếm & đơn hàng**. Thay đổi có hiệu lực ngay.
@@ -289,6 +311,7 @@ Menu **Cài đặt (bánh răng) > Vận hành > Cấu hình tìm kiếm & đơn
 | Tự hủy đơn quá hạn | Bật/tắt việc tự hủy đơn chưa thanh toán | Bật |
 | Hủy đơn sau (giờ) | Đơn chưa thanh toán bị hủy sau thời gian này kể từ lúc đặt. Điểm anyPoint đã dùng được hoàn lại | 72 giờ |
 | Thưởng khi viết đánh giá (anyPoint) | Cho đánh giá có nhận xét từ 50 ký tự, mỗi đánh giá một lần. 0 = tắt | 20 |
+| Tính đánh giá cao trong (ngày) | Khoảng thời gian lấy đánh giá cho khối "Top khóa học được đánh giá cao" trên trang chủ (7 đến 3650) | 90 ngày |
 | Thưởng thêm khi có ảnh (anyPoint) | Cộng thêm khi đánh giá có ít nhất một ảnh. 0 = tắt | 20 |
 | Nhắc phụ huynh viết đánh giá | Nhắc khi học nửa khóa và khi hết khóa (mục 7c) | Bật |
 | Vòng đời học viên | Xem bảng riêng bên dưới | |
@@ -360,6 +383,7 @@ Dành cho người cài đặt hệ thống; team admin chỉ cần biết để
 - Backup cơ sở dữ liệu trước khi cập nhật phiên bản có thay đổi cấu trúc dữ liệu.
 - Biến môi trường (xem `deployment/env/backend.env.example`):
   - `GOOGLE_MAPS_API_KEY`: bật nút Tìm tự động ở địa chỉ. Bật Places API (New) trên Google Cloud. Không có key thì chỉ nhập tay được.
+  - `ANTHROPIC_API_KEY`: khóa API Anthropic cho gợi ý khóa học bằng AI (mục 7e). Không có thì tính năng tự ẩn.
   - `SEPAY_API_KEY`: webhook nhận tiền chuyển khoản.
   - `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`: thông báo đẩy trên điện thoại. Tạo một lần và không đổi.
   - `JWT_EXPIRATION_MS`: thời gian đăng nhập (mặc định 30 ngày).
@@ -385,6 +409,8 @@ Dành cho người cài đặt hệ thống; team admin chỉ cần biết để
 | Bé học đủ buổi nhưng phụ huynh không nhận anyPoint điểm danh | Đặt 0, còn buổi chưa điểm danh (kể cả buổi xin nghỉ được duyệt), khóa chưa hết số buổi đã mua, hoặc đã nhận cho khóa đó | Mở Theo dõi lịch học, điểm danh các buổi còn thiếu; kiểm tra mục 8 |
 | Phụ huynh không nhận anyPoint gia hạn sớm | Đặt 0, đơn chưa thanh toán, đã nhận cho lần gia hạn đó, hoặc gói cũ đã hết khi bấm Gia hạn | Kiểm tra mục 8 và lịch sử anyPoint của khách |
 | Phụ huynh không thấy thẻ gợi ý | Chưa có khóa nào hợp (tuổi, giờ, đã mua), bé chưa nhập ngày sinh (loại Anh chị em), loại gợi ý đang tắt, hoặc đã bấm Không quan tâm | Kiểm tra mục 7d; bé cần có ngày sinh; tạo lộ trình cho khóa đang học |
+| Thẻ "Gợi ý khóa học bằng AI" không hiện | Công tắc AI đang tắt, hoặc máy chủ chưa có `ANTHROPIC_API_KEY` | Bật ở Cài đặt > Vận hành, nhờ người cài đặt thêm khóa (mục 11) |
+| Gợi ý AI hiện lý do kiểu luật, không có 👍/👎 | AI lỗi hoặc quá thời gian nên hệ thống trả gợi ý theo luật (không lưu) | Xem trang Gợi ý AI và nhật ký máy chủ; người dùng thử lại sau |
 | Phụ huynh không viết được đánh giá | Tài khoản chưa có đơn đã giao của khóa đó | Kiểm tra đơn ở mục Đơn hàng; đơn chưa thanh toán chưa được tính |
 | Không tải được ảnh đánh giá | Chưa cấu hình kho ảnh (AWS) | Nhờ người cài đặt (mục 11) |
 | Đối tác không thấy nút Trả lời | Không đăng nhập bằng tài khoản sở hữu khóa | Đăng nhập đúng tài khoản đối tác, mở khóa của họ |

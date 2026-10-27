@@ -12,7 +12,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/** The optional interest survey of a child (plan 01.5): `learner_interests (learner_id, tag, source)`. */
+/** The optional interest survey of a child or of the account owner (plan 01.5): `learner_interests (learner_id, tag, source)`. */
 @Service
 @RequiredArgsConstructor
 public class LearnerInterestService {
@@ -20,13 +20,15 @@ public class LearnerInterestService {
     private final JdbcTemplate jdbc;
     private final UserRepository users;
 
-    /** The answers of a child of this parent: likes, wants, budget (null when not answered). Null when the child is not theirs. */
+    /** The answers of a child of this parent: likes, wants, budget (null when not answered), answered (true once saved, even empty). Null when the child is not theirs. */
     public Map<String, Object> get(User parent, Long childId) {
         if (!isChildOf(parent, childId)) return null;
+        boolean[] answered = {false};
         List<String> likes = new ArrayList<>();
         List<String> wants = new ArrayList<>();
         String[] budget = {null};
         jdbc.query("SELECT source, tag FROM learner_interests WHERE learner_id = ? ORDER BY id", rs -> {
+            answered[0] = true;
             switch (rs.getString("source")) {
                 case LearnerInterestRules.LIKES -> likes.add(rs.getString("tag"));
                 case LearnerInterestRules.WANTS -> wants.add(rs.getString("tag"));
@@ -38,6 +40,7 @@ public class LearnerInterestService {
         answers.put("likes", likes);
         answers.put("wants", wants);
         answers.put("budget", budget[0]);
+        answers.put("answered", answered[0]);
         return answers;
     }
 
@@ -50,6 +53,8 @@ public class LearnerInterestService {
         insert(childId, LearnerInterestRules.WANTS, LearnerInterestRules.cleanInterests(body.get("wants") instanceof List<?> list ? list : null));
         String budget = LearnerInterestRules.cleanBudget(body.get("budget"));
         if (budget != null) insert(childId, LearnerInterestRules.BUDGET, List.of(budget));
+        // A skipped survey is still an answer: the marker keeps the app from asking again.
+        jdbc.update("INSERT INTO learner_interests (learner_id, tag, source) VALUES (?, 'done', 'done')", childId);
         return true;
     }
 
@@ -64,7 +69,9 @@ public class LearnerInterestService {
         }
     }
 
+    /** The account itself, or one of its children. */
     private boolean isChildOf(User parent, Long childId) {
+        if (parent != null && parent.getId().equals(childId)) return true;
         return parent != null && users.findById(childId)
                 .filter(child -> child.getIsChild() != null && child.getIsChild() == 1 && parent.getId().equals(child.getUserId()))
                 .isPresent();

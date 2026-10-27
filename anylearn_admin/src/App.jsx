@@ -12,6 +12,7 @@ import PriceReports from './pages/PriceReports'
 import Tags from './pages/Tags'
 import Collections from './pages/Collections'
 import Pathways from './pages/Pathways'
+import AiSuggestions from './pages/AiSuggestions'
 import OperationSettings from './pages/OperationSettings'
 import ItemGaps from './pages/ItemGaps'
 import AllReviews from './pages/AllReviews'
@@ -99,6 +100,7 @@ export default function App() {
                   <Route path="tags" element={<Tags />} />
                   <Route path="collections" element={<Collections />} />
                   <Route path="pathways" element={<Pathways />} />
+                  <Route path="ai-suggestions" element={<AiSuggestions />} />
                   <Route path="operations" element={<OperationSettings />} />
                   <Route path="item-gaps" element={<ItemGaps />} />
                   <Route path="reviews" element={<AllReviews />} />

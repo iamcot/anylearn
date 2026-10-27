@@ -1,7 +1,7 @@
 import { apiFetch, authFetch } from './client'
 
-export type RecommendationSource = 'pathway' | 'sibling' | 'free_slot' | 'season' | 'interest'
-export type RecommendationContext = 'today' | 'order_success'
+export type RecommendationSource = 'pathway' | 'sibling' | 'free_slot' | 'season' | 'interest' | 'ai'
+export type RecommendationContext = 'today' | 'order_success' | 'ai_suggest'
 
 export interface Recommendation {
   itemId: number
@@ -58,9 +58,24 @@ export interface PathwayStep {
 export interface Pathway { id: number; slug: string; title: string; subtitle: string | null; steps: PathwayStep[]; stepNo?: number; doneSteps?: number; totalSteps?: number }
 
 /** The pathways a course is part of (public); empty when it is in none. */
-export async function getItemPathways(itemId: number): Promise<Pathway[]> {
-  const data = await apiFetch<Pathway[]>(`/items/${itemId}/pathway`, { cache: 'no-store' })
+export async function getItemPathways(itemId: number, learnerId?: number | null, token?: string | null): Promise<Pathway[]> {
+  const data = learnerId != null && token
+    ? (await authFetch<Pathway[]>(`/items/${itemId}/pathway?learnerId=${learnerId}`, token)).data
+    : await apiFetch<Pathway[]>(`/items/${itemId}/pathway`, { cache: 'no-store' })
   return Array.isArray(data) ? data : []
+}
+
+// The pathways of a course as the signed-in account sees them: a course counts as owned when any of its learners has it.
+export async function getItemPathwaysForAccount(itemId: number, learnerIds: number[], token: string): Promise<Pathway[]> {
+  const lists = await Promise.all(learnerIds.map(id => getItemPathways(itemId, id, token)))
+  const first = lists[0] ?? []
+  return first.map((pathway, index) => ({
+    ...pathway,
+    steps: pathway.steps.map(step => ({
+      ...step,
+      items: step.items.map(item => ({ ...item, owned: lists.some(list => list[index]?.steps.find(s => s.stepNo === step.stepNo)?.items.find(i => i.itemId === item.itemId)?.owned) })),
+    })),
+  }))
 }
 
 /** One pathway with its steps; with a learner (and a token) each step says whether they already have it. */

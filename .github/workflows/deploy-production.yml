@@ -261,6 +261,7 @@ jobs:
           VAPID_PRIVATE_KEY=${{ secrets.VAPID_PRIVATE_KEY }}
           VAPID_SUBJECT=${{ secrets.VAPID_SUBJECT }}
           GOOGLE_MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY }}
+          ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}
           SPRING_PROFILES_ACTIVE=prod
           EOF
           sudo chown anylearn-app:anylearn-deploy ${{ env.DEPLOY_PATH }}/backend/.env

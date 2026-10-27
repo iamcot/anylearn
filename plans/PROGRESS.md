@@ -492,6 +492,17 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 - Seed demo thêm lộ trình Tiếng Anh, ngày sinh cho Bin và Su, một đơn đã thanh toán của Bin để xem gợi ý cho Su; request mẫu trong `http/today.http` và `http/admin.http`.
 - Chưa làm: 08.5 (chờ plan 10), khối lộ trình trên trang khóa học, thông báo gợi ý theo mùa. Chưa thử với MySQL thật (test thuần, tsc, vitest, build admin xanh); câu SQL của engine và báo cáo cần chạy thử với DB thật.
 
+### 27/10/2026 – gợi ý khóa học bằng AI (Haiku)
+- Chủ sản phẩm chốt: luật làm bộ lọc trước, gửi AI 50 khóa lấy 12 (admin chỉnh được cả hai), mỗi người học một lần gọi AI mỗi ngày, được bỏ qua khảo sát, có nút "Tìm kiếm thêm" cuối trang, admin bật/tắt và xem số liệu, 👍/👎 kèm lý do nhanh quay lại làm đầu vào cho prompt lần sau.
+- Backend: V39, `service/ai/*` (`AnthropicClient`, `AiSuggestionService`, `AiSuggestionRules` thuần + test, `AiSuggestionReport`), `AiSuggestionController`, `AdminAiSuggestionController`; `RecommendationService.pool/cardsFor`; khảo sát cho tài khoản chính (`/api/user/interests`, dấu "đã trả lời" kể cả bỏ qua). Env mới `ANTHROPIC_API_KEY` (workflow, env example, README đã thêm; cần tạo secret GitHub cùng tên).
+- FE: thẻ `AiSuggestEntry` (trang chủ, /today), trang `/ai-suggest`, khảo sát lưu localStorage cho khách và tự đẩy vào tài khoản khi đăng nhập/đăng ký/tạo bé. Admin: mục cài đặt AI, trang "Gợi ý AI".
+- Chưa làm / chưa thử: gọi Anthropic thật và MySQL thật (môi trường không có DB; test thuần, tsc, vitest, build admin xanh); đồng bộ khảo sát khi phụ huynh tự thêm bé trùng tên với bé trong khảo sát khách (chỉ có khi đăng ký/đăng nhập).
+
 ### 27/10/2026 – lộ trình nhiều khóa mỗi bước, điểm danh
 - Mỗi bước lộ trình có nhiều khóa thay thế nhau (V39); gợi ý chọn khóa liên quan nhất (cùng đối tác với khóa bước trước); trang lộ trình cuộn ngang, thu gọn bước đã xong, thẻ "Bạn đã bỏ qua bước này" + "Đặt lại". Chọn cách hiểu "đặt lại" = quay về bước đã bỏ qua để gợi ý đưa bé về đó; chờ chủ sản phẩm xác nhận.
 - Điểm danh: phụ huynh đánh dấu buổi quá khứ (120 ngày) trong Lịch học, admin điểm danh ở Theo dõi lịch học, khối "Buổi chưa điểm danh" ở /today, thưởng anyPoint khi điểm danh đủ, báo vắng mặc định tắt.
+
+### 27/10/2026 – gợi ý AI: sửa sau khi chủ sản phẩm thử
+- Khối "Thử điều mới cho {bé}" ở trang chủ dùng thẳng AI (thêm dòng "Gợi ý từ AI"), bỏ thẻ riêng ở trang chủ; trang AI có nút "Về trang chủ".
+- AI trả sai format làm bị gọi lại nhiều lần: đổi sang tool call bắt buộc, prompt mềm hơn, giải mã `&amp;` trong tên khóa, tối đa 4 khóa mỗi đối tác trong danh sách gửi; câu trả lời không dùng được thì lưu danh sách theo luật cho cả ngày (V41 `status`), có token và có nút 👍/👎.
+- Admin: "Lượt mở danh sách", "Lượt xem khóa (bấm từ danh sách)", tỷ lệ danh sách có bấm; hiện số lần AI lỗi.

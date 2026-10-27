@@ -11,8 +11,17 @@ export interface GuestLearner {
 
 // What a visitor who is not logged in told us about who the courses are for. Lives in localStorage only until the
 // visitor registers or logs in.
+export interface GuestInterests {
+  likes: string[]
+  wants: string[]
+  budget: string | null
+}
+
 export interface GuestLearnerStore {
   version: 1
+  // Survey answers of the optional "what does the learner like" question, by learner (localId, or 'self').
+  // They are sent to the account when the visitor registers or logs in.
+  interests?: Record<string, GuestInterests>
   audience?: Audience
   learners: GuestLearner[]
   selfBirthYear?: number
@@ -71,7 +80,39 @@ export function parseGuestLearnerStore(raw: string | null, now = new Date()): Gu
     selfBirthYear: isBirthYear(stored.selfBirthYear, now) ? stored.selfBirthYear : undefined,
     selectedLocalId: selected,
     dismissedAt: typeof stored.dismissedAt === 'string' ? stored.dismissedAt : undefined,
+    interests: parseGuestInterests(stored.interests),
   }
+}
+
+const MAX_ANSWERS = 12
+
+function stringList(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string').slice(0, MAX_ANSWERS) : []
+}
+
+function parseGuestInterests(raw: unknown): Record<string, GuestInterests> | undefined {
+  if (typeof raw !== 'object' || raw === null) return undefined
+  const result: Record<string, GuestInterests> = {}
+  for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
+    if (typeof value !== 'object' || value === null) continue
+    const answers = value as Record<string, unknown>
+    result[key] = { likes: stringList(answers.likes), wants: stringList(answers.wants), budget: typeof answers.budget === 'string' ? answers.budget : null }
+  }
+  return Object.keys(result).length > 0 ? result : undefined
+}
+
+export function interestsOfGuest(store: GuestLearnerStore, key: string): GuestInterests | undefined {
+  return store.interests?.[key]
+}
+
+export function withInterests(store: GuestLearnerStore, key: string, answers: GuestInterests): GuestLearnerStore {
+  return { ...store, interests: { ...store.interests, [key]: answers } }
+}
+
+export function withoutInterests(store: GuestLearnerStore, key: string): GuestLearnerStore {
+  if (!store.interests?.[key]) return store
+  const rest = Object.fromEntries(Object.entries(store.interests).filter(([other]) => other !== key))
+  return { ...store, interests: Object.keys(rest).length > 0 ? rest : undefined }
 }
 
 export function hasGuestLearners(store: GuestLearnerStore): boolean {
@@ -183,6 +224,7 @@ export function withAnswer(store: GuestLearnerStore, answer: {
     learners,
     selfBirthYear: answer.audience === 'self' ? answer.selfBirthYear : undefined,
     selectedLocalId: selected,
+    interests: store.interests,
   }
 }
 
@@ -198,7 +240,8 @@ export function withoutLearners(store: GuestLearnerStore, localIds: string[]): G
   const learners = store.learners.filter(item => !localIds.includes(item.localId))
   if (learners.length === 0) return EMPTY_GUEST_STORE
   const selected = learners.some(item => item.localId === store.selectedLocalId) ? store.selectedLocalId : learners[0]?.localId
-  return { ...store, learners, selectedLocalId: selected }
+  const kept = Object.fromEntries(Object.entries(store.interests ?? {}).filter(([key]) => !localIds.includes(key)))
+  return { ...store, learners, selectedLocalId: selected, interests: Object.keys(kept).length > 0 ? kept : undefined }
 }
 
 // Who the visitor is shopping for, as chips: each child, or the visitor when they gave a birth year.

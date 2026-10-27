@@ -53,6 +53,11 @@ public class RecommendationService {
             Map.entry("coding", "lập trình"), Map.entry("dance", "múa"), Map.entry("music", "âm nhạc"), Map.entry("sports", "thể thao"),
             Map.entry("life_skills", "kỹ năng sống"), Map.entry("math", "toán"), Map.entry("science", "stem"), Map.entry("reading", "đọc"));
 
+    /** Vietnamese words of an interest key ("chess" -> "cờ vua"); null for an unknown key. */
+    public static String interestWord(String key) {
+        return INTEREST_WORDS.get(key);
+    }
+
     private final JdbcTemplate jdbc;
     private final UserRepository userRepository;
     private final ItemRepository itemRepository;
@@ -88,6 +93,53 @@ public class RecommendationService {
         if (on.contains(RecommendationRules.SEASON)) seeds.addAll(seasonSeeds());
         if (on.contains(RecommendationRules.INTEREST)) seeds.addAll(interestSeeds(ctx));
         return present(ctx, finish(ctx, seeds, 1));
+    }
+
+    /** What the AI is asked about: the learner and the courses that survived the rule filter, best rule score first. */
+    public record Pool(Long learnerId, String learnerName, boolean self, int[] ageBounds, List<Candidate> candidates) {}
+
+    /**
+     * The shortlist for the AI: every enabled rule source (plus the parent's "wants" and, to fill up, the popular courses
+     * of the age), filtered and ranked by the rule engine, at most `limit` courses.
+     */
+    public Pool pool(User account, Long learnerId, int limit) {
+        LearnerContext ctx = contextOf(account, learnerId);
+        List<Seed> seeds = new ArrayList<>();
+        List<String> on = settings.sources();
+        if (on.contains(RecommendationRules.PATHWAY)) seeds.addAll(pathwaySeeds(ctx));
+        if (on.contains(RecommendationRules.SIBLING)) seeds.addAll(siblingSeeds(account, ctx, null));
+        if (on.contains(RecommendationRules.FREE_SLOT)) seeds.addAll(freeSlotSeeds(ctx, account));
+        if (on.contains(RecommendationRules.SEASON)) seeds.addAll(seasonSeeds());
+        if (on.contains(RecommendationRules.INTEREST)) seeds.addAll(interestSeeds(ctx));
+        seeds.addAll(wantSeeds(ctx));
+        seeds.addAll(popularSeeds(ctx));
+        return new Pool(learnerId, ctx.name(), ctx.info().self(), ctx.ageBounds(), finish(ctx, seeds, limit));
+    }
+
+    /** Cards for these course ids in this order, leaving out courses the learner owns or that are no longer visible. */
+    public List<Map<String, Object>> cardsFor(User account, Long learnerId, List<Long> itemIds, Map<Long, String> reasons) {
+        if (itemIds.isEmpty()) return List.of();
+        LearnerContext ctx = contextOf(account, learnerId);
+        Map<Long, ItemData> items = loadItems(new HashSet<>(itemIds));
+        List<Map<String, Object>> out = new ArrayList<>();
+        for (Long id : itemIds) {
+            ItemData data = items.get(id);
+            if (data == null || ctx.owned().contains(id) || ctx.dismissed().contains(id)) continue;
+            Item item = data.item();
+            Map<String, Object> map = new LinkedHashMap<>();
+            map.put("itemId", item.getId());
+            map.put("title", item.getTitle());
+            map.put("image", item.getImage());
+            map.put("price", item.getPrice());
+            map.put("seoUrl", item.getSeoUrl());
+            map.put("learnerId", learnerId);
+            map.put("learnerName", ctx.name());
+            map.put("source", RecommendationRules.AI);
+            map.put("reasonCode", "ai");
+            map.put("reasonText", reasons.getOrDefault(id, ""));
+            out.add(map);
+        }
+        return out;
     }
 
     /**
@@ -257,7 +309,7 @@ public class RecommendationService {
     }
 
     private List<Seed> interestSeeds(LearnerContext ctx) {
-        if (ctx.info().self() || ctx.ageBounds() == null) return List.of();
+        if (ctx.ageBounds() == null) return List.of();
         List<String> likes = jdbc.queryForList("SELECT tag FROM learner_interests WHERE learner_id = ? AND source = 'likes' ORDER BY id LIMIT ?",
                 String.class, ctx.info().id(), MAX_INTERESTS_USED);
         List<Seed> seeds = new ArrayList<>();
@@ -269,6 +321,35 @@ public class RecommendationService {
                 seeds.add(new Seed(id, RecommendationRules.INTEREST, "interest_" + like,
                         ctx.name() + " thích " + word + ", gợi ý {title}", RecommendationRules.baseScore(RecommendationRules.INTEREST)));
             }
+        }
+        return seeds;
+    }
+
+    /** What the parent wants the child to learn (survey answers "wants"). */
+    private List<Seed> wantSeeds(LearnerContext ctx) {
+        if (ctx.ageBounds() == null) return List.of();
+        List<String> wants = jdbc.queryForList("SELECT tag FROM learner_interests WHERE learner_id = ? AND source = 'wants' ORDER BY id LIMIT ?",
+                String.class, ctx.info().id(), MAX_INTERESTS_USED);
+        List<Seed> seeds = new ArrayList<>();
+        for (String want : wants) {
+            String word = INTEREST_WORDS.get(want);
+            if (word == null) continue;
+            var filters = SearchFilters.Builder.empty().learnerAge(ctx.ageBounds()[0], ctx.ageBounds()[1]).today(LocalDate.now(clock)).build();
+            for (Long id : meilisearchService.searchIds(word, 6, filters, null, null)) {
+                seeds.add(new Seed(id, RecommendationRules.INTEREST, "want_" + want,
+                        "Phụ huynh muốn " + ctx.name() + " học " + word + ", gợi ý {title}", RecommendationRules.baseScore(RecommendationRules.INTEREST)));
+            }
+        }
+        return seeds;
+    }
+
+    /** Fills the shortlist with the popular courses of the age when the other sources give few. */
+    private List<Seed> popularSeeds(LearnerContext ctx) {
+        if (ctx.ageBounds() == null) return List.of();
+        var filters = SearchFilters.Builder.empty().learnerAge(ctx.ageBounds()[0], ctx.ageBounds()[1]).today(LocalDate.now(clock)).build();
+        List<Seed> seeds = new ArrayList<>();
+        for (Long id : meilisearchService.searchIds("", SEEDS_PER_SOURCE * 2, filters, null, null)) {
+            seeds.add(new Seed(id, RecommendationRules.INTEREST, "popular", "Khóa học được nhiều bạn cùng tuổi chọn: {title}", 10));
         }
         return seeds;
     }
@@ -391,7 +472,7 @@ public class RecommendationService {
     /** Records that a suggestion was shown or clicked. A view is kept once a day per learner, course and place. */
     public void record(User account, Long learnerId, Long itemId, String source, String context, String event) {
         learnerLoader.require(account, learnerId);
-        if (!RecommendationRules.validSource(source) || !RecommendationRules.validEvent(event) || itemId == null) {
+        if (!RecommendationRules.validEventSource(source) || !RecommendationRules.validEvent(event) || itemId == null) {
             throw new IllegalArgumentException("Dữ liệu gợi ý không hợp lệ");
         }
         String where = context == null || context.isBlank() ? "today" : context.trim();

@@ -1,19 +1,36 @@
+'use client'
+
 import Link from 'next/link'
+import { useAiSuggestFlow, type AiLearner } from '@/components/aisuggest/useAiSuggestFlow'
 import { BoltIcon, CalendarIcon, PinIcon } from '@/components/icons'
+import { useAuth } from '@/context/AuthContext'
 
 interface Props {
   childName?: string
+  // Chip of the chosen learner ('self' or 'c{childId}'); an account's AI suggestions are made for this learner.
+  chipKey?: string
   near: boolean
 }
 
+function aiLearnerOf(chipKey: string | undefined, name: string | undefined, userId: number | undefined): AiLearner | undefined {
+  if (chipKey === 'self' && userId) return { id: userId, name: 'Bạn', self: true }
+  const childId = chipKey?.startsWith('c') ? Number(chipKey.slice(1)) : NaN
+  return Number.isInteger(childId) && childId > 0 ? { id: childId, name: name ?? 'Bé', self: false } : undefined
+}
+
 // Invitation to /discover: says what the list is, so a parent knows why to open it.
-export default function DiscoverCard({ childName, near }: Props) {
+export default function DiscoverCard({ childName, chipKey, near }: Props) {
+  const { user } = useAuth()
   const who = childName ?? 'con'
-  const points = [
+  const { enabled: ai, busy, start, modal } = useAiSuggestFlow(aiLearnerOf(chipKey, childName, user?.id))
+  const points: { icon: React.ReactNode; text: string }[] = [
     { icon: <BoltIcon className="size-5" />, text: `Chọn theo tuổi của ${childName ?? 'bé'}, từ các khóa được nhiều phụ huynh quan tâm` },
     near ? { icon: <PinIcon className="size-5" />, text: 'Ưu tiên khóa gần nhà bạn' } : { icon: <PinIcon className="size-5" />, text: 'Lưu địa chỉ nhà trong tài khoản để thấy khóa gần bạn hơn' },
     { icon: <CalendarIcon className="size-5" />, text: 'Mỗi ngày một danh sách mới, mở lại trong ngày vẫn thấy đúng danh sách đó' },
   ]
+  if (ai) {
+    points.push({ icon: <span aria-hidden className="text-base leading-none">✨</span>, text: `Gợi ý từ AI: danh sách hôm nay do AI chọn riêng cho ${childName ?? 'bé'}` })
+  }
   return (
     <section className="pt-6 lg:pt-8">
       <div className="container">
@@ -31,7 +48,10 @@ export default function DiscoverCard({ childName, near }: Props) {
               </li>
             ))}
           </ul>
-          <Link href="/discover" className="btn btn--green shrink-0 justify-center">Khám phá hôm nay</Link>
+          {ai
+            ? <button type="button" onClick={start} disabled={busy} className="btn btn--green shrink-0 justify-center disabled:opacity-60">{busy ? 'Đang mở...' : 'Khám phá hôm nay'}</button>
+            : <Link href="/discover" className="btn btn--green shrink-0 justify-center">Khám phá hôm nay</Link>}
+          {modal}
         </div>
       </div>
     </section>

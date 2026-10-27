@@ -27,3 +27,8 @@ export async function getCollections(): Promise<CollectionCard[]> {
 export async function getCollection(slug: string): Promise<CollectionPage | null> {
   return apiFetch<CollectionPage>(`/collections/${encodeURIComponent(slug)}`)
 }
+
+// The collections (in season) that list this course, for the course page.
+export async function getCollectionsOfItem(itemId: number): Promise<CollectionCard[]> {
+  return (await apiFetch<CollectionCard[]>(`/collections?itemId=${itemId}`)) ?? []
+}

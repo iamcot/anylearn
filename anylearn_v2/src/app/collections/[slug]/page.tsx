@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getCollection } from '@/lib/api'
-import BackLink from '@/components/BackLink'
+import HistoryBackButton from '@/components/HistoryBackButton'
 import CourseCard from '@/components/CourseCard'
 
 interface Props {
@@ -25,7 +25,7 @@ export default async function CollectionPage({ params }: Props) {
 
   return (
     <div className="container py-6 lg:py-10">
-      <BackLink href="/">Trang chủ</BackLink>
+      <HistoryBackButton />
       <header className="mb-6 mt-3 overflow-hidden rounded-card border border-line bg-gradient-to-br from-blue to-green text-white">
         <div
           className="bg-cover bg-center px-6 py-8 lg:px-10 lg:py-12"

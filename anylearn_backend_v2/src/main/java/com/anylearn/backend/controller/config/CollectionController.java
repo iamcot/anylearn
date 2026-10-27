@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
@@ -18,8 +19,8 @@ public class CollectionController {
     private final CollectionService collectionService;
 
     @GetMapping
-    public ApiResponse<?> list() {
-        return ApiResponse.ok(collectionService.listPublic(LocalDate.now()));
+    public ApiResponse<?> list(@RequestParam(required = false) Long itemId) {
+        return ApiResponse.ok(itemId == null ? collectionService.listPublic(LocalDate.now()) : collectionService.listForItem(itemId, LocalDate.now()));
     }
 
     @GetMapping("/{slug}")

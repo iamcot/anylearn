@@ -8,12 +8,12 @@ const FALLBACK_BACKGROUNDS = [
 ]
 
 // Editorial lists as wide cards: a photo (or a colour) with the title on it. Opens /collections/{slug}.
-export default function CollectionsRow({ collections }: { collections: CollectionCard[] }) {
+export default function CollectionsRow({ collections, title = 'Bộ sưu tập' }: { collections: CollectionCard[]; title?: string }) {
   if (collections.length === 0) return null
   return (
     <section className="pt-6 lg:pt-8">
       <div className="container">
-        <h2 className="mb-3 mt-0 text-lg font-extrabold text-ink lg:text-2xl">Bộ sưu tập</h2>
+        <h2 className="mb-3 mt-0 text-lg font-extrabold text-ink lg:text-2xl">{title}</h2>
         <div className="flex gap-3 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:grid lg:grid-cols-3 lg:gap-5 lg:overflow-visible">
           {collections.map((collection, index) => (
             <Link
