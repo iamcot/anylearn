@@ -13,6 +13,8 @@ export interface CompareRow {
   icon: string
   /** Key into `best` when this row can show a clear best figure. */
   bestKey?: string
+  /** Keep the row even when no course has the information (it then reads "Chưa có thông tin"). */
+  alwaysShow?: boolean
   /** Text of the cell, or null when the course has no such information. */
   cell: (course: CompareCourse) => string | null
 }
@@ -51,7 +53,7 @@ export const COMPARE_ROWS: CompareRow[] = [
   { key: 'price', label: 'Học phí', icon: 'price', bestKey: 'price', cell: c => (c.price != null && c.price > 0 ? formatExactPrice(c.price) : null) },
   { key: 'sessions', label: 'Số buổi', icon: 'sessions', cell: c => (c.sessions != null ? `${c.sessions} buổi` : null) },
   { key: 'pricePerSession', label: 'Giá mỗi buổi', icon: 'perSession', bestKey: 'pricePerSession', cell: c => (c.pricePerSession != null ? `~${formatExactPrice(c.pricePerSession)}` : null) },
-  { key: 'classes', label: 'Ca học', icon: 'classes', cell: classesText },
+  { key: 'classes', label: 'Ca học / số buổi', icon: 'classes', alwaysShow: true, cell: classesText },
   { key: 'ages', label: 'Độ tuổi', icon: 'ages', cell: c => c.ages },
   { key: 'distanceKm', label: 'Khoảng cách', icon: 'distance', bestKey: 'distanceKm', cell: c => (c.distanceKm != null ? `${String(c.distanceKm).replace(".", ",")} km` + (c.branchCount > 1 ? ` (${c.branchCount} cơ sở)` : '') : null) },
   { key: 'rating', label: 'Đánh giá', icon: 'rating', cell: ratingText },
@@ -59,7 +61,7 @@ export const COMPARE_ROWS: CompareRow[] = [
   { key: 'points', label: 'anyPoint nhận về', icon: 'points', bestKey: 'points', cell: c => (c.isPaymentFee ? 'Không có' : pointsText(c.points, c.price)) },
 ]
 
-/** Rows where every course has no information (e.g. no position given for the distance) are left out of the table. */
+/** Rows where every course has no information (e.g. no position given for the distance) are left out, except the ones marked `alwaysShow`. */
 export function visibleRows(courses: CompareCourse[]): CompareRow[] {
-  return COMPARE_ROWS.filter(row => courses.some(course => row.cell(course) != null))
+  return COMPARE_ROWS.filter(row => row.alwaysShow || courses.some(course => row.cell(course) != null))
 }

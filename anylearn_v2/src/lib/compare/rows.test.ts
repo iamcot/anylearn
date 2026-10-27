@@ -16,6 +16,10 @@ describe('visibleRows', () => {
     expect(keys).not.toContain('rating')
     expect(keys).not.toContain('freeTrial')
   })
+  it('always keeps the class / session row, even when no course has the information', () => {
+    const none = { ...base, schedules: [], sessions: null }
+    expect(visibleRows([none, { ...none, id: 2 }]).map(row => row.key)).toContain('classes')
+  })
   it('keeps a row when one course has it', () => {
     const keys = visibleRows([base, { ...base, id: 2, distanceKm: 3.2 }]).map(row => row.key)
     expect(keys).toContain('distanceKm')
