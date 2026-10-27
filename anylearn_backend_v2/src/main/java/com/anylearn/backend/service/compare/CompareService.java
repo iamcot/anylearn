@@ -104,6 +104,7 @@ public class CompareService {
         col.put("ratingAverage", summary.get("average"));
         col.put("ratingCount", summary.get("count"));
         col.put("freeTrial", attributes.hasFreeTrial());
+        col.put("isPaymentFee", item.getIsPaymentfee() != null && item.getIsPaymentfee() == 1);
         col.put("points", pointsResolver.buyerPoints(item));
         return col;
     }

@@ -20,6 +20,10 @@ describe('visibleRows', () => {
     const keys = visibleRows([base, { ...base, id: 2, distanceKm: 3.2 }]).map(row => row.key)
     expect(keys).toContain('distanceKm')
   })
+  it('says a fee item earns no anyPoint instead of "no information"', () => {
+    const row = visibleRows([{ ...base, isPaymentFee: true }]).find(r => r.key === 'points')!
+    expect(row.cell({ ...base, isPaymentFee: true })).toBe('Không có')
+  })
   it('writes the rating with its count', () => {
     const row = visibleRows([{ ...base, ratingAverage: 4.5, ratingCount: 12 }]).find(r => r.key === 'rating')!
     expect(row.cell({ ...base, ratingAverage: 4.5, ratingCount: 12 })).toBe('4,5 sao từ 12 đánh giá')

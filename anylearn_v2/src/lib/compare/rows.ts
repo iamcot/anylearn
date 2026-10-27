@@ -56,7 +56,7 @@ export const COMPARE_ROWS: CompareRow[] = [
   { key: 'distanceKm', label: 'Khoảng cách', icon: 'distance', bestKey: 'distanceKm', cell: c => (c.distanceKm != null ? `${String(c.distanceKm).replace(".", ",")} km` + (c.branchCount > 1 ? ` (${c.branchCount} cơ sở)` : '') : null) },
   { key: 'rating', label: 'Đánh giá', icon: 'rating', cell: ratingText },
   { key: 'freeTrial', label: 'Học thử', icon: 'trial', cell: c => (c.freeTrial ? 'Có học thử' : null) },
-  { key: 'points', label: 'anyPoint nhận về', icon: 'points', bestKey: 'points', cell: c => pointsText(c.points, c.price) },
+  { key: 'points', label: 'anyPoint nhận về', icon: 'points', bestKey: 'points', cell: c => (c.isPaymentFee ? 'Không có' : pointsText(c.points, c.price)) },
 ]
 
 /** Rows where every course has no information (e.g. no position given for the distance) are left out of the table. */

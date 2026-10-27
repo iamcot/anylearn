@@ -21,6 +21,8 @@ export interface CompareCourse {
   ratingAverage: number | null
   ratingCount: number
   freeTrial: boolean
+  /** A fee item (tuition instalment): it earns no anyPoint, which is different from "no information". */
+  isPaymentFee?: boolean
   points: number
 }
 
