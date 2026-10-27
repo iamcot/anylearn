@@ -142,7 +142,7 @@ export default function CompareView() {
                 <Row key={row.key} label={row.label} icon={Icon ? <Icon className="size-4 shrink-0 text-green-dark" /> : null} bg={zebra(rowIndex)}>
                   {courses.map((course, index) => {
                     const text = row.cell(course)
-                    const isBest = row.bestKey != null && figures.best[row.bestKey] === index && text != null && text !== 'Không có'
+                    const isBest = row.bestKey != null && figures.best[row.bestKey] === index && text != null
                     return (
                       <div key={course.id} className={`whitespace-pre-line p-3 text-sm ${zebra(rowIndex)} ${isBest ? 'font-extrabold text-green-dark' : text ? 'text-ink' : 'text-muted'}`}>
                         {text ?? NO_INFO}
