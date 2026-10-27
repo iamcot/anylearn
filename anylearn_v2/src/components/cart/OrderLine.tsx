@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import ItemActivityChips from '@/components/ItemActivityChips'
 import { formatExactPrice } from '@/lib/format/price'
-import { BookIcon } from '@/components/icons'
+import { BookIcon, UserIcon } from '@/components/icons'
 
 export interface OrderLineItem {
   title: string
@@ -24,7 +24,6 @@ export default function OrderLine({ item, href, action }: Props) {
   const title = (
     <>
       {item.title}
-      {item.studentName && <span className="font-normal text-muted"> ({item.studentName})</span>}
     </>
   )
 
@@ -42,7 +41,13 @@ export default function OrderLine({ item, href, action }: Props) {
           ? <Link href={href} className="block text-[15px] font-extrabold leading-tight text-green-dark no-underline">{title}</Link>
           : <div className="text-[15px] font-extrabold leading-tight text-green-dark">{title}</div>
         }
-        {schedule && <div className="mt-0.5 text-xs text-blue">{schedule}</div>}
+        {item.studentName && (
+          <div className="mt-1.5 inline-flex items-center gap-1.5 rounded-full bg-green-soft px-2.5 py-0.5 text-xs text-green-dark">
+            <UserIcon className="size-3.5" />
+            <span>Học viên: <strong className="font-extrabold">{item.studentName}</strong></span>
+          </div>
+        )}
+        {schedule && <div className="mt-1 text-[13px] text-text">{schedule}</div>}
         <ItemActivityChips activities={item.activities} />
         <div className="mt-1 text-[15px] font-extrabold text-red sm:hidden">{formatExactPrice(item.price)}</div>
       </div>
