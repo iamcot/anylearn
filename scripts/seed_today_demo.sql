@@ -11,6 +11,9 @@ DELETE FROM recommendation_events WHERE learner_id IN (SELECT id FROM users WHER
 DELETE FROM recommendation_dismissals WHERE learner_id IN (SELECT id FROM users WHERE phone LIKE '0999000%');
 DELETE FROM pathway_steps WHERE pathway_id IN (SELECT id FROM pathways WHERE slug LIKE 'demo-%');
 DELETE FROM pathways WHERE slug LIKE 'demo-%';
+DELETE FROM collection_items WHERE collection_id IN (SELECT id FROM collections WHERE slug LIKE 'demo-%');
+DELETE FROM collections WHERE slug LIKE 'demo-%';
+DELETE FROM learner_interests WHERE learner_id IN (SELECT id FROM users WHERE phone LIKE '0999000%');
 DELETE FROM lifecycle_messages WHERE learner_id IN (SELECT id FROM users WHERE phone LIKE '0999000%');
 DELETE FROM enrollment_feedback WHERE learner_id IN (SELECT id FROM users WHERE phone LIKE '0999000%');
 DELETE FROM notifications WHERE user_id IN (SELECT id FROM users WHERE phone LIKE '0999000%');
@@ -189,3 +192,23 @@ SET @order2 = LAST_INSERT_ID();
 INSERT INTO order_details (order_id, user_id, item_id, unit_price, paid_price, quanity, status)
 VALUES (@order2, @bin, @guitar, 1800000, 1800000, 1, 'delivered');
 SELECT CONCAT('Demo paid order for the sibling suggestions: /order/', @order2, '?status=success') AS hint;
+
+-- Suggestions only show courses of live partners (active + approved contract, is_signed 99), so mark the two demo partners.
+UPDATE users SET is_signed = 99 WHERE id IN (@lan, @minh);
+
+-- Source "season": a collection in season with a new art course (ages 6-12, nobody owns it). Expect "Đang vào mùa: ..." for a child with a free slot.
+INSERT INTO items (title, type, subtype, user_id, status, user_status, is_test, price, date_start, cycle_type, cycle_amount, user_location_id, ages_min, ages_max)
+VALUES ('[DEMO] Hè vẽ tranh', 'class', 'offline', @minh, 1, 1, 1, 1500000, @today + INTERVAL 10 DAY, 'session', 8, @place, 6, 12);
+SET @art = LAST_INSERT_ID();
+INSERT INTO item_schedules (item_id, title, schedule_type, weekdays, date_start, time_start, time_end, location_note, user_location_id)
+VALUES (@art, 'Lớp sáng', 'recurring', @wd3, @today + INTERVAL 10 DAY, '09:00', '10:30', 'Phòng 101', @place);
+INSERT INTO collections (slug, title, subtitle, season_from, season_to, sort_order, is_active)
+VALUES ('demo-he-vui', '[DEMO] Hè vui', 'Khóa hè cho bé', @today - INTERVAL 5 DAY, @today + INTERVAL 60 DAY, 0, 1);
+INSERT INTO collection_items (collection_id, item_id, sort_order) VALUES (LAST_INSERT_ID(), @art, 0);
+
+-- Source "interest": Su likes art and english (survey of plan 01.5).
+INSERT INTO learner_interests (learner_id, tag, source) VALUES (@su, 'art', 'likes'), (@su, 'english', 'likes');
+
+-- To see a "Không quan tâm" effect: dismiss a card as the parent, it stays hidden 30 days. Reset:
+--   DELETE FROM recommendation_dismissals WHERE user_id = (SELECT id FROM users WHERE api_token = 'demo_parent_token');
+-- Meilisearch based sources (interest) need the courses indexed: POST /admin/reindex once after this seed.
