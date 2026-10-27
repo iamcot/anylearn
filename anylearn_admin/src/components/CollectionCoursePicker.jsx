@@ -122,6 +122,14 @@ export default function CollectionCoursePicker({ addedIds, onAdd }) {
           </Space>
           <Table
             size="small" rowKey="id" loading={isFetching} dataSource={items} columns={columns}
+            onRow={(record) => ({
+              // A click anywhere on the row ticks it (the checkbox and links keep their own behavior).
+              onClick: (event) => {
+                if (addedIds.includes(record.id) || event.target.closest('.ant-checkbox-wrapper, a, button')) return
+                setSelected(current => (current.includes(record.id) ? current.filter(id => id !== record.id) : [...current, record.id]))
+              },
+              style: addedIds.includes(record.id) ? undefined : { cursor: 'pointer' },
+            })}
             rowSelection={{ selectedRowKeys: selected, onChange: setSelected, getCheckboxProps: r => ({ disabled: addedIds.includes(r.id) }) }}
             pagination={{ current: page + 1, pageSize: PAGE_SIZE, total: data?.total ?? 0, showSizeChanger: false, onChange: p => setPage(p - 1) }}
           />
