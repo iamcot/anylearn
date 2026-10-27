@@ -36,6 +36,7 @@ public class ItemController {
     private final ItemRepository itemRepository;
     private final S3Service s3Service;
     private final ItemTrackingService itemTrackingService;
+    private final com.anylearn.backend.service.itemview.ItemViewService itemViewService;
     private final ItemUserActionRepository itemUserActionRepository;
     private final OrderDetailRepository orderDetailRepository;
     private final MeilisearchService meilisearchService;
@@ -47,8 +48,18 @@ public class ItemController {
     @GetMapping("/pdp/{id}")
     public ApiResponse<?> pdp(@PathVariable Long id,
                                @AuthenticationPrincipal User currentUser) {
-        itemTrackingService.record(id, currentUser != null ? currentUser.getId() : null, "view");
+        // The view is counted by POST /item/{id}/view, called once by the page in the browser: the server render
+        // fetches this endpoint twice (metadata + page) and has no token, so counting here doubled every view.
         return ApiResponse.ok(itemService.pdpData(id, currentUser));
+    }
+
+    /** A course page was opened in the browser (once per open, called by the page). Counts the view for everyone; signed-in people also get their per-day row. */
+    @PostMapping("/item/{id}/view")
+    public ApiResponse<?> viewed(@PathVariable Long id, @AuthenticationPrincipal User currentUser) {
+        Long userId = currentUser != null ? currentUser.getId() : null;
+        itemTrackingService.record(id, userId, "view");
+        itemViewService.record(userId, id);
+        return ApiResponse.ok("OK");
     }
 
     @GetMapping("/item/{itemId}/reviews")

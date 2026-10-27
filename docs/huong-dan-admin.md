@@ -447,3 +447,17 @@ Khách thấy danh sách các cách thanh toán ở trang thanh toán và khi th
 - **Luật:** phương thức chỉ hiện khi đang bật và tổng tiền các khóa trong giỏ (trước khi trừ mã giảm giá và anyPoint) nằm trong khoảng Từ đơn – Đến đơn; "Đến đơn" = 0 là không giới hạn. Mặc định: Trả góp 0% từ 3.000.000đ; MoMo từ 1.000đ đến 50.000.000đ; còn lại không giới hạn. Phải bật ít nhất một phương thức.
 - **Tắt rồi thì sao:** khách không chọn được, và hệ thống từ chối cả khi ai đó cố gửi phương thức đã tắt. Đơn cũ đã chọn phương thức đó vẫn xử lý bình thường.
 - **Sau khi đổi:** có hiệu lực ngay, không cần làm gì thêm.
+
+### Hạn dùng anyPoint
+
+Điểm của thành viên mua khóa học có hạn dùng; điểm của đối tác không bao giờ hết hạn. Khách đọc giải thích ở trang `/info/anypoint-expiry` và thấy dòng "X anyPoint dùng được đến hết ngày …" dưới số dư ở Tài khoản > anyPoint.
+
+- **Nhập ở đâu:** Cài đặt > Vận hành > nhóm "Hạn dùng anyPoint": công tắc **Bật hạn dùng**, **Hạn dùng (tháng)** (mặc định 12), **Bắt đầu tính hạn từ ngày** (mặc định 01/01/2027).
+- **Luật:** mỗi lần nhận điểm là một phần riêng, hết hạn sau số tháng kể từ ngày nhận; điểm nhận trước ngày bắt đầu cũng tính từ ngày bắt đầu. Với mặc định, sớm nhất đến 01/01/2028 mới có điểm bị xóa (dùng được đến hết 31/12/2027). Khi thanh toán, hệ thống dùng phần điểm sắp hết hạn trước. Điểm đơn bị hủy hoàn lại được tính là phần mới.
+- **Hằng ngày lúc 00:10:** điểm quá hạn bị xóa (xuất hiện dòng "anyPoint hết hạn" trong lịch sử, thành viên nhận thông báo); thành viên được nhắc trước 30 ngày và 7 ngày (thông báo trong app + push, tắt được ở Tài khoản > Thông báo > "Nhắc anyPoint sắp hết hạn").
+- **Sau khi đổi:** có hiệu lực ngay cho cả điểm đang có (đổi số tháng hoặc ngày bắt đầu là đổi hạn của mọi phần điểm). Tắt công tắc thì ngừng xóa và ngừng nhắc, điểm không bị mất. Điểm đã bị xóa không tự khôi phục: cần cộng bù tay.
+
+### Lượt mở trang khóa học theo người dùng
+
+Hệ thống ghi mỗi người đã đăng nhập mở khóa nào, gộp theo ngày (một dòng cho mỗi người, khóa và ngày), giữ 60 ngày rồi tự xóa. Gợi ý AI dùng 5 khóa vừa xem trong 30 ngày làm một tín hiệu. Không có gì phải nhập hay cấu hình.
+

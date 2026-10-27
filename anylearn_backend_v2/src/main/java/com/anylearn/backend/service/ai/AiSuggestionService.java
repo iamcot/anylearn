@@ -51,6 +51,7 @@ public class AiSuggestionService {
     private final RecommendationSettings settings;
     private final ItemRepository itemRepository;
     private final LearnerLoader learnerLoader;
+    private final com.anylearn.backend.service.itemview.ItemViewService itemViewService;
     private final Clock clock;
 
     private final Map<Long, Object> locks = new ConcurrentHashMap<>();
@@ -192,6 +193,7 @@ public class AiSuggestionService {
         appendSignal(text, who + "đang để trong giỏ", jdbc.queryForList("""
                 SELECT i.title FROM item_user_actions a JOIN items i ON i.id = a.item_id
                 WHERE a.user_id = ? AND a.type = 'cart' ORDER BY a.id DESC LIMIT 5""", String.class, accountId), 60);
+        appendSignal(text, who + "vừa xem khóa", itemViewService.recentTitles(accountId, 30, 5), 60);
         appendSignal(text, who + "đang theo dõi đối tác", jdbc.queryForList("""
                 SELECT u.name FROM follows f JOIN users u ON u.id = f.partner_id
                 WHERE f.user_id = ? ORDER BY f.created_at DESC LIMIT 5""", String.class, accountId), 50);

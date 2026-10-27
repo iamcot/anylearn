@@ -17,6 +17,7 @@ const FIXED_REASONS: Record<string, string> = {
   activitybonus: 'Thưởng hoạt động',
   review_reward: 'Thưởng viết đánh giá',
   renew_bonus: 'Thưởng gia hạn sớm',
+  points_expired: 'anyPoint hết hạn',
   review_reward_revoke: 'Thu hồi anyPoint thưởng đánh giá',
 }
 

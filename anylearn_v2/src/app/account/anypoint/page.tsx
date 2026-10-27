@@ -12,6 +12,8 @@ import { formatPoints } from '@/lib/points/reward'
 import { POINT_VALUE_VND } from '@/config/points'
 import { formatExactPrice } from '@/lib/format/price'
 import { describeTransaction, sumPendingPoints, type HistoryTone } from '@/lib/points/history'
+import { getMyPointExpiry } from '@/lib/api/pointsExpiry'
+import { expiryLine, type MyPointExpiry } from '@/lib/points/expiry'
 import Link from 'next/link'
 
 const AMOUNT_CLASS: Record<HistoryTone, string> = { earn: 'text-green-dark', spend: 'text-red', neutral: 'text-ink' }
@@ -26,15 +28,18 @@ export default function AnypointPage() {
   const { user, token, refreshUser } = useAuth()
   const [history, setHistory] = useState<WalletTransaction[]>([])
   const [loading, setLoading] = useState(true)
+  const [expiry, setExpiry] = useState<MyPointExpiry | null>(null)
 
   useEffect(() => {
     if (!token) return
     getWalletCHistory(token).then(data => { setHistory(data); setLoading(false) })
+    getMyPointExpiry(token).then(setExpiry)
     refreshUser()
   }, [token, refreshUser])
 
   const totalPending = sumPendingPoints(history)
   const balance = user?.walletC ?? 0
+  const expiryText = expiryLine(expiry)
 
   return (
     <AccountCard title="anyPoint" subtitle="anyPoint tích lũy từ các hoạt động trên anyLEARN">
@@ -48,6 +53,10 @@ export default function AnypointPage() {
               <span className="ml-1 text-base font-bold text-muted">anyPoint</span>
             </div>
             <div className="mt-1 text-sm text-muted">~ {formatExactPrice(balance * POINT_VALUE_VND)} giảm cho khóa học tiếp theo</div>
+            {expiryText && <div className="mt-1 text-sm font-bold text-warn-text">{expiryText}</div>}
+            {expiry?.applies && (
+              <Link href="/info/anypoint-expiry" className="mt-1 inline-block text-xs font-medium text-green-dark">Hạn dùng anyPoint tính thế nào?</Link>
+            )}
           </div>
           {totalPending > 0 && (
             <div>

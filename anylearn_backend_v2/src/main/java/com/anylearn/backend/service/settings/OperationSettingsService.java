@@ -3,6 +3,7 @@ package com.anylearn.backend.service.settings;
 import com.anylearn.backend.entity.Configuration;
 import com.anylearn.backend.repository.ConfigurationRepository;
 import com.anylearn.backend.service.lifecycle.LifecycleSettings;
+import com.anylearn.backend.service.points.expiry.PointExpirySettings;
 import com.anylearn.backend.service.recommend.RecommendationSettings;
 import com.anylearn.backend.service.order.OrderFollowUpSettings;
 import com.anylearn.backend.service.reviews.ReviewRewardRules;
@@ -33,6 +34,7 @@ public class OperationSettingsService {
     private final ReviewSettings reviewSettings;
     private final LifecycleSettings lifecycleSettings;
     private final RecommendationSettings recommendationSettings;
+    private final PointExpirySettings pointExpirySettings;
 
     public int nearRadiusKm() {
         return SettingsRules.nearRadiusKm(configurationRepository.findByKey(KEY_NEAR_RADIUS_KM).map(Configuration::getValue).orElse(null));
@@ -50,6 +52,7 @@ public class OperationSettingsService {
         map.put("reviewTopRatedDays", reviewSettings.topRatedDays());
         map.putAll(lifecycleSettings.current());
         map.putAll(recommendationSettings.current());
+        map.putAll(pointExpirySettings.current());
         return map;
     }
 
@@ -91,6 +94,9 @@ public class OperationSettingsService {
         if (lifecycleProblem != null) return lifecycleProblem;
         String recommendProblem = recommendationSettings.save(body);
         if (recommendProblem != null) return recommendProblem;
+        String expiryProblem = pointExpirySettings.problem(body);
+        if (expiryProblem != null) return expiryProblem;
+        pointExpirySettings.save(body);
         if (body.containsKey("nearRadiusKm")) write(KEY_NEAR_RADIUS_KM, String.valueOf(radius));
         if (body.containsKey("remindHours")) write(OrderFollowUpSettings.KEY_REMIND_HOURS, remind.stream().map(String::valueOf).collect(Collectors.joining(",")));
         if (body.containsKey("autoCancelHours")) write(OrderFollowUpSettings.KEY_AUTO_CANCEL_HOURS, String.valueOf(cancelHours));

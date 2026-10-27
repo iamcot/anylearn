@@ -71,3 +71,14 @@ Authorization: Bearer {{$dotenv JWT_TOKEN}}
 
 ### Random list for the day ("Thử điều mới cho con")
 GET {{baseUrl}}/discover?ageFrom=8&ageTo=9&seed=c7
+
+### anyPoint expiry rule (public) and the signed-in member's own schedule
+GET {{baseUrl}}/points/expiry-policy
+
+###
+GET {{baseUrl}}/points/expiry
+Authorization: Bearer {{$dotenv JWT_TOKEN}}
+
+### The signed-in person opened a course page
+POST {{baseUrl}}/item/1/view
+Authorization: Bearer {{$dotenv JWT_TOKEN}}

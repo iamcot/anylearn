@@ -1,3 +1,4 @@
+import { cache } from 'react'
 import { API_BASE } from '@/lib/apiBase'
 import { Article } from './articles'
 import { ItemSchedule } from './cart'
@@ -176,7 +177,9 @@ export interface PdpData {
   enrolled_count?: number
 }
 
-export async function getPdpData(id: number): Promise<PdpData | null> {
+export const getPdpData = cache(getPdpDataUncached)
+
+async function getPdpDataUncached(id: number): Promise<PdpData | null> {
   // no-store: PDP has personalized data (is_fav, has_purchased) and engagement counts
   // that must be fresh on every load. ISR would show stale fav counts and ratings.
   try {

@@ -10,6 +10,7 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | Ngày | Quyết định |
 |---|---|
 | 25/10/2026 | Cam kết giá bằng hoặc rẻ hơn tại trường (đã deal với đối tác) → được nói công khai (plan 10.1). |
+| 27/10/2026 | Hạn dùng anyPoint tạm đặt 12 tháng, bắt đầu tính từ 01/01/2027 (sớm nhất 01/01/2028 mới xóa điểm); sửa được trong admin (plan 02.5). |
 | 25/10/2026 | Thử hạn anyPoint, chỉ cho thành viên mua hàng (`role = 'member'`); điểm của đối tác không hết hạn vì là tiền trả đối tác (plan 02.5). |
 | 25/10/2026 | Làm thêm cộng đồng: review (plan 09) và nhóm chat người cùng lớp (plan 11). |
 | 25/10/2026 | Khách chưa đăng nhập: hỏi tìm cho con hay bản thân, lưu tên/biệt danh + năm sinh vào `localStorage`, khi đăng ký tự tạo tài khoản con và chọn bé (plan 04.7). |
@@ -27,7 +28,6 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 - [ ] Bảng `class_plans`, `social_posts`, `i18n_contents`, `participations` chưa rõ còn dùng không: tạm giữ (plan 03.2d).
 
 - [ ] VNPay: luật "giảm 1%" và "trên 100 triệu" là gì? Backend không áp dụng cả hai, nên chữ đã bỏ khỏi checkout (plan 12.5).
-- [ ] Thời hạn điểm (gợi ý 12 tháng) và ngày bắt đầu áp dụng (plan 02.5).
 - [ ] Điểm từ đơn dùng được ngay hay sau khi lớp bắt đầu (plan 02).
 - [ ] Câu chữ chính sách hoàn tiền trong "Lời hứa anyLEARN" (plan 10.1).
 - [ ] Hệ số điểm theo hạng thành viên có chấp nhận chi phí không (plan 10.2).
@@ -106,8 +106,8 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 06.3 | Đơn hàng chia tab | done | Tab đã có từ 05; thêm lọc theo người học (`?child=ID` + ô chọn); đếm ngược 05.4 chưa làm |
 | 06.4 | Cài đặt thông báo | done | Bảng `user_notification_prefs` (V36), 5 nhóm × app/email/zalo, mặc định bật; chặn trong `NotificationService` (chuông, push, email, thông báo hẹn giờ). Kênh zalo chỉ lưu lựa chọn, ZNS chưa gửi theo bảng này; chat lớp (plan 11) chưa có |
 | 06.5 | Ưu đãi gom một chỗ | todo | |
-| 02.5 | Hạn điểm cho member (lô điểm) | todo | Chờ chốt thời hạn |
-| 02.6 | Nhắc điểm sắp hết hạn | todo | |
+| 02.5 | Hạn điểm cho member (lô điểm) | done | 28/10/2026 chủ sản phẩm chốt 12 tháng, tính từ 01/01/2027 (sớm nhất 01/01/2028 mới xóa). V42 `point_lots` (lô mở = số dư member hiện có), mọi cộng/trừ `wallet_c` qua `WalletService` cập nhật lô (trừ lô cũ nhất trước), job 00:10 xóa điểm quá hạn (transaction `points_expired`). Thời hạn, ngày bắt đầu, công tắc sửa ở Cài đặt > Vận hành. Trang giải thích `/info/anypoint-expiry`. Điểm đơn hủy hoàn lại thành lô mới |
+| 02.6 | Nhắc điểm sắp hết hạn | done | Nhắc 30 và 7 ngày trước (thông báo + push, nhóm tắt được "points"); dòng hạn ở /account/anypoint. Chưa làm: ZNS (chờ template), gợi ý 2–3 khóa kèm nhắc, nhắc khi có điểm mà giỏ không dùng |
 | 09.4 | Đối tác trả lời + báo cáo review | done | Đối tác trả lời ngay trên trang khóa học; nút "Báo cáo" (V34 `review_reports`), admin lọc "Đối tác báo cáo", Giữ/Ẩn, số đỏ trên menu |
 | 09.5 | Nhắc viết review | done | Nhắc ở nửa khóa và khi hết khóa (mỗi mốc 1 lần), quét mỗi giờ; thẻ "Khóa học chờ đánh giá" đã có ở "Cần làm ngay" (plan 06.1) |
 | 09.6 | Thưởng điểm review | done | 20 anyPoint cho nhận xét từ 50 ký tự + 20 khi có ảnh (chỉnh được, mặc định do mình chọn, chờ chủ sản phẩm xác nhận); thu hồi khi ẩn/xóa; chưa dùng `point_lots` (chờ 02.5) |
@@ -506,3 +506,8 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 - Khối "Thử điều mới cho {bé}" ở trang chủ dùng thẳng AI (thêm dòng "Gợi ý từ AI"), bỏ thẻ riêng ở trang chủ; trang AI có nút "Về trang chủ".
 - AI trả sai format làm bị gọi lại nhiều lần: đổi sang tool call bắt buộc, prompt mềm hơn, giải mã `&amp;` trong tên khóa, tối đa 4 khóa mỗi đối tác trong danh sách gửi; câu trả lời không dùng được thì lưu danh sách theo luật cho cả ngày (V41 `status`), có token và có nút 👍/👎.
 - Admin: "Lượt mở danh sách", "Lượt xem khóa (bấm từ danh sách)", tỷ lệ danh sách có bấm; hiện số lần AI lỗi.
+
+### 27/10/2026 – hạn dùng anyPoint (02.5/02.6) và lượt xem khóa theo người dùng
+- Hạn dùng anyPoint: bảng `point_lots` + `point_expiry_reminders` (V42), `service/points/expiry/*`, cài đặt `points/expiry_*`. Mặc định bật, 12 tháng, từ 01/01/2027: trước 01/01/2028 job không xóa gì. Có test cho luật (`PointExpiryRulesTest`), ví (`WalletServicePointLotsTest`) và job (`PointExpiryServiceTest`).
+- Lượt mở PDP theo người dùng: bảng `item_view_days` (V42; một dòng cho mỗi người, khóa, ngày; giữ 60 ngày, dọn lúc 03:30), FE gọi `POST /api/item/{id}/view` khi đã đăng nhập. 5 khóa vừa xem trong 30 ngày được thêm vào prompt gợi ý AI. Lượt xem từ danh sách AI trong admin không đổi. Bảng `item_events` cũ (mỗi lượt một dòng, cả khách) vẫn giữ cho điểm phổ biến.
+
