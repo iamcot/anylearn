@@ -3,10 +3,19 @@ package com.anylearn.backend.controller.fun;
 import com.anylearn.backend.dto.response.ApiResponse;
 import com.anylearn.backend.entity.User;
 import com.anylearn.backend.service.fun.CheckinService;
+import com.anylearn.backend.service.fun.FunRules;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import com.anylearn.backend.service.NotificationService;
+import com.anylearn.backend.service.sticker.RiskService;
+import com.anylearn.backend.service.sticker.StickerService;
+import com.anylearn.backend.service.sticker.WelcomePackService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -14,9 +23,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/fun")
 @RequiredArgsConstructor
+@lombok.extern.slf4j.Slf4j
 public class FunController {
 
     private final CheckinService checkinService;
+    private final RiskService riskService;
+    private final StickerService stickerService;
+    private final WelcomePackService welcomePackService;
+    private final NotificationService notificationService;
 
     @GetMapping("/checkin")
     public ApiResponse<?> checkin(@AuthenticationPrincipal User user) {
@@ -28,9 +42,38 @@ public class FunController {
     public ApiResponse<?> claim(@AuthenticationPrincipal User user) {
         if (user == null) return ApiResponse.fail("Unauthorized");
         try {
-            return ApiResponse.ok(checkinService.claim(user.getId()));
+            Map<String, Object> result = new LinkedHashMap<>(checkinService.claim(user.getId()));
+            if (Boolean.FALSE.equals(result.get("alreadyClaimed"))) result.put("sticker", stickerAfterClaim(user.getId(), result));
+            return ApiResponse.ok(result);
         } catch (IllegalStateException e) {
             return ApiResponse.fail(e.getMessage());
         }
+    }
+
+    /** Sticker part of a claim, outside the claim's transaction: it can never undo the points. */
+    private Map<String, Object> stickerAfterClaim(Long userId, Map<String, Object> result) {
+        try {
+            boolean lastDay = Integer.valueOf(FunRules.CYCLE).equals(result.get("dayInCycle"));
+            Map<String, Object> sticker = stickerService.dropForCheckin(userId, lastDay);
+            welcomePackService.onCheckin(userId);
+            if (sticker != null) {
+                notificationService.createNotification(userId, "sticker_drop", "Bạn nhận được sticker mới",
+                        "Sticker " + sticker.get("name") + " vừa vào album của bạn.", "/today/fun/sticker");
+            }
+            return sticker;
+        } catch (Exception e) {
+            log.warn("[checkin] sticker part failed for user {}: {}", userId, e.getMessage());
+            return null;
+        }
+    }
+
+    /** The app sends a random id of the browser once per session; it only feeds the sticker risk score. */
+    @PostMapping("/device")
+    public ApiResponse<?> device(@AuthenticationPrincipal User user, @RequestBody Map<String, Object> body, HttpServletRequest request) {
+        if (user == null) return ApiResponse.fail("Unauthorized");
+        String forwarded = request.getHeader("X-Forwarded-For");
+        String ip = forwarded != null && !forwarded.isBlank() ? forwarded.split(",")[0].trim() : request.getRemoteAddr();
+        riskService.recordDevice(user.getId(), body.get("deviceId") instanceof String s ? s : null, ip);
+        return ApiResponse.ok(Map.of("ok", true));
     }
 }

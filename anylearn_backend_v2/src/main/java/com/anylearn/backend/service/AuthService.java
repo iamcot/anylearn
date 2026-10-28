@@ -25,6 +25,9 @@ public class AuthService {
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private EmailTemplateService emailTemplateService;
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.anylearn.backend.service.sticker.WelcomePackService welcomePackService;
+
     public LoginResponse login(String phone, String password) {
         User user = userRepository.findByPhone(phone)
                 .orElseThrow(() -> new IllegalArgumentException("Thông tin xác thực không hợp lệ"));
@@ -70,6 +73,7 @@ public class AuthService {
 
         userRepository.save(user);
         if (referrer != null) referralService.record(referrer, user, game);
+        if (referrer != null && welcomePackService != null) welcomePackService.start(referrer, user);
         if (emailTemplateService != null && !user.getEmail().isBlank()) {
             try {
                 emailTemplateService.sendToUser(user.getId(), "email-user_register", "Chào mừng bạn đến với anyLEARN",
