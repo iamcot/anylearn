@@ -16,6 +16,7 @@ import Stickers from './pages/Stickers'
 import FunCoins from './pages/FunCoins'
 import QuizGame from './pages/QuizGame'
 import Achievements from './pages/Achievements'
+import Explore from './pages/Explore'
 import ChatModeration from './pages/ChatModeration'
 import Membership from './pages/Membership'
 import Tags from './pages/Tags'
@@ -113,6 +114,7 @@ export default function App() {
                   <Route path="fun-coins" element={<FunCoins />} />
                   <Route path="quiz-game" element={<QuizGame />} />
                   <Route path="achievements" element={<Achievements />} />
+                  <Route path="explore" element={<Explore />} />
                   <Route path="chat" element={<ChatModeration />} />
                   <Route path="membership" element={<Membership />} />
                   <Route path="tags" element={<Tags />} />

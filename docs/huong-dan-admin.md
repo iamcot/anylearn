@@ -580,3 +580,13 @@ Menu "Vui học" > "Sự kiện game" > nút "Banner thành tích". Khi người
 - Trang Vui học chỉ hiện số dư Leo Xu; bấm vào thẻ ví để xem **lịch sử có phân trang** (20 dòng một trang).
 - Sticker rơi (điểm danh, lên hạng, tổng kết) **chọn bộ đều nhau trước**, rồi mới chọn sticker trong bộ theo tỉ lệ rơi, nên nhiều bộ vẫn được phát đều.
 - Nếu bạn sửa trực tiếp bảng cấp sticker trong cơ sở dữ liệu, album của người chơi tự cân lại số bản khi họ mở trang Sticker. Nút đổi chỉ hiện khi người chơi có **sticker trùng**.
+
+### Vui học: Khám phá
+
+Menu "Vui học" > "Sự kiện game" > nút "Khám phá" (số đỏ = bình luận bị báo cáo chờ xử lý). Người chơi vào Vui học > Khám phá để lướt từng bài toàn màn hình, thích, bình luận, chia sẻ; nút ✕ trên cùng để quay về.
+
+- **Bài viết**: bấm "+ Bài mới". Có 3 loại: **bài viết** (chỉ chữ), **hình ảnh** (tải hình lên hoặc dán đường dẫn https) và **clip** (dán đường dẫn YouTube hoặc file mp4; hình đại diện không bắt buộc). Có thể **gắn một khóa học** (nhập mã khóa học) để người xem bấm "Xem khóa học". Bài mới ở **Nháp**; chọn **Đang hiện** để người chơi thấy, **Ẩn** để gỡ mà không xóa. **Ghim** đưa bài lên đầu. Bài xếp theo ghim rồi mới nhất.
+- **Số liệu** trên đầu trang và từng dòng: lượt xem (mỗi người một lần mỗi lần mở), thích, chia sẻ, bình luận.
+- **Bình luận**: mặc định xem tab "Bị báo cáo" (kèm lý do). **Ẩn** bình luận sẽ đóng các báo cáo của nó; **Giữ lại** đóng báo cáo và giữ bình luận; **Khóa bình luận người này** chặn người đó viết tiếp (mở khóa cùng nút đó). Người viết chỉ hiện hai từ cuối của tên.
+- **Cấu hình**: bật / tắt cả Khám phá, bật / tắt riêng bình luận, số bình luận tối đa mỗi phút (mặc định 5) và danh sách từ bị chặn (không phân biệt dấu, hoa thường).
+- Liên kết chia sẻ một bài mở trình lướt đúng bài đó, người nhận cần đăng nhập.

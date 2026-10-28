@@ -69,3 +69,25 @@ GET {{baseUrl}}/achievements/abcdefghjkmn
 ### Count a share press (owner only)
 POST {{baseUrl}}/achievements/abcdefghjkmn/share
 Authorization: Bearer {{jwtToken}}
+
+### Khám phá: feed, like, comment, report
+GET {{baseUrl}}/explore?page=1&size=10
+Authorization: Bearer {{jwtToken}}
+
+###
+POST {{baseUrl}}/explore/1/like
+Authorization: Bearer {{jwtToken}}
+
+###
+POST {{baseUrl}}/explore/1/comments
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{"body": "Mẹo hay quá!"}
+
+###
+POST {{baseUrl}}/explore/comments/1/report
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{"reason": "Quảng cáo"}

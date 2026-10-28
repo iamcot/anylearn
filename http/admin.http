@@ -428,3 +428,14 @@ Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
 Content-Type: application/json
 
 {"enabled": true, "types": {"rankup": true, "streak": true, "board": true, "sticker_set": true}, "streakDays": "7,14,30,60,100"}
+
+### Khám phá: create a post, comments to review (plan 14, phase 7)
+POST {{baseUrl}}/../admin/explore/posts
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+Content-Type: application/json
+
+{"kind": "video", "title": "Mẹo cho bé học bài", "body": "Clip ngắn", "mediaUrl": "https://youtu.be/abcDEF12345", "status": "published", "pinned": false}
+
+###
+GET {{baseUrl}}/../admin/explore/comments?filter=reported
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}

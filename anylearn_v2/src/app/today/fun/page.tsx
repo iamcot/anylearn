@@ -72,11 +72,11 @@ export default function FunPage() {
         <span aria-hidden className="text-muted">›</span>
       </Link>
 
-      <div className="mt-4 flex items-center gap-3 rounded-2xl border border-line bg-white p-3 opacity-80" aria-disabled="true">
+      <Link href="/today/fun/explore" className="mt-4 flex items-center gap-3 rounded-2xl border border-line bg-white p-3 text-ink no-underline">
         <img src="/fun/leo_discovery.png" alt="" className="size-16 shrink-0 rounded-xl object-contain" />
         <div className="min-w-0 flex-1"><div className="font-bold">Khám phá</div><div className="text-sm text-muted">Mẹo nuôi dạy con, clip và hình ảnh vui</div></div>
-        <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-muted">Sắp ra mắt</span>
-      </div>
+        <span aria-hidden className="text-muted">›</span>
+      </Link>
     </div>
   )
 }
