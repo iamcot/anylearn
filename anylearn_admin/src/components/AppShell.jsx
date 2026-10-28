@@ -67,7 +67,7 @@ const BADGE_FIELDS = {
   '/price-reports': 'priceReports',
   '/chat': 'chatReports',
   '/fun-events': ['stickerReview', 'quizFlagged'],
-  '/explore': 'exploreReports',
+  '/explore': ['exploreReports', 'explorePending'],
 }
 
 function withBadges(groups, counts) {
