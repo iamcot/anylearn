@@ -177,7 +177,8 @@ public class VideoCourseAdminService {
         }
         Map<String, Object> before = requireLesson(itemId, lessonId);
         // a video lesson keeps the length Bunny reported; the admin types it only for links and texts
-        Integer keepDuration = "video".equals(type) && before.get("durationSeconds") instanceof Number n ? n.intValue() : duration;
+        Integer keepDuration = duration;
+        if ("video".equals(type) && before.get("durationSeconds") instanceof Number n) keepDuration = n.intValue();
         jdbc.update("UPDATE item_video_lessons SET item_video_chapter_id = ?, title = ?, description = ?, status = COALESCE(?, status), is_free = COALESCE(?, is_free), " +
                         "type = ?, type_value = ?, poster_url = ?, attachments = ?, duration_seconds = ?, updated_at = NOW() WHERE id = ?",
                 d.chapterId(), title, description, d.visible() == null ? null : (d.visible() ? 1 : 0), d.free() == null ? null : (d.free() ? 1 : 0),

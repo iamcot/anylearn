@@ -57,6 +57,19 @@ class VideoCourseFlowTest {
     }
 
     @Test
+    void editingALessonWithoutALengthDoesNotFail() {
+        long item = course();
+        long ch = admin.saveChapter(item, null, "Chương 1", null, null);
+        // a video lesson created before any upload has no length yet; saving it again used to throw a NullPointerException
+        long v = admin.saveLesson(item, null, new VideoCourseAdminService.LessonDraft(ch, "Bài video", "Mô tả", "video", null, true, null, null, null, null));
+        admin.saveLesson(item, v, new VideoCourseAdminService.LessonDraft(ch, "Bài video (sửa)", "Mô tả mới", "video", null, false, null, null, null, null));
+        long l = admin.saveLesson(item, null, new VideoCourseAdminService.LessonDraft(ch, "Bài link", null, "link", "https://youtu.be/abcdefghijk", true, null, null, null, null));
+        admin.saveLesson(item, l, new VideoCourseAdminService.LessonDraft(ch, "Bài link (sửa)", null, "link", "https://youtu.be/abcdefghijk", true, null, null, null, null));
+        assertEquals("Bài link (sửa)", jdbc.queryForObject("SELECT title FROM item_video_lessons WHERE id = ?", String.class, l));
+        assertNull(jdbc.queryForObject("SELECT duration_seconds FROM item_video_lessons WHERE id = ?", Integer.class, v));
+    }
+
+    @Test
     void migrationLeavesTheTablesUsable() {
         assertEquals(0, (long) jdbc.queryForObject("SELECT COUNT(*) FROM video_study_plans", Long.class));
         assertNotNull(jdbc.queryForList("SHOW COLUMNS FROM item_video_lesson_user_links LIKE 'learner_id'"));
