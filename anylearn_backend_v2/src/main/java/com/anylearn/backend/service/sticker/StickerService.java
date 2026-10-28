@@ -124,7 +124,7 @@ public class StickerService {
     /** The album of one person: every active sticker (and any inactive one they hold) with the copies and what can be traded. */
     public Map<String, Object> album(long userId) {
         Map<Long, Integer> owned = new HashMap<>();
-        jdbc.query("SELECT sticker_id, qty FROM user_stickers WHERE user_id = ?", rs -> { owned.put(rs.getLong("sticker_id"), rs.getInt("qty")); });
+        jdbc.query("SELECT sticker_id, qty FROM user_stickers WHERE user_id = ?", rs -> { owned.put(rs.getLong("sticker_id"), rs.getInt("qty")); }, userId);
         Map<Long, Integer> locked = new HashMap<>();
         jdbc.query("SELECT sticker_id, COUNT(*) AS n FROM sticker_grants WHERE user_id = ? AND revoked = 0 AND locked_until > ? GROUP BY sticker_id",
                 rs -> { locked.put(rs.getLong("sticker_id"), rs.getInt("n")); }, userId, Timestamp.valueOf(now()));
