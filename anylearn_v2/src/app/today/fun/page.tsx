@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { getCheckin, type CheckinStatus } from '@/lib/api/fun'
 import FunScene from '@/components/fun/FunScene'
@@ -15,15 +14,11 @@ const COMING = [
 ]
 
 export default function FunPage() {
-  const router = useRouter()
-  const { user, token, isAuthLoading } = useAuth()
+  const { token } = useAuth()
   const [status, setStatus] = useState<CheckinStatus | null>(null)
   const [error, setError] = useState('')
   const [reminder, setReminder] = useState<string | null>(null)
 
-  useEffect(() => {
-    if (!isAuthLoading && !user) router.replace('/login?redirect=/today/fun')
-  }, [isAuthLoading, user, router])
 
   useEffect(() => {
     if (!token) return

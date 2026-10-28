@@ -9,6 +9,9 @@ export const NAV_LINKS = [
 /** Same items and order as the mobile bottom tabs (schedule and account live in the user menu on desktop). */
 export const MEMBER_NAV_LINKS = TODAY_NAV.filter(item => ['Cộng đồng', 'Hôm nay', 'Vui học'].includes(item.label))
 
+/** The desktop top bar is the same for visitors and members: the signed-in pages ask a visitor to log in. */
+export const DESKTOP_NAV_LINKS = [NAV_LINKS[0], ...MEMBER_NAV_LINKS]
+
 export const ACCOUNT_MENU = [
   { href: '/today', label: 'Hôm nay' },
   { href: '/account/profile', label: 'Thông tin cá nhân' },

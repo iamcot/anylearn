@@ -1,22 +1,17 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { getChatRooms, type ChatRoomSummary } from '@/lib/api/chat'
 import { formatChatTime } from '@/lib/chat/format'
 
 export default function CommunityPage() {
-  const router = useRouter()
-  const { user, token, isAuthLoading } = useAuth()
+  const { token } = useAuth()
   const [rooms, setRooms] = useState<ChatRoomSummary[] | null>(null)
   const [enabled, setEnabled] = useState(true)
   const [error, setError] = useState('')
 
-  useEffect(() => {
-    if (!isAuthLoading && !user) router.replace('/login?redirect=/today/community')
-  }, [isAuthLoading, user, router])
 
   useEffect(() => {
     if (!token) return

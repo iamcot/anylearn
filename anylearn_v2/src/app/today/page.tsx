@@ -68,9 +68,6 @@ function TodayContent() {
   const wantedId = Number(search.get('child')) || null
   const selectedId = learners ? pickLearnerId(learners, wantedId) : null
 
-  useEffect(() => {
-    if (!isAuthLoading && !user) router.replace('/login?redirect=/today')
-  }, [isAuthLoading, user, router])
 
   useEffect(() => {
     if (!token) return

@@ -12,7 +12,7 @@ import CountBadge from './header/CountBadge'
 import MobileMenu from './header/MobileMenu'
 import NotificationBell from './header/NotificationBell'
 import { useNotifications } from './header/useNotifications'
-import { ICON_BUTTON_CLASS, MEMBER_NAV_LINKS, NAV_LINKS } from './header/constants'
+import { ICON_BUTTON_CLASS, DESKTOP_NAV_LINKS } from './header/constants'
 import { ZALO_SUPPORT_URL } from '@/config/promise'
 import { BROWSE_HOME_URL, markBrowsing } from '@/lib/today/links'
 import { isNavActive } from '@/lib/today/nav'
@@ -24,7 +24,7 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
   const { user, cartCount, openAuthModal } = useAuth()
   const { unreadCount, setUnreadCount } = useNotifications()
-  const navLinks = user || isToday ? MEMBER_NAV_LINKS : NAV_LINKS
+  const navLinks = DESKTOP_NAV_LINKS
   const compactMobile = isToday || !!user
 
   const bell = user && <NotificationBell token={user.jwtToken} unreadCount={unreadCount} onUnreadChange={setUnreadCount} />

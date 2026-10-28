@@ -21,7 +21,7 @@ function TabIcon({ path }: { path: string }) {
 
 function UserAvatar({ active }: { active: boolean }) {
   const { user } = useAuth()
-  const ring = active ? 'ring-2 ring-blue' : 'ring-1 ring-line'
+  const ring = active ? 'ring-2 ring-green' : 'ring-1 ring-line'
 
   if (user?.image) {
     // eslint-disable-next-line @next/next/no-img-element
@@ -35,13 +35,14 @@ function UserAvatar({ active }: { active: boolean }) {
 }
 
 function Tab({ item, active, pendingCount, chatUnread }: { item: TodayNavItem; active: boolean; pendingCount: number; chatUnread: number }) {
+  const { user } = useAuth()
   return (
     <Link
       href={item.href}
       aria-current={active ? 'page' : undefined}
-      className={`flex min-h-[3.75rem] flex-col items-center justify-center gap-0.5 text-[11px] font-semibold no-underline ${active ? 'text-blue' : 'text-muted'}`}
+      className={`flex min-h-[3.75rem] flex-col items-center justify-center gap-0.5 text-[11px] font-semibold no-underline ${active ? 'text-green' : 'text-muted'}`}
     >
-      {item.href === ACCOUNT_HREF
+      {item.href === ACCOUNT_HREF && user
         ? <span className="relative"><UserAvatar active={active} /><CountBadge count={pendingCount} /></span>
         : item.href === COMMUNITY_HREF
           ? <span className="relative"><TabIcon path={item.icon} /><CountBadge count={chatUnread} /></span>

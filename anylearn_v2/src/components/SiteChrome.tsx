@@ -2,7 +2,6 @@
 
 import { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
-import { useAuth } from '@/context/AuthContext'
 import AppTabs from '@/components/AppTabs'
 import CompareBar from '@/components/compare/CompareBar'
 
@@ -16,11 +15,10 @@ interface Props {
 
 export default function SiteChrome({ header, footer, children }: Props) {
   const pathname = usePathname()
-  const { user } = useAuth()
   const isToday = pathname.startsWith('/today')
   const isJoin = pathname.startsWith('/join')
   const isMap = pathname.startsWith('/search/map')
-  const showTabs = !!user && !NO_TABS_PREFIXES.some(prefix => pathname.startsWith(prefix))
+  const showTabs = !NO_TABS_PREFIXES.some(prefix => pathname.startsWith(prefix))
   const needsBodySpace = showTabs && !isToday
 
   useEffect(() => {

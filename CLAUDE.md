@@ -344,6 +344,10 @@ Thư mục `http/` chứa VS Code REST Client files cho mọi endpoint:
 - Backend: `POST /api/register` takes optional `ref` and `game`; `ReferralService.findReferrer` (`ReferralRules`: digits only, +84 → 0, referrer active, not a child, not the same phone) sets `users.user_id` of the new account (the points chain already reads it, and `/account/rewards` counts it) and writes `referral_events` (V48, one row per new account, `game_id`). A wrong code is ignored, never an error; a failed event write never blocks registering.
 - Photo uploads: `S3Service.uploadImage` takes originals up to 10 MB (`spring.servlet.multipart` 10MB/12MB, `MAX_UPLOAD_BYTES`; before this Spring's 1 MB default was the real limit) and runs `ImageCompressor` (Thumbnailator, applies the camera's rotation): long side at most 1080 px (avatars 720 px, `S3Service.AVATAR_EDGE`), saved as JPEG quality 0.82, PNG with transparency stays PNG; a file that already fits and is under 400 KB, GIF and formats Java cannot read (webp, heic) are stored as they are; more than 60 million pixels is refused. nginx already allows 25 MB.
 
+## Navigation and visitors
+
+- The bottom tabs (`AppTabs`, active = brand green) and the desktop top bar (`DESKTOP_NAV_LINKS`: Giới thiệu, Cộng đồng, Hôm nay, Vui học) show for everyone, signed in or not. Pages of `/today/*` and `/account/*` are wrapped by `components/auth/RequireLogin` (in `app/today/layout.tsx` and `app/account/layout.tsx`): a visitor sees "Chức năng này cần đăng nhập" with the login form and "Đăng ký ngay" instead of being redirected, and the page appears by itself after login. Do not add `router.replace('/login')` effects to those pages. On a phone the footer shows the link "Giới thiệu anyLEARN" (`/info`) in place of the brand sentence.
+
 ## Vui học (plan 14: Vui học, nội dung giải trí lúc chờ con)
 
 - Design and mockups live in the project notes (`vui-hoc-quiz-leo-rank.md`); phases are in `plans/PROGRESS.md`. The FE page is `/today/fun` (bottom tab "Vui học"); games that come later get sub pages under it, each a full page with a back button, never a popup.

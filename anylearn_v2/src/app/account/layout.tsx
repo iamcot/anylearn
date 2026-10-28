@@ -2,8 +2,8 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
+import RequireLogin from '@/components/auth/RequireLogin'
 import { ListSkeleton } from '@/components/PageSkeleton'
 import { PendingOrdersPill, PointBadge } from '@/components/account/AccountBadges'
 import PendingOrdersCard from '@/components/orders/PendingOrdersCard'
@@ -79,10 +79,6 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
   const router = useRouter()
   const pathname = usePathname()
 
-  useEffect(() => {
-    if (!isAuthLoading && !user) router.push('/login')
-  }, [isAuthLoading, user, router])
-
   if (isAuthLoading) {
     return (
       <div className="min-h-[80vh] bg-bg py-3 lg:py-10">
@@ -92,7 +88,7 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
       </div>
     )
   }
-  if (!user) return null
+  if (!user) return <RequireLogin>{null}</RequireLogin>
 
   const handleLogout = () => { logout(); router.push('/') }
 
