@@ -360,22 +360,22 @@ Content-Type: application/json
 
 ### Quiz question bank (plan 14): overview matrix + settings + latest generation runs
 GET {{baseUrl}}/admin/quiz-bank/overview
-Authorization: Bearer {{adminToken}}
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
 
 ### Ask the AI for one batch of a cell (topic: parenting|english|music|art|science, difficulty 1-3)
 POST {{baseUrl}}/admin/quiz-bank/generate
-Authorization: Bearer {{adminToken}}
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
 Content-Type: application/json
 
 { "topic": "science", "difficulty": 1, "count": 10 }
 
 ### Review queue
 GET {{baseUrl}}/admin/quiz-bank/questions?status=pending&page=1&size=20
-Authorization: Bearer {{adminToken}}
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
 
 ### Approve / hide (status: active|hidden|pending)
 POST {{baseUrl}}/admin/quiz-bank/questions/status
-Authorization: Bearer {{adminToken}}
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
 Content-Type: application/json
 
 { "ids": [1, 2, 3], "status": "active" }
