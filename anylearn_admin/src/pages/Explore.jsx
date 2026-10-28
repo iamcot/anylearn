@@ -1,4 +1,4 @@
-import { Alert, Button, Card, Col, Drawer, Form, Input, InputNumber, Popconfirm, Progress, Radio, Row, Select, Space, Statistic, Switch, Table, Tabs, Tag, Typography, Upload, message } from 'antd'
+import { Alert, Button, Card, Col, Drawer, Form, Input, InputNumber, Modal, Popconfirm, Progress, Radio, Row, Select, Space, Statistic, Switch, Table, Tabs, Tag, Typography, Upload, message } from 'antd'
 import { UploadOutlined, VideoCameraAddOutlined } from '@ant-design/icons'
 import * as tus from 'tus-js-client'
 import { useEffect, useState } from 'react'
@@ -28,8 +28,10 @@ function UploadButton({ onDone }) {
 }
 
 // Video straight from the browser to Bunny Stream (TUS): the server only creates the video and signs the upload.
-function VideoUploadButton({ title, onDone }) {
+function VideoUploadButton({ title, onDone, onBusy }) {
   const [percent, setPercent] = useState(null)
+  const busy = percent !== null
+  useEffect(() => { onBusy?.(busy); return () => onBusy?.(false) }, [busy, onBusy])
   const start = async file => {
     setPercent(0)
     try {
@@ -70,8 +72,25 @@ function VideoUploadButton({ title, onDone }) {
   )
 }
 
-function PostDrawer({ post, open, onClose, onSaved }) {
+function PostDrawer({ post, open, onClose: close, onSaved }) {
   const [form] = Form.useForm()
+  // a video is on its way to Bunny: closing the form or the tab would lose it, so ask first
+  const [uploading, setUploading] = useState(false)
+  useEffect(() => {
+    if (!uploading) return
+    const warn = e => { e.preventDefault(); e.returnValue = '' }
+    window.addEventListener('beforeunload', warn)
+    return () => window.removeEventListener('beforeunload', warn)
+  }, [uploading])
+  const onClose = () => {
+    if (!uploading) return close()
+    Modal.confirm({
+      title: 'Video đang tải lên',
+      content: 'Đóng bây giờ thì việc tải video bị dừng và bài viết chưa có clip. Bạn vẫn muốn đóng?',
+      okText: 'Đóng, bỏ video', okButtonProps: { danger: true }, cancelText: 'Tiếp tục tải',
+      onOk: close,
+    })
+  }
   const kind = Form.useWatch('kind', form)
   const title = Form.useWatch('title', form)
   const { data: bunny } = useQuery({ queryKey: ['admin-explore-video-status'], queryFn: () => client.get('/admin/explore/video-upload/status').then(r => r.data?.data ?? { enabled: false }) })
@@ -86,11 +105,11 @@ function PostDrawer({ post, open, onClose, onSaved }) {
       if (res.resultCode !== 1) return message.error(res.message)
       message.success('Đã lưu bài')
       onSaved()
-      onClose()
+      close()
     },
   })
   return (
-    <Drawer title={post?.id ? 'Sửa bài' : 'Bài mới'} open={open} onClose={onClose} width={520} destroyOnClose>
+    <Drawer title={post?.id ? 'Sửa bài' : 'Bài mới'} open={open} onClose={onClose} maskClosable={!uploading} width={520} destroyOnClose>
       <Form form={form} layout="vertical" onFinish={v => save.mutate({ ...v, itemId: v.itemId || null })}>
         <Form.Item name="kind" label="Loại bài"><Radio.Group options={Object.entries(KINDS).map(([value, label]) => ({ value, label }))} /></Form.Item>
         <Form.Item name="title" label="Tiêu đề" rules={[{ required: true, message: 'Nhập tiêu đề' }]}><Input maxLength={160} /></Form.Item>
@@ -101,7 +120,7 @@ function PostDrawer({ post, open, onClose, onSaved }) {
               <Form.Item name="mediaUrl" noStyle><Input placeholder="https://..." /></Form.Item>
               {kind === 'image' && <UploadButton onDone={url => form.setFieldValue('mediaUrl', url)} />}
               {kind === 'video' && bunny && !bunny.enabled && <Typography.Text type="secondary">Chưa bật tính năng tải video lên (cần tài khoản Bunny, xem mục Bunny trong hướng dẫn admin). Tạm thời hãy dán link YouTube hoặc link file mp4 vào ô trên.</Typography.Text>}
-              {kind === 'video' && bunny?.enabled && <VideoUploadButton title={title} onDone={({ mediaUrl, posterUrl }) => form.setFieldsValue({ mediaUrl, posterUrl })} />}
+              {kind === 'video' && bunny?.enabled && <VideoUploadButton title={title} onBusy={setUploading} onDone={({ mediaUrl, posterUrl }) => form.setFieldsValue({ mediaUrl, posterUrl })} />}
             </Space>
           </Form.Item>
         )}
@@ -116,7 +135,7 @@ function PostDrawer({ post, open, onClose, onSaved }) {
         <Form.Item name="itemId" label="Gắn khóa học (nhập mã khóa học, tùy chọn)"><InputNumber style={{ width: '100%' }} min={1} /></Form.Item>
         <Form.Item name="status" label="Trạng thái"><Select options={Object.entries(STATUS).map(([value, [label]]) => ({ value, label }))} /></Form.Item>
         <Form.Item name="pinned" label="Ghim lên đầu" valuePropName="checked"><Switch /></Form.Item>
-        <Button type="primary" htmlType="submit" loading={save.isPending}>Lưu</Button>
+        <Button type="primary" htmlType="submit" loading={save.isPending} disabled={uploading}>{uploading ? "Đang tải video..." : "Lưu"}</Button>
       </Form>
     </Drawer>
   )
