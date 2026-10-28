@@ -452,3 +452,17 @@ body {
   .quiz-star-lost { animation: none; opacity: 0 }
   .quiz-shard { display: none }
 }
+
+/* Rank quiz: the medal of the old rank slides out, the medal of the new rank slides in from the other side */
+@keyframes quiz-rank-out-down { 0% { transform: translateY(0) } 100% { transform: translateY(110%) } }
+@keyframes quiz-rank-out-up { 0% { transform: translateY(0) } 100% { transform: translateY(-110%) } }
+@keyframes quiz-rank-in-down { 0%, 45% { transform: translateY(-110%) } 100% { transform: translateY(0) } }
+@keyframes quiz-rank-in-up { 0%, 45% { transform: translateY(110%) } 100% { transform: translateY(0) } }
+.quiz-rank-out-down { animation: quiz-rank-out-down .5s ease-in .5s forwards }
+.quiz-rank-out-up { animation: quiz-rank-out-up .5s ease-in .5s forwards }
+.quiz-rank-in-down { transform: translateY(-110%); animation: quiz-rank-in-down 1.1s cubic-bezier(.2, .9, .3, 1.15) .5s forwards }
+.quiz-rank-in-up { transform: translateY(110%); animation: quiz-rank-in-up 1.1s cubic-bezier(.2, .9, .3, 1.15) .5s forwards }
+@media (prefers-reduced-motion: reduce) {
+  .quiz-rank-out-down, .quiz-rank-out-up { animation: none; opacity: 0 }
+  .quiz-rank-in-down, .quiz-rank-in-up { animation: none; transform: none }
+}

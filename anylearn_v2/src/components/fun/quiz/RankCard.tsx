@@ -4,12 +4,21 @@ import { StarShape } from './StarBurst'
 import RankBadge from './RankBadge'
 
 /** Rank, star bar and guard of the player. */
-export default function RankCard({ profile }: { profile: QuizProfile }) {
+export default function RankCard({ profile, fromRank }: { profile: QuizProfile; /** Rank index before the answer: when it differs the medal slides from the old one to the new one. */ fromRank?: number }) {
+  const oldKey = fromRank !== undefined && fromRank !== profile.rank ? profile.ranks[fromRank]?.key : undefined
+  const dir = fromRank !== undefined && fromRank > profile.rank ? 'down' : 'up'
   const top = profile.needed <= 0
   return (
     <section className="rounded-3xl border border-line bg-white p-4 shadow-sm" aria-label="Hạng của bạn">
       <div className="flex items-center gap-4">
-        <RankBadge rankKey={profile.rankKey} className="size-20" />
+        {oldKey ? (
+          <div className="relative size-20 shrink-0 overflow-hidden">
+            <span className={`quiz-rank-out-${dir} absolute inset-0`}><RankBadge rankKey={oldKey} className="size-20" /></span>
+            <span className={`quiz-rank-in-${dir} absolute inset-0`}><RankBadge rankKey={profile.rankKey} className="size-20" /></span>
+          </div>
+        ) : (
+          <RankBadge rankKey={profile.rankKey} className="size-20" />
+        )}
         <div className="min-w-0 flex-1">
           <div className="text-xs font-bold text-muted">Hạng hiện tại</div>
           <div className="text-2xl font-black leading-tight">{profile.rankName}</div>
