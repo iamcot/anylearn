@@ -51,6 +51,7 @@ export default function FunEvents() {
         <Typography.Title level={4} style={{ marginTop: 0 }}>Vui học</Typography.Title>
         <Flex gap={8}>
           <Button onClick={() => navigate('/fun-coins')}>Tiền game</Button>
+          <Button onClick={() => navigate('/fun-shop')}>Cửa hàng Leo Xu</Button>
           <Button onClick={() => navigate('/fun-checkin')}>Điểm danh & quà</Button>
           <Button onClick={() => navigate('/stickers')}>Sticker</Button>
           <Button onClick={() => navigate('/quiz-game')}>Quiz Leo rank</Button>

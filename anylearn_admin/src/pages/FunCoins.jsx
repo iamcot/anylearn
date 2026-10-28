@@ -6,7 +6,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import client from '../api/client'
 import { fmtDateTime } from '../utils/format'
 
-const SOURCES = { checkin: 'Điểm danh', sticker_set: 'Đủ bộ sticker', quiz_rank: 'Thưởng lên hạng', quiz_item: 'Mua vật phẩm quiz', admin: 'Admin điều chỉnh' }
+const SOURCES = { checkin: 'Điểm danh', sticker_set: 'Đủ bộ sticker', quiz_rank: 'Thưởng lên hạng', quiz_item: 'Mua vật phẩm quiz', shop_pack: 'Mua gói tập luyện', shop_energy: 'Nạp năng lượng', shop_chest: 'Mua rương sticker', shop_sell: 'Bán cho Leo', admin: 'Admin điều chỉnh' }
 const num = v => (v ?? 0).toLocaleString('vi-VN')
 
 export default function FunCoins() {
