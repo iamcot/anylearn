@@ -160,8 +160,8 @@ Workflow tự động:
 1. Build Java jar (Maven)
 2. Build Next.js
 3. Tạo `.env` từ GitHub Secrets lên server
-4. Deploy backend với zero-downtime (symlink switch)
-5. Deploy frontend với zero-downtime
+4. Deploy backend: chỉ giữ bản mới nếu health check qua, lỗi thì tự quay về bản cũ (bản cũ chạy tới lúc chuyển)
+5. Deploy frontend (bỏ qua nếu backend deploy lỗi)
 6. Health check
 7. Tự động rollback nếu health check fail
 8. Trigger MeiliSearch reindex (background)
