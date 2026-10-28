@@ -408,3 +408,25 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .sun-rays-a, .sun-rays-b, .sun-glow { animation: none }
 }
+
+/* Rank quiz: new star on a right answer (pops up, bounces twice) and the sparks it throws */
+@keyframes quiz-star-in {
+  0% { transform: scale(0) rotate(-40deg); opacity: 0 }
+  45% { transform: scale(1.5) rotate(8deg); opacity: 1 }
+  60% { transform: scale(.92) translateY(0) }
+  72% { transform: scale(1) translateY(-9px) }
+  84% { transform: scale(1) translateY(0) }
+  92% { transform: scale(1) translateY(-4px) }
+  100% { transform: scale(1) translateY(0); opacity: 1 }
+}
+@keyframes quiz-spark {
+  0% { transform: translate(-50%, -50%) scale(.3) rotate(0); opacity: 0 }
+  15% { opacity: 1 }
+  100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1) rotate(200deg); opacity: 0 }
+}
+.quiz-star-new { opacity: 0; animation: quiz-star-in .9s cubic-bezier(.3, 1.2, .5, 1) forwards }
+.quiz-spark { opacity: 0; animation: quiz-spark .8s ease-out forwards }
+@media (prefers-reduced-motion: reduce) {
+  .quiz-star-new { opacity: 1; animation: none }
+  .quiz-spark { display: none }
+}
