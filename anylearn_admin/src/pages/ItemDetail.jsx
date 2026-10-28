@@ -16,6 +16,7 @@ import ScheduleFormModal from '../components/ScheduleFormModal'
 import UserLocationsModal from '../components/UserLocationsModal'
 import { useNavigate, useParams } from 'react-router-dom'
 import ReviewManager from '../components/ReviewManager'
+import VideoCourseManager from '../components/VideoCourseManager'
 import client from '../api/client'
 import RichEditor from '../components/RichEditor'
 import { usePagination } from '../hooks/usePagination'
@@ -317,6 +318,8 @@ export default function ItemDetail() {
   if (isLoading) return null
 
   // ── Tabs ──────────────────────────────────────────────────────────────────
+
+  const subtype = form.getFieldValue('subtype') ?? item?.subtype
 
   const tabItems = [
 
@@ -625,6 +628,8 @@ export default function ItemDetail() {
         />
       </div>
     )},
+
+    ...(!isNew && subtype === 'video' ? [{ key: 'video', label: 'Nội dung video', children: <VideoCourseManager itemId={id} /> }] : []),
 
     { key: 'reviews', forceRender: true, label: `Đánh giá${reviews?.length ? ` (${reviews.length})` : ''}`, children: (
       <div style={{ paddingBottom: 32 }}>

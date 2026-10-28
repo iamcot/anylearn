@@ -8,7 +8,10 @@ export default function UploadTray() {
   const uploads = useVideoUploads()
   const qc = useQueryClient()
   useEffect(() => {
-    setUploadsFinishedHandler(() => qc.invalidateQueries({ queryKey: ['admin-explore-posts'] }))
+    setUploadsFinishedHandler(() => {
+      qc.invalidateQueries({ queryKey: ['admin-explore-posts'] })
+      qc.invalidateQueries({ queryKey: ['admin-video-course'] })
+    })
     return () => setUploadsFinishedHandler(null)
   }, [qc])
   const active = uploads.length > 0

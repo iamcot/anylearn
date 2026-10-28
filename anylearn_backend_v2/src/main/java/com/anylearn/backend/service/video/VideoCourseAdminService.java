@@ -75,7 +75,8 @@ public class VideoCourseAdminService {
         for (Map<String, Object> row : rows) {
             row.put("attachments", parseAttachments((String) row.get("attachments")));
             row.put("playable", playable(row));
-            if (row.get("posterUrl") == null && row.get("videoId") != null) row.put("posterUrl", bunny.posterUrl((String) row.get("videoId"), 2));
+            row.put("thumbUrl", row.get("posterUrl") != null ? row.get("posterUrl")
+                    : row.get("videoId") != null && "ready".equals(row.get("videoStatus")) ? bunny.posterUrl((String) row.get("videoId"), 2) : null);
         }
         return rows;
     }
