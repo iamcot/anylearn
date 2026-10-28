@@ -1,10 +1,10 @@
-import { Alert, Button, Card, Col, Drawer, Form, Input, InputNumber, Popconfirm, Radio, Row, Select, Space, Statistic, Switch, Table, Tabs, Tag, Typography, Upload, message } from 'antd'
+import { Alert, Button, Card, Col, Drawer, Form, Input, InputNumber, Popconfirm, Progress, Radio, Row, Select, Space, Statistic, Switch, Table, Tabs, Tag, Typography, Upload, message } from 'antd'
 import { UploadOutlined, VideoCameraAddOutlined } from '@ant-design/icons'
 import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import client from '../api/client'
 import { fmtDateTime } from '../utils/format'
-import { startVideoUpload, useVideoUploads } from '../utils/videoUploads'
+import { cancelVideoUpload, startVideoUpload, useVideoUploads } from '../utils/videoUploads'
 
 const KINDS = { article: 'Bài viết', image: 'Hình ảnh', video: 'Clip' }
 const STATUS = { draft: ['Nháp', 'default'], published: ['Đang hiện', 'green'], hidden: ['Ẩn', 'red'] }
@@ -183,6 +183,7 @@ export default function Explore() {
   const { data } = useQuery({ queryKey: ['admin-explore-posts'], queryFn: () => client.get('/admin/explore/posts').then(r => r.data?.data ?? null) })
   const refresh = () => qc.invalidateQueries({ queryKey: ['admin-explore-posts'] })
   const stats = data?.stats
+  const uploads = useVideoUploads()
   const edit = post => { setEditing(post); setOpen(true) }
   const cards = stats ? [
     ['Đang hiện', stats.published], ['Lượt xem', stats.views], ['Lượt thích', stats.likes],
@@ -196,6 +197,17 @@ export default function Explore() {
         <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
           {cards.map(([title, value]) => <Col key={title} xs={12} md={8} xl={4}><Card><Statistic title={title} value={value} /></Card></Col>)}
         </Row>
+      )}
+      {uploads.length > 0 && (
+        <Card size="small" title="Đang tải video lên (chạy nền, bạn có thể sang trang khác nhưng đừng đóng tab)" style={{ marginBottom: 16 }}>
+          {uploads.map(u => (
+            <Row key={u.id} gutter={12} align="middle">
+              <Col flex="260px"><Typography.Text ellipsis>{u.title}</Typography.Text></Col>
+              <Col flex="auto"><Progress percent={u.percent} /></Col>
+              <Col><Button type="link" danger onClick={() => cancelVideoUpload(u.id)}>Hủy tải</Button></Col>
+            </Row>
+          ))}
+        </Card>
       )}
       <Card>
         <Tabs activeKey={tab} onChange={setTab}
