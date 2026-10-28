@@ -27,7 +27,37 @@ cp "${DEPLOY_PATH}/.env" "${RELEASE_PATH}/.env"
 sudo chown -R anylearn-app:anylearn-deploy "${RELEASE_PATH}"
 echo "✓ Copied artifact and env"
 
-# Atomic symlink switch (zero downtime)
+# Remember the release that is running now, so a failed start can go back to it
+PREVIOUS_RELEASE=$(readlink "${DEPLOY_PATH}/current" 2>/dev/null || echo "")
+
+rollback_to_previous() {
+    echo "✗ New release did not become healthy — keeping the old one"
+    sudo journalctl -u anylearn-backend.service -n 40 --no-pager 2>/dev/null || true
+    if [ -n "${PREVIOUS_RELEASE}" ] && [ -d "${PREVIOUS_RELEASE}" ]; then
+        ln -sfn "${PREVIOUS_RELEASE}" "${DEPLOY_PATH}/current"
+        sudo systemctl reset-failed anylearn-backend.service 2>/dev/null || true
+        sudo systemctl restart anylearn-backend.service || true
+        echo "✓ Switched back to ${PREVIOUS_RELEASE}"
+        wait_healthy 30 || echo "⚠ Old release is not healthy either — check the server"
+    else
+        echo "⚠ No previous release to go back to"
+    fi
+    # Drop the bad release so it is never taken for the "previous" one
+    sudo rm -rf "${RELEASE_PATH}"
+}
+
+wait_healthy() {
+    local retries=$1
+    for i in $(seq 1 "$retries"); do
+        if curl -sf http://localhost:8080/v2/api/config/homev2/buyer > /dev/null 2>&1; then
+            return 0
+        fi
+        sleep 2
+    done
+    return 1
+}
+
+# Switch to the new release (the old process kept serving until this point)
 ln -sfn "${RELEASE_PATH}" "${DEPLOY_PATH}/current"
 echo "✓ Switched symlink to release ${RELEASE_ID}"
 
@@ -35,20 +65,14 @@ echo "✓ Switched symlink to release ${RELEASE_ID}"
 sudo systemctl reload-or-restart anylearn-backend.service
 echo "✓ Service restarted"
 
-# Wait for service to be healthy
+# Only a release that answers the health check stays
 echo "Waiting for backend to start..."
-RETRIES=30
-for i in $(seq 1 $RETRIES); do
-    if curl -sf http://localhost:8080/v2/api/config/homev2/buyer > /dev/null 2>&1; then
-        echo "✓ Backend is healthy"
-        break
-    fi
-    if [ "$i" -eq "$RETRIES" ]; then
-        echo "✗ Backend health check failed after ${RETRIES} attempts"
-        exit 1
-    fi
-    sleep 2
-done
+if wait_healthy 45; then
+    echo "✓ Backend is healthy"
+else
+    rollback_to_previous
+    exit 1
+fi
 
 # Trigger MeiliSearch reindex in background
 ADMIN_TOKEN=$(grep "^ADMIN_API_TOKEN=" "${DEPLOY_PATH}/.env" | cut -d= -f2)

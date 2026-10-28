@@ -201,7 +201,6 @@ jobs:
           echo "Using Java: $JAVA21_HOME"
           sudo sed -i "s|JAVA_HOME=.*|JAVA_HOME=$JAVA21_HOME\"|" deployment/systemd/anylearn-backend.service
           sudo sed -i "s|ExecStart=.*/bin/java|ExecStart=$JAVA21_HOME/bin/java|" deployment/systemd/anylearn-backend.service
-          sudo systemctl stop anylearn-backend.service || true
           sudo cp deployment/systemd/anylearn-backend.service /etc/systemd/system/
           sudo systemctl daemon-reload
 
@@ -283,7 +282,7 @@ jobs:
     name: Deploy Frontend
     runs-on: [self-hosted, production]
     needs: [build-frontend, deploy-backend]
-    if: ${{ !cancelled() && needs.build-frontend.result == 'success' }}
+    if: ${{ !cancelled() && needs.build-frontend.result == 'success' && needs.deploy-backend.result == 'success' }}
     steps:
       - name: Checkout deploy scripts
         uses: actions/checkout@v4
@@ -366,8 +365,9 @@ jobs:
     needs: [deploy-backend, deploy-frontend, deploy-admin, health-check]
     if: failure()
     steps:
+      # deploy-backend.sh goes back to the old release by itself when the new one is unhealthy
       - name: Rollback backend
-        if: needs.deploy-backend.result == 'failure' || needs.health-check.result == 'failure'
+        if: needs.health-check.result == 'failure'
         run: bash ${{ env.DEPLOY_PATH }}/scripts/rollback.sh backend
         continue-on-error: true
 
