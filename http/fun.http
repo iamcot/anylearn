@@ -1,0 +1,10 @@
+@baseUrl = {{$dotenv BE_BASE_URL}}/api
+@jwtToken = {{$dotenv JWT_TOKEN}}
+
+### Check-in status of the signed-in account (streak, week, today's gift)
+GET {{baseUrl}}/fun/checkin
+Authorization: Bearer {{jwtToken}}
+
+### Open today's gift (once per day)
+POST {{baseUrl}}/fun/checkin/claim
+Authorization: Bearer {{jwtToken}}

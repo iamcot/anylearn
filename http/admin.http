@@ -341,3 +341,19 @@ Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
 Content-Type: application/json
 
 {"methods": [{"key": "bank_transfer", "enabled": true, "min": 0, "max": 0, "label": ""}, {"key": "installment", "enabled": true, "min": 3000000, "max": 0, "label": ""}]}
+
+
+### Vui học: log of everything that happens in the games (game = checkin|quiz|sticker|explore|banner|ref)
+GET {{baseUrl}}/admin/fun/events?game=checkin&page=1&size=30
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+### Vui học: check-in settings and today's numbers
+GET {{baseUrl}}/admin/fun/checkin-config
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+### Vui học: save the check-in settings (7 day values, 0 to 1000; dailyCap 0 = no limit)
+PUT {{baseUrl}}/admin/fun/checkin-config
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+Content-Type: application/json
+
+{"enabled": true, "dayPoints": [5, 5, 10, 10, 15, 15, 20], "dailyCap": 0}

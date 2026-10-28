@@ -4,6 +4,7 @@ import com.anylearn.backend.entity.ReferralEvent;
 import com.anylearn.backend.entity.User;
 import com.anylearn.backend.repository.ReferralEventRepository;
 import com.anylearn.backend.repository.UserRepository;
+import com.anylearn.backend.service.fun.GameEventService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ public class ReferralService {
 
     private final UserRepository userRepository;
     private final ReferralEventRepository eventRepository;
+    private final GameEventService gameEvents;
 
     /** The person a link points at, or empty when the code is wrong, belongs to a child or to the registering phone. */
     public Optional<User> findReferrer(String rawCode, String newPhone) {
@@ -33,6 +35,8 @@ public class ReferralService {
             event.setNewUserId(newUser.getId());
             event.setGameId(ReferralRules.cleanGame(rawGame));
             eventRepository.save(event);
+            gameEvents.record(newUser.getId(), GameEventService.GAME_REF, "register",
+                    "Đăng ký qua link của #" + referrer.getId() + (event.getGameId() == null ? "" : ", game " + event.getGameId()), 0);
         } catch (Exception e) {
             log.warn("[referral] could not record {} -> {}: {}", referrer.getId(), newUser.getId(), e.getMessage());
         }

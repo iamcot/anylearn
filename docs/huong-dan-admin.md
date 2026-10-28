@@ -504,3 +504,10 @@ Không có trang riêng trong admin. Phụ huynh bấm "So sánh" trên khóa h�
 
 - Mỗi thành viên có link `https://anylearn.vn/ref/{số điện thoại}` (xem ở "Ưu đãi của tôi"). Người đăng ký qua link được ghi nhận người giới thiệu (cột người giới thiệu của thành viên), nên hoa hồng giới thiệu hiện có áp dụng cho các đơn của họ. Mã sai thì vẫn đăng ký bình thường, chỉ không có người giới thiệu.
 - Nếu link có thêm `?game=...` (dùng cho Vui học) thì sau khi đăng ký người mới được đưa tới trò chơi đó; link không có thì tới trang giới thiệu anyLEARN.
+
+### Vui học: Sự kiện game và Điểm danh & quà
+
+Menu "Vui học" có hai trang.
+
+- **Sự kiện game**: danh sách mọi việc xảy ra trong các game (mở quà điểm danh, đăng ký qua link giới thiệu, và các game sau này), mới nhất ở trên, lọc theo game. Phía trên là số người chơi, số sự kiện, anyPoint đã phát và số lượt đăng ký từ link giới thiệu trong ngày. Trang tự làm mới mỗi 30 giây.
+- **Điểm danh & quà**: mỗi thành viên mở một quà mỗi ngày trên trang Vui học. Nhập anyPoint cho từng ngày 1 đến 7 của chuỗi (ngày 7 là quà lớn; sau ngày 7 quay lại ngày 1). Bỏ một ngày thì chuỗi bắt đầu lại từ ngày 1. **Mọi anyPoint ở đây là chi phí thật**, nên có "Trần anyPoint phát ra mỗi ngày" (0 = không giới hạn): khi chạm trần, người mở quà sau đó vẫn giữ chuỗi nhưng hôm đó không nhận anyPoint. Trang hiện chi phí ước tính mỗi ngày để so với trần. Công tắc ở đầu trang tắt hẳn quà điểm danh. Thay đổi có hiệu lực ngay với lượt mở tiếp theo.

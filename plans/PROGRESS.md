@@ -541,3 +541,8 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 - Thiết kế đầy đủ (quiz leo rank, item, sticker, banner chia sẻ, admin) nằm ở `notes/vui-hoc-quiz-leo-rank.md` của project, mockup đã được chủ sản phẩm duyệt hướng. Chốt: đổi sticker mỗi cặp 30 ngày một lần và chỉ cùng độ hiếm.
 - Làm xong giai đoạn 0: ghi nhận giới thiệu khi đăng ký (`/ref/[code]`, `referral_events`, điều hướng theo `game`). `GAME_ROUTES` còn trống chờ trang Vui học nên link có `game` hiện tới trang giới thiệu.
 - Sửa upload ảnh: trần 10MB cho ảnh gốc rồi nén về 1080 (avatar 720) trước khi lên S3. Chưa thử với S3 thật và chưa thử ảnh có EXIF xoay (thư viện tự xử lý, chưa có test).
+
+### 28/10/2026 – Vui học, giai đoạn 1 (nền Vui học)
+- Dùng route có sẵn `/today/fun` (tab "Vui học") thay vì `/vui-hoc` như bản thiết kế; `GAME_ROUTES` của link giới thiệu giờ trỏ `quiz` và `sticker` về trang này.
+- Làm xong: quà điểm danh hằng ngày (chuỗi, anyPoint theo ngày 1-7, trần ngân sách mỗi ngày, công tắc), bảng `game_events` và `GameEventService`, trang `/today/fun`, admin "Sự kiện game" và "Điểm danh & quà". Quà mốc 7 ngày chưa kèm sticker (chờ giai đoạn sticker); hiện chỉ là anyPoint.
+- Chưa chạy migration V49 và API với MySQL thật; test mới chỉ phủ phần luật (`FunRulesTest`) và hàm hiển thị FE. Chưa xem trang admin trên trình duyệt (build qua).
