@@ -63,6 +63,18 @@ public class AdminExploreController {
         return save(user, id, body);
     }
 
+    /** Body `{mediaUrl, posterUrl}`: the clip of a post whose video has just finished uploading to Bunny. */
+    @PutMapping("/posts/{id}/media")
+    public ApiResponse<?> attachMedia(@AuthenticationPrincipal User user, @PathVariable long id, @RequestBody Map<String, Object> body) {
+        if (notAdmin(user)) return ApiResponse.fail("Forbidden");
+        try {
+            explore.attachMedia(id, (String) body.get("mediaUrl"), (String) body.get("posterUrl"));
+            return ApiResponse.ok(Map.of("ok", true));
+        } catch (IllegalArgumentException e) {
+            return ApiResponse.fail(e.getMessage());
+        }
+    }
+
     @DeleteMapping("/posts/{id}")
     public ApiResponse<?> delete(@AuthenticationPrincipal User user, @PathVariable long id) {
         if (notAdmin(user)) return ApiResponse.fail("Forbidden");

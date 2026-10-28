@@ -35,10 +35,15 @@ public final class ExploreRules {
 
     /** A clip is a link (https), a photo is an upload or a link; an article may have neither. Returns the cleaned link or null. */
     public static String cleanMedia(String kind, String raw) {
+        return cleanMedia(kind, raw, "published");
+    }
+
+    /** A draft photo or clip may have no link yet (a clip is still uploading to Bunny); anything else needs it. */
+    public static String cleanMedia(String kind, String raw, String status) {
         String url = raw == null || raw.isBlank() ? null : raw.trim();
         if (url != null && !url.startsWith("https://") && !url.startsWith("/")) throw new IllegalArgumentException("Đường dẫn hình hoặc clip cần bắt đầu bằng https://");
         if (url != null && url.length() > 500) throw new IllegalArgumentException("Đường dẫn quá dài");
-        if (("video".equals(kind) || "image".equals(kind)) && url == null) throw new IllegalArgumentException("Bài hình ảnh hoặc clip cần có hình / đường dẫn clip");
+        if (("video".equals(kind) || "image".equals(kind)) && url == null && !"draft".equals(status)) throw new IllegalArgumentException("Bài hình ảnh hoặc clip cần có hình / đường dẫn clip");
         return url;
     }
 

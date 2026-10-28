@@ -1,10 +1,10 @@
-import { Alert, Button, Card, Col, Drawer, Form, Input, InputNumber, Modal, Popconfirm, Progress, Radio, Row, Select, Space, Statistic, Switch, Table, Tabs, Tag, Typography, Upload, message } from 'antd'
+import { Alert, Button, Card, Col, Drawer, Form, Input, InputNumber, Popconfirm, Radio, Row, Select, Space, Statistic, Switch, Table, Tabs, Tag, Typography, Upload, message } from 'antd'
 import { UploadOutlined, VideoCameraAddOutlined } from '@ant-design/icons'
-import * as tus from 'tus-js-client'
 import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import client from '../api/client'
 import { fmtDateTime } from '../utils/format'
+import { startVideoUpload, useVideoUploads } from '../utils/videoUploads'
 
 const KINDS = { article: 'Bài viết', image: 'Hình ảnh', video: 'Clip' }
 const STATUS = { draft: ['Nháp', 'default'], published: ['Đang hiện', 'green'], hidden: ['Ẩn', 'red'] }
@@ -27,76 +27,31 @@ function UploadButton({ onDone }) {
   )
 }
 
-// Video straight from the browser to Bunny Stream (TUS): the server only creates the video and signs the upload.
-function VideoUploadButton({ title, onDone, onBusy }) {
-  const [percent, setPercent] = useState(null)
-  const busy = percent !== null
-  useEffect(() => { onBusy?.(busy); return () => onBusy?.(false) }, [busy, onBusy])
-  const start = async file => {
-    setPercent(0)
-    try {
-      const res = await client.post('/admin/explore/video-upload', { title: title || file.name }).then(r => r.data)
-      if (res.resultCode !== 1) throw new Error(res.message)
-      const info = res.data
-      const upload = new tus.Upload(file, {
-        endpoint: info.endpoint,
-        retryDelays: [0, 3000, 5000, 10000, 20000],
-        headers: {
-          AuthorizationSignature: info.authorizationSignature,
-          AuthorizationExpire: String(info.authorizationExpire),
-          VideoId: info.videoId,
-          LibraryId: String(info.libraryId),
-        },
-        metadata: { filetype: file.type, title: title || file.name },
-        onError: err => { message.error('Tải video thất bại: ' + (err?.message || err)); setPercent(null) },
-        onProgress: (sent, total) => setPercent(Math.round((sent / total) * 100)),
-        onSuccess: () => {
-          setPercent(null)
-          onDone({ mediaUrl: info.mediaUrl, posterUrl: info.posterUrl })
-          message.success('Đã tải video lên. Bunny cần vài phút để xử lý trước khi phát được.')
-        },
-      })
-      upload.start()
-    } catch (e) {
-      message.error(e.message || 'Không bắt đầu được việc tải video')
-      setPercent(null)
-    }
-  }
-  return (
-    <Space direction="vertical" style={{ width: '100%' }}>
-      <Upload showUploadList={false} accept="video/*" disabled={percent !== null} beforeUpload={file => { start(file); return false }}>
-        <Button icon={<VideoCameraAddOutlined />} disabled={percent !== null}>Tải video lên</Button>
-      </Upload>
-      {percent !== null && <Progress percent={percent} size="small" />}
-    </Space>
-  )
-}
-
 function PostDrawer({ post, open, onClose: close, onSaved }) {
   const [form] = Form.useForm()
-  // a video is on its way to Bunny: closing the form or the tab would lose it, so ask first
-  const [uploading, setUploading] = useState(false)
-  useEffect(() => {
-    if (!uploading) return
-    const warn = e => { e.preventDefault(); e.returnValue = '' }
-    window.addEventListener('beforeunload', warn)
-    return () => window.removeEventListener('beforeunload', warn)
-  }, [uploading])
-  const onClose = () => {
-    if (!uploading) return close()
-    Modal.confirm({
-      title: 'Video đang tải lên',
-      content: 'Đóng bây giờ thì việc tải video bị dừng và bài viết chưa có clip. Bạn vẫn muốn đóng?',
-      okText: 'Đóng, bỏ video', okButtonProps: { danger: true }, cancelText: 'Tiếp tục tải',
-      onOk: close,
-    })
-  }
   const kind = Form.useWatch('kind', form)
   const title = Form.useWatch('title', form)
   const { data: bunny } = useQuery({ queryKey: ['admin-explore-video-status'], queryFn: () => client.get('/admin/explore/video-upload/status').then(r => r.data?.data ?? { enabled: false }) })
   useEffect(() => {
     if (open) form.setFieldsValue(post ?? { kind: 'article', status: 'draft', pinned: false, title: '', body: '', mediaUrl: '', posterUrl: '', itemId: null })
   }, [open, post, form])
+  // The post is saved as a draft first, then the video goes up in the background: the form can be closed and the admin can work elsewhere.
+  const uploadInBackground = async file => {
+    try {
+      await form.validateFields(['title'])
+    } catch { return }
+    const values = form.getFieldsValue()
+    let postId = post?.id
+    if (!postId) {
+      const res = await client.post('/admin/explore/posts', { ...values, kind: 'video', status: 'draft', mediaUrl: '', itemId: values.itemId || null }).then(r => r.data)
+      if (res.resultCode !== 1) return message.error(res.message)
+      postId = res.data.id
+    }
+    startVideoUpload({ postId, title: values.title, file })
+    message.info('Bài đã lưu ở trạng thái Nháp. Video đang tải lên ở nền, bạn có thể làm việc khác.')
+    onSaved()
+    close()
+  }
   const save = useMutation({
     mutationFn: values => (post?.id
       ? client.put(`/admin/explore/posts/${post.id}`, values)
@@ -109,7 +64,7 @@ function PostDrawer({ post, open, onClose: close, onSaved }) {
     },
   })
   return (
-    <Drawer title={post?.id ? 'Sửa bài' : 'Bài mới'} open={open} onClose={onClose} maskClosable={!uploading} width={520} destroyOnClose>
+    <Drawer title={post?.id ? 'Sửa bài' : 'Bài mới'} open={open} onClose={onClose} width={520} destroyOnClose>
       <Form form={form} layout="vertical" onFinish={v => save.mutate({ ...v, itemId: v.itemId || null })}>
         <Form.Item name="kind" label="Loại bài"><Radio.Group options={Object.entries(KINDS).map(([value, label]) => ({ value, label }))} /></Form.Item>
         <Form.Item name="title" label="Tiêu đề" rules={[{ required: true, message: 'Nhập tiêu đề' }]}><Input maxLength={160} /></Form.Item>
@@ -120,7 +75,9 @@ function PostDrawer({ post, open, onClose: close, onSaved }) {
               <Form.Item name="mediaUrl" noStyle><Input placeholder="https://..." /></Form.Item>
               {kind === 'image' && <UploadButton onDone={url => form.setFieldValue('mediaUrl', url)} />}
               {kind === 'video' && bunny && !bunny.enabled && <Typography.Text type="secondary">Chưa bật tính năng tải video lên (cần tài khoản Bunny, xem mục Bunny trong hướng dẫn admin). Tạm thời hãy dán link YouTube hoặc link file mp4 vào ô trên.</Typography.Text>}
-              {kind === 'video' && bunny?.enabled && <VideoUploadButton title={title} onBusy={setUploading} onDone={({ mediaUrl, posterUrl }) => form.setFieldsValue({ mediaUrl, posterUrl })} />}
+              {kind === 'video' && bunny?.enabled && <Upload showUploadList={false} accept="video/*" beforeUpload={file => { uploadInBackground(file); return false }}>
+                <Button icon={<VideoCameraAddOutlined />}>Tải video lên (chạy nền)</Button>
+              </Upload>}
             </Space>
           </Form.Item>
         )}
@@ -135,19 +92,20 @@ function PostDrawer({ post, open, onClose: close, onSaved }) {
         <Form.Item name="itemId" label="Gắn khóa học (nhập mã khóa học, tùy chọn)"><InputNumber style={{ width: '100%' }} min={1} /></Form.Item>
         <Form.Item name="status" label="Trạng thái"><Select options={Object.entries(STATUS).map(([value, [label]]) => ({ value, label }))} /></Form.Item>
         <Form.Item name="pinned" label="Ghim lên đầu" valuePropName="checked"><Switch /></Form.Item>
-        <Button type="primary" htmlType="submit" loading={save.isPending} disabled={uploading}>{uploading ? "Đang tải video..." : "Lưu"}</Button>
+        <Button type="primary" htmlType="submit" loading={save.isPending}>Lưu</Button>
       </Form>
     </Drawer>
   )
 }
 
 function Posts({ data, refresh, onEdit }) {
+  const uploading = Object.fromEntries(useVideoUploads().map(u => [u.postId, u.percent]))
   const del = useMutation({ mutationFn: id => client.delete(`/admin/explore/posts/${id}`).then(r => r.data), onSuccess: () => { message.success('Đã xóa'); refresh() } })
   return (
     <Table rowKey="id" dataSource={data?.items ?? []} pagination={{ pageSize: 20 }} columns={[
       { title: 'Tiêu đề', dataIndex: 'title', render: (t, r) => <span>{r.pinned ? '📌 ' : ''}{t}</span> },
       { title: 'Loại', dataIndex: 'kind', render: k => KINDS[k] },
-      { title: 'Trạng thái', dataIndex: 'status', render: s => <Tag color={STATUS[s]?.[1]}>{STATUS[s]?.[0]}</Tag> },
+      { title: 'Trạng thái', dataIndex: 'status', render: (s, r) => (r.id in uploading ? <Tag color="processing">Đang tải video {uploading[r.id]}%</Tag> : <Tag color={STATUS[s]?.[1]}>{STATUS[s]?.[0]}</Tag>) },
       { title: 'Xem', dataIndex: 'views' }, { title: 'Thích', dataIndex: 'likes' }, { title: 'Chia sẻ', dataIndex: 'shares' }, { title: 'Bình luận', dataIndex: 'comments' },
       { title: 'Ngày đăng', dataIndex: 'publishedAt', render: v => (v ? fmtDateTime(v) : '') },
       { title: '', key: 'a', render: (_, r) => (

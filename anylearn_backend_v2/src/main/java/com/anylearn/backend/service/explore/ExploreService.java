@@ -153,7 +153,7 @@ public class ExploreService {
         String cleanKind = ExploreRules.cleanKind(kind);
         String cleanTitle = ExploreRules.cleanTitle(title);
         String cleanStatus = ExploreRules.cleanStatus(status);
-        String media = ExploreRules.cleanMedia(cleanKind, mediaUrl);
+        String media = ExploreRules.cleanMedia(cleanKind, mediaUrl, cleanStatus);
         String poster = posterUrl == null || posterUrl.isBlank() ? null : posterUrl.trim();
         String text = body == null || body.isBlank() ? null : body.trim();
         if (text != null && text.length() > 8000) throw new IllegalArgumentException("Nội dung tối đa 8000 ký tự");
@@ -167,6 +167,18 @@ public class ExploreService {
         jdbc.update("UPDATE explore_posts SET kind = ?, title = ?, body = ?, media_url = ?, poster_url = ?, item_id = ?, status = ?, pinned = ?, " +
                 "published_at = IF(? = 'published' AND published_at IS NULL, NOW(), published_at) WHERE id = ?", cleanKind, cleanTitle, text, media, poster, itemId, cleanStatus, pinned ? 1 : 0, cleanStatus, id);
         return id;
+    }
+
+    /**
+     * Sets the clip and the poster of a post when an upload to Bunny finishes. Touches nothing else, so edits the admin made
+     * while the video was uploading are kept; an existing poster is not replaced.
+     */
+    @Transactional
+    public void attachMedia(long id, String mediaUrl, String posterUrl) {
+        String media = ExploreRules.cleanMedia("video", mediaUrl, "published");
+        String poster = posterUrl == null || posterUrl.isBlank() ? null : posterUrl.trim();
+        int rows = jdbc.update("UPDATE explore_posts SET media_url = ?, poster_url = COALESCE(NULLIF(poster_url, ''), ?) WHERE id = ?", media, poster, id);
+        if (rows == 0) throw new IllegalArgumentException("Không tìm thấy bài viết");
     }
 
     @Transactional

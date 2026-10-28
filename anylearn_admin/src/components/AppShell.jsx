@@ -6,6 +6,7 @@ import {
 } from '@ant-design/icons'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import UploadTray from './UploadTray'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import client from '../api/client'
@@ -370,6 +371,7 @@ export default function AppShell() {
           <Outlet />
         </Layout.Content>
       </Layout>
+      <UploadTray />
 
     </Layout>
   )
