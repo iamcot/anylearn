@@ -9,6 +9,8 @@ export type AliView = 'front' | 'right' | 'left'
 
 const BODY = 'M-22 16A20 20 0 0 1-2-4L2-4A20 20 0 0 1 22 16L22 41Q22 44 19 44L-8 44A14 14 0 0 1-22 30Z'
 
+const OUTLINE = '#0b3d22'
+
 function Defs() {
   return (
     <defs>
@@ -26,10 +28,10 @@ function Front({ moving, waving }: { moving: boolean; waving: boolean }) {
   return (
     <g className={moving ? '' : 'ali-still'}>
       <g className="ali-bob">
-        <g className="ali-leg-a"><rect x="-13" y="42" width="10" height="10" rx="5" fill="#007a3c" /></g>
-        <g className="ali-leg-b"><rect x="3" y="42" width="10" height="10" rx="5" fill="#007a3c" /></g>
-        <g className="ali-arm-a"><ellipse cx="-24" cy="26" rx="5" ry="8" fill="#00a551" /></g>
-        <g className={waving ? 'ali-wave' : 'ali-arm-b'}><ellipse cx="24" cy="26" rx="5" ry="8" fill="#00a551" /></g>
+        <g className="ali-leg-a"><rect x="-13" y="42" width="10" height="10" rx="5" fill="#007a3c" stroke={OUTLINE} strokeWidth="1.2" /></g>
+        <g className="ali-leg-b"><rect x="3" y="42" width="10" height="10" rx="5" fill="#007a3c" stroke={OUTLINE} strokeWidth="1.2" /></g>
+        <g className="ali-arm-a"><ellipse cx="-24" cy="26" rx="5" ry="8" fill="#00a551" stroke={OUTLINE} strokeWidth="1.2" /></g>
+        <g className={waving ? 'ali-wave' : 'ali-arm-b'}><ellipse cx="24" cy="26" rx="5" ry="8" fill="#00a551" stroke={OUTLINE} strokeWidth="1.2" /></g>
         <path d={BODY} fill="url(#aliBody)" />
         <ellipse cx="-9" cy="6" rx="13" ry="10" fill="url(#aliShine)" />
         <circle cx="-8" cy="14" r="6.5" fill="#fff" /><circle cx="8" cy="14" r="6.5" fill="#fff" />
@@ -51,22 +53,20 @@ function Side() {
   return (
     <g>
       <g className="ali-bob">
-        <g className="ali-arm-b"><ellipse cx="-9" cy="27" rx="4.5" ry="7.5" fill="#007a3c" /></g>
-        <g className="ali-stride-b"><rect x="-9" y="42" width="10" height="10" rx="5" fill="#006a33" /></g>
-        <g className="ali-stride-a"><rect x="-1" y="42" width="11" height="10" rx="5" fill="#007a3c" /></g>
-        <g transform="scale(.8 1)">
-          <path d={BODY} fill="url(#aliBody)" />
-          <ellipse cx="-9" cy="6" rx="13" ry="10" fill="url(#aliShine)" />
-        </g>
-        <circle cx="4" cy="14" r="6.2" fill="#fff" /><circle cx="13.5" cy="14.5" r="5" fill="#fff" />
+        <g className="ali-arm-b"><ellipse cx="-4" cy="33" rx="4.5" ry="6.5" fill="#007a3c" stroke={OUTLINE} strokeWidth="1.2" /></g>
+        <g className="ali-stride-b"><rect x="-10" y="42" width="10" height="10" rx="5" fill="#006a33" stroke={OUTLINE} strokeWidth="1.2" /></g>
+        <g className="ali-stride-a"><rect x="0" y="42" width="10" height="10" rx="5" fill="#007a3c" stroke={OUTLINE} strokeWidth="1.2" /></g>
+        <path d={BODY} fill="url(#aliBody)" />
+        <ellipse cx="-9" cy="6" rx="13" ry="10" fill="url(#aliShine)" />
+        <circle cx="3" cy="14" r="6.5" fill="#fff" /><circle cx="15" cy="14" r="6.5" fill="#fff" />
         <g className="ali-eyes">
-          <circle cx="6" cy="15" r="3" fill="#14342a" /><circle cx="15" cy="15.3" r="2.6" fill="#14342a" />
-          <circle cx="6.9" cy="13.9" r=".9" fill="#fff" /><circle cx="15.7" cy="14.2" r=".8" fill="#fff" />
+          <circle cx="5.5" cy="15" r="3.2" fill="#14342a" /><circle cx="17.5" cy="15" r="3.2" fill="#14342a" />
+          <circle cx="6.5" cy="13.8" r="1" fill="#fff" /><circle cx="18.5" cy="13.8" r="1" fill="#fff" />
         </g>
-        <ellipse cx="3" cy="23.5" rx="3" ry="2" fill="#ff8fa3" opacity=".7" />
-        <path d="M7 24Q11 28.5 15 24" fill="none" stroke="#14342a" strokeWidth="1.7" strokeLinecap="round" />
-        <path d="M6 34L13 36L13 42L6 40Z" fill="#0099d4" />
-        <g className="ali-arm-a"><ellipse cx="1" cy="27" rx="5" ry="8" fill="#00a551" /></g>
+        <ellipse cx="0" cy="23" rx="3.5" ry="2.2" fill="#ff8fa3" opacity=".7" />
+        <path d="M7 24Q11 28 15 24" fill="none" stroke="#14342a" strokeWidth="1.8" strokeLinecap="round" />
+        <path d="M4 33L12 36L12 43L4 40Z" fill="#0099d4" />
+        <g className="ali-arm-a"><ellipse cx="-9" cy="33" rx="5" ry="7" fill="#00a551" stroke={OUTLINE} strokeWidth="1.2" /></g>
       </g>
     </g>
   )
