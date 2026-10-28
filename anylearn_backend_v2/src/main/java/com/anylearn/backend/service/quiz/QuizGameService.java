@@ -241,6 +241,8 @@ public class QuizGameService {
         if (topicKey != null) {
             Integer found = jdbc.queryForObject("SELECT COUNT(*) FROM quiz_topics WHERE topic_key = ? AND active = 1", Integer.class, topicKey);
             if (found == null || found == 0) throw new IllegalArgumentException("Chủ đề không tồn tại");
+            Integer usable = jdbc.queryForObject("SELECT COUNT(*) FROM quiz_questions WHERE status = 'active' AND topic = ?", Integer.class, topicKey);
+            if (usable == null || usable == 0) throw new IllegalStateException("Chủ đề này chưa có câu hỏi, bạn chọn chủ đề khác nhé");
         }
         Map<String, Integer> owned = items(userId);
         List<String> wanted = new ArrayList<>();
@@ -287,18 +289,18 @@ public class QuizGameService {
             if (difficulty - step >= 1) order.add(difficulty - step);
             if (difficulty + step <= 5) order.add(difficulty + step);
         }
-        // a topic of the person's own choice first, then any topic; each time the level first, then nearer levels
-        for (boolean useTopic : topic == null ? new boolean[]{false} : new boolean[]{true, false}) {
-            for (int level : order) {
-                Question q = pick(userId, level, useTopic ? topic : null, since, exclude, true);
-                if (q != null) return q;
-                if (useTopic && level == difficulty) break;
+        // a topic of the person's own choice first (a fresh question at any level, then a repeat of that topic),
+        // then any topic the same way: the topic is never dropped just because the drawn level has none
+        List<String> topics = new ArrayList<>();
+        if (topic != null) topics.add(topic);
+        topics.add(null);
+        for (String t : topics) {
+            for (boolean unseenOnly : new boolean[]{true, false}) {
+                for (int level : order) {
+                    Question q = pick(userId, level, t, since, exclude, unseenOnly);
+                    if (q != null) return q;
+                }
             }
-        }
-        // the bank ran dry for this person: repeat a question rather than stop the game
-        for (int level : order) {
-            Question q = pick(userId, level, null, since, exclude, false);
-            if (q != null) return q;
         }
         return null;
     }

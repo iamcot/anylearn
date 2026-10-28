@@ -167,6 +167,34 @@ class QuizGameFlowTest {
     }
 
     @Test
+    void chosenTopicIsKeptEvenWhenItHasNoQuestionAtTheDrawnLevel() {
+        long u = user();
+        long before = jdbc.queryForObject("SELECT COUNT(*) FROM quiz_questions WHERE status = 'active' AND topic = 'science'", Long.class);
+        // a new player draws level 1; the chosen topic only has a level 4 question
+        for (int i = 0; i < 3; i++) {
+            String body = "Câu lịch sử " + i + "-" + System.nanoTime();
+            jdbc.update("INSERT INTO quiz_questions (topic, difficulty, body, opt_a, opt_b, opt_c, opt_d, correct, explanation, hash, status) VALUES ('history', 1, ?, 'A', 'B', 'C', 'D', 1, 'Vì B', ?, 'active')", body, QuizRules.hash(body));
+        }
+        jdbc.update("DELETE FROM quiz_questions WHERE topic = 'science'");
+        String body = "Câu khoa học khó " + System.nanoTime();
+        jdbc.update("INSERT INTO quiz_questions (topic, difficulty, body, opt_a, opt_b, opt_c, opt_d, correct, explanation, hash, status) VALUES ('science', 4, ?, 'A', 'B', 'C', 'D', 1, 'Vì B', ?, 'active')", body, QuizRules.hash(body));
+        give(u, "topic", 1);
+        Map<String, Object> q = game.start(u, null, false, "science");
+        assertEquals("science", q.get("topic"));
+        assertTrue(before >= 0);
+    }
+
+    @Test
+    void chosenTopicWithoutQuestionsIsRefusedAndTheItemIsKept() {
+        long u = user();
+        questions(1, 2);
+        jdbc.update("DELETE FROM quiz_questions WHERE topic = 'music'");
+        give(u, "topic", 1);
+        assertThrows(IllegalStateException.class, () -> game.start(u, null, false, "music"));
+        assertEquals(1, map(game.me(u).get("items")).get("topic"));
+    }
+
+    @Test
     void questionsDoNotRepeatWhileThereAreFreshOnes() {
         long u = user();
         questions(1, 4);
