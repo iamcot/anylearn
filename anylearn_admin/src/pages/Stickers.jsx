@@ -368,7 +368,7 @@ export default function Stickers() {
   const navigate = useNavigate()
   return (
     <div style={{ padding: 24 }}>
-      <Button type="link" icon={<ArrowLeftOutlined />} style={{ padding: 0, marginBottom: 8 }} onClick={() => navigate('/fun-events')}>Sự kiện game</Button>
+      <Button type="link" icon={<ArrowLeftOutlined />} style={{ padding: 0, marginBottom: 8 }} onClick={() => navigate('/fun-events')}>Vui học</Button>
       <Typography.Title level={4} style={{ marginTop: 0 }}>Sticker</Typography.Title>
       <Typography.Paragraph type="secondary">
         Bộ sticker để sưu tầm: rơi từ quà điểm danh và gói quà chào mừng, đổi cùng độ hiếm giữa bạn bè, đủ bộ nhận thưởng tiền Vui học (Leo Xu).

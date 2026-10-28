@@ -24,6 +24,7 @@ public class CoinService {
     public static final String SOURCE_QUIZ_ITEM = "quiz_item";
 
     private final JdbcTemplate jdbc;
+    private final FunSettings funSettings;
 
     public long balance(long userId) {
         List<Long> rows = jdbc.query("SELECT balance FROM fun_wallets WHERE user_id = ?", (rs, i) -> rs.getLong("balance"), userId);
@@ -34,10 +35,20 @@ public class CoinService {
     @Transactional
     public long credit(long userId, long amount, String source, String detail) {
         if (amount <= 0) return balance(userId);
+        amount = withinDailyCap(userId, amount, source);
+        if (amount <= 0) return balance(userId);
         jdbc.update("INSERT INTO fun_wallets (user_id, balance) VALUES (?, ?) ON DUPLICATE KEY UPDATE balance = balance + VALUES(balance), updated_at = NOW()", userId, amount);
         long after = balance(userId);
         ledger(userId, amount, after, source, detail);
         return after;
+    }
+
+    /** The part of {@code amount} that fits under the daily earning cap (setting `fun/daily_earn_cap`); admin adjustments are never cut. */
+    private long withinDailyCap(long userId, long amount, String source) {
+        long cap = funSettings.dailyEarnCap();
+        if (cap <= 0 || SOURCE_ADMIN.equals(source)) return amount;
+        Long earned = jdbc.queryForObject("SELECT COALESCE(SUM(delta), 0) FROM fun_coin_ledger WHERE user_id = ? AND delta > 0 AND source <> ? AND created_at >= CURDATE()", Long.class, userId, SOURCE_ADMIN);
+        return Math.min(amount, Math.max(cap - (earned == null ? 0 : earned), 0));
     }
 
     /** Takes coins; false (and nothing changes) when the balance is too low. */

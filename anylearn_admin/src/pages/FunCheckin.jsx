@@ -42,7 +42,7 @@ export default function FunCheckin() {
 
   return (
     <div style={{ padding: 24 }}>
-      <Button type="link" icon={<ArrowLeftOutlined />} style={{ padding: 0, marginBottom: 8 }} onClick={() => navigate('/fun-events')}>Sự kiện game</Button>
+      <Button type="link" icon={<ArrowLeftOutlined />} style={{ padding: 0, marginBottom: 8 }} onClick={() => navigate('/fun-events')}>Vui học</Button>
       <Typography.Title level={4} style={{ marginTop: 0 }}>Điểm danh và quà</Typography.Title>
       <Typography.Paragraph type="secondary">
         Mỗi thành viên mở một quà mỗi ngày. Chuỗi ngày liên tiếp quyết định mức {coin} trong tuần; ngày 7 là quà lớn, sau đó quay lại ngày 1.

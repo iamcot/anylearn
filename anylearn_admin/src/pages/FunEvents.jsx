@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import client from '../api/client'
+import FunRollout from '../components/FunRollout'
 import { fmtDateTime } from '../utils/format'
 
 const GAMES = {
@@ -47,14 +48,13 @@ export default function FunEvents() {
   return (
     <div style={{ padding: 24 }}>
       <Flex justify="space-between" align="flex-start" wrap gap={8}>
-        <Typography.Title level={4} style={{ marginTop: 0 }}>Sự kiện game</Typography.Title>
+        <Typography.Title level={4} style={{ marginTop: 0 }}>Vui học</Typography.Title>
         <Flex gap={8}>
           <Button onClick={() => navigate('/fun-coins')}>Tiền game</Button>
           <Button onClick={() => navigate('/fun-checkin')}>Điểm danh & quà</Button>
           <Button onClick={() => navigate('/stickers')}>Sticker</Button>
           <Button onClick={() => navigate('/quiz-game')}>Quiz Leo rank</Button>
           <Button onClick={() => navigate('/achievements')}>Banner thành tích</Button>
-          <Button onClick={() => navigate('/explore')}>Khám phá</Button>
           <Button onClick={() => navigate('/quiz-bank')}>Kho câu hỏi</Button>
         </Flex>
       </Flex>
@@ -77,6 +77,7 @@ export default function FunEvents() {
           pagination={{ current: page, pageSize, total: data?.total ?? 0, showSizeChanger: false, onChange: setPage }}
         />
       </Card>
+      <FunRollout />
     </div>
   )
 }

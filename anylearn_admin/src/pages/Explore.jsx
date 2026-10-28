@@ -1,7 +1,6 @@
 import { Alert, Button, Card, Drawer, Form, Input, InputNumber, Popconfirm, Radio, Select, Space, Statistic, Switch, Table, Tabs, Tag, Typography, Upload, message } from 'antd'
-import { ArrowLeftOutlined, UploadOutlined } from '@ant-design/icons'
+import { UploadOutlined } from '@ant-design/icons'
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import client from '../api/client'
 import { fmtDateTime } from '../utils/format'
@@ -165,10 +164,8 @@ function Settings() {
 }
 
 export default function Explore() {
-  const navigate = useNavigate()
   return (
-    <div>
-      <Button type="link" icon={<ArrowLeftOutlined />} onClick={() => navigate('/fun-events')}>Sự kiện game</Button>
+    <div style={{ padding: 24 }}>
       <Typography.Title level={4}>Khám phá</Typography.Title>
       <Alert type="info" showIcon style={{ marginBottom: 16 }} message="Người chơi lướt từng bài toàn màn hình ở Vui học > Khám phá. Bài mới ở trạng thái Nháp cho đến khi bạn chọn Đang hiện." />
       <Card>

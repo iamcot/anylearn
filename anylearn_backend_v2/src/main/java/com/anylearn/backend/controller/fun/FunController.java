@@ -41,6 +41,7 @@ public class FunController {
     private final NotificationService notificationService;
     private final AchievementService achievementService;
     private final AchievementSettings achievementSettings;
+    private final com.anylearn.backend.service.fun.FunAccessSettings accessSettings;
 
     @GetMapping("/checkin")
     public ApiResponse<?> checkin(@AuthenticationPrincipal User user) {
@@ -57,6 +58,13 @@ public class FunController {
         out.put("balance", coinService.balance(user.getId()));
         out.put("history", coinService.history(user.getId(), 20));
         return ApiResponse.ok(out);
+    }
+
+    /** Which Vui học games this person may use (a game in trial is open to a small group only). */
+    @GetMapping("/access")
+    public ApiResponse<?> access(@AuthenticationPrincipal User user) {
+        if (user == null) return ApiResponse.fail("Unauthorized");
+        return ApiResponse.ok(accessSettings.allowedFor(user));
     }
 
     /** The whole ledger of the game currency, paged (the page "Lịch sử" of the wallet). */

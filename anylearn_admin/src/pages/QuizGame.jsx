@@ -210,7 +210,7 @@ export default function QuizGame() {
   const navigate = useNavigate()
   return (
     <div style={{ padding: 24 }}>
-      <Button type="link" icon={<ArrowLeftOutlined />} style={{ padding: 0, marginBottom: 8 }} onClick={() => navigate('/fun-events')}>Sự kiện game</Button>
+      <Button type="link" icon={<ArrowLeftOutlined />} style={{ padding: 0, marginBottom: 8 }} onClick={() => navigate('/fun-events')}>Vui học</Button>
       <Typography.Title level={4} style={{ marginTop: 0 }}>Quiz Leo rank</Typography.Title>
       <Tabs
         items={[

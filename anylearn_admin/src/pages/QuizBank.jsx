@@ -299,7 +299,7 @@ export default function QuizBank() {
 
   return (
     <div style={{ padding: 24 }}>
-      <Button type="link" icon={<ArrowLeftOutlined />} style={{ padding: 0, marginBottom: 8 }} onClick={() => navigate('/fun-events')}>Sự kiện game</Button>
+      <Button type="link" icon={<ArrowLeftOutlined />} style={{ padding: 0, marginBottom: 8 }} onClick={() => navigate('/fun-events')}>Vui học</Button>
       <Typography.Title level={4} style={{ marginTop: 0 }}>Kho câu hỏi quiz leo rank</Typography.Title>
       <Typography.Paragraph type="secondary">
         AI viết sẵn câu hỏi theo chủ đề và độ khó, loại câu trùng, rồi tự trả lời lại để kiểm tra đáp án. Câu AI chấm khớp được duyệt nhanh; câu chấm lệch bị ẩn sẵn.

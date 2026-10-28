@@ -105,7 +105,7 @@ export default function FunScene({ token, initial, reminder, childName, onClaime
       ) : (
         <Link href="/today/fun/quiz" className="absolute bottom-[22px] right-5 flex flex-col items-center text-white no-underline">
           <span className="gift-wobble inline-block drop-shadow-[0_3px_3px_rgba(0,0,0,.25)]"><RankBadge rankKey={rankKey} className="size-14" /></span>
-          <span className="mt-1 text-xs font-extrabold [text-shadow:0_1px_3px_rgba(0,0,0,.45)]"><BrandText text="Leo rank" /></span>
+          <span className="mt-1 text-xs font-extrabold [text-shadow:0_1px_3px_rgba(0,0,0,.45)]">Leo rank</span>
         </Link>
       )}
       {phase.kind === 'claimed' && phase.sticker && (

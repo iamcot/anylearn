@@ -33,8 +33,8 @@ export default function Achievements() {
   })
 
   return (
-    <div>
-      <Button type="link" icon={<ArrowLeftOutlined />} onClick={() => navigate('/fun-events')}>Sự kiện game</Button>
+    <div style={{ padding: 24 }}>
+      <Button type="link" icon={<ArrowLeftOutlined />} onClick={() => navigate('/fun-events')}>Vui học</Button>
       <Typography.Title level={4}>Banner thành tích</Typography.Title>
       <Typography.Paragraph type="secondary">Khi người chơi lên hạng, đạt mốc điểm danh, đứng top bảng xếp hạng hoặc đủ bộ sticker, hệ thống tạo một banner để họ chia sẻ. Bảng dưới cho thấy chia sẻ mang về bao nhiêu lượt xem và người đăng ký.</Typography.Paragraph>
 

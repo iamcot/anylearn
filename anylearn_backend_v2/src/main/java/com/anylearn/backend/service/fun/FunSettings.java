@@ -42,6 +42,19 @@ public class FunSettings {
         }
     }
 
+    /** Most game coins one person can earn in a day from games (admin adjustments do not count), 0 = no limit. */
+    public long dailyEarnCap() {
+        try {
+            return Math.max(Long.parseLong(read("fun/daily_earn_cap").orElse("0").trim()), 0);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    public void saveDailyEarnCap(long cap) {
+        write("fun/daily_earn_cap", String.valueOf(Math.max(cap, 0)));
+    }
+
     /** What the game currency is called on every screen; set in the back office. */
     public String coinName() {
         return read(KEY_COIN_NAME).map(String::trim).filter(v -> !v.isEmpty()).orElse(DEFAULT_COIN_NAME);

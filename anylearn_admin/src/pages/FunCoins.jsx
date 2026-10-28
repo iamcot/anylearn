@@ -56,7 +56,7 @@ export default function FunCoins() {
 
   return (
     <div style={{ padding: 24 }}>
-      <Button type="link" icon={<ArrowLeftOutlined />} style={{ padding: 0, marginBottom: 8 }} onClick={() => navigate('/fun-events')}>Sự kiện game</Button>
+      <Button type="link" icon={<ArrowLeftOutlined />} style={{ padding: 0, marginBottom: 8 }} onClick={() => navigate('/fun-events')}>Vui học</Button>
       <Typography.Title level={4} style={{ marginTop: 0 }}>Tiền Vui học ({name})</Typography.Title>
       <Typography.Paragraph type="secondary">
         Đây là đồng tiền riêng của các game, <b>không phải anyPoint</b>: phát ra từ điểm danh và thưởng đủ bộ sticker, không tạo giao dịch ví và không gửi thông báo anyPoint.

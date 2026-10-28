@@ -39,6 +39,12 @@ export function getCoinHistory(token: string, page: number, size = 20) {
   return authFetch<CoinHistoryPage>(`/fun/coins/history?page=${page}&size=${size}`, token)
 }
 
+export type FunAccess = Record<'checkin' | 'quiz' | 'sticker' | 'explore', boolean>
+
+export function getFunAccess(token: string) {
+  return authFetch<FunAccess>('/fun/access', token)
+}
+
 export function getCoins(token: string) {
   return authFetch<CoinWallet>('/fun/coins', token)
 }
