@@ -466,3 +466,23 @@ body {
   .quiz-rank-out-down, .quiz-rank-out-up { animation: none; opacity: 0 }
   .quiz-rank-in-down, .quiz-rank-in-up { animation: none; transform: none }
 }
+
+/* Generated stickers (StickerArt): a die-cut badge around the emoji, effects by rarity */
+.stk { position: absolute; inset: 3%; display: block; border-radius: 34%; border: 4cqw solid #fff; overflow: hidden;
+  box-shadow: 0 2cqw 5cqw rgba(15, 23, 42, 0.22), 0 0 0 0.6cqw rgba(15, 23, 42, 0.08); transform: rotate(-3deg); }
+.stk-face, .stk-holo, .stk-sweep { position: absolute; inset: 0; }
+.stk-emoji { position: absolute; inset: 0; display: grid; place-items: center; font-size: 50cqw; line-height: 1; filter: drop-shadow(0 1.5cqw 1.5cqw rgba(15, 23, 42, 0.25)); }
+.stk-common .stk-face { background: radial-gradient(circle at 30% 25%, #fff 0, hsl(var(--stk-hue) 90% 90%) 45%, hsl(var(--stk-hue) 75% 80%) 100%); }
+.stk-rare { box-shadow: 0 2cqw 5cqw rgba(37, 99, 235, 0.45), 0 0 0 0.8cqw #fcd34d; }
+.stk-rare .stk-face { background: radial-gradient(circle at 30% 20%, #e0f2fe 0, #60a5fa 45%, #2563eb 100%); }
+.stk-rare::after { content: ''; position: absolute; inset: 0; background: linear-gradient(160deg, rgba(255, 255, 255, 0.55) 0, rgba(255, 255, 255, 0) 42%); pointer-events: none; }
+.stk-epic { animation: stk-glow 2.4s ease-in-out infinite; box-shadow: 0 0 0 0.8cqw #f0abfc; }
+.stk-epic .stk-face { background: radial-gradient(circle at 30% 20%, #fdf4ff 0, #c084fc 40%, #6d28d9 100%); }
+.stk-holo { background: conic-gradient(from 0deg, #ff6ec7, #ffd86e, #6effb2, #6ec9ff, #b66eff, #ff6ec7); mix-blend-mode: hard-light; opacity: 0.6; animation: stk-spin 6s linear infinite; transform-origin: 50% 50%; scale: 1.6; }
+.stk-sweep { background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.75) 50%, transparent 65%); transform: translateX(-120%); animation: stk-sweep 3.2s ease-in-out infinite; }
+.stk-spark { position: absolute; background: #fff; clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%); filter: drop-shadow(0 0 1.5cqw rgba(255, 255, 255, 0.9)); animation: stk-twinkle 1.8s ease-in-out infinite; }
+@keyframes stk-sweep { 0%, 55% { transform: translateX(-120%); } 100% { transform: translateX(120%); } }
+@keyframes stk-twinkle { 0%, 100% { opacity: 0.2; transform: scale(0.5) rotate(0deg); } 50% { opacity: 1; transform: scale(1) rotate(45deg); } }
+@keyframes stk-spin { to { transform: rotate(360deg); } }
+@keyframes stk-glow { 0%, 100% { filter: drop-shadow(0 0 1.5cqw rgba(192, 132, 252, 0.7)); } 50% { filter: drop-shadow(0 0 4cqw rgba(232, 121, 249, 1)); } }
+@media (prefers-reduced-motion: reduce) { .stk-holo, .stk-sweep, .stk-spark, .stk-epic { animation: none; } .stk-spark { opacity: 0.9; } }
