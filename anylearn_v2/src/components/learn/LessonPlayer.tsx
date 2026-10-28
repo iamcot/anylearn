@@ -57,9 +57,15 @@ export default function LessonPlayer({ lesson, token, learnerId, mark, onProgres
     watched.current = 0
     lastTime.current = null
     setPlayError(null)
-    if (source.kind === 'hls' && !video.canPlayType('application/vnd.apple.mpegurl')) {
+    if (source.kind === 'hls') {
+      // hls.js first wherever it works (recent Chrome claims native HLS but plays signed playlists badly); native only on iPhone
       import('hls.js').then(({ default: Hls }) => {
-        if (cancelled || !Hls.isSupported()) return
+        if (cancelled) return
+        if (!Hls.isSupported()) {
+          if (video.canPlayType('application/vnd.apple.mpegurl')) video.src = source.src
+          else setPlayError('Trình duyệt không hỗ trợ phát video này')
+          return
+        }
         const player = new Hls({ startPosition: lesson.positionSeconds || -1 })
         hls = player
         // hls.js is silent by default: show what failed (HTTP code of the request, error type) instead of a still poster
