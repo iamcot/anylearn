@@ -3,6 +3,8 @@ package com.anylearn.backend.controller.fun;
 import com.anylearn.backend.dto.response.ApiResponse;
 import com.anylearn.backend.entity.User;
 import com.anylearn.backend.service.fun.CheckinService;
+import com.anylearn.backend.service.fun.CoinService;
+import com.anylearn.backend.service.fun.FunSettings;
 import com.anylearn.backend.service.fun.FunRules;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -27,6 +29,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class FunController {
 
     private final CheckinService checkinService;
+    private final CoinService coinService;
+    private final FunSettings funSettings;
     private final RiskService riskService;
     private final StickerService stickerService;
     private final WelcomePackService welcomePackService;
@@ -36,6 +40,17 @@ public class FunController {
     public ApiResponse<?> checkin(@AuthenticationPrincipal User user) {
         if (user == null) return ApiResponse.fail("Unauthorized");
         return ApiResponse.ok(checkinService.status(user.getId()));
+    }
+
+    /** The balance of the game currency and its last movements. */
+    @GetMapping("/coins")
+    public ApiResponse<?> coins(@AuthenticationPrincipal User user) {
+        if (user == null) return ApiResponse.fail("Unauthorized");
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("coinName", funSettings.coinName());
+        out.put("balance", coinService.balance(user.getId()));
+        out.put("history", coinService.history(user.getId(), 20));
+        return ApiResponse.ok(out);
     }
 
     @PostMapping("/checkin/claim")

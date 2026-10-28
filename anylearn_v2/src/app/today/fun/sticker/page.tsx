@@ -44,7 +44,7 @@ export default function StickerPage() {
   const claim = async () => {
     if (!token) return
     const { data, error: err } = await claimSetReward(token)
-    setNote(err ?? `Chúc mừng! Bạn nhận ${data?.points ?? 0} anyPoint vì đủ bộ sticker.`)
+    setNote(err ?? `Chúc mừng! Bạn nhận ${data?.points ?? 0} ${album?.coinName ?? 'Ali Xu'} vì đủ bộ sticker.`)
     load()
   }
 
@@ -74,8 +74,8 @@ export default function StickerPage() {
               {album.setRewardClaimed
                 ? <span>Bạn đã nhận thưởng đủ bộ. Giỏi quá!</span>
                 : album.setComplete
-                  ? <div className="flex flex-wrap items-center gap-3"><span className="font-bold">Bạn đã đủ bộ!</span><button type="button" onClick={claim} className="min-h-11 cursor-pointer rounded-full border-0 bg-green px-5 font-black text-white">Nhận {album.setReward} anyPoint</button></div>
-                  : <span>Sưu tầm đủ bộ để nhận <b>{album.setReward} anyPoint</b>.</span>}
+                  ? <div className="flex flex-wrap items-center gap-3"><span className="font-bold">Bạn đã đủ bộ!</span><button type="button" onClick={claim} className="min-h-11 cursor-pointer rounded-full border-0 bg-green px-5 font-black text-white">Nhận {album.setReward} {album.coinName}</button></div>
+                  : <span>Sưu tầm đủ bộ để nhận <b>{album.setReward} {album.coinName}</b>.</span>}
             </div>
           )}
 

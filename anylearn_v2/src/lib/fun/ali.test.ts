@@ -13,12 +13,12 @@ describe('aliLines', () => {
   })
   it('congratulates with the points after opening', () => {
     expect(aliLines({ kind: 'claimed', points: 10, streak: 3 })).toEqual([
-      'Chúc mừng bạn đã nhận được 10 anyPoint!', 'Chuỗi 3 ngày liên tiếp rồi, giỏi quá!',
+      'Chúc mừng bạn đã nhận được 10 Ali Xu!', 'Chuỗi 3 ngày liên tiếp rồi, giỏi quá!',
     ])
   })
   it('says the gift is used up when capped with no points', () => {
     expect(aliLines({ kind: 'claimed', points: 5, sticker: 'Ali tên lửa' })).toEqual([
-      'Chúc mừng bạn đã nhận được 5 anyPoint!',
+      'Chúc mừng bạn đã nhận được 5 Ali Xu!',
       'Wow, bạn còn nhận thêm sticker Ali tên lửa nữa nè!',
     ])
     expect(aliLines({ kind: 'claimed', points: 0, capped: true })).toEqual(['Hôm nay quà hết phần rồi, mai quay lại nhé!'])

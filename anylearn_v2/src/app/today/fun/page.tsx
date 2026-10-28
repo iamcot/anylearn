@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { getCheckin, type CheckinStatus } from '@/lib/api/fun'
 import FunScene from '@/components/fun/FunScene'
+import CoinWalletCard from '@/components/fun/CoinWalletCard'
 import { ALI_NAME, reminderFor } from '@/lib/fun/ali'
 import { getLearners, getToday } from '@/lib/today/api'
 import { sendDevice } from '@/lib/api/stickers'
@@ -20,6 +21,7 @@ export default function FunPage() {
   const [status, setStatus] = useState<CheckinStatus | null>(null)
   const [error, setError] = useState('')
   const [reminder, setReminder] = useState<string | null>(null)
+  const [claims, setClaims] = useState(0)
 
 
   useEffect(() => {
@@ -51,10 +53,12 @@ export default function FunPage() {
   return (
     <div className="mx-auto max-w-[720px] px-4 pb-28 pt-5 lg:px-0 lg:pb-12 lg:pt-8">
       <h1 className="text-2xl font-black lg:text-3xl">Vui học</h1>
-      <p className="mt-1 text-sm text-muted">Giải trí nhẹ nhàng cùng <b className="italic">{ALI_NAME}</b> và nhận anyPoint mỗi ngày.</p>
+      <p className="mt-1 text-sm text-muted">Giải trí nhẹ nhàng cùng <b className="italic">{ALI_NAME}</b> và nhận {status?.coinName ?? 'quà'} mỗi ngày.</p>
       {error && <p className="mt-4 text-warn-text">{error}</p>}
       {!error && !status && <div className="mt-4 h-[250px] animate-pulse rounded-[22px] bg-slate-200" />}
-      {status && token && <div className="mt-4"><FunScene token={token} initial={status} reminder={reminder} /></div>}
+      {status && token && <div className="mt-4"><FunScene token={token} initial={status} reminder={reminder} onClaimed={() => setClaims(n => n + 1)} /></div>}
+
+      {token && status && <CoinWalletCard token={token} refreshKey={claims} />}
 
       <Link href="/today/fun/sticker" className="mt-4 flex items-center gap-3 rounded-2xl border border-line bg-white p-3 text-ink no-underline">
         <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-green-soft text-2xl" aria-hidden>🦊</span>

@@ -37,6 +37,7 @@ export default function FunCheckin() {
   // A rough cost per day: the average of the week's gifts for the people who opened it in the last 7 days.
   const weekAverage = dayPoints.reduce((sum, p) => sum + (p ?? 0), 0) / DAY_COUNT
   const estimate = Math.round(weekAverage * (data?.claimsPerDay7 ?? 0))
+  const coin = data?.coinName ?? 'Ali Xu'
   const overCap = cap > 0 && estimate > cap
 
   return (
@@ -44,7 +45,7 @@ export default function FunCheckin() {
       <Button type="link" icon={<ArrowLeftOutlined />} style={{ padding: 0, marginBottom: 8 }} onClick={() => navigate('/fun-events')}>Sự kiện game</Button>
       <Typography.Title level={4} style={{ marginTop: 0 }}>Điểm danh và quà</Typography.Title>
       <Typography.Paragraph type="secondary">
-        Mỗi thành viên mở một quà mỗi ngày. Chuỗi ngày liên tiếp quyết định mức anyPoint trong tuần; ngày 7 là quà lớn, sau đó quay lại ngày 1.
+        Mỗi thành viên mở một quà mỗi ngày. Chuỗi ngày liên tiếp quyết định mức {coin} trong tuần; ngày 7 là quà lớn, sau đó quay lại ngày 1.
       </Typography.Paragraph>
       <Card loading={isLoading} style={{ marginBottom: 16 }}>
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
@@ -53,7 +54,7 @@ export default function FunCheckin() {
             <span>{enabled ? 'Đang bật quà điểm danh' : 'Đang tắt, thành viên không mở được quà'}</span>
           </Space>
           <div>
-            <Typography.Text strong>anyPoint mỗi ngày trong chuỗi</Typography.Text>
+            <Typography.Text strong>{coin} mỗi ngày trong chuỗi</Typography.Text>
             <Space wrap size="middle" style={{ display: 'flex', marginTop: 8 }}>
               {dayPoints.map((value, i) => (
                 <div key={i}>
@@ -65,20 +66,20 @@ export default function FunCheckin() {
             </Space>
           </div>
           <div>
-            <Typography.Text strong>Trần anyPoint phát ra mỗi ngày</Typography.Text>
+            <Typography.Text strong>Trần {coin} phát ra mỗi ngày</Typography.Text>
             <div style={{ marginTop: 8 }}>
               <InputNumber min={0} step={1000} value={cap} onChange={v => setCap(v ?? 0)} style={{ width: 160 }} />
-              <span style={{ marginLeft: 8, color: '#888' }}>0 = không giới hạn. Khi chạm trần, người mở quà sau đó vẫn giữ chuỗi nhưng không nhận anyPoint hôm đó.</span>
+              <span style={{ marginLeft: 8, color: '#888' }}>0 = không giới hạn. Khi chạm trần, người mở quà sau đó vẫn giữ chuỗi nhưng không nhận {coin} hôm đó.</span>
             </div>
           </div>
           <div>
-            <Tag>Hôm nay: {data?.claimsToday ?? 0} lượt mở, {data?.pointsToday ?? 0} anyPoint</Tag>
-            <Tag>7 ngày qua: trung bình {Math.round(data?.claimsPerDay7 ?? 0)} lượt và {Math.round(data?.pointsPerDay7 ?? 0)} anyPoint mỗi ngày</Tag>
+            <Tag>Hôm nay: {data?.claimsToday ?? 0} lượt mở, {data?.pointsToday ?? 0} {coin}</Tag>
+            <Tag>7 ngày qua: trung bình {Math.round(data?.claimsPerDay7 ?? 0)} lượt và {Math.round(data?.pointsPerDay7 ?? 0)} {coin} mỗi ngày</Tag>
           </div>
           <Alert
             type={overCap ? 'warning' : 'info'} showIcon
-            message={`Chi phí ước tính mỗi ngày: khoảng ${estimate.toLocaleString('vi-VN')} anyPoint`}
-            description={overCap ? 'Vượt trần đã đặt: một phần người mở quà sẽ không nhận anyPoint.' : 'Tính bằng mức trung bình 7 ngày trong tuần nhân số lượt mở trung bình mỗi ngày gần đây.'}
+            message={`Chi phí ước tính mỗi ngày: khoảng ${estimate.toLocaleString('vi-VN')} ${coin}`}
+            description={overCap ? 'Vượt trần đã đặt: một phần người mở quà sẽ không nhận ' + coin + '.' : 'Tính bằng mức trung bình 7 ngày trong tuần nhân số lượt mở trung bình mỗi ngày gần đây.'}
           />
           <Button type="primary" loading={save.isPending} onClick={() => save.mutate()}>Lưu cấu hình</Button>
         </Space>

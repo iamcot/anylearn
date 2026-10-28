@@ -16,6 +16,8 @@ public class FunSettings {
     public static final String KEY_ENABLED = "fun/enabled";
     public static final String KEY_CHECKIN_POINTS = "fun/checkin_points";
     public static final String KEY_CHECKIN_DAILY_CAP = "fun/checkin_daily_cap";
+    public static final String KEY_COIN_NAME = "fun/coin_name";
+    public static final String DEFAULT_COIN_NAME = "Ali Xu";
 
     private final ConfigurationRepository configurationRepository;
 
@@ -38,6 +40,19 @@ public class FunSettings {
         } catch (NumberFormatException e) {
             return 0;
         }
+    }
+
+    /** What the game currency is called on every screen; set in the back office. */
+    public String coinName() {
+        return read(KEY_COIN_NAME).map(String::trim).filter(v -> !v.isEmpty()).orElse(DEFAULT_COIN_NAME);
+    }
+
+    /** Null when saved, else why the name is refused. */
+    public String saveCoinName(String name) {
+        String clean = name == null ? "" : name.trim();
+        if (clean.isEmpty() || clean.length() > 20) return "Tên tiền từ 1 đến 20 ký tự";
+        write(KEY_COIN_NAME, clean);
+        return null;
     }
 
     public void save(boolean enabled, List<Integer> dayPoints, long dailyCap) {

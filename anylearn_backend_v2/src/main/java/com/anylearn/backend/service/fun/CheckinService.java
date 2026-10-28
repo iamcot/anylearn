@@ -1,9 +1,5 @@
 package com.anylearn.backend.service.fun;
 
-import com.anylearn.backend.entity.Transaction;
-import com.anylearn.backend.repository.TransactionRepository;
-import com.anylearn.backend.service.NotificationService;
-import com.anylearn.backend.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -12,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.sql.Date;
 import java.time.Clock;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -21,20 +16,16 @@ import java.util.Map;
 /**
  * The daily gift of the Vui học page: one claim per account per day (primary key user + day), a streak that goes on while
  * the person comes every day, anyPoint by the day of the week of the streak (setting `fun/checkin_points`) under an
- * optional daily budget (`fun/checkin_daily_cap`). Points go through {@link WalletService}.
+ * optional daily budget (`fun/checkin_daily_cap`). The reward is in Vui học coins ({@link CoinService}), never anyPoint.
  */
 @Service
 @RequiredArgsConstructor
 public class CheckinService {
 
-    public static final String TYPE_CHECKIN = "fun_checkin";
-
     private final JdbcTemplate jdbc;
     private final FunSettings settings;
-    private final WalletService walletService;
-    private final TransactionRepository transactionRepository;
+    private final CoinService coinService;
     private final GameEventService gameEvents;
-    private final NotificationService notificationService;
     private final Clock clock;
 
     private record Last(LocalDate day, int streak) {}
@@ -71,6 +62,8 @@ public class CheckinService {
         out.put("best", Math.max(best == null ? 0 : best, alive));
         out.put("dayInCycle", current);
         out.put("nextPoints", claimed ? null : FunRules.pointsFor(points, nextStreak));
+        out.put("coins", coinService.balance(userId));
+        out.put("coinName", settings.coinName());
         out.put("days", days);
         return out;
     }
@@ -94,28 +87,16 @@ public class CheckinService {
             out.put("points", 0);
             return out;
         }
-        if (points > 0) {
-            Transaction tx = new Transaction();
-            tx.setUserId(userId);
-            tx.setType(TYPE_CHECKIN);
-            tx.setAmount((long) points);
-            tx.setPayMethod("wallet_c");
-            tx.setContent("Quà điểm danh Vui học, ngày " + FunRules.dayInCycle(streak) + " (chuỗi " + streak + ")");
-            tx.setStatus(1);
-            tx.setCreatedAt(LocalDateTime.now());
-            tx.setUpdatedAt(LocalDateTime.now());
-            transactionRepository.save(tx);
-            walletService.creditWalletC(userId, points);
-        }
         boolean capped = points < wanted;
+        if (points > 0) {
+            coinService.credit(userId, points, CoinService.SOURCE_CHECKIN, "Quà điểm danh, ngày " + FunRules.dayInCycle(streak) + " (chuỗi " + streak + ")");
+        }
         gameEvents.record(userId, GameEventService.GAME_CHECKIN, "claim",
                 "Ngày " + FunRules.dayInCycle(streak) + ", chuỗi " + streak + (capped ? " (chạm trần ngân sách ngày)" : ""), points);
-        if (points > 0) {
-            notificationService.createNotification(userId, TYPE_CHECKIN, "Quà điểm danh Vui học",
-                    "Bạn nhận " + points + " anyPoint, chuỗi " + streak + " ngày. Mai quay lại để giữ chuỗi nhé!", "/today/fun");
-        }
         out.put("alreadyClaimed", false);
         out.put("points", points);
+        out.put("coins", coinService.balance(userId));
+        out.put("coinName", settings.coinName());
         out.put("capped", capped);
         out.put("streak", streak);
         out.put("dayInCycle", FunRules.dayInCycle(streak));

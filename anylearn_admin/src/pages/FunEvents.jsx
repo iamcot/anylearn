@@ -12,6 +12,7 @@ const GAMES = {
   explore: ['Khám phá', 'orange'],
   banner: ['Banner', 'magenta'],
   ref: ['Giới thiệu', 'cyan'],
+  coin: ['Tiền game', 'gold'],
 }
 const GAME_OPTIONS = Object.entries(GAMES).map(([value, [label]]) => ({ value, label }))
 
@@ -40,7 +41,7 @@ export default function FunEvents() {
     },
     { title: 'Sự kiện', dataIndex: 'type', width: 170, render: t => TYPE_LABELS[t] ?? t },
     { title: 'Chi tiết', dataIndex: 'detail' },
-    { title: 'anyPoint', dataIndex: 'points', width: 90, align: 'right', render: p => (p ? `+${p}` : '') },
+    { title: data?.coinName ?? 'Ali Xu', dataIndex: 'points', width: 90, align: 'right', render: p => (p ? `+${p}` : '') },
   ]
 
   return (
@@ -48,6 +49,7 @@ export default function FunEvents() {
       <Flex justify="space-between" align="flex-start" wrap gap={8}>
         <Typography.Title level={4} style={{ marginTop: 0 }}>Sự kiện game</Typography.Title>
         <Flex gap={8}>
+          <Button onClick={() => navigate('/fun-coins')}>Tiền game</Button>
           <Button onClick={() => navigate('/fun-checkin')}>Điểm danh & quà</Button>
           <Button onClick={() => navigate('/stickers')}>Sticker</Button>
           <Button onClick={() => navigate('/quiz-bank')}>Kho câu hỏi</Button>
@@ -57,7 +59,7 @@ export default function FunEvents() {
       <Row gutter={[12, 12]} style={{ marginBottom: 16 }}>
         <Col xs={12} md={6}><Card size="small"><Statistic title="Người chơi hôm nay" value={data?.playersToday ?? 0} /></Card></Col>
         <Col xs={12} md={6}><Card size="small"><Statistic title="Sự kiện hôm nay" value={data?.eventsToday ?? 0} /></Card></Col>
-        <Col xs={12} md={6}><Card size="small"><Statistic title="anyPoint phát ra hôm nay" value={data?.pointsToday ?? 0} /></Card></Col>
+        <Col xs={12} md={6}><Card size="small"><Statistic title={`${data?.coinName ?? 'Ali Xu'} phát ra hôm nay`} value={data?.pointsToday ?? 0} /></Card></Col>
         <Col xs={12} md={6}><Card size="small"><Statistic title="Đăng ký từ link giới thiệu" value={data?.referralsToday ?? 0} /></Card></Col>
       </Row>
       <Card>

@@ -20,7 +20,7 @@ const SETTING_FIELDS = [
   ['eligible_checkins', 'Tài khoản đủ điều kiện: số ngày điểm danh tối thiểu', null],
   ['hold_score', 'Điểm rủi ro từ đó gói quà chờ duyệt', 'Điểm cao khi nhiều tài khoản dùng chung thiết bị hoặc IP hoặc cùng người mời.'],
   ['invite_month_cap', 'Người mời nhận thưởng tối đa mỗi tháng (lượt)', null],
-  ['set_reward_points', 'Thưởng đủ bộ (anyPoint, 0 = tắt)', 'Trao một lần cho mỗi người, chỉ tài khoản đủ điều kiện.'],
+  ['set_reward_points', 'Thưởng đủ bộ (Ali Xu, 0 = tắt)', 'Trao một lần cho mỗi người, chỉ tài khoản đủ điều kiện.'],
 ]
 
 function useStickers() {
@@ -285,7 +285,7 @@ export default function Stickers() {
       <Button type="link" icon={<ArrowLeftOutlined />} style={{ padding: 0, marginBottom: 8 }} onClick={() => navigate('/fun-events')}>Sự kiện game</Button>
       <Typography.Title level={4} style={{ marginTop: 0 }}>Sticker</Typography.Title>
       <Typography.Paragraph type="secondary">
-        Bộ sticker để sưu tầm: rơi từ quà điểm danh và gói quà chào mừng, đổi cùng độ hiếm giữa bạn bè, đủ bộ nhận thưởng anyPoint.
+        Bộ sticker để sưu tầm: rơi từ quà điểm danh và gói quà chào mừng, đổi cùng độ hiếm giữa bạn bè, đủ bộ nhận thưởng tiền Vui học (Ali Xu).
       </Typography.Paragraph>
       <Tabs items={[
         { key: 'set', label: 'Bộ sticker', children: <SetTab /> },

@@ -11,6 +11,9 @@ export interface CheckinStatus {
   best: number
   dayInCycle: number
   nextPoints: number | null
+  /** Balance of the game currency (not anyPoint) and its name. */
+  coins: number
+  coinName: string
   days: CheckinDay[]
 }
 
@@ -21,6 +24,15 @@ export interface CheckinClaim {
   streak?: number
   dayInCycle?: number
   sticker?: StickerView | null
+  coins?: number
+  coinName?: string
+}
+
+export interface CoinHistoryRow { id: number; delta: number; balanceAfter: number; source: string; detail: string | null; createdAt: string }
+export interface CoinWallet { coinName: string; balance: number; history: CoinHistoryRow[] }
+
+export function getCoins(token: string) {
+  return authFetch<CoinWallet>('/fun/coins', token)
 }
 
 export function getCheckin(token: string) {

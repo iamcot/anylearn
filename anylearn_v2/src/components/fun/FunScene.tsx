@@ -23,9 +23,9 @@ function AliSpeech({ lines }: { lines: string[] }) {
 
 type Phase = { kind: 'idle' } | { kind: 'opening' } | { kind: 'claimed'; points: number; capped: boolean; streak: number; sticker?: StickerView | null } | { kind: 'error'; message: string }
 
-function contextOf(status: CheckinStatus, phase: Phase): AliContext {
+function contextOf(status: CheckinStatus, phase: Phase, coinName: string): AliContext {
   if (phase.kind === 'opening') return { kind: 'opening' }
-  if (phase.kind === 'claimed') return { kind: 'claimed', points: phase.points, capped: phase.capped, streak: phase.streak, sticker: phase.sticker?.name }
+  if (phase.kind === 'claimed') return { kind: 'claimed', points: phase.points, capped: phase.capped, streak: phase.streak, sticker: phase.sticker?.name, coinName }
   if (phase.kind === 'error') return { kind: 'error', message: phase.message }
   if (!status.enabled) return { kind: 'closed' }
   if (status.claimedToday) return { kind: 'done', daysToWeekGift: 7 - status.dayInCycle }
@@ -39,7 +39,8 @@ export default function FunScene({ token, initial, reminder, onClaimed }: { toke
   const [reward, setReward] = useState(0)
   const busy = phase.kind === 'opening'
   const canOpen = status.enabled && !status.claimedToday
-  const ctx = contextOf(status, phase)
+  const coinName = status.coinName
+  const ctx = contextOf(status, phase, coinName)
   const walk = useAliWalk()
 
   const open = async () => {
@@ -61,9 +62,10 @@ export default function FunScene({ token, initial, reminder, onClaimed }: { toke
 
       <div className="absolute inset-x-0 top-0 flex items-center gap-2 px-3 pt-3 text-xs font-bold text-[#7c2d12]">
         <span className="rounded-full bg-white/75 px-3 py-1.5">🔥 {status.streak} ngày</span>
+        <span className="rounded-full bg-white/75 px-3 py-1.5" title={coinName} aria-label={`${status.coins} ${coinName}`}>🪙 {status.coins}</span>
         <div className="flex flex-1 items-center gap-1.5 rounded-full bg-white/75 px-3 py-2" aria-label={`Ngày ${status.dayInCycle} trong tuần`}>
           {status.days.map(d => (
-            <span key={d.day} title={`Ngày ${d.day}: ${d.points} anyPoint`}
+            <span key={d.day} title={`Ngày ${d.day}: ${d.points} ${coinName}`}
               className={`h-2 flex-1 rounded-full ${d.state === 'done' ? 'bg-[#fb923c]' : d.state === 'today' ? 'bg-[#f97316] ring-2 ring-[#fed7aa]' : 'bg-black/10'}`} />
           ))}
         </div>
@@ -88,7 +90,7 @@ export default function FunScene({ token, initial, reminder, onClaimed }: { toke
         </Link>
       )}
       {reward > 0 && (
-        <div className="gift-fly pointer-events-none absolute bottom-[96px] right-4 text-xl font-black text-[#b45309] [text-shadow:0_1px_2px_#fff]" aria-hidden>+{reward} anyPoint</div>
+        <div className="gift-fly pointer-events-none absolute bottom-[96px] right-4 text-xl font-black text-[#b45309] [text-shadow:0_1px_2px_#fff]" aria-hidden>+{reward} {coinName}</div>
       )}
     </section>
   )

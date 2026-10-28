@@ -31,6 +31,7 @@ export interface Album {
   owned: number
   eligible: boolean
   setReward: number
+  coinName: string
   setRewardClaimed: boolean
   setComplete: boolean
   pack?: { status: string; part1: boolean; part2: boolean }

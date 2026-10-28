@@ -1,9 +1,6 @@
 package com.anylearn.backend.service.sticker;
 
-import com.anylearn.backend.entity.Transaction;
-import com.anylearn.backend.repository.TransactionRepository;
-import com.anylearn.backend.service.NotificationService;
-import com.anylearn.backend.service.WalletService;
+import com.anylearn.backend.service.fun.CoinService;
 import com.anylearn.backend.service.fun.GameEventService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -20,14 +17,11 @@ import java.util.*;
 @RequiredArgsConstructor
 public class StickerService {
 
-    public static final String TYPE_SET_REWARD = "sticker_set_reward";
-
     private final JdbcTemplate jdbc;
     private final StickerSettings settings;
+    private final com.anylearn.backend.service.fun.FunSettings funSettings;
     private final GameEventService gameEvents;
-    private final WalletService walletService;
-    private final TransactionRepository transactionRepository;
-    private final NotificationService notificationService;
+    private final CoinService coinService;
     private final Clock clock;
 
     private final Random random = new Random();
@@ -166,6 +160,7 @@ public class StickerService {
         out.put("owned", have);
         out.put("eligible", eligible(userId));
         out.put("setReward", settings.number("set_reward_points"));
+        out.put("coinName", funSettings.coinName());
         out.put("setRewardClaimed", count("SELECT COUNT(*) FROM sticker_set_rewards WHERE user_id = ?", userId) > 0);
         out.put("setComplete", total > 0 && have >= total);
         return out;
@@ -177,7 +172,7 @@ public class StickerService {
     }
 
     /**
-     * Anyone who holds every active sticker gets the full-set reward once. Copies still locked from a welcome pack do not count,
+     * Anyone who holds every active sticker gets the full-set reward (in game coins) once. Copies still locked from a welcome pack do not count,
      * and the account must be eligible, so a pile of fresh accounts cannot collect it.
      */
     @Transactional
@@ -192,21 +187,7 @@ public class StickerService {
         int points = settings.number("set_reward_points");
         int rows = jdbc.update("INSERT IGNORE INTO sticker_set_rewards (user_id, points) VALUES (?, ?)", userId, points);
         if (rows != 1) throw new IllegalStateException("Bạn đã nhận thưởng đủ bộ rồi");
-        if (points > 0) {
-            Transaction tx = new Transaction();
-            tx.setUserId(userId);
-            tx.setType(TYPE_SET_REWARD);
-            tx.setAmount((long) points);
-            tx.setPayMethod("wallet_c");
-            tx.setContent("Thưởng đủ bộ sticker Vui học");
-            tx.setStatus(1);
-            tx.setCreatedAt(LocalDateTime.now());
-            tx.setUpdatedAt(LocalDateTime.now());
-            transactionRepository.save(tx);
-            walletService.creditWalletC(userId, points);
-            notificationService.createNotification(userId, TYPE_SET_REWARD, "Đủ bộ sticker!",
-                    "Chúc mừng bạn đã sưu tầm đủ bộ sticker và nhận " + points + " anyPoint.", "/today/fun/sticker");
-        }
+        if (points > 0) coinService.credit(userId, points, CoinService.SOURCE_STICKER_SET, "Thưởng đủ bộ sticker");
         gameEvents.record(userId, GameEventService.GAME_STICKER, "set_reward", "Đủ bộ sticker", points);
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("points", points);

@@ -64,6 +64,7 @@ public class AdminFunController {
                 }, args.toArray());
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("items", rows);
+        out.put("coinName", settings.coinName());
         out.put("total", count("SELECT COUNT(*) FROM game_events e" + where, filter));
         out.put("playersToday", count("SELECT COUNT(DISTINCT user_id) FROM game_events WHERE created_at >= CURDATE()"));
         out.put("eventsToday", count("SELECT COUNT(*) FROM game_events WHERE created_at >= CURDATE()"));
@@ -77,6 +78,7 @@ public class AdminFunController {
         if (notAdmin(user)) return ApiResponse.fail("Forbidden");
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("enabled", settings.enabled());
+        out.put("coinName", settings.coinName());
         out.put("dayPoints", settings.checkinPoints());
         out.put("dailyCap", settings.checkinDailyCap());
         out.put("claimsToday", count("SELECT COUNT(*) FROM fun_checkins WHERE day = CURDATE()"));
