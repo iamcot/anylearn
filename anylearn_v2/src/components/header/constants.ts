@@ -1,13 +1,13 @@
+import { TODAY_NAV } from '@/lib/today/nav'
+
 export const NAV_LINKS = [
   { href: '/info', label: 'Giới thiệu' },
   { href: '/search?mode=school', label: 'anySCHOOL' },
   { href: '/search?mode=teacher', label: 'anyPROFESSOR' },
 ]
 
-export const MEMBER_NAV_LINKS = [
-  { href: '/today', label: 'Hôm nay' },
-  { href: '/today/community', label: 'Cộng đồng' },
-]
+/** Same items and order as the mobile bottom tabs (schedule and account live in the user menu on desktop). */
+export const MEMBER_NAV_LINKS = TODAY_NAV.filter(item => ['Cộng đồng', 'Hôm nay', 'Vui học'].includes(item.label))
 
 export const ACCOUNT_MENU = [
   { href: '/today', label: 'Hôm nay' },

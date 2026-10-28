@@ -43,13 +43,20 @@ export default function Header() {
         </div>
 
         <nav className="hidden lg:flex gap-6 items-center">
-          {navLinks.map(({ href, label }) => {
+          {navLinks.map(link => {
+            const { href, label } = link
+            const icon = (link as { icon?: string }).icon
             const active = isNavActive(pathname, href)
             return (
               <Link key={label} href={href}
                 aria-current={active ? 'page' : undefined}
                 className={`font-extrabold text-[15px] no-underline py-2 border-b-2 transition-all duration-200 hover:text-blue hover:border-green ${active ? 'text-blue border-green' : 'text-text border-transparent'}`}>
-                {label}
+                {icon ? (
+                  <span className="inline-flex items-center gap-1.5">
+                    <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={icon} /></svg>
+                    {label}
+                  </span>
+                ) : label}
               </Link>
             )
           })}
