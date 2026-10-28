@@ -27,7 +27,7 @@ function UploadButton({ onDone }) {
   )
 }
 
-function PostDrawer({ post, open, onClose: close, onSaved }) {
+function PostDrawer({ post, open, onClose, onSaved }) {
   const [form] = Form.useForm()
   const kind = Form.useWatch('kind', form)
   const title = Form.useWatch('title', form)
@@ -50,7 +50,7 @@ function PostDrawer({ post, open, onClose: close, onSaved }) {
     startVideoUpload({ postId, title: values.title, file })
     message.info('Bài đã lưu ở trạng thái Nháp. Video đang tải lên ở nền, bạn có thể làm việc khác.')
     onSaved()
-    close()
+    onClose()
   }
   const save = useMutation({
     mutationFn: values => (post?.id
@@ -60,7 +60,7 @@ function PostDrawer({ post, open, onClose: close, onSaved }) {
       if (res.resultCode !== 1) return message.error(res.message)
       message.success('Đã lưu bài')
       onSaved()
-      close()
+      onClose()
     },
   })
   return (
