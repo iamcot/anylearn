@@ -4,6 +4,8 @@ export interface Referral {
   code: string
   name: string
   game: string | null
+  /** Token of the achievement banner the visitor came from (reports only). */
+  ach: string | null
   savedAt: number
 }
 
@@ -25,6 +27,11 @@ export function cleanGame(raw: string | null | undefined): string | null {
   return /^[a-z0-9_-]{1,30}$/.test(game) ? game : null
 }
 
+export function cleanAch(raw: string | null | undefined): string | null {
+  const token = (raw ?? '').trim().toLowerCase()
+  return /^[a-z0-9]{12}$/.test(token) ? token : null
+}
+
 /** The stored referral, or null when it is missing, damaged or older than the time limit. */
 export function parseReferral(raw: string | null, now: number): Referral | null {
   if (!raw) return null
@@ -33,7 +40,7 @@ export function parseReferral(raw: string | null, now: number): Referral | null 
     const code = cleanCode(value.code)
     if (!code || typeof value.savedAt !== 'number') return null
     if (now - value.savedAt > REFERRAL_TTL_DAYS * DAY_MS) return null
-    return { code, name: typeof value.name === 'string' ? value.name : '', game: cleanGame(value.game), savedAt: value.savedAt }
+    return { code, name: typeof value.name === 'string' ? value.name : '', game: cleanGame(value.game), ach: cleanAch(value.ach), savedAt: value.savedAt }
   } catch {
     return null
   }
@@ -57,9 +64,9 @@ export function parseStoredReferral(raw: string | null): Referral | null {
   return parseReferral(raw, Date.now())
 }
 
-export function saveReferral(code: string, name: string, game: string | null, now = Date.now()): void {
+export function saveReferral(code: string, name: string, game: string | null, ach: string | null = null, now = Date.now()): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ code, name, game, savedAt: now }))
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ code, name, game, ach, savedAt: now }))
   } catch {}
 }
 

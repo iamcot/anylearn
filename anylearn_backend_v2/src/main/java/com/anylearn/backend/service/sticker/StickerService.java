@@ -63,6 +63,17 @@ public class StickerService {
                 (rs, i) -> new StickerRules.Weighted(rs.getLong("id"), rs.getString("rarity"), rs.getInt("drop_weight")));
     }
 
+    /**
+     * `user_stickers` is the count of the person's live rows in `sticker_grants`. Rows added or removed by hand in the grants table
+     * (or by an old bug) leave the album out of step, so the album repairs the counts before it reads them.
+     */
+    @Transactional
+    public void syncFromGrants(long userId) {
+        jdbc.update("INSERT INTO user_stickers (user_id, sticker_id, qty) SELECT g.user_id, g.sticker_id, COUNT(*) FROM sticker_grants g " +
+                "WHERE g.user_id = ? AND g.revoked = 0 GROUP BY g.user_id, g.sticker_id ON DUPLICATE KEY UPDATE qty = VALUES(qty)", userId);
+        jdbc.update("DELETE FROM user_stickers WHERE user_id = ? AND sticker_id NOT IN (SELECT sticker_id FROM sticker_grants WHERE user_id = ? AND revoked = 0)", userId, userId);
+    }
+
     /** Gives one copy. {@code lockedUntil} keeps that copy out of trades (welcome pack). */
     @Transactional
     public void grant(long userId, long stickerId, String source, String ref, LocalDateTime lockedUntil) {
@@ -85,10 +96,19 @@ public class StickerService {
         return true;
     }
 
-    /** A random sticker by drop weight from the whole active set; null when nothing can drop. */
+    /**
+     * A random sticker: first one of the active collections with the same chance each (so rewards spread over all sets),
+     * then a sticker of it by drop weight. Null when nothing can drop.
+     */
     @Transactional
     public Map<String, Object> dropRandom(long userId, String source, String ref) {
-        StickerRules.Weighted pick = StickerRules.pickWeighted(pool(), random.nextDouble());
+        Map<Long, List<StickerRules.Weighted>> byCollection = new LinkedHashMap<>();
+        jdbc.query("SELECT d.id, d.rarity, d.drop_weight, d.collection_id FROM sticker_defs d JOIN sticker_collections c ON c.id = d.collection_id AND c.active = 1 WHERE d.active = 1",
+                rs -> { byCollection.computeIfAbsent(rs.getLong("collection_id"), k -> new ArrayList<>())
+                        .add(new StickerRules.Weighted(rs.getLong("id"), rs.getString("rarity"), rs.getInt("drop_weight"))); });
+        if (byCollection.isEmpty()) return null;
+        List<List<StickerRules.Weighted>> sets = new ArrayList<>(byCollection.values());
+        StickerRules.Weighted pick = StickerRules.pickWeighted(sets.get(random.nextInt(sets.size())), random.nextDouble());
         if (pick == null) return null;
         grant(userId, pick.id(), source, ref, null);
         return view(pick.id());
@@ -133,6 +153,7 @@ public class StickerService {
      * be traded, plus one summary per collection (progress and the state of its full-set reward).
      */
     public Map<String, Object> album(long userId) {
+        syncFromGrants(userId);
         Map<Long, Integer> owned = new HashMap<>();
         jdbc.query("SELECT sticker_id, qty FROM user_stickers WHERE user_id = ?", rs -> { owned.put(rs.getLong("sticker_id"), rs.getInt("qty")); }, userId);
         Map<Long, Integer> locked = new HashMap<>();

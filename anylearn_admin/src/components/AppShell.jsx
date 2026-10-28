@@ -41,7 +41,7 @@ const NAV_GROUPS = [
   ] },
 ]
 // Opened from buttons on the "Sự kiện game" page, not from the menu.
-const FUN_SUBPAGES = ['/fun-checkin', '/quiz-bank', '/quiz-game', '/stickers', '/fun-coins']
+const FUN_SUBPAGES = ['/fun-checkin', '/quiz-bank', '/quiz-game', '/stickers', '/fun-coins', '/achievements']
 const NAV_ITEMS = NAV_GROUPS.flatMap(group => group.children)
 
 // Things people ask the team for sit in the top bar, left of the bell, with the red number of what waits.

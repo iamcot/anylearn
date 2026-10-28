@@ -24,6 +24,8 @@ export interface CheckinClaim {
   streak?: number
   dayInCycle?: number
   sticker?: StickerView | null
+  /** Token of a streak banner, when this claim reached a milestone. */
+  achievement?: string | null
   coins?: number
   coinName?: string
 }

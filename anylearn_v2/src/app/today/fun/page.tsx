@@ -7,6 +7,7 @@ import { getCheckin, type CheckinStatus } from '@/lib/api/fun'
 import FunScene from '@/components/fun/FunScene'
 import BrandText from '@/components/fun/BrandText'
 import CoinWalletCard from '@/components/fun/CoinWalletCard'
+import MyAchievements from '@/components/fun/share/MyAchievements'
 import { LEO_NAME, reminderFor } from '@/lib/fun/leo'
 import { getLearners, getToday } from '@/lib/today/api'
 import { sendDevice } from '@/lib/api/stickers'
@@ -17,6 +18,7 @@ export default function FunPage() {
   const [status, setStatus] = useState<CheckinStatus | null>(null)
   const [error, setError] = useState('')
   const [reminder, setReminder] = useState<string | null>(null)
+  const [childName, setChildName] = useState<string | null>(null)
   const [claims, setClaims] = useState(0)
 
 
@@ -40,6 +42,7 @@ export default function FunPage() {
     ;(async () => {
       const { data: learners } = await getLearners(token)
       const active = (learners?.learners ?? []).filter(l => l.hasEnrollment).slice(0, 4)
+      if (!cancelled) setChildName((learners?.learners ?? []).find(l => !l.self)?.name ?? null)
       const days = (await Promise.all(active.map(l => getToday(l.id, token)))).flatMap(r => (r.data ? [r.data] : []))
       if (!cancelled) setReminder(reminderFor(days, new Date()))
     })()
@@ -52,9 +55,10 @@ export default function FunPage() {
       <p className="mt-1 text-sm text-muted">Giải trí nhẹ nhàng cùng <BrandText text={LEO_NAME} /> và nhận {status?.coinName ? <BrandText text={status.coinName} coinName={status.coinName} /> : 'quà'} mỗi ngày.</p>
       {error && <p className="mt-4 text-warn-text">{error}</p>}
       {!error && !status && <div className="mt-4 h-[250px] animate-pulse rounded-[22px] bg-slate-200" />}
-      {status && token && <div className="mt-4"><FunScene token={token} initial={status} reminder={reminder} onClaimed={() => setClaims(n => n + 1)} /></div>}
+      {status && token && <div className="mt-4"><FunScene token={token} initial={status} reminder={reminder} childName={childName} onClaimed={() => setClaims(n => n + 1)} /></div>}
 
       {token && status && <CoinWalletCard token={token} refreshKey={claims} />}
+      {token && status && <MyAchievements key={claims} token={token} />}
 
       <Link href="/today/fun/quiz" className="mt-4 flex items-center gap-3 rounded-2xl border border-line bg-white p-3 text-ink no-underline">
         <img src="/fun/leo_rank.png" alt="" className="size-16 shrink-0 rounded-xl object-contain" />

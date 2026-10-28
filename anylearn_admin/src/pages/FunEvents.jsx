@@ -53,6 +53,7 @@ export default function FunEvents() {
           <Button onClick={() => navigate('/fun-checkin')}>Điểm danh & quà</Button>
           <Button onClick={() => navigate('/stickers')}>Sticker</Button>
           <Button onClick={() => navigate('/quiz-game')}>Quiz Leo rank</Button>
+          <Button onClick={() => navigate('/achievements')}>Banner thành tích</Button>
           <Button onClick={() => navigate('/quiz-bank')}>Kho câu hỏi</Button>
         </Flex>
       </Flex>

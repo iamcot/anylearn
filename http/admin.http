@@ -417,3 +417,14 @@ Content-Type: application/json
 ###
 GET {{baseUrl}}/admin/fun/coins/ledger?userId=1
 Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+### Achievement banners: settings, stats (plan 14, phase 6)
+GET {{baseUrl}}/../admin/achievements/stats
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+###
+PUT {{baseUrl}}/../admin/achievements/settings
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+Content-Type: application/json
+
+{"enabled": true, "types": {"rankup": true, "streak": true, "board": true, "sticker_set": true}, "streakDays": "7,14,30,60,100"}

@@ -41,7 +41,7 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: Props) {
     if (problem) { setError(problem); return }
     if (!agreedTerms) { setError('Vui lòng đồng ý với điều khoản sử dụng'); return }
     setLoading(true)
-    const { error: err } = await register(values.name, values.phone, values.email, values.password, referral ? { ref: referral.code, game: referral.game } : undefined)
+    const { error: err } = await register(values.name, values.phone, values.email, values.password, referral ? { ref: referral.code, game: referral.game, ach: referral.ach } : undefined)
     setLoading(false)
     if (err) { setError(err); return }
     const redirectTo = afterRegisterPath(referral)

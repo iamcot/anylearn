@@ -12,12 +12,37 @@ export type LeoContext =
   | { kind: 'closed' }
   | { kind: 'error'; message: string }
 
+/** What Leo may chat about: whether the player already played Leo rank today, and the name of a child when there is one. */
+export interface LeoChat { playedToday?: boolean; childName?: string | null; seed?: number }
+
+const CHAT_PICKS = 3
+
+/** Small talk (a few lines, a different handful each day by `seed`): nothing here asks for anything, it only keeps Leo company. */
+export function chatLines(chat: LeoChat = {}): string[] {
+  const pool: string[] = [
+    chat.playedToday === false ? 'Hôm nay bạn leo rank chưa? Vài câu thôi là có sao rồi đó!' : 'Hôm nay bạn leo rank rồi nè, giỏi ghê!',
+    'Leo rank có mệt không bồ? Mệt thì nghỉ một chút rồi chơi tiếp nhé!',
+    'Hôm nay của bạn thế nào? Kể mình nghe với!',
+    'Uống miếng nước đi bồ, nhớ giữ sức khỏe nha!',
+    'Mình thích nhất là lúc bạn đoán trúng liền một mạch!',
+    'Sai một câu cũng không sao, học thêm được một điều mà!',
+  ]
+  if (chat.childName) {
+    pool.push(`Hôm nay bé ${chat.childName} học có tốt không bạn?`, `Bé ${chat.childName} có kể gì ở lớp không? Hỏi bé một câu nhé!`)
+  }
+  const seed = Math.abs(Math.trunc(chat.seed ?? 0))
+  const out: string[] = []
+  for (let i = 0; i < Math.min(CHAT_PICKS, pool.length); i++) out.push(pool[(seed + i * 3) % pool.length])
+  return [...new Set(out)]
+}
+
 /** The lines Leo says for a context, shown one after another; a reminder (class today, fee due...) joins them once the gift is taken. */
-export function leoLines(ctx: LeoContext, reminder?: string | null): string[] {
+export function leoLines(ctx: LeoContext, reminder?: string | null, chat?: LeoChat): string[] {
   const extra = reminder ? [reminder] : []
+  const talk = chat ? chatLines(chat) : []
   switch (ctx.kind) {
     case 'waiting':
-      return ['Nhanh tay mở hộp xem hôm nay có quà gì nào!', 'Chạm vào hộp quà đi, mình chờ nãy giờ nè!', ...extra]
+      return ['Nhanh tay mở hộp xem hôm nay có quà gì nào!', 'Chạm vào hộp quà đi, mình chờ nãy giờ nè!', ...extra, ...talk.slice(0, 1)]
     case 'opening':
       return ['Hộp quà đang rung rinh... chờ chút nhé!']
     case 'claimed': {
@@ -27,13 +52,14 @@ export function leoLines(ctx: LeoContext, reminder?: string | null): string[] {
       if (ctx.capped) lines.push('Hôm nay quà hết phần rồi, mai quay lại nhé!')
       if (ctx.streak && ctx.streak > 1) lines.push(`Chuỗi ${ctx.streak} ngày liên tiếp rồi, giỏi quá!`)
       if (lines.length === 0) lines.push('Đã điểm danh hôm nay rồi nhé!')
-      return [...lines, ...extra]
+      return [...lines, ...extra, ...talk]
     }
     case 'done':
       return [
         'Hôm nay bạn nhận quà rồi nha!',
         ctx.daysToWeekGift > 0 ? `Còn ${ctx.daysToWeekGift} ngày nữa là tới quà ngày 7 đó!` : 'Tuần mới bắt đầu từ ngày mai, nhớ ghé thăm mình nhé!',
         ...extra,
+        ...talk,
       ]
     case 'closed':
       return ['Quà điểm danh đang nghỉ một chút, bạn quay lại sau nhé!']

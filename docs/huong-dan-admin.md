@@ -565,3 +565,18 @@ Menu "Vui học" > "Sự kiện game" > nút "Tiền game". Các game dùng **m�
 - **Điều chỉnh một thành viên**: tìm theo tên hoặc số điện thoại, nhập số dương để cộng hoặc số âm để trừ và **bắt buộc ghi lý do** (lưu vào lịch sử và Sự kiện game). Mỗi lần tối đa 1.000.000; không trừ quá số dư.
 - **Lịch sử**: mọi lần cộng trừ đều có một dòng (ai, bao nhiêu, nguồn, số dư sau đó), xem chung hoặc theo từng thành viên.
 - Mức thưởng điểm danh và thưởng đủ bộ sticker (đơn vị Leo Xu) chỉnh ở "Điểm danh & quà" và "Sticker" > Cấu hình.
+
+### Vui học: Banner thành tích
+
+Menu "Vui học" > "Sự kiện game" > nút "Banner thành tích". Khi người chơi **lên hạng Leo rank lần đầu, đạt mốc chuỗi điểm danh, đứng top 3 tuần hoặc tháng, hoặc đủ một bộ sticker**, hệ thống tạo một banner (ảnh dọc có mã QR) và gửi thông báo "Bạn có banner thành tích". Họ bấm vào để chia sẻ qua Zalo, Messenger, lưu ảnh hoặc chép liên kết; người nhận mở trang chia sẻ và bấm "Cùng chơi" để đăng ký qua link giới thiệu của người đó.
+
+- **Cấu hình**: công tắc chung, công tắc riêng từng loại và các mốc chuỗi điểm danh (mặc định 7, 14, 30, 60, 100 ngày). Mỗi người chỉ có một banner cho mỗi thành tích (ví dụ mỗi hạng một lần).
+- **Hiệu quả**: banner đã tạo, lượt bấm chia sẻ, lượt mở trang chia sẻ, số người đăng ký đến từ banner và số người đã chơi sau khi đăng ký. Bảng "Banner gần đây" cho thấy từng banner.
+- Tên trên banner chỉ gồm hai từ cuối của tên người chơi, không có số điện thoại. Banner dùng địa chỉ trang web trong biến `NEXT_PUBLIC_SITE_URL` (mặc định https://anylearn.vn) cho mã QR.
+- Người dùng có thể tắt thông báo banner ở "Tài khoản > Thông báo > Vui học".
+
+### Vui học: ví Leo Xu và sticker (cập nhật)
+
+- Trang Vui học chỉ hiện số dư Leo Xu; bấm vào thẻ ví để xem **lịch sử có phân trang** (20 dòng một trang).
+- Sticker rơi (điểm danh, lên hạng, tổng kết) **chọn bộ đều nhau trước**, rồi mới chọn sticker trong bộ theo tỉ lệ rơi, nên nhiều bộ vẫn được phát đều.
+- Nếu bạn sửa trực tiếp bảng cấp sticker trong cơ sở dữ liệu, album của người chơi tự cân lại số bản khi họ mở trang Sticker. Nút đổi chỉ hiện khi người chơi có **sticker trùng**.

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { leoLines, reminderFor } from './leo'
+import { chatLines, leoLines, reminderFor } from './leo'
 
 const now = new Date(2026, 9, 28, 10, 0)
 const day = (name: string, self: boolean, startAt: string | null) => ({
@@ -47,5 +47,21 @@ describe('reminderFor', () => {
   })
   it('talks to the account owner directly', () => {
     expect(reminderFor([day('Mẹ', true, '2026-10-28T18:00:00')], now)).toMatch(/^Bạn có lớp/)
+  })
+})
+
+describe('chatLines', () => {
+  it('asks about rank depending on whether the player played today', () => {
+    expect(chatLines({ playedToday: false, seed: 0 })[0]).toMatch(/leo rank chưa/)
+    expect(chatLines({ playedToday: true, seed: 0 })[0]).toMatch(/leo rank rồi/)
+  })
+  it('asks about the child only when there is one', () => {
+    const all = [0, 1, 2, 3, 4, 5, 6, 7].flatMap(seed => chatLines({ childName: 'Bin', seed }))
+    expect(all.some(l => l.includes('Bin'))).toBe(true)
+    expect([0, 1, 2, 3, 4, 5].flatMap(seed => chatLines({ seed })).some(l => l.includes('bé '))).toBe(false)
+  })
+  it('joins the lines of the done context and varies by seed', () => {
+    expect(leoLines({ kind: 'done', daysToWeekGift: 2 }, null, { seed: 1 }).length).toBeGreaterThan(2)
+    expect(chatLines({ seed: 1 })).not.toEqual(chatLines({ seed: 2 }))
   })
 })

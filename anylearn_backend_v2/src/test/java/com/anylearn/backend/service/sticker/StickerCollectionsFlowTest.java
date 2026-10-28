@@ -101,6 +101,35 @@ class StickerCollectionsFlowTest {
     }
 
     @Test
+    void dropsSpreadOverTheCollections() {
+        long u = user();
+        // only the new collection is left, then a second one: each is picked about half of the time
+        jdbc.update("UPDATE sticker_collections SET active = 0");
+        long c1 = collection("Bộ A", null, true);
+        long a = sticker(c1, "A1", "common");
+        long c2 = collection("Bộ B", null, true);
+        long b = sticker(c2, "B1", "common");
+        int inA = 0;
+        for (int i = 0; i < 200; i++) {
+            Map<String, Object> got = stickers.dropRandom(u, "admin", null);
+            if (((Number) got.get("id")).longValue() == a) inA++;
+        }
+        assertTrue(inA > 60 && inA < 140, "spread was " + inA + " of 200");
+        assertTrue(a != b);
+    }
+
+    @Test
+    void albumRepairsGrantsAddedByHand() {
+        long u = user();
+        long c = collection("Bộ tay", null, true);
+        long a = sticker(c, "Tay 1", "common");
+        jdbc.update("INSERT INTO sticker_grants (user_id, sticker_id, source) VALUES (?, ?, 'admin')", u, a);
+        jdbc.update("INSERT INTO sticker_grants (user_id, sticker_id, source) VALUES (?, ?, 'admin')", u, a);
+        assertEquals(1, byName(stickers.album(u), "Bộ tay").get("owned"));
+        assertEquals(2, stickers.ownedCount(u, a));
+    }
+
+    @Test
     void eachCollectionPaysItsOwnRewardOnce() {
         long u = user();
         long c = collection("Bộ nhỏ", 50, true);

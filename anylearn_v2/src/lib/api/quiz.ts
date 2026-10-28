@@ -68,6 +68,8 @@ export interface QuizResult {
   starsBefore: number
   rankBefore: number
   reward: { coins?: number; shield?: number; sticker?: StickerView }
+  /** Token of the shareable banner of a new rank, when one was made. */
+  achievement?: string | null
   drop: ItemKey | null
   dropLabel: string | null
   profile: QuizProfile

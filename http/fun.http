@@ -56,5 +56,16 @@ GET {{baseUrl}}/fun/coins
 Authorization: Bearer {{jwtToken}}
 
 ### Leo Xu ledger, paged (the page /today/fun/coins)
-GET {{host}}/v2/api/fun/coins/history?page=1&size=20
-Authorization: Bearer {{$dotenv JWT_TOKEN}}
+GET {{baseUrl}}/fun/coins/history?page=1&size=20
+Authorization: Bearer {{jwtToken}}
+
+### My achievement banners
+GET {{baseUrl}}/achievements?limit=20
+Authorization: Bearer {{jwtToken}}
+
+### Public view of a banner (what the share page shows)
+GET {{baseUrl}}/achievements/abcdefghjkmn
+
+### Count a share press (owner only)
+POST {{baseUrl}}/achievements/abcdefghjkmn/share
+Authorization: Bearer {{jwtToken}}
