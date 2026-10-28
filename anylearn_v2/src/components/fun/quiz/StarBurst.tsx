@@ -3,7 +3,9 @@ import type { QuizResult } from '@/lib/api/quiz'
 const MAX_SLOTS = 15
 const SPARKS = 14
 /** Seconds between two stars of the same answer: they change one after the other, never together. */
-export const STAR_STEP = 0.4
+export const STAR_STEP = 1.1
+/** Seconds to wait after the result page is on screen before anything moves, so the player sees the effect from its start. */
+export const START_DELAY = 1.0
 
 export function StarShape({ className, filled }: { className?: string; filled: boolean }) {
   return (
@@ -30,7 +32,7 @@ function Sparks({ delay }: { delay: number }) {
           <span
             key={i}
             className="quiz-spark absolute left-1/2 top-1/2"
-            style={{ '--dx': `${Math.cos(angle) * dist}px`, '--dy': `${Math.sin(angle) * dist}px`, animationDelay: `${delay + 0.25 + (i % 4) * 0.04}s` } as React.CSSProperties}
+            style={{ '--dx': `${Math.cos(angle) * dist}px`, '--dy': `${Math.sin(angle) * dist}px`, animationDelay: `${delay + 0.6 + (i % 4) * 0.05}s` } as React.CSSProperties}
           >
             {i % 2 === 0 ? <StarShape className="size-3" filled /> : <span className="block size-1.5 rounded-full bg-amber-300" />}
           </span>
@@ -51,7 +53,7 @@ function Shards({ delay }: { delay: number }) {
           <span
             key={k}
             className="quiz-shard absolute left-1/2 top-1/2"
-            style={{ '--dx': `${Math.cos(angle) * dist}px`, '--dy': `${Math.sin(angle) * dist + 14}px`, animationDelay: `${delay + 0.55}s` } as React.CSSProperties}
+            style={{ '--dx': `${Math.cos(angle) * dist}px`, '--dy': `${Math.sin(angle) * dist + 14}px`, animationDelay: `${delay + 0.9}s` } as React.CSSProperties}
           >
             <span className="block size-1.5 rotate-45 bg-amber-400" />
           </span>
@@ -85,7 +87,7 @@ export default function StarRow({ result }: { result: QuizResult }) {
       {Array.from({ length: slots }, (_, i) => {
         const wrap = `relative inline-flex ${slots > 8 ? 'size-7' : 'size-9'} items-center justify-center`
         if (i >= firstNew && i < gold && changed > 0) {
-          const delay = (i - firstNew) * STAR_STEP
+          const delay = START_DELAY + (i - firstNew) * STAR_STEP
           return (
             <span key={i} className={wrap}>
               <span className="absolute inset-0 inline-flex items-center justify-center"><StarShape className={size} filled={false} /></span>
@@ -95,7 +97,7 @@ export default function StarRow({ result }: { result: QuizResult }) {
           )
         }
         if (i >= gold && i < gold + lost) {
-          const delay = (i - gold) * STAR_STEP
+          const delay = START_DELAY + (i - gold) * STAR_STEP
           return (
             <span key={i} className={wrap}>
               <span className="absolute inset-0 inline-flex items-center justify-center"><StarShape className={size} filled={false} /></span>

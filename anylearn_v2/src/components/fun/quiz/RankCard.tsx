@@ -24,7 +24,7 @@ export default function RankCard({ profile, fromRank, fromStars, delayMs = 900 }
   useEffect(() => {
     if (shown === profile.stars && swapped) return
     // a rank change shows the old rank until its medal has slid out (0.5 s) and the new one is on its way in
-    const t = window.setTimeout(() => { setShown(profile.stars); setSwapped(true) }, delayMs + (old ? 1000 : 0))
+    const t = window.setTimeout(() => { setShown(profile.stars); setSwapped(true) }, delayMs + (old ? 1800 : 0))
     return () => window.clearTimeout(t)
   }, [shown, swapped, profile.stars, delayMs, old])
   const oldKey = old?.key

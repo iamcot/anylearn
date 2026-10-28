@@ -6,7 +6,7 @@ import { guardWarning, resultTitle, starsLine } from '@/lib/quiz/rules'
 import ItemIcon from './ItemIcon'
 import PrepRow, { type Prep } from './PrepRow'
 import RankCard from './RankCard'
-import StarRow, { changedStars, STAR_STEP } from './StarBurst'
+import StarRow, { changedStars, START_DELAY, STAR_STEP } from './StarBurst'
 
 /** The page after a question: what happened to stars and rank, drops and rewards, then the next move. */
 export default function ResultView({ me, result, prep, onMult, onShield, onTopic, onAgain, onLobby, busy }: {
@@ -54,7 +54,7 @@ export default function ResultView({ me, result, prep, onMult, onShield, onTopic
         </div>
       )}
 
-      <RankCard profile={result.profile} fromRank={result.rankBefore} fromStars={result.starsBefore} delayMs={Math.round((changedStars(result) * STAR_STEP + 0.6) * 1000)} />
+      <RankCard profile={result.profile} fromRank={result.rankBefore} fromStars={result.starsBefore} delayMs={Math.round((START_DELAY + Math.max(changedStars(result), 1) * STAR_STEP + 0.4) * 1000)} />
       {warning && <p className="m-0 rounded-xl bg-amber-50 p-3 text-sm font-bold text-amber-900" role="status">{warning}</p>}
 
       <section>

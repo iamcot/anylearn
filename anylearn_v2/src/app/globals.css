@@ -424,8 +424,8 @@ body {
   15% { opacity: 1 }
   100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1) rotate(200deg); opacity: 0 }
 }
-.quiz-star-new { opacity: 0; animation: quiz-star-in .9s cubic-bezier(.3, 1.2, .5, 1) forwards }
-.quiz-spark { opacity: 0; animation: quiz-spark .8s ease-out forwards }
+.quiz-star-new { opacity: 0; animation: quiz-star-in 1.6s cubic-bezier(.3, 1.2, .5, 1) forwards }
+.quiz-spark { opacity: 0; animation: quiz-spark 1.2s ease-out forwards }
 @media (prefers-reduced-motion: reduce) {
   .quiz-star-new { opacity: 1; animation: none }
   .quiz-spark { display: none }
@@ -446,8 +446,8 @@ body {
   10% { opacity: 1 }
   100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(.3) rotate(240deg); opacity: 0 }
 }
-.quiz-star-lost { animation: quiz-star-lost 1.1s ease-in forwards }
-.quiz-shard { opacity: 0; animation: quiz-shard .7s ease-out forwards }
+.quiz-star-lost { animation: quiz-star-lost 1.8s ease-in forwards }
+.quiz-shard { opacity: 0; animation: quiz-shard 1.1s ease-out forwards }
 @media (prefers-reduced-motion: reduce) {
   .quiz-star-lost { animation: none; opacity: 0 }
   .quiz-shard { display: none }
@@ -458,10 +458,10 @@ body {
 @keyframes quiz-rank-out-up { 0% { transform: translateY(0) } 100% { transform: translateY(-110%) } }
 @keyframes quiz-rank-in-down { 0%, 45% { transform: translateY(-110%) } 100% { transform: translateY(0) } }
 @keyframes quiz-rank-in-up { 0%, 45% { transform: translateY(110%) } 100% { transform: translateY(0) } }
-.quiz-rank-out-down { animation: quiz-rank-out-down .5s ease-in .5s forwards }
-.quiz-rank-out-up { animation: quiz-rank-out-up .5s ease-in .5s forwards }
-.quiz-rank-in-down { transform: translateY(-110%); animation: quiz-rank-in-down 1.1s cubic-bezier(.2, .9, .3, 1.15) .5s forwards }
-.quiz-rank-in-up { transform: translateY(110%); animation: quiz-rank-in-up 1.1s cubic-bezier(.2, .9, .3, 1.15) .5s forwards }
+.quiz-rank-out-down { animation: quiz-rank-out-down .9s ease-in .5s forwards }
+.quiz-rank-out-up { animation: quiz-rank-out-up .9s ease-in .5s forwards }
+.quiz-rank-in-down { transform: translateY(-110%); animation: quiz-rank-in-down 2s cubic-bezier(.2, .9, .3, 1.15) .5s forwards }
+.quiz-rank-in-up { transform: translateY(110%); animation: quiz-rank-in-up 2s cubic-bezier(.2, .9, .3, 1.15) .5s forwards }
 @media (prefers-reduced-motion: reduce) {
   .quiz-rank-out-down, .quiz-rank-out-up { animation: none; opacity: 0 }
   .quiz-rank-in-down, .quiz-rank-in-up { animation: none; transform: none }
