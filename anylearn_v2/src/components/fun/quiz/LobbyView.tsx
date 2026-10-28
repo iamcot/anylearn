@@ -6,6 +6,8 @@ import { DURING_ITEMS, ITEM_HINT } from '@/lib/quiz/rules'
 import ItemIcon from './ItemIcon'
 import PrepRow, { type Prep } from './PrepRow'
 import RankCard from './RankCard'
+import LeoSays from './LeoSays'
+import { quizLobbyContext } from '@/lib/fun/leo'
 
 /** The lobby: rank, daily box, items to bring into the next question and the ready button. */
 export default function LobbyView({ me, prep, onMult, onShield, onTopic, onStart, onOpenBox, busy, boxText }: {
@@ -21,6 +23,7 @@ export default function LobbyView({ me, prep, onMult, onShield, onTopic, onStart
 }) {
   return (
     <div className="grid gap-4">
+      <LeoSays ctx={quizLobbyContext(me, new Date().getDate())} />
       <RankCard profile={me.profile} />
       <Link href="/fun/quiz/board" className="flex min-h-12 items-center justify-between rounded-2xl bg-white px-4 text-sm font-extrabold text-ink no-underline ring-1 ring-line">Bảng xếp hạng tuần, tháng và theo hạng <span aria-hidden className="text-muted">›</span></Link>
 

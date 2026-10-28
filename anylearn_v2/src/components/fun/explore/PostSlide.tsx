@@ -1,9 +1,35 @@
 'use client'
 
 import Link from 'next/link'
+import { useEffect, useRef } from 'react'
 import { ChatIcon, HeartIcon, ShareIcon } from '@/components/icons'
 import type { ExplorePost } from '@/lib/api/explore'
 import { countText, videoSource } from '@/lib/explore/media'
+
+// A streaming clip: Safari plays the playlist natively; other browsers get hls.js, loaded only now (never for plain files).
+// The stream is attached while the slide is the active one and dropped again when it scrolls away, so it stops downloading.
+function HlsVideo({ src, poster, active }: { src: string; poster?: string; active: boolean }) {
+  const ref = useRef<HTMLVideoElement>(null)
+  useEffect(() => {
+    const video = ref.current
+    if (!video || !active) return
+    if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      video.src = src
+      return () => { video.removeAttribute('src'); video.load() }
+    }
+    let cancelled = false
+    let destroy: (() => void) | null = null
+    import('hls.js').then(({ default: Hls }) => {
+      if (cancelled || !Hls.isSupported()) return
+      const hls = new Hls()
+      hls.loadSource(src)
+      hls.attachMedia(video)
+      destroy = () => hls.destroy()
+    })
+    return () => { cancelled = true; destroy?.() }
+  }, [src, active])
+  return <video ref={ref} poster={poster} controls playsInline loop className="absolute inset-0 size-full bg-black object-contain" />
+}
 
 function Media({ post, active }: { post: ExplorePost; active: boolean }) {
   if (post.kind === 'image' && post.mediaUrl) {
@@ -17,6 +43,7 @@ function Media({ post, active }: { post: ExplorePost; active: boolean }) {
         ? <iframe src={src.src} title={post.title} allow="autoplay; encrypted-media; picture-in-picture" allowFullScreen className="absolute inset-0 size-full border-0" />
         : <div className="absolute inset-0 bg-black" />
     }
+    if (src.kind === 'hls') return <HlsVideo src={src.src} poster={post.posterUrl ?? undefined} active={active} />
     return <video src={src.src} poster={post.posterUrl ?? undefined} controls playsInline loop muted={false} preload={active ? 'auto' : 'none'} className="absolute inset-0 size-full bg-black object-contain" />
   }
   return <div className="absolute inset-0 bg-gradient-to-b from-green-dark to-[#064e3b]" />

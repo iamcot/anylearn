@@ -8,6 +8,8 @@ import { guardWarning, resultTitle, starsLine } from '@/lib/quiz/rules'
 import ItemIcon from './ItemIcon'
 import PrepRow, { type Prep } from './PrepRow'
 import RankCard from './RankCard'
+import LeoSays from './LeoSays'
+import { quizResultContext } from '@/lib/fun/leo'
 import StarRow, { changedStars, START_DELAY, STAR_STEP } from './StarBurst'
 
 /** The page after a question: what happened to stars and rank, drops and rewards, then the next move. */
@@ -27,6 +29,7 @@ export default function ResultView({ me, result, prep, onMult, onShield, onTopic
   const bigWin = result.rankedUp
   return (
     <div className="grid gap-4">
+      <LeoSays ctx={quizResultContext(result, (result as { mode?: string }).mode === 'practice')} />
       <div className={`rounded-3xl p-5 text-center ${result.correct ? 'bg-green-soft' : 'bg-amber-50'}`}>
         <div className="text-3xl font-black">{resultTitle(result)}</div>
         {(result.shieldUsed || result.guardLost || result.rankedDown || (!result.correct && result.starsGained === 0)) && <div className={`mt-1 text-lg font-extrabold ${result.correct ? 'text-green-dark' : 'text-warn-text'}`}>{starsLine(result)}</div>}

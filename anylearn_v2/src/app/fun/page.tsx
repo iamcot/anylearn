@@ -7,6 +7,7 @@ import { getFunAccess, getCheckin, type CheckinStatus, type FunAccess } from '@/
 import FunScene from '@/components/fun/FunScene'
 import BrandText from '@/components/fun/BrandText'
 import CoinWalletCard from '@/components/fun/CoinWalletCard'
+import MissionsCard from '@/components/fun/MissionsCard'
 import MyAchievements from '@/components/fun/share/MyAchievements'
 import { LEO_NAME, reminderFor } from '@/lib/fun/leo'
 import { getLearners, getToday } from '@/lib/today/api'
@@ -65,6 +66,7 @@ export default function FunPage() {
       {status && token && <div className="mt-4"><FunScene token={token} initial={status} reminder={reminder} childName={childName} onClaimed={() => setClaims(n => n + 1)} /></div>}
 
       {token && status && <CoinWalletCard token={token} refreshKey={claims} />}
+      {token && status && access?.checkin !== false && <MissionsCard token={token} refreshKey={claims} onClaimed={() => setClaims(n => n + 1)} />}
       {token && status && <MyAchievements key={claims} token={token} />}
 
       {access && !access.checkin && !access.quiz && !access.sticker && !access.explore && <p className="mt-4 rounded-2xl bg-white p-4 text-center text-sm text-muted ring-1 ring-line">Vui học đang thử nghiệm với một nhóm nhỏ, bạn sẽ được chơi sớm thôi!</p>}

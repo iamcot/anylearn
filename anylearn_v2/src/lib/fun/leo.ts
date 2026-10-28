@@ -7,13 +7,50 @@ export const LEO_NAME = 'Leo'
 export type LeoContext =
   | { kind: 'waiting' }
   | { kind: 'opening' }
-  | { kind: 'claimed'; points: number; coinName?: string; capped?: boolean; streak?: number; sticker?: string }
+  | { kind: 'claimed'; points: number; coinName?: string; capped?: boolean; streak?: number; sticker?: string; item?: string }
+  | QuizLobbyContext
+  | QuizResultContext
   | { kind: 'done'; daysToWeekGift: number }
   | { kind: 'closed' }
   | { kind: 'error'; message: string }
 
 /** What Leo may chat about: whether the player already played Leo rank today, and the name of a child when there is one. */
 export interface LeoChat { playedToday?: boolean; childName?: string | null; seed?: number }
+
+/** Leo in the lobby of Leo rank: what is true right now, most important first (see {@link quizLobbyLines}). */
+export interface QuizLobbyContext {
+  kind: 'quizLobby'
+  /** The star bar of the rank is full: the next right answer promotes. */
+  nearRankUp?: boolean
+  /** Energy left, when the server sends it; 3 or less counts as low. */
+  energy?: number | null
+  boxReady?: boolean
+  /** A training pack is in use. */
+  practice?: boolean
+  streak?: number
+  rankName?: string
+  seed?: number
+}
+
+/** Leo on the result page of a question. */
+export interface QuizResultContext {
+  kind: 'quizResult'
+  correct: boolean
+  timeout?: boolean
+  streak?: number
+  rankedUp?: boolean
+  rankedDown?: boolean
+  rankName?: string
+  /** A star was lost (wrong answer with a negative star change). */
+  lostStar?: boolean
+  guardLost?: boolean
+  shieldUsed?: boolean
+  practice?: boolean
+}
+
+export const LOW_ENERGY = 3
+/** Right answers in a row from which Leo cheers the streak. */
+export const STREAK_CHEER = 3
 
 const CHAT_PICKS = 3
 
@@ -49,6 +86,7 @@ export function leoLines(ctx: LeoContext, reminder?: string | null, chat?: LeoCh
       const lines: string[] = []
       if (ctx.points > 0) lines.push(`Chúc mừng bạn đã nhận được ${ctx.points} ${ctx.coinName ?? 'Leo Xu'}!`)
       if (ctx.sticker) lines.push(`Wow, bạn còn nhận thêm sticker ${ctx.sticker} nữa nè!`)
+      if (ctx.item) lines.push(`Hôm nay còn có thêm vật phẩm ${ctx.item} cho Leo rank nữa đó!`)
       if (ctx.capped) lines.push('Hôm nay quà hết phần rồi, mai quay lại nhé!')
       if (ctx.streak && ctx.streak > 1) lines.push(`Chuỗi ${ctx.streak} ngày liên tiếp rồi, giỏi quá!`)
       if (lines.length === 0) lines.push('Đã điểm danh hôm nay rồi nhé!')
@@ -65,6 +103,90 @@ export function leoLines(ctx: LeoContext, reminder?: string | null, chat?: LeoCh
       return ['Quà điểm danh đang nghỉ một chút, bạn quay lại sau nhé!']
     case 'error':
       return [ctx.message]
+    case 'quizLobby':
+      return quizLobbyLines(ctx)
+    case 'quizResult':
+      return quizResultLines(ctx)
+  }
+}
+
+/** Leo in the Leo rank lobby: the most useful thing first (about to rank up, low energy, a gift waiting, training), then greetings. */
+export function quizLobbyLines(ctx: QuizLobbyContext): string[] {
+  const lines: string[] = []
+  if (ctx.nearRankUp) lines.push(`Thanh sao đầy rồi! Đúng thêm một câu là lên hạng${ctx.rankName ? ' sau ' + ctx.rankName : ''} đó!`)
+  if (ctx.energy != null && ctx.energy <= LOW_ENERGY) {
+    lines.push(ctx.energy <= 0 ? 'Hết năng lượng rồi, nghỉ một chút hoặc tập luyện nhé!' : `Năng lượng còn ${ctx.energy} thôi, tập luyện không tốn năng lượng đâu nè!`)
+  }
+  if (ctx.boxReady) lines.push('Có hộp quà khởi động đang chờ bạn đó, mở ra xem nào!')
+  if (ctx.practice) lines.push('Đang tập luyện nè, thoải mái thử sức nha, không sợ mất sao đâu!')
+  if (ctx.streak && ctx.streak >= STREAK_CHEER) lines.push(`Đang đúng liền ${ctx.streak} câu rồi, giữ phong độ nhé!`)
+  const greetings = ['Chào bạn! Sẵn sàng leo rank cùng mình chưa?', 'Chọn vật phẩm rồi bấm Sẵn sàng nhé, mình cổ vũ bạn!', 'Mỗi câu đúng là thêm một bước lên hạng cao hơn đó!']
+  const seed = Math.abs(Math.trunc(ctx.seed ?? 0))
+  lines.push(greetings[seed % greetings.length])
+  return lines
+}
+
+/** Leo after a question: one main line for what happened, then the extras that matter. */
+export function quizResultLines(ctx: QuizResultContext): string[] {
+  const lines: string[] = []
+  if (ctx.rankedUp) lines.push(`Lên hạng${ctx.rankName ? ' ' + ctx.rankName : ''} rồi! Mình tự hào về bạn lắm!`)
+  else if (ctx.rankedDown) lines.push('Rớt xuống hạng dưới rồi, nhưng đừng buồn, leo lại thôi nào!')
+  else if (ctx.shieldUsed) lines.push('Khiên đã cứu bạn rồi, không mất gì hết!')
+  else if (ctx.guardLost) lines.push('Mất bảo hộ đầu hạng rồi, cẩn thận câu sau nhé!')
+  else if (ctx.lostStar) lines.push('Mất một sao rồi, không sao, lấy lại ngay thôi!')
+  else if (ctx.correct && ctx.streak && ctx.streak >= STREAK_CHEER) lines.push(`Đúng liền ${ctx.streak} câu luôn, bạn siêu quá!`)
+  else if (ctx.correct) lines.push(ctx.practice ? 'Đúng rồi, tập luyện tốt lắm!' : 'Chính xác! Giỏi lắm bạn ơi!')
+  else if (ctx.timeout) lines.push('Hết giờ mất rồi, câu sau nhanh tay hơn nhé!')
+  else lines.push(ctx.practice ? 'Chưa đúng, xem giải thích rồi nhớ lần sau nhé!' : 'Chưa đúng, đọc giải thích rồi thử lại nhé!')
+  if (ctx.rankedUp && ctx.correct && ctx.streak && ctx.streak >= STREAK_CHEER) lines.push(`Còn đang đúng liền ${ctx.streak} câu nữa đó!`)
+  return lines
+}
+
+/** The lobby context from what `/quiz/me` says; `energy` and `activePackId` may be missing on an older server. */
+export function quizLobbyContext(me: {
+  profile: { stars: number; needed: number; streak: number; rankName: string }
+  boxReady: boolean
+  energy?: unknown
+  activePackId?: unknown
+}, seed = 0): QuizLobbyContext {
+  return {
+    kind: 'quizLobby',
+    nearRankUp: me.profile.needed > 0 && me.profile.stars >= me.profile.needed,
+    energy: energyValue(me.energy),
+    boxReady: me.boxReady,
+    practice: me.activePackId != null && me.activePackId !== 0 && me.activePackId !== false,
+    streak: me.profile.streak,
+    rankName: me.profile.rankName,
+    seed,
+  }
+}
+
+/** A number, or the current value of an energy object; null when the server does not send energy. */
+export function energyValue(raw: unknown): number | null {
+  if (typeof raw === 'number' && Number.isFinite(raw)) return raw
+  if (raw && typeof raw === 'object') {
+    const o = raw as Record<string, unknown>
+    for (const key of ['current', 'value', 'energy']) if (typeof o[key] === 'number') return o[key] as number
+  }
+  return null
+}
+
+export function quizResultContext(result: {
+  correct: boolean; outcome: string; starsGained: number; rankedUp: boolean; rankedDown: boolean; guardLost: boolean; shieldUsed: boolean
+  profile: { streak: number; rankName: string }
+}, practice = false): QuizResultContext {
+  return {
+    kind: 'quizResult',
+    correct: result.correct,
+    timeout: result.outcome === 'timeout',
+    streak: result.profile.streak,
+    rankedUp: result.rankedUp,
+    rankedDown: result.rankedDown,
+    rankName: result.profile.rankName,
+    lostStar: !result.correct && result.starsGained < 0,
+    guardLost: result.guardLost,
+    shieldUsed: result.shieldUsed,
+    practice,
   }
 }
 

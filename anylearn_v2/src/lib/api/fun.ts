@@ -28,6 +28,8 @@ export interface CheckinClaim {
   achievement?: string | null
   coins?: number
   coinName?: string
+  /** A random Leo rank item the check-in gave on this streak day. */
+  item?: { key: string; label: string } | null
 }
 
 export interface CoinHistoryRow { id: number; delta: number; balanceAfter: number; source: string; detail: string | null; createdAt: string }
@@ -55,4 +57,18 @@ export function getCheckin(token: string) {
 
 export function claimCheckin(token: string) {
   return authFetch<CheckinClaim>('/fun/checkin/claim', token, { method: 'POST' })
+}
+
+export interface Mission { key: string; label: string; target: number; progress: number; reward: number; claimed: boolean }
+export interface MissionBonus { needed: number; done: number; ready: boolean; claimed: boolean }
+export interface MissionsView { coinName: string; weekKey: string; endsAt: string; missions: Mission[]; bonus: MissionBonus }
+export interface MissionClaim { coinName: string; coins: number; balance?: number; sticker?: StickerView | null }
+
+export function getMissions(token: string) {
+  return authFetch<MissionsView>('/fun/missions', token)
+}
+
+/** `key` is a mission key, or "bonus" for the free sticker of the week. */
+export function claimMission(token: string, key: string) {
+  return authFetch<MissionClaim>(`/fun/missions/${encodeURIComponent(key)}/claim`, token, { method: 'POST' })
 }
