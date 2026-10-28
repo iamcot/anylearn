@@ -6,7 +6,7 @@ import { guardWarning, resultTitle, starsLine } from '@/lib/quiz/rules'
 import ItemIcon from './ItemIcon'
 import PrepRow, { type Prep } from './PrepRow'
 import RankCard from './RankCard'
-import StarBurst from './StarBurst'
+import StarBurst, { StarLoss } from './StarBurst'
 
 /** The page after a question: what happened to stars and rank, drops and rewards, then the next move. */
 export default function ResultView({ me, result, prep, onMult, onShield, onTopic, onAgain, onLobby, busy }: {
@@ -28,7 +28,7 @@ export default function ResultView({ me, result, prep, onMult, onShield, onTopic
       <div className={`rounded-3xl p-5 text-center ${result.correct ? 'bg-green-soft' : 'bg-amber-50'}`}>
         <div className="text-3xl font-black">{resultTitle(result)}</div>
         <div className={`mt-1 text-lg font-extrabold ${result.correct ? 'text-green-dark' : 'text-warn-text'}`}>{starsLine(result)}</div>
-        {result.correct && <StarBurst result={result} />}
+        {result.correct ? <StarBurst result={result} /> : <StarLoss result={result} />}
         {result.multiplier > 1 && result.correct && <div className="text-sm font-bold text-green-dark">Sao may mắn x{result.multiplier}</div>}
       </div>
 

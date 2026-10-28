@@ -430,3 +430,25 @@ body {
   .quiz-star-new { opacity: 1; animation: none }
   .quiz-spark { display: none }
 }
+
+/* Rank quiz: a lost star shakes, cracks and its shards fall; the grey outline underneath stays */
+@keyframes quiz-star-lost {
+  0% { transform: translateX(0) scale(1); opacity: 1 }
+  10% { transform: translateX(-3px) rotate(-6deg) }
+  20% { transform: translateX(3px) rotate(6deg) }
+  30% { transform: translateX(-3px) rotate(-6deg) }
+  40% { transform: translateX(3px) rotate(6deg) }
+  50% { transform: translateX(0) scale(1.1); opacity: 1 }
+  62%, 100% { transform: scale(.2) rotate(30deg); opacity: 0 }
+}
+@keyframes quiz-shard {
+  0% { transform: translate(-50%, -50%) scale(1); opacity: 0 }
+  10% { opacity: 1 }
+  100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(.3) rotate(240deg); opacity: 0 }
+}
+.quiz-star-lost { animation: quiz-star-lost 1.1s ease-in forwards }
+.quiz-shard { opacity: 0; animation: quiz-shard .7s ease-out forwards }
+@media (prefers-reduced-motion: reduce) {
+  .quiz-star-lost { animation: none; opacity: 0 }
+  .quiz-shard { display: none }
+}

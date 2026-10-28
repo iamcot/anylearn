@@ -3,7 +3,7 @@ import type { QuizResult } from '@/lib/api/quiz'
 const MAX_SLOTS = 8
 const SPARKS = 14
 
-function StarShape({ className, filled }: { className?: string; filled: boolean }) {
+export function StarShape({ className, filled }: { className?: string; filled: boolean }) {
   return (
     <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
       <path
@@ -61,6 +61,38 @@ export default function StarBurst({ result }: { result: QuizResult }) {
               <StarShape className="size-8" filled />
             )}
             {isNew && <Sparks />}
+          </span>
+        )
+      })}
+    </div>
+  )
+}
+
+/** A wrong answer that costs stars: the lost ones shake, crack into shards and end up grey. */
+export function StarLoss({ result }: { result: QuizResult }) {
+  const lost = Math.max(0, -result.starsGained)
+  const total = Math.min(result.starsBefore, MAX_SLOTS)
+  const lostShown = Math.min(lost, total)
+  if (lostShown === 0) return null
+  const kept = total - lostShown
+  return (
+    <div className="mt-2 flex items-center justify-center gap-1" aria-hidden="true">
+      {Array.from({ length: total }, (_, i) => {
+        if (i < kept) return <span key={i} className="inline-flex size-9 items-center justify-center"><StarShape className="size-8" filled /></span>
+        const delay = `${(i - kept) * 0.2}s`
+        return (
+          <span key={i} className="relative inline-flex size-9 items-center justify-center">
+            <span className="absolute inset-0 inline-flex items-center justify-center"><StarShape className="size-8" filled={false} /></span>
+            <span className="quiz-star-lost relative inline-flex" style={{ animationDelay: delay }}><StarShape className="size-9" filled /></span>
+            {Array.from({ length: 8 }, (_, k) => {
+              const angle = (k / 8) * Math.PI * 2 + 0.4
+              const dist = 20 + (k % 3) * 8
+              return (
+                <span key={k} className="quiz-shard absolute left-1/2 top-1/2" style={{ '--dx': `${Math.cos(angle) * dist}px`, '--dy': `${Math.sin(angle) * dist + 14}px`, animationDelay: `calc(${delay} + .55s)` } as React.CSSProperties}>
+                  <span className="block size-1.5 rotate-45 bg-amber-400" />
+                </span>
+              )
+            })}
           </span>
         )
       })}
