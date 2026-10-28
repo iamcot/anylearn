@@ -132,8 +132,45 @@ public class StickerService {
         return n == null ? 0 : n;
     }
 
+    /** Copies of this sticker promised in the person's open, unexpired market listings (they are locked, plan 15). */
+    public int listedCopies(long userId, long stickerId) {
+        Integer n = jdbc.queryForObject("SELECT COUNT(*) FROM sticker_listing_offers o JOIN sticker_listings l ON l.id = o.listing_id " +
+                "WHERE l.user_id = ? AND o.sticker_id = ? AND l.status = 'open' AND l.expires_at > ?", Integer.class, userId, stickerId, Timestamp.valueOf(now()));
+        return n == null ? 0 : n;
+    }
+
+    /**
+     * Copies the person may trade, sell or list: beyond the first, not locked by a welcome pack and not listed on the market.
+     * Every place that gives a duplicate away (trades, offers, listings, selling to Leo) must use this one.
+     */
     public int tradable(long userId, long stickerId) {
-        return StickerRules.tradableCopies(ownedCount(userId, stickerId), lockedCopies(userId, stickerId));
+        return StickerRules.tradableCopies(ownedCount(userId, stickerId), lockedCopies(userId, stickerId), listedCopies(userId, stickerId));
+    }
+
+    private Map<Long, Integer> countsBySticker(String sql, Object... args) {
+        Map<Long, Integer> out = new HashMap<>();
+        jdbc.query(sql, rs -> { out.put(rs.getLong(1), rs.getInt(2)); }, args);
+        return out;
+    }
+
+    public Map<Long, Integer> ownedMap(long userId) {
+        return countsBySticker("SELECT sticker_id, qty FROM user_stickers WHERE user_id = ?", userId);
+    }
+
+    public Map<Long, Integer> listedMap(long userId) {
+        return countsBySticker("SELECT o.sticker_id, COUNT(*) FROM sticker_listing_offers o JOIN sticker_listings l ON l.id = o.listing_id " +
+                "WHERE l.user_id = ? AND l.status = 'open' AND l.expires_at > ? GROUP BY o.sticker_id", userId, Timestamp.valueOf(now()));
+    }
+
+    /** {@link #tradable} for every sticker the person holds, in three queries. */
+    public Map<Long, Integer> tradableMap(long userId) {
+        Map<Long, Integer> owned = ownedMap(userId);
+        Map<Long, Integer> locked = countsBySticker("SELECT sticker_id, COUNT(*) FROM sticker_grants WHERE user_id = ? AND revoked = 0 AND locked_until > ? GROUP BY sticker_id",
+                userId, Timestamp.valueOf(now()));
+        Map<Long, Integer> listed = listedMap(userId);
+        Map<Long, Integer> out = new HashMap<>();
+        owned.forEach((id, qty) -> out.put(id, StickerRules.tradableCopies(qty, locked.getOrDefault(id, 0), listed.getOrDefault(id, 0))));
+        return out;
     }
 
     public int checkinDays(long userId) {
@@ -159,6 +196,7 @@ public class StickerService {
         Map<Long, Integer> locked = new HashMap<>();
         jdbc.query("SELECT sticker_id, COUNT(*) AS n FROM sticker_grants WHERE user_id = ? AND revoked = 0 AND locked_until > ? GROUP BY sticker_id",
                 rs -> { locked.put(rs.getLong("sticker_id"), rs.getInt("n")); }, userId, Timestamp.valueOf(now()));
+        Map<Long, Integer> listed = listedMap(userId);
         Set<Long> claimed = new HashSet<>(jdbc.queryForList("SELECT collection_id FROM sticker_set_rewards WHERE user_id = ?", Long.class, userId));
 
         List<Map<String, Object>> collections = jdbc.query(
@@ -201,7 +239,9 @@ public class StickerService {
             boolean live = (Boolean) def.get("active") && (Boolean) collection.get("active");
             if (!live && qty == 0) continue;
             def.put("qty", qty);
-            def.put("tradable", StickerRules.tradableCopies(qty, locked.getOrDefault(id, 0)));
+            int listedCopies = listed.getOrDefault(id, 0);
+            def.put("tradable", StickerRules.tradableCopies(qty, locked.getOrDefault(id, 0), listedCopies));
+            def.put("listed", listedCopies);
             def.remove("active");
             items.add(def);
             if (qty > 0) collection.merge("held", 1, (x, y) -> (Integer) x + 1);

@@ -64,6 +64,37 @@ public final class FunRules {
     }
 
     /** How many points can still be given today under the daily budget (cap 0 = no budget). */
+    public static final List<Integer> DEFAULT_ITEM_DAYS = List.of(3, 5);
+
+    /**
+     * "3,5" → days of the streak week (1 to 7) on which the check-in also gives an item; blank gives the default, "0" switches it off,
+     * anything else unusable gives the default.
+     */
+    public static List<Integer> parseItemDays(String csv) {
+        if (csv == null || csv.isBlank()) return DEFAULT_ITEM_DAYS;
+        if (csv.trim().equals("0")) return List.of();
+        java.util.TreeSet<Integer> days = new java.util.TreeSet<>();
+        for (String part : csv.split(",")) {
+            try {
+                int d = Integer.parseInt(part.trim());
+                if (d < 1 || d > CYCLE) return DEFAULT_ITEM_DAYS;
+                days.add(d);
+            } catch (NumberFormatException e) {
+                return DEFAULT_ITEM_DAYS;
+            }
+        }
+        return List.copyOf(days);
+    }
+
+    /** Text form for the admin form; a switched off list shows "0". */
+    public static String itemDaysText(List<Integer> days) {
+        return days.isEmpty() ? "0" : days.stream().map(String::valueOf).collect(java.util.stream.Collectors.joining(","));
+    }
+
+    public static boolean itemOn(List<Integer> itemDays, int dayInCycle) {
+        return itemDays.contains(dayInCycle);
+    }
+
     public static int grantable(int wanted, long spentToday, long dailyCap) {
         if (dailyCap <= 0) return wanted;
         long left = Math.max(dailyCap - spentToday, 0);

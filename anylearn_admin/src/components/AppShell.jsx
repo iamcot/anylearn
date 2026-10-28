@@ -6,6 +6,7 @@ import {
 } from '@ant-design/icons'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import UploadTray from './UploadTray'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import client from '../api/client'
@@ -43,7 +44,7 @@ const NAV_GROUPS = [
   ] },
 ]
 // Opened from buttons on the "Vui học" page, not from the menu.
-const FUN_SUBPAGES = ['/fun-checkin', '/quiz-bank', '/quiz-game', '/stickers', '/fun-coins', '/achievements']
+const FUN_SUBPAGES = ['/fun-checkin', '/quiz-bank', '/quiz-game', '/stickers', '/fun-coins', '/fun-shop', '/achievements']
 const NAV_ITEMS = NAV_GROUPS.flatMap(group => group.children)
 
 // Things people ask the team for sit in the top bar, left of the bell, with the red number of what waits.
@@ -370,6 +371,7 @@ export default function AppShell() {
           <Outlet />
         </Layout.Content>
       </Layout>
+      <UploadTray />
 
     </Layout>
   )

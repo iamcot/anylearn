@@ -104,7 +104,7 @@ public class CompareAiService {
                 jdbc.update("INSERT INTO item_compare_facts (item_id, content_hash, facts_json, model, input_tokens, output_tokens) VALUES (?, ?, ?, ?, ?, ?) "
                                 + "ON DUPLICATE KEY UPDATE content_hash = VALUES(content_hash), facts_json = VALUES(facts_json), model = VALUES(model), "
                                 + "input_tokens = VALUES(input_tokens), output_tokens = VALUES(output_tokens), created_at = NOW()",
-                        item.getId(), hashes.get(item.getId()), JSON.writeValueAsString(withId(item.getId(), facts)), anthropic.model(), perItemIn, perItemOut);
+                        item.getId(), hashes.get(item.getId()), JSON.writeValueAsString(withId(item.getId(), facts)), anthropic.model(AiUsageService.COMPARE), perItemIn, perItemOut);
             }
         } catch (Exception e) {
             log.warn("[compare] AI read failed for {}: {}", items.stream().map(Item::getId).toList(), e.getMessage());

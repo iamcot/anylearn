@@ -18,6 +18,15 @@ public final class AchievementRules {
     private static final String ALPHABET = "abcdefghjkmnpqrstuvwxyz23456789";
     private static final SecureRandom RANDOM = new SecureRandom();
 
+    /**
+     * Leo Xu for sharing a banner: only the first share of each banner pays, at most {@code dailyMax} paid shares a day.
+     * {@code firstShare} = the banner's share counter just went from 0 to 1.
+     */
+    public static int shareReward(boolean firstShare, long paidToday, int dailyMax, int coins) {
+        if (!firstShare || coins <= 0 || dailyMax <= 0 || paidToday >= dailyMax) return 0;
+        return coins;
+    }
+
     /** A short random token for the public share link (12 characters, no look-alike letters). */
     public static String newToken() {
         StringBuilder out = new StringBuilder();

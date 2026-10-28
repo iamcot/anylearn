@@ -12,6 +12,8 @@ class FunAccessInterceptorTest {
         assertEquals("sticker", FunAccessInterceptor.gameOf("/api/stickers"));
         assertEquals("explore", FunAccessInterceptor.gameOf("/api/explore/3/like"));
         assertEquals("checkin", FunAccessInterceptor.gameOf("/api/fun/checkin/claim"));
+        assertEquals("checkin", FunAccessInterceptor.gameOf("/api/fun/missions"));
+        assertEquals("checkin", FunAccessInterceptor.gameOf("/api/fun/missions/share/claim"));
         assertNull(FunAccessInterceptor.gameOf("/api/fun/access"));
         assertNull(FunAccessInterceptor.gameOf("/api/fun/coins"));
     }

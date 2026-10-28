@@ -19,3 +19,6 @@ anylearn_portal/
 anylearn_backend_v2/target/
 anylearn_backend_v2/application-local.yml
 anylearn_backend_v2/application-local.properties
+
+# local agent worktrees
+.claude/worktrees/

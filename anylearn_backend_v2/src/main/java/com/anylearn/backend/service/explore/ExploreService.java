@@ -56,8 +56,11 @@ public class ExploreService {
         return count("SELECT COUNT(*) FROM explore_posts WHERE id = ? AND status = 'published'", postId) > 0;
     }
 
-    public void countView(long postId) {
-        jdbc.update("UPDATE explore_posts SET views = views + 1 WHERE id = ? AND status = 'published'", postId);
+    /** Counts one opening of a post by a person; the game event feeds the weekly mission "xem bài ở Khám phá". */
+    public void countView(long userId, long postId) {
+        if (jdbc.update("UPDATE explore_posts SET views = views + 1 WHERE id = ? AND status = 'published'", postId) > 0) {
+            events.record(userId, GameEventService.GAME_EXPLORE, "view", "Bài #" + postId, 0);
+        }
     }
 
     public void countShare(long postId) {
@@ -150,7 +153,7 @@ public class ExploreService {
         String cleanKind = ExploreRules.cleanKind(kind);
         String cleanTitle = ExploreRules.cleanTitle(title);
         String cleanStatus = ExploreRules.cleanStatus(status);
-        String media = ExploreRules.cleanMedia(cleanKind, mediaUrl);
+        String media = ExploreRules.cleanMedia(cleanKind, mediaUrl, cleanStatus);
         String poster = posterUrl == null || posterUrl.isBlank() ? null : posterUrl.trim();
         String text = body == null || body.isBlank() ? null : body.trim();
         if (text != null && text.length() > 8000) throw new IllegalArgumentException("Nội dung tối đa 8000 ký tự");
@@ -164,6 +167,18 @@ public class ExploreService {
         jdbc.update("UPDATE explore_posts SET kind = ?, title = ?, body = ?, media_url = ?, poster_url = ?, item_id = ?, status = ?, pinned = ?, " +
                 "published_at = IF(? = 'published' AND published_at IS NULL, NOW(), published_at) WHERE id = ?", cleanKind, cleanTitle, text, media, poster, itemId, cleanStatus, pinned ? 1 : 0, cleanStatus, id);
         return id;
+    }
+
+    /**
+     * Sets the clip and the poster of a post when an upload to Bunny finishes. Touches nothing else, so edits the admin made
+     * while the video was uploading are kept; an existing poster is not replaced.
+     */
+    @Transactional
+    public void attachMedia(long id, String mediaUrl, String posterUrl) {
+        String media = ExploreRules.cleanMedia("video", mediaUrl, "published");
+        String poster = posterUrl == null || posterUrl.isBlank() ? null : posterUrl.trim();
+        int rows = jdbc.update("UPDATE explore_posts SET media_url = ?, poster_url = COALESCE(NULLIF(poster_url, ''), ?) WHERE id = ?", media, poster, id);
+        if (rows == 0) throw new IllegalArgumentException("Không tìm thấy bài viết");
     }
 
     @Transactional

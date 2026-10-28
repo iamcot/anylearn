@@ -39,6 +39,10 @@ public class QuizGameSettings {
         field("drop_daily_cap", "Số vật phẩm rơi tối đa mỗi ngày", "Vật phẩm rơi", 8, 0, 1000);
         field("streak_every", "Đúng liên tiếp bao nhiêu câu thì chắc chắn có vật phẩm (0 = tắt)", "Vật phẩm rơi", 3, 0, 100);
         field("buy_daily_cap", "Số vật phẩm mua tối đa mỗi ngày", "Cửa hàng", 5, 0, 1000);
+        field("energy_max", "Năng lượng tối đa", "Năng lượng", 30, 1, 1000);
+        field("energy_regen_minutes", "Số phút hồi 1 năng lượng", "Năng lượng", 5, 1, 1440);
+        field("energy_cost", "Năng lượng tốn cho mỗi câu leo rank", "Năng lượng", 1, 0, 100);
+        field("pack_size", "Số câu của một gói tập luyện", "Gói tập luyện", 10, 1, 100);
         for (String item : QuizItems.ALL) {
             field("price_" + item, "Giá " + QuizItems.LABELS.get(item) + " (xu)", "Cửa hàng", QuizItems.DEFAULT_PRICE.getOrDefault(item, 20), 0, 1000000);
         }
@@ -102,6 +106,16 @@ public class QuizGameSettings {
     public int price(String item) { return FIELDS.containsKey("price_" + item) ? n("price_" + item) : 20; }
 
     public int weight(String item) { return FIELDS.containsKey("weight_" + item) ? n("weight_" + item) : 0; }
+
+    /** Energy bar of the rank game (plan 15): size, minutes for one point back and the cost of a ranked question. */
+    public int energyMax() { return n("energy_max"); }
+
+    public int energyRegenMinutes() { return n("energy_regen_minutes"); }
+
+    public int energyCost() { return n("energy_cost"); }
+
+    /** Questions in a training pack. */
+    public int packSize() { return n("pack_size"); }
 
     /** Items a person can buy in one day. */
     public int buyDailyCap() { return n("buy_daily_cap"); }

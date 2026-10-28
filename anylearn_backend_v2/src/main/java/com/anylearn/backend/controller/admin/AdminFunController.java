@@ -4,6 +4,7 @@ import com.anylearn.backend.dto.response.ApiResponse;
 import com.anylearn.backend.entity.User;
 import com.anylearn.backend.service.fun.FunRules;
 import com.anylearn.backend.service.fun.FunSettings;
+import com.anylearn.backend.service.mission.MissionSettings;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -22,6 +23,7 @@ public class AdminFunController {
 
     private final JdbcTemplate jdbc;
     private final FunSettings settings;
+    private final MissionSettings missionSettings;
 
     private static boolean notAdmin(User user) {
         return user == null || !"admin".equals(user.getRole());
@@ -81,6 +83,7 @@ public class AdminFunController {
         out.put("coinName", settings.coinName());
         out.put("dayPoints", settings.checkinPoints());
         out.put("dailyCap", settings.checkinDailyCap());
+        out.put("itemDays", FunRules.itemDaysText(settings.checkinItemDays()));
         out.put("claimsToday", count("SELECT COUNT(*) FROM fun_checkins WHERE day = CURDATE()"));
         out.put("pointsToday", count("SELECT COALESCE(SUM(points), 0) FROM fun_checkins WHERE day = CURDATE()"));
         out.put("claimsPerDay7", count("SELECT COUNT(*) FROM fun_checkins WHERE day >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) AND day < CURDATE()") / 7.0);
@@ -101,7 +104,30 @@ public class AdminFunController {
         long cap = body.get("dailyCap") instanceof Number n ? n.longValue() : 0;
         if (cap < 0) return ApiResponse.fail("Trần anyPoint mỗi ngày không được âm");
         boolean enabled = !(body.get("enabled") instanceof Boolean b) || b;
+        if (body.get("itemDays") instanceof String days) {
+            String itemProblem = settings.saveCheckinItemDays(days);
+            if (itemProblem != null) return ApiResponse.fail(itemProblem);
+        }
         settings.save(enabled, points, cap);
         return checkinConfig(user);
+    }
+
+    /** Weekly missions: target, reward and switch of each one, and how many must be done for the bonus sticker. */
+    @GetMapping("/missions-config")
+    public ApiResponse<?> missionsConfig(@AuthenticationPrincipal User user) {
+        if (notAdmin(user)) return ApiResponse.fail("Forbidden");
+        Map<String, Object> out = new LinkedHashMap<>(missionSettings.asMap());
+        out.put("coinName", settings.coinName());
+        out.put("claimsThisWeek", count("SELECT COUNT(*) FROM fun_mission_claims WHERE mission_key <> 'bonus' AND claimed_at >= DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY)"));
+        out.put("coinsThisWeek", count("SELECT COALESCE(SUM(coins), 0) FROM fun_mission_claims WHERE mission_key <> 'bonus' AND claimed_at >= DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY)"));
+        out.put("bonusThisWeek", count("SELECT COUNT(*) FROM fun_mission_claims WHERE mission_key = 'bonus' AND claimed_at >= DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY)"));
+        return ApiResponse.ok(out);
+    }
+
+    @PutMapping("/missions-config")
+    public ApiResponse<?> saveMissionsConfig(@AuthenticationPrincipal User user, @RequestBody Map<String, Object> body) {
+        if (notAdmin(user)) return ApiResponse.fail("Forbidden");
+        String problem = missionSettings.save(body);
+        return problem == null ? missionsConfig(user) : ApiResponse.fail(problem);
     }
 }

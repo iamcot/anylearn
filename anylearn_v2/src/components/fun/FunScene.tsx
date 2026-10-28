@@ -5,6 +5,8 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { getQuizMe } from '@/lib/api/quiz'
 import RankBadge from '@/components/fun/quiz/RankBadge'
+import ItemIcon from '@/components/fun/quiz/ItemIcon'
+import type { ItemKey } from '@/lib/api/quiz'
 import { claimCheckin, type CheckinStatus } from '@/lib/api/fun'
 import type { StickerView } from '@/lib/api/stickers'
 import StickerArt from '@/components/fun/sticker/StickerArt'
@@ -25,11 +27,11 @@ function LeoSpeech({ lines }: { lines: string[] }) {
   return <LeoBubble text={lines[tick % lines.length]} />
 }
 
-type Phase = { kind: 'idle' } | { kind: 'opening' } | { kind: 'claimed'; points: number; capped: boolean; streak: number; sticker?: StickerView | null; achievement?: string | null } | { kind: 'error'; message: string }
+type Phase = { kind: 'idle' } | { kind: 'opening' } | { kind: 'claimed'; points: number; capped: boolean; streak: number; sticker?: StickerView | null; item?: { key: string; label: string } | null; achievement?: string | null } | { kind: 'error'; message: string }
 
 function contextOf(status: CheckinStatus, phase: Phase, coinName: string): LeoContext {
   if (phase.kind === 'opening') return { kind: 'opening' }
-  if (phase.kind === 'claimed') return { kind: 'claimed', points: phase.points, capped: phase.capped, streak: phase.streak, sticker: phase.sticker?.name, coinName }
+  if (phase.kind === 'claimed') return { kind: 'claimed', points: phase.points, capped: phase.capped, streak: phase.streak, sticker: phase.sticker?.name, item: phase.item?.label, coinName }
   if (phase.kind === 'error') return { kind: 'error', message: phase.message }
   if (!status.enabled) return { kind: 'closed' }
   if (status.claimedToday) return { kind: 'done', daysToWeekGift: 7 - status.dayInCycle }
@@ -67,7 +69,7 @@ export default function FunScene({ token, initial, reminder, childName, onClaime
     const [{ data, error }] = await Promise.all([claimCheckin(token), new Promise(resolve => setTimeout(resolve, 600))])
     if (error || !data) { setPhase({ kind: 'error', message: error ?? 'Không mở được quà, thử lại sau nhé!' }); return }
     if (data.alreadyClaimed) setPhase({ kind: 'idle' })
-    else setPhase({ kind: 'claimed', points: data.points, capped: !!data.capped, streak: data.streak ?? 0, sticker: data.sticker, achievement: data.achievement })
+    else setPhase({ kind: 'claimed', points: data.points, capped: !!data.capped, streak: data.streak ?? 0, sticker: data.sticker, item: data.item, achievement: data.achievement })
     if (data.points > 0) setReward(data.points)
     setStatus(prev => afterClaim(prev, data))
     onClaimed?.()
@@ -108,10 +110,19 @@ export default function FunScene({ token, initial, reminder, childName, onClaime
           <span className="mt-1 text-xs font-extrabold [text-shadow:0_1px_3px_rgba(0,0,0,.45)]">Leo rank</span>
         </Link>
       )}
-      {phase.kind === 'claimed' && phase.sticker && (
-        <Link href="/fun/sticker" className="absolute right-3 top-12 flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-xs font-extrabold text-ink no-underline shadow">
-          <span className="size-6"><StickerArt sticker={phase.sticker} className="size-full text-xl" /></span> Sticker mới: <BrandText text={phase.sticker.name} />
-        </Link>
+      {phase.kind === 'claimed' && (phase.sticker || phase.item) && (
+        <div className="absolute right-3 top-12 flex flex-col items-end gap-1.5">
+          {phase.sticker && (
+            <Link href="/fun/sticker" className="flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-xs font-extrabold text-ink no-underline shadow">
+              <span className="size-6"><StickerArt sticker={phase.sticker} className="size-full text-xl" /></span> Sticker mới: <BrandText text={phase.sticker.name} />
+            </Link>
+          )}
+          {phase.item && (
+            <Link href="/fun/quiz" className="flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-xs font-extrabold text-ink no-underline shadow">
+              <ItemIcon item={phase.item.key as ItemKey} className="size-6" /> Vật phẩm: {phase.item.label}
+            </Link>
+          )}
+        </div>
       )}
       {phase.kind === 'claimed' && phase.achievement && (
         <Link href={`/fun/share/${phase.achievement}`} className="absolute left-3 top-12 rounded-full bg-white/90 px-3 py-1.5 text-xs font-extrabold text-green-dark no-underline shadow">Khoe chuỗi {phase.streak} ngày</Link>

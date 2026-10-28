@@ -1,6 +1,8 @@
 package com.anylearn.backend.service.achievement;
 
 import com.anylearn.backend.service.NotificationService;
+import com.anylearn.backend.service.fun.CoinService;
+import com.anylearn.backend.service.fun.GameEventService;
 import com.anylearn.backend.service.quiz.QuizBoardRules;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +28,8 @@ public class AchievementService {
     private final JdbcTemplate jdbc;
     private final AchievementSettings settings;
     private final NotificationService notifications;
+    private final CoinService coins;
+    private final GameEventService events;
 
     /** Creates the banner and tells the player. Returns its token, or null when it is off, already made or failed. */
     public String grant(long userId, String type, String dedupKey, String title, String subtitle, String icon) {
@@ -87,7 +91,34 @@ public class AchievementService {
 
     /** Only the owner's share presses count. */
     public boolean countShare(long userId, String token) {
-        return AchievementRules.validToken(token) && jdbc.update("UPDATE achievements SET shares = shares + 1 WHERE token = ? AND user_id = ?", token, userId) == 1;
+        return share(userId, token).get("counted") == Boolean.TRUE;
+    }
+
+    /**
+     * Counts a share press of the owner and pays the Leo Xu reward when it is the banner's first one and the person is under the
+     * daily limit (`achievement/share_coins`, `achievement/share_daily_max`). Writes the game event `banner/share`
+     * that the weekly mission "share" counts. Returns {counted, coins}.
+     */
+    public Map<String, Object> share(long userId, String token) {
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("counted", false);
+        out.put("coins", 0);
+        if (!AchievementRules.validToken(token)) return out;
+        boolean first = jdbc.update("UPDATE achievements SET shares = 1 WHERE token = ? AND user_id = ? AND shares = 0", token, userId) == 1;
+        if (!first && jdbc.update("UPDATE achievements SET shares = shares + 1 WHERE token = ? AND user_id = ?", token, userId) != 1) return out;
+        out.put("counted", true);
+        events.record(userId, GameEventService.GAME_BANNER, "share", token, 0);
+        try {
+            Long paid = jdbc.queryForObject("SELECT COUNT(*) FROM fun_coin_ledger WHERE user_id = ? AND source = ? AND created_at >= CURDATE()", Long.class, userId, CoinService.SOURCE_SHARE);
+            int reward = AchievementRules.shareReward(first, paid == null ? 0 : paid, settings.shareDailyMax(), settings.shareCoins());
+            if (reward > 0) {
+                coins.credit(userId, reward, CoinService.SOURCE_SHARE, "Chia sẻ thành tích");
+                out.put("coins", reward);
+            }
+        } catch (Exception e) {
+            log.warn("[achievement] share reward for user {} failed: {}", userId, e.getMessage());
+        }
+        return out;
     }
 
     /** Links the new account's referral row to the banner it came from; a token that does not exist is ignored. */

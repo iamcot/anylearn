@@ -97,7 +97,7 @@ function Explorer() {
       <Link href="/fun" aria-label="Đóng Khám phá" className="absolute right-3 top-3 z-30 grid size-11 place-items-center rounded-full bg-black/50 text-white no-underline"><CloseIcon className="size-5" /></Link>
       <div ref={scroller} className="h-dvh snap-y snap-mandatory overflow-y-scroll overscroll-contain">
         {posts.map((p, i) => (
-          <PostSlide key={p.id} post={p} index={i} active={i === active} commentsOn={commentsOn}
+          <PostSlide key={p.id} post={p} index={i} active={i === active} near={i === active + 1} commentsOn={commentsOn}
             onLike={() => like(p)} onComments={() => setOpenComments(p.id)} onShare={() => share(p)} />
         ))}
         {loaded && (!enabled || posts.length === 0) && (

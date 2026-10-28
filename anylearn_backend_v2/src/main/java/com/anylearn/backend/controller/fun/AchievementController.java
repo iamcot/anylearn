@@ -37,6 +37,6 @@ public class AchievementController {
     @PostMapping("/{token}/share")
     public ApiResponse<?> share(@AuthenticationPrincipal User user, @PathVariable String token) {
         if (user == null) return ApiResponse.fail("Unauthorized");
-        return ApiResponse.ok(Map.of("counted", achievements.countShare(user.getId(), token)));
+        return ApiResponse.ok(achievements.share(user.getId(), token));
     }
 }

@@ -16,6 +16,7 @@ public class FunSettings {
     public static final String KEY_ENABLED = "fun/enabled";
     public static final String KEY_CHECKIN_POINTS = "fun/checkin_points";
     public static final String KEY_CHECKIN_DAILY_CAP = "fun/checkin_daily_cap";
+    public static final String KEY_CHECKIN_ITEM_DAYS = "fun/checkin_item_days";
     public static final String KEY_COIN_NAME = "fun/coin_name";
     public static final String DEFAULT_COIN_NAME = "Leo Xu";
 
@@ -49,6 +50,19 @@ public class FunSettings {
         } catch (NumberFormatException e) {
             return 0;
         }
+    }
+
+    /** Days of the streak week (1 to 7) on which the check-in also gives a random quiz item (setting `fun/checkin_item_days`, "0" = never). */
+    public List<Integer> checkinItemDays() {
+        return FunRules.parseItemDays(read(KEY_CHECKIN_ITEM_DAYS).orElse(null));
+    }
+
+    /** Null when saved, else why the text is refused. */
+    public String saveCheckinItemDays(String text) {
+        String clean = text == null ? "" : text.replaceAll("\\s", "");
+        if (clean.isEmpty() || !clean.matches("0|[1-7](,[1-7])*")) return "Ngày tặng vật phẩm là các số từ 1 đến 7 cách nhau bằng dấu phẩy, hoặc 0 để tắt";
+        write(KEY_CHECKIN_ITEM_DAYS, clean);
+        return null;
     }
 
     public void saveDailyEarnCap(long cap) {

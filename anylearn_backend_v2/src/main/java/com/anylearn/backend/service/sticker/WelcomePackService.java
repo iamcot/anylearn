@@ -2,6 +2,7 @@ package com.anylearn.backend.service.sticker;
 
 import com.anylearn.backend.entity.User;
 import com.anylearn.backend.service.NotificationService;
+import com.anylearn.backend.service.fun.CoinService;
 import com.anylearn.backend.service.fun.GameEventService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +32,7 @@ public class WelcomePackService {
     private final RiskService risk;
     private final NotificationService notificationService;
     private final GameEventService gameEvents;
+    private final CoinService coins;
 
     private final Random random = new Random();
 
@@ -113,6 +115,8 @@ public class WelcomePackService {
         if (month >= settings.number("invite_month_cap")) return;
         if (jdbc.update("UPDATE welcome_packs SET inviter_rewarded = 1, updated_at = NOW() WHERE user_id = ? AND inviter_rewarded = 0", invitedId) != 1) return;
         Map<String, Object> def = stickers.dropRandom(inviter, "invite", String.valueOf(invitedId));
+        int coinReward = settings.number("invite_coins");
+        if (coinReward > 0) coins.credit(inviter, coinReward, CoinService.SOURCE_INVITE, "Bạn bè được mời đã chơi");
         if (def != null) {
             notificationService.createNotification(inviter, "sticker_invite", "Bạn bè của bạn đã chơi!",
                     "Người bạn mời đã hoàn thành gói quà. Bạn nhận sticker " + def.get("name") + ".", ROUTE);

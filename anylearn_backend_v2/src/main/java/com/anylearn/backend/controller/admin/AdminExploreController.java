@@ -3,6 +3,7 @@ package com.anylearn.backend.controller.admin;
 import com.anylearn.backend.dto.response.ApiResponse;
 import com.anylearn.backend.entity.User;
 import com.anylearn.backend.service.S3Service;
+import com.anylearn.backend.service.explore.BunnyStreamClient;
 import com.anylearn.backend.service.explore.ExploreService;
 import com.anylearn.backend.service.explore.ExploreSettings;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ public class AdminExploreController {
     private final ExploreService explore;
     private final ExploreSettings settings;
     private final S3Service s3Service;
+    private final BunnyStreamClient bunny;
 
     private static boolean notAdmin(User user) {
         return user == null || !"admin".equals(user.getRole());
@@ -61,6 +63,18 @@ public class AdminExploreController {
         return save(user, id, body);
     }
 
+    /** Body `{mediaUrl, posterUrl}`: the clip of a post whose video has just finished uploading to Bunny. */
+    @PutMapping("/posts/{id}/media")
+    public ApiResponse<?> attachMedia(@AuthenticationPrincipal User user, @PathVariable long id, @RequestBody Map<String, Object> body) {
+        if (notAdmin(user)) return ApiResponse.fail("Forbidden");
+        try {
+            explore.attachMedia(id, (String) body.get("mediaUrl"), (String) body.get("posterUrl"));
+            return ApiResponse.ok(Map.of("ok", true));
+        } catch (IllegalArgumentException e) {
+            return ApiResponse.fail(e.getMessage());
+        }
+    }
+
     @DeleteMapping("/posts/{id}")
     public ApiResponse<?> delete(@AuthenticationPrincipal User user, @PathVariable long id) {
         if (notAdmin(user)) return ApiResponse.fail("Forbidden");
@@ -77,6 +91,25 @@ public class AdminExploreController {
             return ApiResponse.ok(Map.of("url", s3Service.uploadImage(image, "explore")));
         } catch (Exception e) {
             return ApiResponse.fail("Upload hình thất bại: " + e.getMessage());
+        }
+    }
+
+    /** Whether clips can be uploaded to Bunny Stream (the three `BUNNY_STREAM_*` variables are set). */
+    @GetMapping("/video-upload/status")
+    public ApiResponse<?> videoUploadStatus(@AuthenticationPrincipal User user) {
+        if (notAdmin(user)) return ApiResponse.fail("Forbidden");
+        return ApiResponse.ok(Map.of("enabled", bunny.isEnabled()));
+    }
+
+    /** Creates the video on Bunny and returns the signed TUS upload info plus the links to save on the post. */
+    @PostMapping("/video-upload")
+    public ApiResponse<?> videoUpload(@AuthenticationPrincipal User user, @RequestBody(required = false) Map<String, Object> body) {
+        if (notAdmin(user)) return ApiResponse.fail("Forbidden");
+        if (!bunny.isEnabled()) return ApiResponse.fail("Chưa cấu hình Bunny Stream, hãy dán link video");
+        try {
+            return ApiResponse.ok(bunny.createUpload(body != null && body.get("title") instanceof String t ? t : null));
+        } catch (Exception e) {
+            return ApiResponse.fail("Không tạo được video trên Bunny: " + e.getMessage());
         }
     }
 

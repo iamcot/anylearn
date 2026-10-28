@@ -45,6 +45,10 @@ app:
     expiration-ms: ${JWT_EXPIRATION_MS:2592000000}
   google-maps:
     api-key: ${GOOGLE_MAPS_API_KEY:}
+  bunny:
+    library-id: ${BUNNY_STREAM_LIBRARY_ID:}
+    api-key: ${BUNNY_STREAM_API_KEY:}
+    cdn-host: ${BUNNY_STREAM_CDN_HOST:}
   ai:
     api-key: ${ANTHROPIC_API_KEY:}
     model: claude-haiku-5-5

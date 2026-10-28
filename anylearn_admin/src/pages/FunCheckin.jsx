@@ -1,4 +1,4 @@
-import { Alert, Button, Card, InputNumber, Space, Switch, Tag, Typography, message } from 'antd'
+import { Alert, Button, Card, Input, InputNumber, Space, Switch, Tag, Typography, message } from 'antd'
 import { ArrowLeftOutlined } from '@ant-design/icons'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -17,16 +17,18 @@ export default function FunCheckin() {
   const [enabled, setEnabled] = useState(true)
   const [dayPoints, setDayPoints] = useState(Array(DAY_COUNT).fill(0))
   const [cap, setCap] = useState(0)
+  const [itemDays, setItemDays] = useState('3,5')
 
   useEffect(() => {
     if (!data) return
     setEnabled(data.enabled)
     setDayPoints(data.dayPoints)
     setCap(data.dailyCap)
+    setItemDays(data.itemDays ?? '3,5')
   }, [data])
 
   const save = useMutation({
-    mutationFn: () => client.put('/admin/fun/checkin-config', { enabled, dayPoints, dailyCap: cap }).then(r => r.data),
+    mutationFn: () => client.put('/admin/fun/checkin-config', { enabled, dayPoints, dailyCap: cap, itemDays }).then(r => r.data),
     onSuccess: res => {
       if (res.resultCode !== 1) return message.error(res.message)
       message.success('Đã lưu cấu hình điểm danh')
@@ -70,6 +72,13 @@ export default function FunCheckin() {
             <div style={{ marginTop: 8 }}>
               <InputNumber min={0} step={1000} value={cap} onChange={v => setCap(v ?? 0)} style={{ width: 160 }} />
               <span style={{ marginLeft: 8, color: '#888' }}>0 = không giới hạn. Khi chạm trần, người mở quà sau đó vẫn giữ chuỗi nhưng không nhận {coin} hôm đó.</span>
+            </div>
+          </div>
+          <div>
+            <Typography.Text strong>Ngày tặng vật phẩm Leo rank</Typography.Text>
+            <div style={{ marginTop: 8 }}>
+              <Input value={itemDays} onChange={e => setItemDays(e.target.value)} placeholder="3,5" style={{ width: 160 }} />
+              <span style={{ marginLeft: 8, color: '#888' }}>Các ngày của chuỗi (1 đến 7, cách nhau bằng dấu phẩy) mà điểm danh tặng thêm 1 vật phẩm ngẫu nhiên. Nhập 0 để tắt.</span>
             </div>
           </div>
           <div>

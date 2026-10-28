@@ -3,7 +3,7 @@ import type { StickerCollection, StickerItem } from '@/lib/api/stickers'
 import { itemsOfCollection, progressText, rewardLine, selectCollection, stickerInviteLink, tradables, tradeStep, wantables } from './rules'
 
 const item = (id: number, rarity: StickerItem['rarity'], qty: number, tradable = Math.max(qty - 1, 0)): StickerItem =>
-  ({ id, name: `s${id}`, description: null, emoji: '⭐', image: null, rarity, rarityLabel: '', collectionId: id <= 3 ? 1 : 2, qty, tradable })
+  ({ id, name: `s${id}`, description: null, emoji: '⭐', image: null, rarity, rarityLabel: '', collectionId: id <= 3 ? 1 : 2, qty, tradable, listed: 0 })
 
 const items = [item(1, 'common', 3), item(2, 'common', 0), item(3, 'rare', 0), item(4, 'common', 1), item(5, 'common', 0)]
 

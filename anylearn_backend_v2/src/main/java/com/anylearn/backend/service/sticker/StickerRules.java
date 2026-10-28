@@ -74,6 +74,11 @@ public final class StickerRules {
         return Math.max(0, Math.min(qty - 1, qty - Math.max(lockedCopies, 0)));
     }
 
+    /** Same, minus the copies promised in open market listings (plan 15): a listed copy cannot be traded, sold or listed again. */
+    public static int tradableCopies(int qty, int lockedCopies, int listedCopies) {
+        return Math.max(0, tradableCopies(qty, lockedCopies) - Math.max(listedCopies, 0));
+    }
+
     /** Only accounts that really played may trade, receive the second part of the welcome pack and count as an invite. */
     public static boolean eligible(long accountAgeDays, int checkinDays, int minAgeDays, int minCheckins) {
         return accountAgeDays >= minAgeDays && checkinDays >= minCheckins;

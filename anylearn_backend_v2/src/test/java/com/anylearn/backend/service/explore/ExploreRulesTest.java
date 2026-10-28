@@ -19,6 +19,8 @@ class ExploreRulesTest {
         assertNull(ExploreRules.cleanMedia("article", null));
         assertThrows(IllegalArgumentException.class, () -> ExploreRules.cleanMedia("video", ""));
         assertThrows(IllegalArgumentException.class, () -> ExploreRules.cleanMedia("image", "http://x.vn/a.jpg"));
+        assertNull(ExploreRules.cleanMedia("video", "", "draft"));
+        assertThrows(IllegalArgumentException.class, () -> ExploreRules.cleanMedia("video", "", "published"));
         assertEquals("https://x.vn/a.mp4", ExploreRules.cleanMedia("video", " https://x.vn/a.mp4 "));
     }
 

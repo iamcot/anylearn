@@ -264,6 +264,9 @@ jobs:
           VAPID_SUBJECT=${{ secrets.VAPID_SUBJECT }}
           GOOGLE_MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY }}
           ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}
+          BUNNY_STREAM_LIBRARY_ID=${{ secrets.BUNNY_STREAM_LIBRARY_ID }}
+          BUNNY_STREAM_API_KEY=${{ secrets.BUNNY_STREAM_API_KEY }}
+          BUNNY_STREAM_CDN_HOST=${{ secrets.BUNNY_STREAM_CDN_HOST }}
           SPRING_PROFILES_ACTIVE=prod
           EOF
           sudo chown anylearn-app:anylearn-deploy ${{ env.DEPLOY_PATH }}/backend/.env

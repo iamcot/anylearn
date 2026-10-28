@@ -43,6 +43,28 @@ Authorization: Bearer {{jwtToken}}
 POST {{baseUrl}}/stickers/offers/1/decline
 Authorization: Bearer {{jwtToken}}
 
+### Sticker market: listings (tab = match | all | mine)
+GET {{baseUrl}}/stickers/market?tab=match&page=1
+Authorization: Bearer {{jwtToken}}
+
+### Post "I have 1, 2, 3 and need 9" (same rarity, 9 must be a sticker you lack)
+POST {{baseUrl}}/stickers/market
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{ "give": [1, 2, 3], "want": 9 }
+
+### Take a listing: pick one of the offered stickers you lack; you give the wanted one
+POST {{baseUrl}}/stickers/market/1/take
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{ "stickerId": 2 }
+
+### Remove your own listing (unlocks the copies)
+DELETE {{baseUrl}}/stickers/market/1
+Authorization: Bearer {{jwtToken}}
+
 ### Full-set reward of one collection (once per person and collection)
 POST {{baseUrl}}/stickers/set-reward
 Authorization: Bearer {{jwtToken}}
@@ -91,3 +113,85 @@ Authorization: Bearer {{jwtToken}}
 Content-Type: application/json
 
 {"reason": "Quảng cáo"}
+
+### Weekly missions (plan 15): progress of the current ISO week
+GET {{baseUrl}}/fun/missions
+Authorization: Bearer {{jwtToken}}
+
+###
+# Claim one mission (keys: checkin_days, quiz_correct, practice, explore_view, sticker_swap, share)
+POST {{baseUrl}}/fun/missions/checkin_days/claim
+Authorization: Bearer {{jwtToken}}
+
+###
+# Free sticker once enough missions are done ("bonus")
+POST {{baseUrl}}/fun/missions/bonus/claim
+Authorization: Bearer {{jwtToken}}
+
+###
+# Share press of an achievement banner: first share of each banner pays coins (response: counted, coins)
+POST {{baseUrl}}/achievements/TOKEN12CHARS/share
+Authorization: Bearer {{jwtToken}}
+
+###
+# The check-in claim response has "item" {key,label} on the days of fun/checkin_item_days
+POST {{baseUrl}}/fun/checkin/claim
+Authorization: Bearer {{jwtToken}}
+
+
+### Plan 15: the Leo Xu shop (catalog with prices and today's limits, what can be sold, balance, energy)
+GET {{baseUrl}}/shop
+Authorization: Bearer {{jwtToken}}
+
+### Buy a quiz item (mult2, mult3, shield, topic, fifty, community, time, swap)
+POST {{baseUrl}}/shop/buy
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{ "key": "fifty" }
+
+### Buy a training pack: pack_level and pack_topic_level need difficulty 1..5, pack_topic does not
+POST {{baseUrl}}/shop/buy
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{ "key": "pack_level", "difficulty": 4 }
+
+### Refill energy (max 3 a day, never above the max)
+POST {{baseUrl}}/shop/buy
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{ "key": "energy" }
+
+### Sticker chests: chest_normal (30 xu) and chest_rare (90 xu, rare or epic for sure)
+POST {{baseUrl}}/shop/buy
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{ "key": "chest_rare" }
+
+### Sell a duplicate sticker to Leo (id = sticker id)
+POST {{baseUrl}}/shop/sell
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{ "kind": "sticker", "id": "3" }
+
+### Sell a quiz item back (id = item key)
+POST {{baseUrl}}/shop/sell
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{ "kind": "item", "id": "fifty" }
+
+### Admin: every shop price, limit and switch (+ quiz item prices, energy, pack size)
+GET {{$dotenv BE_BASE_URL}}/admin/fun/shop-config
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+###
+PUT {{$dotenv BE_BASE_URL}}/admin/fun/shop-config
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+Content-Type: application/json
+
+{ "enabled": true, "numbers": { "energy_price": 12, "chest_normal_price": 30 }, "quizNumbers": { "energy_max": 30, "pack_size": 10 } }
