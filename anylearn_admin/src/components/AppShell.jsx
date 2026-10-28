@@ -35,6 +35,7 @@ const NAV_GROUPS = [
     { key: '/articles',         icon: <FileTextOutlined />,    label: 'Bài viết'   },
     { key: '/search-insights',  icon: <LineChartOutlined />,   label: 'Xu hướng nhu cầu' },
     { key: '/ai-suggestions',   icon: <RobotOutlined />,       label: 'Gợi ý AI' },
+    { key: '/ai-usage',         icon: <RobotOutlined />,       label: 'Dùng AI (token)' },
   ] },
   { key: 'g-fun', type: 'group', label: 'Giải trí', children: [
     { key: '/fun-events',       icon: <TrophyOutlined />,      label: 'Vui học' },

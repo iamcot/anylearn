@@ -1,5 +1,6 @@
 package com.anylearn.backend.service.quiz;
 
+import com.anylearn.backend.service.ai.AiUsageService;
 import com.anylearn.backend.service.ai.AnthropicClient;
 import com.anylearn.backend.service.recommend.RecommendationSettings;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -105,7 +106,7 @@ public class QuizBankService {
                     + ".\nĐộ khó: " + LEVEL_HINTS.get(difficulty) + ".\n"
                     + "Tránh các ý đã có, ví dụ một số câu đã có:\n" + sample(recent, 25)
                     + "\nGọi công cụ write_questions một lần.";
-            AnthropicClient.Answer written = anthropic.askTool(WRITE_SYSTEM, prompt, 6000, writeTool());
+            AnthropicClient.Answer written = anthropic.askTool(AiUsageService.QUIZ_WRITE, WRITE_SYSTEM, prompt, 6000, writeTool());
             inTokens += written.inputTokens();
             outTokens += written.outputTokens();
             List<QuizRules.Candidate> candidates = QuizRules.parseQuestions(written.text(), invalid);
@@ -157,7 +158,7 @@ public class QuizBankService {
             prompt.append("\n[").append(i).append("] ").append(c.body());
             for (int o = 0; o < 4; o++) prompt.append("\n  ").append((char) ('A' + o)).append(". ").append(c.options().get(o));
         }
-        AnthropicClient.Answer answer = anthropic.askTool(VERIFY_SYSTEM, prompt.toString(), 2000, answerTool());
+        AnthropicClient.Answer answer = anthropic.askTool(AiUsageService.QUIZ_VERIFY, VERIFY_SYSTEM, prompt.toString(), 2000, answerTool());
         usage[0] += answer.inputTokens();
         usage[1] += answer.outputTokens();
         return QuizRules.parseAnswers(answer.text());

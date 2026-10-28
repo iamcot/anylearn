@@ -296,6 +296,8 @@ Lưu ý: khóa chỉ được gợi ý khi đang bật và đối tác đã ký 
 
 **Phản hồi cải thiện gợi ý thế nào.** Với mỗi bé, 3 phản hồi gần nhất (khóa đã gợi ý, thích hay chưa hài lòng, lý do, góp ý) và 3 lý do bị chê nhiều nhất của toàn hệ thống trong 30 ngày được đưa vào lần gợi ý sau để AI tránh lặp lại. Không cần huấn luyện lại gì.
 
+**Theo dõi token của mọi tính năng AI.** Menu Khóa học > **Dùng AI (token)**: tổng số lần gọi, lỗi, token gửi đi và nhận về của tất cả tính năng dùng Anthropic (gợi ý khóa học, so sánh khóa học, quiz viết câu hỏi và chấm đáp án), chia theo tính năng, theo mô hình và theo ngày (7, 30 hoặc 90 ngày), kèm 10 lỗi gần nhất. Số liệu chỉ có từ lúc bản này được triển khai; trang Gợi ý AI vẫn giữ số cũ của riêng nó.
+
 **Cần có.** Khóa API của Anthropic đặt ở biến `ANTHROPIC_API_KEY` trên máy chủ (mục 11). Không có thì trang Gợi ý AI báo "chưa có khóa" và thẻ gợi ý ẩn.
 
 ---
