@@ -15,13 +15,47 @@ class QuizRulesTest {
     }
 
     @Test
-    void difficultyFollowsRank() {
-        assertEquals(1, QuizRules.difficultyForRank(0));
-        assertEquals(1, QuizRules.difficultyForRank(1));
-        assertEquals(2, QuizRules.difficultyForRank(2));
-        assertEquals(2, QuizRules.difficultyForRank(3));
-        assertEquals(3, QuizRules.difficultyForRank(4));
-        assertEquals(3, QuizRules.difficultyForRank(9));
+    void defaultMixIsValidAndGetsHarderWithRank() {
+        assertNull(QuizRules.mixProblem(QuizRules.DEFAULT_MIX));
+        assertArrayEquals(new int[]{100, 0, 0, 0, 0}, QuizRules.DEFAULT_MIX.get("dong"));
+        assertArrayEquals(new int[]{80, 20, 0, 0, 0}, QuizRules.DEFAULT_MIX.get("bac"));
+    }
+
+    @Test
+    void pickDifficultyFollowsThePercentages() {
+        int[] bac = {80, 20, 0, 0, 0};
+        assertEquals(1, QuizRules.pickDifficulty(bac, 0.0));
+        assertEquals(1, QuizRules.pickDifficulty(bac, 0.79));
+        assertEquals(2, QuizRules.pickDifficulty(bac, 0.80));
+        assertEquals(2, QuizRules.pickDifficulty(bac, 0.999));
+        assertEquals(1, QuizRules.pickDifficulty(new int[]{100, 0, 0, 0, 0}, 0.999));
+    }
+
+    @Test
+    void mixMustAddUpTo100() {
+        Map<String, int[]> bad = new java.util.LinkedHashMap<>(QuizRules.DEFAULT_MIX);
+        bad.put("vang", new int[]{30, 50, 30, 0, 0});
+        assertNotNull(QuizRules.mixProblem(bad));
+        bad.put("vang", new int[]{50, 50, 0});
+        assertNotNull(QuizRules.mixProblem(bad));
+        assertNotNull(QuizRules.mixProblem(Map.of()));
+    }
+
+    @Test
+    void mixSurvivesJson() {
+        Map<String, int[]> parsed = QuizRules.parseMix(QuizRules.mixToJson(QuizRules.DEFAULT_MIX));
+        assertNotNull(parsed);
+        assertArrayEquals(QuizRules.DEFAULT_MIX.get("kimcuong"), parsed.get("kimcuong"));
+        assertNull(QuizRules.parseMix("{}"));
+    }
+
+    @Test
+    void topicKeyFromLabel() {
+        assertEquals("xa_hoi_doi_song", QuizRules.topicKeyFrom("Xã hội & đời sống"));
+        assertEquals("toan_tu_duy", QuizRules.topicKeyFrom("Toán tư duy"));
+        assertTrue(QuizRules.validTopicKey("toan_tu_duy"));
+        assertFalse(QuizRules.validTopicKey("x"));
+        assertFalse(QuizRules.validTopicKey(""));
     }
 
     @Test

@@ -5,6 +5,7 @@ import com.anylearn.backend.entity.User;
 import com.anylearn.backend.service.quiz.QuizBankService;
 import com.anylearn.backend.service.quiz.QuizRules;
 import com.anylearn.backend.service.quiz.QuizSettings;
+import com.anylearn.backend.service.quiz.QuizTopicService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -21,6 +22,7 @@ public class AdminQuizBankController {
     private final JdbcTemplate jdbc;
     private final QuizBankService bank;
     private final QuizSettings settings;
+    private final QuizTopicService topicService;
 
     private static boolean notAdmin(User user) {
         return user == null || !"admin".equals(user.getRole());
@@ -31,7 +33,9 @@ public class AdminQuizBankController {
         if (notAdmin(user)) return ApiResponse.fail("Forbidden");
         QuizBankService.Overview o = bank.overview(settings.targetPerCell());
         Map<String, Object> out = new LinkedHashMap<>();
-        out.put("topics", QuizRules.TOPIC_ORDER.stream().map(k -> Map.of("value", k, "label", QuizRules.TOPICS.get(k))).toList());
+        out.put("topics", topicService.list(false));
+        out.put("levels", QuizRules.DIFFICULTIES.stream().map(d -> Map.of("value", d, "label", QuizRules.LEVEL_LABELS.get(d))).toList());
+        out.put("ranks", QuizRules.RANKS.stream().map(r -> Map.of("key", r.key(), "label", r.label(), "mix", settings.rankMix().get(r.key()))).toList());
         out.put("cells", o.cells());
         out.put("totals", o.totals());
         out.put("settings", settingsMap());
@@ -59,6 +63,37 @@ public class AdminQuizBankController {
                 body.get("nightlyBatches") instanceof Number n ? n.intValue() : settings.nightlyBatches(),
                 Boolean.TRUE.equals(body.get("autoApprove")));
         return ApiResponse.ok(settingsMap());
+    }
+
+    @PostMapping("/topics")
+    public ApiResponse<?> createTopic(@AuthenticationPrincipal User user, @RequestBody Map<String, Object> body) {
+        if (notAdmin(user)) return ApiResponse.fail("Forbidden");
+        String problem = topicService.create(String.valueOf(body.getOrDefault("label", "")), String.valueOf(body.getOrDefault("hint", "")));
+        return problem == null ? ApiResponse.ok() : ApiResponse.fail(problem);
+    }
+
+    @PutMapping("/topics/{key}")
+    public ApiResponse<?> updateTopic(@AuthenticationPrincipal User user, @PathVariable String key, @RequestBody Map<String, Object> body) {
+        if (notAdmin(user)) return ApiResponse.fail("Forbidden");
+        String problem = topicService.update(key, String.valueOf(body.getOrDefault("label", "")), String.valueOf(body.getOrDefault("hint", "")),
+                body.get("sortOrder") instanceof Number n ? n.intValue() : 0, !Boolean.FALSE.equals(body.get("active")));
+        return problem == null ? ApiResponse.ok() : ApiResponse.fail(problem);
+    }
+
+    /** Body `{ "dong": [100,0,0,0,0], "bac": [...], ... }`: percent of questions per difficulty 1..5 for every rank. */
+    @PutMapping("/rank-mix")
+    public ApiResponse<?> saveMix(@AuthenticationPrincipal User user, @RequestBody Map<String, List<Number>> body) {
+        if (notAdmin(user)) return ApiResponse.fail("Forbidden");
+        Map<String, int[]> mix = new LinkedHashMap<>();
+        for (QuizRules.Rank rank : QuizRules.RANKS) {
+            List<Number> row = body.get(rank.key());
+            if (row == null) return ApiResponse.fail("Thiếu tỉ lệ cho rank " + rank.label());
+            mix.put(rank.key(), row.stream().mapToInt(Number::intValue).toArray());
+        }
+        String problem = QuizRules.mixProblem(mix);
+        if (problem != null) return ApiResponse.fail(problem);
+        settings.saveRankMix(mix);
+        return ApiResponse.ok();
     }
 
     @PostMapping("/generate")
@@ -92,7 +127,7 @@ public class AdminQuizBankController {
         StringBuilder where = new StringBuilder(" WHERE 1=1");
         List<Object> args = new ArrayList<>();
         if (status != null && QuizRules.STATUSES.contains(status)) { where.append(" AND status = ?"); args.add(status); }
-        if (topic != null && QuizRules.TOPICS.containsKey(topic)) { where.append(" AND topic = ?"); args.add(topic); }
+        if (topic != null && !topic.isBlank()) { where.append(" AND topic = ?"); args.add(topic); }
         if (difficulty != null) { where.append(" AND difficulty = ?"); args.add(difficulty); }
         if (reported) where.append(" AND report_count > 0");
         if (q != null && !q.isBlank()) { where.append(" AND body LIKE ?"); args.add("%" + q.trim() + "%"); }
@@ -120,7 +155,7 @@ public class AdminQuizBankController {
         if (problem != null) return ApiResponse.fail(problem);
         String topic = String.valueOf(body.getOrDefault("topic", ""));
         int difficulty = body.get("difficulty") instanceof Number n ? n.intValue() : 0;
-        if (!QuizRules.TOPICS.containsKey(topic) || !QuizRules.DIFFICULTIES.contains(difficulty)) return ApiResponse.fail("Chủ đề hoặc độ khó không hợp lệ");
+        if (topicService.find(topic).isEmpty() || !QuizRules.DIFFICULTIES.contains(difficulty)) return ApiResponse.fail("Chủ đề hoặc độ khó không hợp lệ");
         String hash = QuizRules.hash(c.body());
         Integer clash = jdbc.queryForObject("SELECT COUNT(*) FROM quiz_questions WHERE hash = ? AND id <> ?", Integer.class, hash, id);
         if (clash != null && clash > 0) return ApiResponse.fail("Đã có câu hỏi này trong kho");

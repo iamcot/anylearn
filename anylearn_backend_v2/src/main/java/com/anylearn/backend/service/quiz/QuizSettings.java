@@ -16,6 +16,7 @@ public class QuizSettings {
     public static final String KEY_BATCH = "quiz/batch_size";
     public static final String KEY_NIGHTLY_BATCHES = "quiz/nightly_batches";
     public static final String KEY_AUTO_APPROVE = "quiz/auto_approve";
+    public static final String KEY_RANK_MIX = "quiz/rank_mix";
 
     private final ConfigurationRepository configurationRepository;
 
@@ -43,6 +44,16 @@ public class QuizSettings {
     /** Verified questions go straight to `active` when on; otherwise they wait in the review queue. */
     public boolean autoApprove() {
         return "1".equals(read(KEY_AUTO_APPROVE).map(String::trim).orElse("0"));
+    }
+
+    /** Share of each difficulty per rank; the default table until the team saves its own. */
+    public java.util.Map<String, int[]> rankMix() {
+        java.util.Map<String, int[]> saved = read(KEY_RANK_MIX).map(QuizRules::parseMix).orElse(null);
+        return saved != null ? saved : QuizRules.DEFAULT_MIX;
+    }
+
+    public void saveRankMix(java.util.Map<String, int[]> mix) {
+        write(KEY_RANK_MIX, QuizRules.mixToJson(mix));
     }
 
     public void save(boolean genEnabled, int target, int batch, int nightlyBatches, boolean autoApprove) {

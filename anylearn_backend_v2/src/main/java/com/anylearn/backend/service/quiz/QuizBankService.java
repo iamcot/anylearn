@@ -38,23 +38,17 @@ public class QuizBankService {
             dựa trên kiến thức đã được công nhận. Nếu câu hỏi có hơn một đáp án đúng, không có đáp án đúng hoặc
             không chắc chắn thì bỏ qua câu đó (không ghi vào kết quả).""";
 
-    private static final Map<String, String> TOPIC_HINTS = Map.of(
-            "history", "lịch sử Việt Nam và thế giới: nhân vật, sự kiện, triều đại, mốc thời gian quen thuộc",
-            "geography", "địa lý: các tỉnh thành, sông núi, quốc gia, thủ đô, khí hậu, bản đồ",
-            "society", "xã hội và đời sống: phong tục, lễ hội, nghề nghiệp, luật giao thông, văn hóa ứng xử, kiến thức đời thường",
-            "parenting", "nuôi dạy con: dinh dưỡng, giấc ngủ, phát triển theo độ tuổi, kỹ năng sống, giao tiếp với con, an toàn",
-            "english", "tiếng Anh cho trẻ và phụ huynh: từ vựng, ngữ pháp cơ bản, phát âm, thành ngữ, văn hóa các nước nói tiếng Anh",
-            "music", "âm nhạc: nốt nhạc, nhạc cụ, nhà soạn nhạc nổi tiếng, thể loại, nhịp điệu",
-            "art", "mỹ thuật: màu sắc, họa sĩ nổi tiếng, kỹ thuật vẽ, chất liệu, các trường phái",
-            "science", "khoa học: vũ trụ, cơ thể người, động thực vật, vật lý và hóa học đời thường, môi trường");
     private static final Map<Integer, String> LEVEL_HINTS = Map.of(
-            1, "DỄ: kiến thức phổ thông, người lớn bình thường đều biết",
-            2, "VỪA: cần biết thêm một chút hoặc suy luận hai bước",
-            3, "KHÓ: kiến thức sâu hơn hoặc dễ nhầm, nhưng vẫn có một đáp án chắc chắn");
+            1, "RẤT DỄ: kiến thức cơ bản nhất, trẻ lớn hoặc người lớn đều trả lời được ngay",
+            2, "DỄ: kiến thức phổ thông, người lớn bình thường đều biết",
+            3, "VỪA: cần biết thêm một chút hoặc suy luận hai bước",
+            4, "KHÓ: kiến thức sâu hơn hoặc dễ nhầm, nhưng vẫn có một đáp án chắc chắn",
+            5, "RẤT KHÓ: kiến thức chuyên sâu hoặc chi tiết ít người nhớ, vẫn phải có đáp án chắc chắn và kiểm chứng được");
 
     private final AnthropicClient anthropic;
     private final RecommendationSettings aiSettings;
     private final QuizSettings settings;
+    private final QuizTopicService topics;
     private final JdbcTemplate jdbc;
 
     public boolean isActive() {
@@ -93,7 +87,8 @@ public class QuizBankService {
 
     /** Writes one batch for a cell, drops duplicates, verifies the rest and saves them. Never throws. */
     public GenResult generate(String topic, int difficulty, int count) {
-        if (!QuizRules.TOPICS.containsKey(topic) || !QuizRules.DIFFICULTIES.contains(difficulty)) {
+        QuizTopicService.Topic topicRow = topics.find(topic).orElse(null);
+        if (topicRow == null || !QuizRules.DIFFICULTIES.contains(difficulty)) {
             return new GenResult(count, 0, 0, 0, 0, 0, "Chủ đề hoặc độ khó không hợp lệ");
         }
         if (!isActive()) return new GenResult(count, 0, 0, 0, 0, 0, "AI đang tắt hoặc chưa có khóa");
@@ -106,7 +101,7 @@ public class QuizBankService {
             Set<String> hashes = new HashSet<>(jdbc.queryForList("SELECT hash FROM quiz_questions WHERE topic = ?", String.class, topic));
             List<String> recent = jdbc.queryForList("SELECT body FROM quiz_questions WHERE topic = ? ORDER BY id DESC LIMIT 2000", String.class, topic);
 
-            String prompt = "Viết " + count + " câu hỏi trắc nghiệm.\nChủ đề: " + TOPIC_HINTS.get(topic)
+            String prompt = "Viết " + count + " câu hỏi trắc nghiệm.\nChủ đề: " + topicRow.hint()
                     + ".\nĐộ khó: " + LEVEL_HINTS.get(difficulty) + ".\n"
                     + "Tránh các ý đã có, ví dụ một số câu đã có:\n" + sample(recent, 25)
                     + "\nGọi công cụ write_questions một lần.";
@@ -243,11 +238,12 @@ public class QuizBankService {
     /** One row per topic × difficulty: counts per status, usage and the duplicate rate of the last 30 days of generating. */
     public Overview overview(int target) {
         Map<String, Map<String, Object>> byKey = new LinkedHashMap<>();
-        for (String topic : QuizRules.TOPIC_ORDER) {
+        for (QuizTopicService.Topic topicRow : topics.list(true)) {
+            String topic = topicRow.key();
             for (int d : QuizRules.DIFFICULTIES) {
                 Map<String, Object> cell = new LinkedHashMap<>();
                 cell.put("topic", topic);
-                cell.put("topicLabel", QuizRules.TOPICS.get(topic));
+                cell.put("topicLabel", topicRow.label());
                 cell.put("difficulty", d);
                 cell.put("active", 0);
                 cell.put("pending", 0);

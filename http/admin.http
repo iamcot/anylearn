@@ -380,3 +380,18 @@ Content-Type: application/json
 
 { "ids": [1, 2, 3], "status": "active" }
 
+### Quiz topics: add / edit
+POST {{baseUrl}}/admin/quiz-bank/topics
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+Content-Type: application/json
+
+{ "label": "Toán tư duy", "hint": "toán và tư duy logic cho trẻ: phép tính, hình học cơ bản, đố vui logic" }
+
+### Share of each difficulty (1..5) per rank, every row adds up to 100
+PUT {{baseUrl}}/admin/quiz-bank/rank-mix
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+Content-Type: application/json
+
+{ "dong": [100,0,0,0,0], "bac": [80,20,0,0,0], "vang": [30,50,20,0,0], "bachkim": [10,30,50,10,0],
+  "kimcuong": [0,20,40,40,0], "thongthai": [0,10,30,40,20], "sieupham": [0,0,20,40,40], "huyenthoai": [0,0,10,30,60] }
+

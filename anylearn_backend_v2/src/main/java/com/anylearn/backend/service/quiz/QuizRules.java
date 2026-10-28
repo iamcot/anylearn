@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.*;
+import java.util.regex.Pattern;
 
 /** Pure rules of the rank quiz question bank (plan 14, phase 2). */
 public final class QuizRules {
@@ -15,20 +16,32 @@ public final class QuizRules {
 
     private static final ObjectMapper JSON = new ObjectMapper();
 
-    /** Topic key -> label, in display order. The back office page reads it from `GET /admin/quiz-bank/overview`. */
-    public static final Map<String, String> TOPICS = new java.util.LinkedHashMap<>();
+    public static final List<Integer> DIFFICULTIES = List.of(1, 2, 3, 4, 5);
+    public static final Map<Integer, String> LEVEL_LABELS = Map.of(1, "Rất dễ", 2, "Dễ", 3, "Vừa", 4, "Khó", 5, "Rất khó");
+
+    public record Rank(String key, String label) {}
+
+    /** Ranks from the lowest; Huyền thoại has no ceiling. The game itself comes in phase 4. */
+    public static final List<Rank> RANKS = List.of(
+            new Rank("dong", "Đồng"), new Rank("bac", "Bạc"), new Rank("vang", "Vàng"), new Rank("bachkim", "Bạch kim"),
+            new Rank("kimcuong", "Kim cương"), new Rank("thongthai", "Thông thái"), new Rank("sieupham", "Siêu phàm"),
+            new Rank("huyenthoai", "Huyền thoại"));
+
+    /** Share (percent) of questions of each difficulty 1..5 a rank gets; every row adds up to 100. */
+    public static final Map<String, int[]> DEFAULT_MIX = new java.util.LinkedHashMap<>();
     static {
-        TOPICS.put("parenting", "Nuôi dạy con");
-        TOPICS.put("english", "Tiếng Anh");
-        TOPICS.put("music", "Âm nhạc");
-        TOPICS.put("art", "Mỹ thuật");
-        TOPICS.put("science", "Khoa học");
-        TOPICS.put("history", "Lịch sử");
-        TOPICS.put("geography", "Địa lý");
-        TOPICS.put("society", "Xã hội & đời sống");
+        DEFAULT_MIX.put("dong", new int[]{100, 0, 0, 0, 0});
+        DEFAULT_MIX.put("bac", new int[]{80, 20, 0, 0, 0});
+        DEFAULT_MIX.put("vang", new int[]{30, 50, 20, 0, 0});
+        DEFAULT_MIX.put("bachkim", new int[]{10, 30, 50, 10, 0});
+        DEFAULT_MIX.put("kimcuong", new int[]{0, 20, 40, 40, 0});
+        DEFAULT_MIX.put("thongthai", new int[]{0, 10, 30, 40, 20});
+        DEFAULT_MIX.put("sieupham", new int[]{0, 0, 20, 40, 40});
+        DEFAULT_MIX.put("huyenthoai", new int[]{0, 0, 10, 30, 60});
     }
-    public static final List<String> TOPIC_ORDER = List.copyOf(TOPICS.keySet());
-    public static final List<Integer> DIFFICULTIES = List.of(1, 2, 3);
+
+    private static final Pattern TOPIC_KEY = Pattern.compile("^[a-z0-9_]{2,30}$");
+
     public static final Set<String> STATUSES = Set.of("pending", "active", "hidden");
 
     /** Reports that hide a question until the team looks at it. */
@@ -39,11 +52,66 @@ public final class QuizRules {
 
     public record Candidate(String body, List<String> options, int correct, String explanation) {}
 
-    /** Rank index (0 = Đồng) -> difficulty: Đồng and Bạc easy, Vàng and Bạch kim medium, Kim cương and above hard. */
-    public static int difficultyForRank(int rankIndex) {
-        if (rankIndex <= 1) return 1;
-        if (rankIndex <= 3) return 2;
-        return 3;
+    /** Picks a difficulty (1..5) for one question: `roll` is a random number in [0, 1), `mix` the rank's percentages. */
+    public static int pickDifficulty(int[] mix, double roll) {
+        double point = roll * 100;
+        double sum = 0;
+        for (int i = 0; i < mix.length; i++) {
+            sum += mix[i];
+            if (point < sum) return i + 1;
+        }
+        for (int i = mix.length - 1; i >= 0; i--) if (mix[i] > 0) return i + 1;
+        return 1;
+    }
+
+    /** Why a mix table cannot be saved, null when fine: every rank present, five whole numbers 0..100 adding up to 100. */
+    public static String mixProblem(Map<String, int[]> mix) {
+        for (Rank rank : RANKS) {
+            int[] row = mix.get(rank.key());
+            if (row == null || row.length != DIFFICULTIES.size()) return "Thiếu tỉ lệ cho rank " + rank.label();
+            int sum = 0;
+            for (int v : row) {
+                if (v < 0 || v > 100) return "Tỉ lệ của rank " + rank.label() + " phải từ 0 đến 100";
+                sum += v;
+            }
+            if (sum != 100) return "Tỉ lệ của rank " + rank.label() + " cộng lại phải bằng 100 (đang là " + sum + ")";
+        }
+        return null;
+    }
+
+    public static Map<String, int[]> parseMix(String json) {
+        Map<String, int[]> out = new java.util.LinkedHashMap<>();
+        try {
+            JsonNode root = JSON.readTree(json);
+            for (Rank rank : RANKS) {
+                JsonNode row = root.path(rank.key());
+                if (!row.isArray()) return null;
+                int[] values = new int[row.size()];
+                for (int i = 0; i < values.length; i++) values[i] = row.get(i).asInt(-1);
+                out.put(rank.key(), values);
+            }
+        } catch (Exception e) {
+            return null;
+        }
+        return mixProblem(out) == null ? out : null;
+    }
+
+    public static String mixToJson(Map<String, int[]> mix) {
+        try {
+            return JSON.writeValueAsString(mix);
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    /** Topic key from a label ("Xã hội & đời sống" -> "xa_hoi_doi_song"); empty when nothing usable is left. */
+    public static String topicKeyFrom(String label) {
+        String key = normalize(label).replace(' ', '_');
+        return key.length() > 30 ? key.substring(0, 30) : key;
+    }
+
+    public static boolean validTopicKey(String key) {
+        return key != null && TOPIC_KEY.matcher(key).matches();
     }
 
     public static String normalize(String text) {

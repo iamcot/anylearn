@@ -550,4 +550,5 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 ### 28/10/2026 – Vui học, giai đoạn 2 (kho câu hỏi AI)
 - Làm xong: bảng `quiz_questions` (V50) theo chủ đề × độ khó, AI viết theo lô bằng tool `write_questions`, loại trùng (hash + độ giống từ >= 0.8), xáo thứ tự đáp án, AI chấm mù lần hai để kiểm đáp án, hàng đợi duyệt, báo lỗi (3 báo thì ẩn), job đêm 2h20 bù ô thiếu (tắt sẵn), trang admin "Kho câu hỏi" (bảng số câu, tạo thêm, duyệt/ẩn/sửa hàng loạt, cấu hình).
 - Chưa chạy với MySQL thật và chưa gọi AI thật, nên chất lượng câu và tỉ lệ trùng thực tế chưa biết; nên chạy thử một lô mỗi ô trước khi bật job đêm. `times_served/times_correct` chờ giai đoạn quiz lõi cập nhật. Chưa có trang tra cứu (`searchable` mới là cờ).
+- Quyết định của chủ sản phẩm (28/10): **5 mức độ khó** (Rất dễ đến Rất khó) thay vì 3; mỗi rank có tỉ lệ ra câu theo mức (Đồng 100% mức 1, Bạc 80/20, ... sửa được trong admin); chủ đề cấu hình trong admin (bảng `quiz_topics`, 8 chủ đề đầu). Khi làm quiz lõi dùng `QuizRules.pickDifficulty` và lùi về mức gần nhất còn câu nếu ô trống.
 
