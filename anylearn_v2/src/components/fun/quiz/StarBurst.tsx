@@ -43,23 +43,22 @@ function Sparks() {
 export default function StarBurst({ result }: { result: QuizResult }) {
   const gained = Math.max(0, result.starsGained)
   const needed = result.profile.needed
-  const inRank = !result.rankedUp && needed > 0 && needed <= MAX_SLOTS
-  const before = inRank ? result.starsBefore : 0
-  const slots = inRank ? needed : Math.min(gained, MAX_SLOTS)
+  const inRank = !result.rankedUp && needed > 0
+  const before = inRank ? Math.min(result.starsBefore, Math.max(0, MAX_SLOTS - gained)) : 0
+  const slots = Math.min(before + gained, MAX_SLOTS)
   if (gained === 0 || slots === 0) return null
   return (
     <div className="mt-2 flex items-center justify-center gap-1" aria-hidden="true">
       {Array.from({ length: slots }, (_, i) => {
         const isNew = inRank ? i >= before && i < before + gained : true
-        const filled = i < before || isNew
-        return (
+                return (
           <span key={i} className="relative inline-flex size-9 items-center justify-center">
             {isNew ? (
               <span className="quiz-star-new inline-flex" style={{ animationDelay: `${(inRank ? i - before : i) * 0.18}s` }}>
                 <StarShape className="size-9 drop-shadow" filled />
               </span>
             ) : (
-              <StarShape className="size-8" filled={filled} />
+              <StarShape className="size-8" filled />
             )}
             {isNew && <Sparks />}
           </span>

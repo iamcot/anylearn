@@ -1,5 +1,4 @@
 import type { QuizProfile } from '@/lib/api/quiz'
-import { starPercent } from '@/lib/quiz/rules'
 import RankBadge from './RankBadge'
 
 /** Rank, star bar and guard of the player. */
@@ -18,9 +17,16 @@ export default function RankCard({ profile }: { profile: QuizProfile }) {
           {profile.guard ? 'Có bảo hộ' : 'Hết bảo hộ'}
         </span>
       </div>
-      <div className="mt-3 h-3 overflow-hidden rounded-full bg-black/10" role="progressbar" aria-valuenow={profile.stars} aria-valuemax={top ? undefined : profile.needed}>
-        <div className="h-full rounded-full bg-green transition-[width] duration-500" style={{ width: `${starPercent(profile.stars, profile.needed)}%` }} />
-      </div>
+      {profile.stars > 0 && (
+        <div className="mt-3 flex flex-wrap items-center gap-1" aria-hidden="true">
+          {Array.from({ length: Math.min(profile.stars, 12) }, (_, i) => (
+            <svg key={i} viewBox="0 0 24 24" className="size-6">
+              <path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3 6.1 20.6l1.3-6.6L2.5 9.4l6.6-.8z" fill="#fbbf24" stroke="#f59e0b" strokeWidth="1.2" strokeLinejoin="round" />
+            </svg>
+          ))}
+          {profile.stars > 12 && <span className="text-sm font-black text-[#b45309]">+{profile.stars - 12}</span>}
+        </div>
+      )}
     </section>
   )
 }
