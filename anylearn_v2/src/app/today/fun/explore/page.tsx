@@ -101,8 +101,14 @@ function Explorer() {
             onLike={() => like(p)} onComments={() => setOpenComments(p.id)} onShare={() => share(p)} />
         ))}
         {loaded && (!enabled || posts.length === 0) && (
-          <section className="grid h-dvh place-items-center px-8 text-center text-white">
-            <p>{enabled ? 'Chưa có bài nào, bạn quay lại sau nhé!' : 'Khám phá đang tạm nghỉ, bạn quay lại sau nhé!'}</p>
+          <section className="relative grid h-dvh place-items-center bg-gradient-to-b from-green-dark to-[#064e3b] px-8 text-center text-white">
+            <div className="flex max-w-xs flex-col items-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/fun/leo_discovery.png" alt="" className="size-40 object-contain drop-shadow-lg" />
+              <h2 className="m-0 mt-4 text-xl font-black">{enabled ? 'Sắp có nhiều điều hay ho!' : 'Khám phá đang tạm nghỉ'}</h2>
+              <p className="mt-2 text-sm text-white/85">{enabled ? 'Leo đang chuẩn bị mẹo nuôi dạy con, clip và hình ảnh vui. Bạn quay lại sau nhé!' : 'Bạn quay lại sau nhé!'}</p>
+              <Link href="/today/fun" className="mt-5 inline-flex min-h-11 items-center rounded-full bg-white px-6 text-sm font-extrabold text-green-dark no-underline">Về Vui học</Link>
+            </div>
           </section>
         )}
         {!loaded && !error && <section className="grid h-dvh place-items-center text-white/70">Đang tải...</section>}
