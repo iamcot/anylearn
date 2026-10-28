@@ -1,11 +1,14 @@
 import { Alert, Button, Card, InputNumber, Space, Switch, Tag, Typography, message } from 'antd'
+import { ArrowLeftOutlined } from '@ant-design/icons'
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import client from '../api/client'
 
 const DAY_COUNT = 7
 
 export default function FunCheckin() {
+  const navigate = useNavigate()
   const qc = useQueryClient()
   const { data, isLoading } = useQuery({
     queryKey: ['admin-fun-checkin'],
@@ -38,6 +41,7 @@ export default function FunCheckin() {
 
   return (
     <div style={{ padding: 24 }}>
+      <Button type="link" icon={<ArrowLeftOutlined />} style={{ padding: 0, marginBottom: 8 }} onClick={() => navigate('/fun-events')}>Sự kiện game</Button>
       <Typography.Title level={4} style={{ marginTop: 0 }}>Điểm danh và quà</Typography.Title>
       <Typography.Paragraph type="secondary">
         Mỗi thành viên mở một quà mỗi ngày. Chuỗi ngày liên tiếp quyết định mức anyPoint trong tuần; ngày 7 là quà lớn, sau đó quay lại ngày 1.
