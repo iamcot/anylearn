@@ -5,6 +5,7 @@ import com.anylearn.backend.entity.User;
 import com.anylearn.backend.service.quiz.QuizBankService;
 import com.anylearn.backend.service.quiz.QuizBoardService;
 import com.anylearn.backend.service.quiz.QuizGameService;
+import com.anylearn.backend.service.quiz.QuizPackService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,11 +20,13 @@ public class QuizController {
     private final QuizBankService bank;
     private final QuizGameService game;
     private final QuizBoardService board;
+    private final QuizPackService packs;
 
-    public QuizController(QuizBankService bank, QuizGameService game, QuizBoardService board) {
+    public QuizController(QuizBankService bank, QuizGameService game, QuizBoardService board, QuizPackService packs) {
         this.bank = bank;
         this.game = game;
         this.board = board;
+        this.packs = packs;
     }
 
     private interface Call {
@@ -102,6 +105,30 @@ public class QuizController {
     @PostMapping("/items/buy")
     public ApiResponse<?> buy(@AuthenticationPrincipal User user, @RequestBody Map<String, Object> body) {
         return guarded(user, () -> game.buy(user.getId(), text(body, "item")));
+    }
+
+    /** Body {topics: [keys]} (a level pack: none = every topic; the other types: exactly one): saves the pack's topics and switches it on. */
+    @PutMapping("/packs/{id}")
+    public ApiResponse<?> savePack(@AuthenticationPrincipal User user, @PathVariable long id, @RequestBody(required = false) Map<String, Object> body) {
+        return guarded(user, () -> {
+            List<String> topics = new java.util.ArrayList<>();
+            if (body != null && body.get("topics") instanceof List<?> list) {
+                for (Object o : list) if (o != null) topics.add(o.toString());
+            } else if (body != null && body.get("topic") != null) {
+                topics.add(body.get("topic").toString());
+            }
+            packs.saveAndActivate(user.getId(), id, topics);
+            return game.me(user.getId());
+        });
+    }
+
+    /** Leaves practice mode: back to the ranked game (the packs keep their questions). */
+    @PostMapping("/packs/deactivate")
+    public ApiResponse<?> deactivatePack(@AuthenticationPrincipal User user) {
+        return guarded(user, () -> {
+            packs.deactivate(user.getId());
+            return game.me(user.getId());
+        });
     }
 
     @PostMapping("/questions/{id}/report")

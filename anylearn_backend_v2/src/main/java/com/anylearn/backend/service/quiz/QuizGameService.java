@@ -31,6 +31,8 @@ public class QuizGameService {
     /** Network lag allowed on top of the clock, in seconds. */
     static final int GRACE_SECONDS = 2;
     private static final String SOURCE_USE = "use";
+    static final String MODE_RANK = "rank";
+    static final String MODE_PRACTICE = "practice";
 
     private final JdbcTemplate jdbc;
     private final Clock clock;
@@ -42,6 +44,7 @@ public class QuizGameService {
     private final GameEventService events;
     private final QuizBoardService board;
     private final AchievementService achievements;
+    private final QuizPackService packs;
 
     private final Random random = new Random();
 
@@ -58,7 +61,11 @@ public class QuizGameService {
     private record Question(long id, String topic, int difficulty, String body, String[] options, int correct, String explanation) {}
 
     private record Attempt(long id, long userId, long questionId, int rank, int starsBefore, int[] order, String items,
-                           LocalDateTime issuedAt, LocalDateTime expiresAt, String outcome, String hidden, String community) {}
+                           LocalDateTime issuedAt, LocalDateTime expiresAt, String outcome, String hidden, String community, String mode, Long packId) {
+        boolean practice() { return MODE_PRACTICE.equals(mode); }
+    }
+
+    private record EnergyRow(Integer value, LocalDateTime at) {}
 
     // ---------------------------------------------------------------- lobby
 
@@ -82,6 +89,13 @@ public class QuizGameService {
         Map<String, Object> day = jdbc.queryForMap("SELECT COUNT(*) AS games, COALESCE(SUM(outcome = 'correct'), 0) AS correct FROM quiz_attempts WHERE user_id = ? AND issued_at >= ? AND outcome <> 'open'", userId, Timestamp.valueOf(start));
         out.put("today", Map.of("games", ((Number) day.get("games")).intValue(), "correct", ((Number) day.get("correct")).intValue()));
         out.put("hideBoard", board.isHidden(userId));
+        out.put("energy", energyView(userId));
+        out.put("packSize", settings.packSize());
+        List<Map<String, Object>> packList = new ArrayList<>();
+        for (QuizPackService.Pack pack : packs.active(userId)) packList.add(packs.view(pack));
+        out.put("packs", packList);
+        QuizPackService.Pack inUse = packs.inUse(userId);
+        out.put("activePackId", inUse == null ? null : inUse.id());
         if (forfeited != null) out.put("forfeited", forfeited);
         return out;
     }
@@ -132,6 +146,57 @@ public class QuizGameService {
         return out;
     }
 
+    // ---------------------------------------------------------------- energy
+
+    private EnergyRow energyRow(long userId) {
+        jdbc.update("INSERT IGNORE INTO quiz_profiles (user_id) VALUES (?)", userId);
+        return jdbc.queryForObject("SELECT energy, energy_at FROM quiz_profiles WHERE user_id = ?",
+                (rs, i) -> new EnergyRow((Integer) rs.getObject("energy"), rs.getTimestamp("energy_at") == null ? null : rs.getTimestamp("energy_at").toLocalDateTime()), userId);
+    }
+
+    /** The energy bar as the API shows it: `{value, max, nextInSeconds, regenMinutes, cost}`. */
+    public Map<String, Object> energyView(long userId) {
+        EnergyRow row = energyRow(userId);
+        int max = settings.energyMax();
+        int regen = settings.energyRegenMinutes();
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("value", QuizEnergy.current(row.value(), row.at(), now(), max, regen));
+        out.put("max", max);
+        out.put("nextInSeconds", QuizEnergy.nextInSeconds(row.value(), row.at(), now(), max, regen));
+        out.put("regenMinutes", regen);
+        out.put("cost", settings.energyCost());
+        return out;
+    }
+
+    /** Spends the energy of a ranked question or throws "Hết năng lượng, hồi 1 sau mm:ss". */
+    private void spendEnergy(long userId) {
+        int cost = settings.energyCost();
+        if (cost <= 0) return;
+        EnergyRow row = energyRow(userId);
+        int max = settings.energyMax();
+        int regen = settings.energyRegenMinutes();
+        QuizEnergy.State after = QuizEnergy.spend(row.value(), row.at(), now(), max, regen, cost);
+        if (after == null) {
+            throw new IllegalStateException("Hết năng lượng, hồi 1 sau " + QuizEnergy.mmss(QuizEnergy.nextInSeconds(row.value(), row.at(), now(), max, regen)));
+        }
+        jdbc.update("UPDATE quiz_profiles SET energy = ?, energy_at = ? WHERE user_id = ?", after.value(), Timestamp.valueOf(after.at()), userId);
+    }
+
+    /** True when the bar is full (nothing to refill). */
+    public boolean energyFull(long userId) {
+        EnergyRow row = energyRow(userId);
+        return QuizEnergy.current(row.value(), row.at(), now(), settings.energyMax(), settings.energyRegenMinutes()) >= settings.energyMax();
+    }
+
+    /** Adds energy bought in the shop (never above the max) and returns the bar. */
+    @Transactional
+    public Map<String, Object> addEnergy(long userId, int amount) {
+        EnergyRow row = energyRow(userId);
+        QuizEnergy.State after = QuizEnergy.add(row.value(), row.at(), now(), settings.energyMax(), settings.energyRegenMinutes(), amount);
+        jdbc.update("UPDATE quiz_profiles SET energy = ?, energy_at = ? WHERE user_id = ?", after.value(), Timestamp.valueOf(after.at()), userId);
+        return energyView(userId);
+    }
+
     // ---------------------------------------------------------------- profile and items
 
     private Profile profile(long userId) {
@@ -173,6 +238,20 @@ public class QuizGameService {
         if (rows != 1) return false;
         jdbc.update("INSERT INTO quiz_item_log (user_id, item_key, delta, source, ref) VALUES (?, ?, -1, ?, ?)", userId, item, SOURCE_USE, ref);
         return true;
+    }
+
+    /** Takes one copy of an item back when it is sold to Leo (plan 15); false when the person has none. */
+    @Transactional
+    public boolean sellItem(long userId, String item) {
+        int rows = jdbc.update("UPDATE quiz_user_items SET qty = qty - 1 WHERE user_id = ? AND item_key = ? AND qty >= 1", userId, item);
+        if (rows != 1) return false;
+        jdbc.update("INSERT INTO quiz_item_log (user_id, item_key, delta, source, ref) VALUES (?, ?, -1, 'sell', NULL)", userId, item);
+        return true;
+    }
+
+    /** What the person holds of each item. */
+    public Map<String, Integer> ownedItems(long userId) {
+        return items(userId);
     }
 
     private Map<String, Integer> weights() {
@@ -224,6 +303,11 @@ public class QuizGameService {
         return sum == null ? 0 : sum;
     }
 
+    /** Items the person can still buy today under the daily cap. */
+    public int itemBuyLeft(long userId) {
+        return Math.max(settings.buyDailyCap() - boughtToday(userId), 0);
+    }
+
     /** Buys one item with Leo Xu. */
     @Transactional
     public Map<String, Object> buy(long userId, String item) {
@@ -252,6 +336,8 @@ public class QuizGameService {
         requireEnabled();
         forfeitOpen(userId);
         Profile p = profile(userId);
+        QuizPackService.Pack pack = packs.inUse(userId);
+        if (pack != null) return startPractice(userId, p, pack);
         if (mult != null && !QuizItems.MULT2.equals(mult) && !QuizItems.MULT3.equals(mult)) throw new IllegalArgumentException("Sao may mắn không hợp lệ");
         String topicKey = topic == null || topic.isBlank() ? null : topic;
         if (topicKey != null) {
@@ -273,6 +359,7 @@ public class QuizGameService {
         Question question = chooseQuestion(userId, difficulty, topicKey, null);
         if (question == null) throw new IllegalStateException("Kho câu hỏi đang trống, bạn quay lại sau nhé");
 
+        spendEnergy(userId);
         for (String item : wanted) useItem(userId, item, "start");
         int[] order = shuffled();
         LocalDateTime issued = now();
@@ -294,17 +381,73 @@ public class QuizGameService {
         long attemptId = Objects.requireNonNull(keys.getKey()).longValue();
         jdbc.update("UPDATE quiz_profiles SET active_attempt_id = ? WHERE user_id = ?", attemptId, userId);
         jdbc.update("UPDATE quiz_questions SET times_served = times_served + 1 WHERE id = ?", question.id());
-        return attemptView(loadAttempt(attemptId), question, items(userId));
+        Map<String, Object> view = attemptView(loadAttempt(attemptId), question, items(userId));
+        view.put("energy", energyView(userId));
+        return view;
     }
 
-    private Question chooseQuestion(long userId, int difficulty, String topic, Long exclude) {
+    /** A question of the active training pack: uses one question of the pack, no energy, no items, nothing for the rank. */
+    private Map<String, Object> startPractice(long userId, Profile p, QuizPackService.Pack pack) {
+        Question question = choosePackQuestion(userId, pack);
+        if (question == null) throw new IllegalStateException("Gói này chưa có câu hỏi phù hợp, bạn chọn chủ đề khác nhé");
+        int[] order = shuffled();
+        LocalDateTime issued = now();
+        LocalDateTime expires = issued.plusSeconds(settings.seconds());
+        org.springframework.jdbc.support.GeneratedKeyHolder keys = new org.springframework.jdbc.support.GeneratedKeyHolder();
+        jdbc.update(con -> {
+            var ps = con.prepareStatement("INSERT INTO quiz_attempts (user_id, question_id, rank_idx, stars_before, option_order, items_used, issued_at, expires_at, mode, pack_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'practice', ?)",
+                    java.sql.Statement.RETURN_GENERATED_KEYS);
+            ps.setLong(1, userId);
+            ps.setLong(2, question.id());
+            ps.setInt(3, p.rank());
+            ps.setInt(4, p.stars());
+            ps.setString(5, join(order));
+            ps.setString(6, "");
+            ps.setTimestamp(7, Timestamp.valueOf(issued));
+            ps.setTimestamp(8, Timestamp.valueOf(expires));
+            ps.setLong(9, pack.id());
+            return ps;
+        }, keys);
+        long attemptId = Objects.requireNonNull(keys.getKey()).longValue();
+        jdbc.update("UPDATE quiz_profiles SET active_attempt_id = ? WHERE user_id = ?", attemptId, userId);
+        jdbc.update("UPDATE quiz_questions SET times_served = times_served + 1 WHERE id = ?", question.id());
+        packs.consume(pack);
+        Map<String, Object> view = attemptView(loadAttempt(attemptId), question, items(userId));
+        view.put("energy", energyView(userId));
+        return view;
+    }
+
+    /**
+     * Draws for a pack with the same no-repeat fallbacks as the ranked game: an unseen question first, then a repeat, from the level of the pack
+     * outward (a topic pack over every level starts from a random level). The topics of the pack are never dropped.
+     */
+    private Question choosePackQuestion(long userId, QuizPackService.Pack pack) {
         Timestamp since = Timestamp.valueOf(now().minusDays(settings.noRepeatDays()));
+        int start = pack.difficulty() != null ? pack.difficulty() : QuizRules.DIFFICULTIES.get(random.nextInt(QuizRules.DIFFICULTIES.size()));
+        List<Integer> order = levelOrder(start);
+        List<String> topics = pack.topic() != null ? List.of(pack.topic()) : pack.topics();
+        for (boolean unseenOnly : new boolean[]{true, false}) {
+            for (int level : order) {
+                Question q = pick(userId, level, topics, since, null, unseenOnly);
+                if (q != null) return q;
+            }
+        }
+        return null;
+    }
+
+    private static List<Integer> levelOrder(int difficulty) {
         List<Integer> order = new ArrayList<>();
         order.add(difficulty);
         for (int step = 1; step < 5; step++) {
             if (difficulty - step >= 1) order.add(difficulty - step);
             if (difficulty + step <= 5) order.add(difficulty + step);
         }
+        return order;
+    }
+
+    private Question chooseQuestion(long userId, int difficulty, String topic, Long exclude) {
+        Timestamp since = Timestamp.valueOf(now().minusDays(settings.noRepeatDays()));
+        List<Integer> order = levelOrder(difficulty);
         // a topic of the person's own choice first (a fresh question at any level, then a repeat of that topic),
         // then any topic the same way: the topic is never dropped just because the drawn level has none
         List<String> topics = new ArrayList<>();
@@ -313,7 +456,7 @@ public class QuizGameService {
         for (String t : topics) {
             for (boolean unseenOnly : new boolean[]{true, false}) {
                 for (int level : order) {
-                    Question q = pick(userId, level, t, since, exclude, unseenOnly);
+                    Question q = pick(userId, level, t == null ? null : List.of(t), since, exclude, unseenOnly);
                     if (q != null) return q;
                 }
             }
@@ -321,11 +464,14 @@ public class QuizGameService {
         return null;
     }
 
-    private Question pick(long userId, int level, String topic, Timestamp since, Long exclude, boolean unseenOnly) {
+    private Question pick(long userId, int level, List<String> topics, Timestamp since, Long exclude, boolean unseenOnly) {
         StringBuilder sql = new StringBuilder("SELECT id, topic, difficulty, body, opt_a, opt_b, opt_c, opt_d, correct, explanation FROM quiz_questions WHERE status = 'active' AND difficulty = ?");
         List<Object> args = new ArrayList<>();
         args.add(level);
-        if (topic != null) { sql.append(" AND topic = ?"); args.add(topic); }
+        if (topics != null && !topics.isEmpty()) {
+            sql.append(" AND topic IN (").append(String.join(",", Collections.nCopies(topics.size(), "?"))).append(")");
+            args.addAll(topics);
+        }
         if (exclude != null) { sql.append(" AND id <> ?"); args.add(exclude); }
         if (unseenOnly) {
             sql.append(" AND id NOT IN (SELECT question_id FROM quiz_attempts WHERE user_id = ? AND issued_at > ?)");
@@ -368,11 +514,11 @@ public class QuizGameService {
     }
 
     private Attempt loadAttempt(long id) {
-        List<Attempt> rows = jdbc.query("SELECT id, user_id, question_id, rank_idx, stars_before, option_order, items_used, issued_at, expires_at, outcome, hidden, community FROM quiz_attempts WHERE id = ?",
+        List<Attempt> rows = jdbc.query("SELECT id, user_id, question_id, rank_idx, stars_before, option_order, items_used, issued_at, expires_at, outcome, hidden, community, mode, pack_id FROM quiz_attempts WHERE id = ?",
                 (rs, i) -> new Attempt(rs.getLong("id"), rs.getLong("user_id"), rs.getLong("question_id"), rs.getInt("rank_idx"), rs.getInt("stars_before"),
                         parseInts(rs.getString("option_order")), rs.getString("items_used") == null ? "" : rs.getString("items_used"),
                         rs.getTimestamp("issued_at").toLocalDateTime(), rs.getTimestamp("expires_at").toLocalDateTime(), rs.getString("outcome"),
-                        rs.getString("hidden"), rs.getString("community")), id);
+                        rs.getString("hidden"), rs.getString("community"), rs.getString("mode"), (Long) rs.getObject("pack_id")), id);
         if (rows.isEmpty()) throw new IllegalArgumentException("Không tìm thấy câu hỏi này");
         return rows.get(0);
     }
@@ -392,6 +538,8 @@ public class QuizGameService {
         out.put("serverNow", clock.millis());
         out.put("used", a.items().isBlank() ? List.of() : Arrays.asList(a.items().split(",")));
         out.put("items", owned);
+        out.put("mode", a.practice() ? MODE_PRACTICE : MODE_RANK);
+        if (a.practice() && a.packId() != null) out.put("pack", packs.view(packs.find(a.userId(), a.packId())));
         return out;
     }
 
@@ -402,6 +550,7 @@ public class QuizGameService {
         requireEnabled();
         if (!QuizItems.DURING.contains(item)) throw new IllegalArgumentException("Vật phẩm này không dùng trong câu hỏi");
         Attempt a = openAttempt(userId, attemptId);
+        if (a.practice()) throw new IllegalStateException("Khi tập luyện không dùng được vật phẩm");
         if (now().isAfter(a.expiresAt())) throw new IllegalStateException("Hết giờ rồi");
         List<String> used = a.items().isBlank() ? new ArrayList<>() : new ArrayList<>(Arrays.asList(a.items().split(",")));
         if (used.contains(item)) throw new IllegalStateException("Bạn đã dùng " + QuizItems.LABELS.get(item) + " ở câu này");
@@ -488,6 +637,7 @@ public class QuizGameService {
         String outcome = chosen == null ? "timeout" : correct ? "correct" : "wrong";
         long elapsed = Duration.between(a.issuedAt(), at).toMillis();
         boolean flagged = away || (correct && elapsed < 1500);
+        if (a.practice()) return gradePractice(a, q, chosen, outcome);
         return grade(a, q, chosen, outcome, flagged, true);
     }
 
@@ -501,7 +651,38 @@ public class QuizGameService {
             return null;
         }
         Attempt a = rows.get(0);
+        if (a.practice()) return gradePractice(a, loadQuestion(a.questionId()), null, "forfeit");
         return grade(a, loadQuestion(a.questionId()), null, "forfeit", false, false);
+    }
+
+    /**
+     * Closes a practice question: shows the right answer and nothing else changes (no stars, rank, streak, drop, board or reward).
+     * Every answered one writes a `practice` game event whose detail starts with `correct` or `wrong` (the weekly mission counts them).
+     */
+    private Map<String, Object> gradePractice(Attempt a, Question q, Integer chosen, String outcome) {
+        long userId = a.userId();
+        boolean correct = "correct".equals(outcome);
+        jdbc.update("UPDATE quiz_profiles SET active_attempt_id = NULL WHERE user_id = ?", userId);
+        jdbc.update("UPDATE quiz_attempts SET answer = ?, outcome = ?, answered_at = ? WHERE id = ?", chosen, outcome, Timestamp.valueOf(now()), a.id());
+        if (correct) jdbc.update("UPDATE quiz_questions SET times_correct = times_correct + 1 WHERE id = ?", q.id());
+        if (!"forfeit".equals(outcome)) {
+            events.record(userId, GameEventService.GAME_QUIZ, "practice", (correct ? "correct" : "wrong") + " d" + q.difficulty() + " " + q.topic(), 0);
+        }
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("practice", true);
+        out.put("correct", correct);
+        out.put("outcome", outcome);
+        out.put("correctIndex", indexOf(a.order(), q.correct()));
+        out.put("chosen", chosen);
+        out.put("explanation", q.explanation());
+        out.put("starsGained", 0);
+        out.put("reward", Map.of());
+        out.put("drop", null);
+        if (a.packId() != null) out.put("pack", packs.view(packs.find(userId, a.packId())));
+        out.put("profile", profileView(profile(userId)));
+        out.put("items", items(userId));
+        out.put("coins", coins.balance(userId));
+        return out;
     }
 
     private Map<String, Object> grade(Attempt a, Question q, Integer chosen, String outcome, boolean flagged, boolean allowDrop) {

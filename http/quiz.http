@@ -84,3 +84,16 @@ Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
 Content-Type: application/json
 
 { "period": "W2026-43" }
+
+### Plan 15: switch on a training pack (level pack: topics = [] means every topic; topic / topic_level pack: exactly one key). Answers with /quiz/me
+PUT {{baseUrl}}/quiz/packs/1
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{ "topics": ["english"] }
+
+### Plan 15: leave practice mode (back to the ranked game)
+POST {{baseUrl}}/quiz/packs/deactivate
+Authorization: Bearer {{jwtToken}}
+
+### Plan 15: energy, pack size and item prices are edited with the shop settings (see fun.http)
