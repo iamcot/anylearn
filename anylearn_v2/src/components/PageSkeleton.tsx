@@ -217,3 +217,21 @@ export function FormPageSkeleton() {
     </section>
   )
 }
+
+/** The learning page of a video course: player on the left, lesson list on the right (below on a phone). */
+export function LearnSkeleton() {
+  return (
+    <div className="container grid animate-pulse gap-6 pt-16 lg:grid-cols-[1fr_360px]" aria-busy="true" aria-label="Đang tải">
+      <div>
+        <div className="aspect-video rounded-card bg-line" />
+        <div className="mt-4 h-7 w-2/3 rounded bg-line" />
+        <div className="mt-3 h-16 rounded-xl bg-line/60" />
+      </div>
+      <div className="flex flex-col gap-3">
+        {Array.from({ length: ROW_COUNT }, (_, index) => (
+          <div key={index} className="h-12 rounded-xl bg-line/60" />
+        ))}
+      </div>
+    </div>
+  )
+}

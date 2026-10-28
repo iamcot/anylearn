@@ -49,13 +49,17 @@ export function cancelVideoUpload(id) {
   message.info(`Đã hủy tải video "${u.title}"`)
 }
 
-export async function startVideoUpload({ postId, title, file, onDone }) {
+/**
+ * Uploads a clip of a Khám phá post (default) or, with `createPath` + `attach`, any other video: `createPath` returns the
+ * TUS info from the server and `attach(info)` tells the server the file has arrived (plan 17 uses it for lessons).
+ */
+export async function startVideoUpload({ postId, title, file, onDone, createPath, attach, doneText }) {
   const id = `${postId}-${Date.now()}`
   uploads = [...uploads, { id, postId, title, percent: 0, tus: null }]
   emit()
   const fail = text => { remove(id); message.error(`Tải video "${title}" thất bại: ${text}`, 8); onFinished() }
   try {
-    const res = await client.post('/admin/explore/video-upload', { title: title || file.name }).then(r => r.data)
+    const res = await client.post(createPath || '/admin/explore/video-upload', { title: title || file.name }).then(r => r.data)
     if (res.resultCode !== 1) return fail(res.message)
     const info = res.data
     const upload = new tus.Upload(file, {
@@ -72,11 +76,11 @@ export async function startVideoUpload({ postId, title, file, onDone }) {
       onProgress: (sent, total) => patch(id, { percent: Math.round((sent / total) * 100) }),
       onSuccess: async () => {
         try {
-          const done = await client.put(`/admin/explore/posts/${postId}/media`, { mediaUrl: info.mediaUrl, posterUrl: info.posterUrl }).then(r => r.data)
+          const done = await (attach ? attach(info) : client.put(`/admin/explore/posts/${postId}/media`, { mediaUrl: info.mediaUrl, posterUrl: info.posterUrl })).then(r => r.data)
           if (done.resultCode !== 1) throw new Error(done.message)
           remove(id)
           onDone?.({ mediaUrl: info.mediaUrl, posterUrl: info.posterUrl })
-          message.success(`Video "${title}" đã tải xong và gắn vào bài. Bunny cần vài phút xử lý trước khi phát được, bài đang ở Nháp.`, 8)
+          message.success(doneText || `Video "${title}" đã tải xong và gắn vào bài. Bunny cần vài phút xử lý trước khi phát được, bài đang ở Nháp.`, 8)
           onFinished()
         } catch (e) {
           fail(`video đã lên Bunny nhưng chưa gắn được vào bài (${e.message})`)

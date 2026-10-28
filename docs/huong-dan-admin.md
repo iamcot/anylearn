@@ -667,3 +667,26 @@ Mỗi thao tác này, sửa bài trong form, hay xóa bài của creator đều 
 ### Danh sách bài Khám phá: lọc, công tắc Hiện/Nháp, hình nhỏ
 
 Trang Khám phá > tab **Bài viết**: phía trên bảng có ô tìm theo tiêu đề và hai bộ lọc Loại bài, Trạng thái (kèm số bài đang lọc). Mỗi dòng có hình nhỏ để nhận ra nội dung (ảnh của bài ảnh, hình đại diện của clip, hình YouTube hoặc ô "Aa" với bài viết chữ). Cột **Trạng thái** là công tắc: bật = Đang hiện, tắt = Nháp, bấm là đổi ngay, không cần mở form. Bài loại ảnh hoặc clip chưa có hình hoặc clip thì không bật Hiện được (hệ thống báo lỗi). Bài đang ở trạng thái Ẩn hiện thêm nhãn đỏ "Ẩn"; bật công tắc sẽ chuyển nó sang Đang hiện. Danh sách lấy tối đa 300 bài mới nhất.
+
+### Khóa học video: chương, bài học, học thử, tải video (plan 17)
+
+**Tạo khóa học video.** Tạo khóa học như thường, ở ô **Hình thức** chọn **video** (không cần địa chỉ hay lớp). Lưu xong, trang khóa học có thêm tab **Nội dung video**.
+
+**Tab Nội dung video.**
+- **Thêm chương** (tên, mô tả ngắn), rồi trong từng chương bấm **Thêm bài vào chương này**. Dùng mũi tên để đổi thứ tự chương và bài; mũi tên ở đầu hoặc cuối chương đẩy bài sang chương kế bên. "Bài 1, 2, 3…" đánh số liên tục qua cả khóa.
+- Mỗi bài có: tiêu đề, mô tả, **loại** (Video tải lên Bunny / Link ngoài như YouTube / Bài đọc chữ), ảnh bìa (bỏ trống thì Bunny tự cắt từ video), tài liệu kèm (tên + link).
+- **Xem thử miễn phí**: công tắc ngay trên dòng bài. Bật thì ai cũng xem bài đó, kể cả khách chưa đăng nhập, nút "Học thử" hiện ở trang khóa học. Tắt thì chỉ người đã đăng ký xem. Có hiệu lực ngay, không cần tải lại video. Công tắc **Hiện** để ẩn một bài hoặc cả chương khỏi người học (tiến độ vẫn giữ).
+- Khóa mới chỉ nên cho xem thử 1 đến 2 bài đầu. Bài loại **Link ngoài** ai có link đều xem được, chỉ dùng cho bài xem thử.
+
+**Tải video.** Trong form bài (loại Video) chọn file rồi Lưu. Video chạy thẳng từ trình duyệt lên Bunny, có khung "Đang tải video lên" ở góc phải, đổi trang khác vẫn chạy nhưng **đừng đóng tab**. Tải xong Bunny cần vài phút xử lý: dòng bài hiện "Bunny đang xử lý" rồi "Sẵn sàng" (trang tự hỏi lại 20 giây một lần, hoặc bấm nút làm mới); thời lượng tự điền. Bài chưa "Sẵn sàng" thì người học chưa mở được. Chọn file mới trong form bài là thay video (video cũ trên Bunny bị xóa). Xóa bài cũng xóa video trên Bunny và tiến độ học của bài.
+
+**Người học thấy gì.** Trang khóa học có khối **Nội dung khóa học** (các chương, bài, thời lượng, nhãn Học thử, ổ khóa ở bài trả phí). Người đã đăng ký: nút đổi thành **Học tiếp: Bài N** với thanh tiến độ, xem **trọn đời**. Trang học `/learn/…` nhớ chỗ dừng từng bé riêng (phụ huynh mua cho 2 bé thì mỗi bé một tiến độ). Mục **Khóa học video** trong Tài khoản và thẻ "Tự học video" ở trang Hôm nay liệt kê các khóa đang học. Học viên đặt **lịch tự học** (ngày trong tuần + giờ) và được nhắc đúng giờ nếu hôm đó chưa học; bỏ dở lâu ngày được nhắc nhẹ 1 lần. Học được 80% và khi xong 100% thì nhận thông báo và gợi ý khóa tiếp theo (bước kế của lộ trình, cùng đơn vị dạy, cùng tag): nên gán **tag** và đưa khóa vào **lộ trình** để gợi ý đúng.
+
+**Bài xong khi nào.** Xem tới 90% thời lượng **và** thời gian xem thật đạt 70% (tua nhanh tới cuối không tính là xong). Bài đọc và link ngoài: học viên bấm "Đánh dấu đã học". Hai con số này, hạn của link phát (4 giờ), mốc gợi ý (80%) và nhắc học nằm ở nút **Cài đặt chung** của tab Nội dung video.
+
+**Thiết lập Bunny cho video trả phí (một lần).** Video bán tiền dùng **thư viện Bunny riêng, có khóa link**, để lộ link cũng không xem được lâu:
+1. Bunny > Stream > **Add Video Library**, đặt tên (ví dụ `anylearn-courses`), vùng Singapore.
+2. Mở library, vào **Security** (hoặc pull zone của library) và bật **Token Authentication**; copy **Security Key**.
+3. Lấy Library ID, API Key, CDN Hostname như hướng dẫn Khám phá ở trên.
+4. GitHub > Settings > Secrets > Actions, tạo 4 secret: `BUNNY_COURSE_LIBRARY_ID`, `BUNNY_COURSE_API_KEY`, `BUNNY_COURSE_CDN_HOST`, `BUNNY_COURSE_TOKEN_KEY` (Security Key ở bước 2), rồi deploy lại.
+Chưa tạo thì khóa video dùng tạm thư viện Khám phá **không khóa link**; tab Nội dung video báo cảnh báo vàng cho tới khi cấu hình xong.

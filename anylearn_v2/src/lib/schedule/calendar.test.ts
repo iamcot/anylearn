@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   activitiesOnDate, attendanceKey, attendanceState, sessionKeyOf, computeEffectiveEnd, enrollmentsOnDate, eventsOnDate, forLearner, monthRange, mondayOfWeek,
-  normalizeEnrollment, toISO, weekRange, type Activity, type Enrollment,
+  normalizeEnrollment, studyPlanEnrollments, toISO, weekRange, type Activity, type Enrollment,
 } from './calendar'
 
 const BASE: Enrollment = { id: 1, itemId: 10, itemTitle: 'Piano', scheduleType: 'recurring', status: 'active' }
@@ -126,5 +126,22 @@ describe('attendance on the calendar', () => {
     expect(attendanceState(on('2026-10-28'), new Set(), '2026-10-27')).toBe('none')
     expect(attendanceState(on('2026-05-01'), new Set(), '2026-10-27')).toBe('none')
     expect(attendanceState({ kind: 'enrollment', data: { ...enrollment, scheduleId: undefined }, date: '2026-10-05' }, new Set(), '2026-10-27')).toBe('none')
+  })
+})
+
+describe('studyPlanEnrollments', () => {
+  const course = (plan: { id?: number; weekdays: number[]; time: string | null; enabled: boolean } | null) =>
+    ({ learnerId: 5, learnerName: 'Bin', self: false, itemId: 9, title: 'Vẽ cơ bản', seoUrl: null, image: null, totalLessons: 3, plan: plan && { lessonsPerSession: 1, ...plan } }) as never
+
+  it('turns a plan into weekly slots on the planned days only', () => {
+    const [slot] = studyPlanEnrollments([course({ id: 4, weekdays: [3, 7], time: '20:00', enabled: true })])
+    expect(slot).toMatchObject({ id: -4, learnerId: 5, selfStudy: true, weekdays: 'wed,sun', timeStart: '20:00' })
+    expect(enrollmentsOnDate([slot], '2026-10-28')).toHaveLength(1) // Wednesday
+    expect(enrollmentsOnDate([slot], '2026-10-29')).toHaveLength(0)
+    expect(attendanceState({ kind: 'enrollment', data: slot, date: '2026-10-28' }, new Set(), '2026-10-30')).toBe('none')
+  })
+
+  it('ignores switched-off or missing plans', () => {
+    expect(studyPlanEnrollments([course(null), course({ weekdays: [1], time: null, enabled: false })])).toEqual([])
   })
 })

@@ -267,6 +267,10 @@ jobs:
           BUNNY_STREAM_LIBRARY_ID=${{ secrets.BUNNY_STREAM_LIBRARY_ID }}
           BUNNY_STREAM_API_KEY=${{ secrets.BUNNY_STREAM_API_KEY }}
           BUNNY_STREAM_CDN_HOST=${{ secrets.BUNNY_STREAM_CDN_HOST }}
+          BUNNY_COURSE_LIBRARY_ID=${{ secrets.BUNNY_COURSE_LIBRARY_ID }}
+          BUNNY_COURSE_API_KEY=${{ secrets.BUNNY_COURSE_API_KEY }}
+          BUNNY_COURSE_CDN_HOST=${{ secrets.BUNNY_COURSE_CDN_HOST }}
+          BUNNY_COURSE_TOKEN_KEY=${{ secrets.BUNNY_COURSE_TOKEN_KEY }}
           SPRING_PROFILES_ACTIVE=prod
           EOF
           sudo chown anylearn-app:anylearn-deploy ${{ env.DEPLOY_PATH }}/backend/.env

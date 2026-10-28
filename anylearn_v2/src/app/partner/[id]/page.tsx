@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { getPartnerReviews, getPartnerSummary, getUserProfile, searchItems } from '@/lib/api'
 import { PARTNER_TYPE_LABELS } from '@/config/itemLabels'
 import BackLink from '@/components/BackLink'
-import CourseCard from '@/components/CourseCard'
+import PartnerCourses from '@/components/partner/PartnerCourses'
 import FollowButton from '@/components/partner/FollowButton'
 import ReviewItem from '@/components/reviews/ReviewItem'
 import ReviewSummaryCard from '@/components/reviews/ReviewSummaryCard'
@@ -72,13 +72,7 @@ export default async function PartnerPage({ params }: Props) {
 
       <section className="mb-8">
         <h2 className="mb-3 mt-0 text-lg font-extrabold text-ink lg:text-2xl">Khóa đang mở</h2>
-        {courses.items.length > 0 ? (
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {courses.items.map(item => <CourseCard key={item.id} item={item} />)}
-          </div>
-        ) : (
-          <p className="m-0 text-muted">Hiện chưa có khóa nào đang mở. Theo dõi để được báo khi có khóa mới.</p>
-        )}
+        <PartnerCourses partnerId={id} initialItems={courses.items} total={courses.total} />
       </section>
 
       {reviews && reviews.count > 0 && (

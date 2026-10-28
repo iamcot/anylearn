@@ -49,6 +49,11 @@ app:
     library-id: ${BUNNY_STREAM_LIBRARY_ID:}
     api-key: ${BUNNY_STREAM_API_KEY:}
     cdn-host: ${BUNNY_STREAM_CDN_HOST:}
+  bunny-course:
+    library-id: ${BUNNY_COURSE_LIBRARY_ID:}
+    api-key: ${BUNNY_COURSE_API_KEY:}
+    cdn-host: ${BUNNY_COURSE_CDN_HOST:}
+    token-key: ${BUNNY_COURSE_TOKEN_KEY:}
   ai:
     api-key: ${ANTHROPIC_API_KEY:}
     model: claude-haiku-5-5

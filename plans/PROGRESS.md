@@ -22,6 +22,8 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 25/10/2026 | Đồng ý thêm thư viện Java `nl.martijndwars:web-push` (+ BouncyCastle) cho Web Push (plan 13.4). |
 | 25/10/2026 | App cũ trên store đã bị xoá, lượt tải không đáng kể → **chỉ làm PWA**, làm trước (plan 13). Push dùng Web Push thuần, không FCM. |
 | 25/10/2026 | 04.7 làm ở **giai đoạn 1**. Lúc đầu chỉ cần năm sinh; checkout bắt buộc nhập ngày sinh đầy đủ của người học trước khi thanh toán (FE khoá nút + backend chặn tạo đơn). |
+| 28/10/2026 | Khóa học video (plan 17): dùng lại 3 bảng `item_video_*`; video trả phí ở thư viện Bunny riêng có ký link; xem trọn đời; tiến độ tính riêng từng người học (cả phụ huynh); chỉ admin tải video. |
+
 
 ## Câu hỏi đang chờ chủ sản phẩm
 

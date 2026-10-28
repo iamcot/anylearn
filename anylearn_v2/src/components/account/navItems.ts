@@ -1,5 +1,5 @@
 import type { ComponentType, SVGProps } from 'react'
-import { BellIcon, CalendarIcon, CoinIcon, GiftIcon, HeartIcon, KeyIcon, LockIcon, PackageIcon, UserIcon, UsersIcon } from '@/components/icons'
+import { BellIcon, CalendarIcon, CoinIcon, GiftIcon, HeartIcon, KeyIcon, LockIcon, PackageIcon, PlayIcon, UserIcon, UsersIcon } from '@/components/icons'
 
 export type IconComponent = ComponentType<SVGProps<SVGSVGElement>>
 export interface NavItem { href: string; label: string; Icon: IconComponent; isPoint?: boolean }
@@ -9,6 +9,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: '/account/rewards', label: 'Ưu đãi của tôi', Icon: GiftIcon },
   { href: '/account/profile', label: 'Thông tin cá nhân', Icon: UserIcon },
   { href: '/account/schedule', label: 'Lịch học', Icon: CalendarIcon },
+  { href: '/account/videos', label: 'Khóa học video', Icon: PlayIcon },
   { href: '/account/course-codes', label: 'Mã code khóa học', Icon: KeyIcon },
   { href: '/account/orders', label: 'Đơn hàng của tôi', Icon: PackageIcon },
   { href: '/account/favorites', label: 'Yêu thích', Icon: HeartIcon },

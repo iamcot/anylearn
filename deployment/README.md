@@ -139,6 +139,10 @@ Vào **Settings → Secrets and variables → Actions → New repository secret*
 | `BUNNY_STREAM_LIBRARY_ID` | Bunny Stream video library id (a number); empty = video upload off |
 | `BUNNY_STREAM_API_KEY` | API key of that video library (not the account key) |
 | `BUNNY_STREAM_CDN_HOST` | Pull zone host of the library, e.g. `vz-xxxx.b-cdn.net` |
+| `BUNNY_COURSE_LIBRARY_ID` | Second Bunny Stream library for paid video courses (plan 17); empty = the Khám phá library, links not signed |
+| `BUNNY_COURSE_API_KEY` | API key of the course library |
+| `BUNNY_COURSE_CDN_HOST` | Pull zone host of the course library |
+| `BUNNY_COURSE_TOKEN_KEY` | Token Authentication key of that pull zone (Security > Token Authentication); lessons play only through signed links |
 | `ANTHROPIC_API_KEY` | Anthropic API key for the AI course suggestions (Claude Haiku); empty = AI off |
 | `ADMIN_EMAIL_RECIPIENTS` | comma separated, may be empty |
 

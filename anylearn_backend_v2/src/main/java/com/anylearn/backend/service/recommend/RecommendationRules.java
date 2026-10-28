@@ -22,6 +22,8 @@ public final class RecommendationRules {
     public static final String INTEREST = "interest";
     /** Courses picked by the AI (plan 08.AI). Not in SOURCES: it has its own switch and its events are only reported. */
     public static final String AI = "ai";
+    /** Courses suggested on a video course nearly or fully learned (plan 17.6); like the AI, only reported. */
+    public static final String VIDEO = "video";
     public static final List<String> SOURCES = List.of(PATHWAY, SIBLING, FREE_SLOT, SEASON, INTEREST);
 
     public static final int DEFAULT_DISMISS_DAYS = 30;
@@ -178,9 +180,9 @@ public final class RecommendationRules {
         return source != null && SOURCES.contains(source);
     }
 
-    /** Sources an event may carry: the rule kinds and the AI. */
+    /** Sources an event may carry: the rule kinds, the AI and the video course suggestions. */
     public static boolean validEventSource(String source) {
-        return AI.equals(source) || validSource(source);
+        return AI.equals(source) || VIDEO.equals(source) || validSource(source);
     }
 
     public static boolean validEvent(String event) {

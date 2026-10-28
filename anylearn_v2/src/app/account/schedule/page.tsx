@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { API_BASE } from '@/lib/apiBase'
 import { markAttended as markAttendedApi } from '@/lib/today/api'
+import { getMyVideoCourses } from '@/lib/api/learn'
 import {
-  attendanceKey, attendanceState, eventsOnDate, forLearner, sessionKeyOf, mondayOfWeek, monthRange, normalizeActivity, normalizeEnrollment, toISO, weekRange,
+  attendanceKey, attendanceState, eventsOnDate, forLearner, sessionKeyOf, mondayOfWeek, monthRange, normalizeActivity, normalizeEnrollment, studyPlanEnrollments, toISO, weekRange,
   type Activity, type Enrollment, type RawActivity, type RawEnrollment,
 } from '@/lib/schedule/calendar'
 import AccountCard from '@/components/account/AccountCard'
@@ -41,6 +42,7 @@ export default function SchedulePage() {
   const { user } = useAuth()
   const [enrollments, setEnrollments] = useState<Enrollment[]>([])
   const [activities, setActivities] = useState<Activity[]>([])
+  const [studySlots, setStudySlots] = useState<Enrollment[]>([])
   const [loading, setLoading] = useState(true)
   const [period, setPeriod] = useState<Period>('month')
   const [viewMode, setViewMode] = useState<ViewMode>('calendar')
@@ -66,6 +68,10 @@ export default function SchedulePage() {
       })
       .catch(() => {})
       .finally(() => setLoading(false))
+    // video courses with a study plan become weekly slots in the same calendar
+    getMyVideoCourses(user.jwtToken).then(res => {
+      if (res.data) setStudySlots(studyPlanEnrollments(res.data))
+    })
   }, [user])
 
   // Past sessions can be marked here too (the backend accepts any session that has started).
@@ -114,7 +120,7 @@ export default function SchedulePage() {
   const today = toISO(now)
   const tomorrow = toISO(new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1))
   const { from, to } = period === 'week' ? weekRange(currentDate) : monthRange(currentDate)
-  const shownEnrollments = forLearner(enrollments, learnerId)
+  const shownEnrollments = forLearner([...enrollments, ...studySlots], learnerId)
   const shownActivities = forLearner(activities, learnerId)
   const pending = shownEnrollments.filter(e => e.status === 'pending')
   const hasAnything = shownEnrollments.some(e => e.status === 'active') || pending.length > 0 || shownActivities.length > 0

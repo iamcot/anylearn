@@ -1,0 +1,114 @@
+@baseUrl = {{$dotenv BE_BASE_URL}}
+@jwt = {{$dotenv JWT_TOKEN}}
+@admin = {{$dotenv ADMIN_TOKEN}}
+@itemId = 1
+@lessonId = 1
+@learnerId = 1
+
+### ── Admin: build the course (item subtype = video) ──────────────────────────
+
+### Tree: chapters, lessons, summary, flags uploadEnabled / signed
+GET {{baseUrl}}/admin/items/{{itemId}}/video
+Authorization: Bearer {{admin}}
+
+### Add a chapter
+POST {{baseUrl}}/admin/items/{{itemId}}/video/chapters
+Authorization: Bearer {{admin}}
+Content-Type: application/json
+
+{ "title": "Chương 1: Làm quen", "description": "Những buổi đầu" }
+
+### Add a lesson (type video | link | text); free = "xem thử miễn phí"
+POST {{baseUrl}}/admin/items/{{itemId}}/video/lessons
+Authorization: Bearer {{admin}}
+Content-Type: application/json
+
+{ "chapterId": 1, "title": "Bài mở đầu", "description": "Giới thiệu", "type": "link", "typeValue": "https://youtu.be/abcdefghijk", "free": true, "durationSeconds": 600 }
+
+### Switch the free preview / visibility of a lesson
+PUT {{baseUrl}}/admin/items/{{itemId}}/video/lessons/{{lessonId}}/flags
+Authorization: Bearer {{admin}}
+Content-Type: application/json
+
+{ "free": false }
+
+### Whole order: chapters as listed, lessons as listed under each
+PUT {{baseUrl}}/admin/items/{{itemId}}/video/order
+Authorization: Bearer {{admin}}
+Content-Type: application/json
+
+{ "chapters": [ { "id": 1, "lessonIds": [1, 2] } ] }
+
+### Start a Bunny upload for a lesson (TUS info), then PUT file with tus, then:
+POST {{baseUrl}}/admin/items/{{itemId}}/video/lessons/{{lessonId}}/upload
+Authorization: Bearer {{admin}}
+
+### The browser finished sending the file
+POST {{baseUrl}}/admin/items/{{itemId}}/video/lessons/{{lessonId}}/uploaded
+Authorization: Bearer {{admin}}
+
+### Ask Bunny about the state / length of the lesson video
+POST {{baseUrl}}/admin/items/{{itemId}}/video/lessons/{{lessonId}}/refresh
+Authorization: Bearer {{admin}}
+
+### Settings (video/* numbers)
+GET {{baseUrl}}/admin/video/settings
+Authorization: Bearer {{admin}}
+
+###
+PUT {{baseUrl}}/admin/video/settings
+Authorization: Bearer {{admin}}
+Content-Type: application/json
+
+{ "numbers": { "complete_percent": 90, "min_watch_percent": 70, "suggest_percent": 80 } }
+
+### ── Learner ─────────────────────────────────────────────────────────────────
+
+### Outline for the course page (public; with a token also access, learners, progress, resume lesson)
+GET {{baseUrl}}/api/items/{{itemId}}/video-outline?learnerId={{learnerId}}
+Authorization: Bearer {{jwt}}
+
+### Play a lesson: signed link (video), text, position to resume. Free lessons work with no token
+GET {{baseUrl}}/api/learn/lessons/{{lessonId}}/play?learnerId={{learnerId}}
+Authorization: Bearer {{jwt}}
+
+### Save progress (every 15 s): watchedDelta = real seconds played, capped at 60 per call
+POST {{baseUrl}}/api/learn/progress
+Authorization: Bearer {{jwt}}
+Content-Type: application/json
+
+{ "lessonId": 1, "learnerId": 1, "positionSeconds": 120, "watchedDelta": 15 }
+
+### Mark a link / text lesson done by hand
+POST {{baseUrl}}/api/learn/progress
+Authorization: Bearer {{jwt}}
+Content-Type: application/json
+
+{ "lessonId": 1, "learnerId": 1, "positionSeconds": 0, "watchedDelta": 0, "done": true }
+
+### My video courses (one card per learner and course)
+GET {{baseUrl}}/api/learn/my-courses
+Authorization: Bearer {{jwt}}
+
+### /today: courses to continue + today's self-study sessions
+GET {{baseUrl}}/api/learn/today?learnerId={{learnerId}}
+Authorization: Bearer {{jwt}}
+
+### Study plan: weekdays 1 = Monday .. 7 = Sunday
+PUT {{baseUrl}}/api/learn/plan
+Authorization: Bearer {{jwt}}
+Content-Type: application/json
+
+{ "learnerId": 1, "itemId": 1, "weekdays": [2, 4, 6], "time": "20:00", "lessonsPerSession": 2, "enabled": true }
+
+###
+GET {{baseUrl}}/api/learn/plan?learnerId={{learnerId}}&itemId={{itemId}}
+Authorization: Bearer {{jwt}}
+
+###
+DELETE {{baseUrl}}/api/learn/plan?learnerId={{learnerId}}&itemId={{itemId}}
+Authorization: Bearer {{jwt}}
+
+### Courses to take after this one
+GET {{baseUrl}}/api/learn/suggestions?itemId={{itemId}}&learnerId={{learnerId}}&limit=3
+Authorization: Bearer {{jwt}}
