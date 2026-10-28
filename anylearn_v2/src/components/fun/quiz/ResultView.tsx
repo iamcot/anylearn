@@ -54,7 +54,7 @@ export default function ResultView({ me, result, prep, onMult, onShield, onTopic
         </div>
       )}
 
-      <RankCard profile={result.profile} fromRank={result.rankBefore} />
+      <RankCard profile={result.profile} fromRank={result.rankBefore} fromStars={result.starsBefore} />
       {warning && <p className="m-0 rounded-xl bg-amber-50 p-3 text-sm font-bold text-amber-900" role="status">{warning}</p>}
 
       <section>
