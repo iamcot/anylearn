@@ -7,8 +7,8 @@ import { ChevronLeftIcon } from '@/components/icons'
 const subscribeNever = () => () => {}
 
 // Pages that are a tab or the home page, or that already show their own back link: no arrow there.
-const ROOTS = ['/', '/today', '/today/community', '/today/fun', '/account', '/account/schedule']
-const OWN_BACK_PREFIXES = ['/account/', '/today/community/']
+const ROOTS = ['/', '/today', '/community', '/fun', '/account', '/account/schedule']
+const OWN_BACK_PREFIXES = ['/account/', '/community/']
 
 /** Phone header arrow back for pages that have no navigation bar to come back from (the installed app has no browser back button). */
 export default function HeaderBack() {

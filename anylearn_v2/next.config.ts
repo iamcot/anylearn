@@ -29,6 +29,16 @@ const nextConfig: NextConfig = {
     ];
   },
 
+  // Vui học and the class chat used to live under /today: old links, shared banners and stored notifications keep working.
+  async redirects() {
+    return [
+      { source: "/today/fun", destination: "/fun", permanent: true },
+      { source: "/today/fun/:path*", destination: "/fun/:path*", permanent: true },
+      { source: "/today/community", destination: "/community", permanent: true },
+      { source: "/today/community/:path*", destination: "/community/:path*", permanent: true },
+    ];
+  },
+
   async rewrites() {
     return [{ source: "/v2/:path*", destination: `${API_SERVER_ORIGIN}/v2/:path*` }];
   },

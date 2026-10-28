@@ -15,11 +15,11 @@ import { useNotifications } from './header/useNotifications'
 import { ICON_BUTTON_CLASS, DESKTOP_NAV_LINKS } from './header/constants'
 import { ZALO_SUPPORT_URL } from '@/config/promise'
 import { BROWSE_HOME_URL, markBrowsing } from '@/lib/today/links'
-import { isNavActive } from '@/lib/today/nav'
+import { inTodayZone, isNavActive } from '@/lib/today/nav'
 
 export default function Header() {
   const pathname = usePathname()
-  const isToday = pathname.startsWith('/today')
+  const isToday = inTodayZone(pathname)
   const homeHref = isToday ? BROWSE_HOME_URL : '/'
   const [menuOpen, setMenuOpen] = useState(false)
   const { user, cartCount, openAuthModal } = useAuth()

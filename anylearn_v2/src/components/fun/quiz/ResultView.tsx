@@ -42,7 +42,7 @@ export default function ResultView({ me, result, prep, onMult, onShield, onTopic
             {!!reward.shield && <span className="inline-flex items-center gap-1 rounded-full bg-sky-50 px-3 py-1 text-sky-800"><ItemIcon item="shield" className="size-5" /> +{reward.shield} Khiên</span>}
             {reward.sticker && <span className="inline-flex items-center gap-1 rounded-full bg-green-soft px-3 py-1 text-green-dark"><span className="size-6"><StickerArt sticker={reward.sticker} className="size-full text-lg" /></span> <BrandText text={reward.sticker.name} /></span>}
           </div>
-          {result.achievement && <Link href={`/today/fun/share/${result.achievement}`} className="mt-3 inline-flex min-h-10 items-center rounded-full bg-green px-5 text-sm font-extrabold text-white no-underline">Khoe thành tích với bạn bè</Link>}
+          {result.achievement && <Link href={`/fun/share/${result.achievement}`} className="mt-3 inline-flex min-h-10 items-center rounded-full bg-green px-5 text-sm font-extrabold text-white no-underline">Khoe thành tích với bạn bè</Link>}
         </div>
       )}
       {result.drop && (

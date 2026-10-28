@@ -297,7 +297,7 @@ public class ChatService {
                 sse.notifyChat(other, roomId);
                 if (announcement) {
                     notifications.createNotification(other, "chat_announcement", "Thông báo lớp: " + title,
-                            body.length() > 120 ? body.substring(0, 120) + "…" : body, "/today/community/" + roomId);
+                            body.length() > 120 ? body.substring(0, 120) + "…" : body, "/community/" + roomId);
                 }
             } catch (Exception e) {
                 log.warn("[chat] user {} not told about room {}: {}", other, roomId, e.getMessage());

@@ -10,7 +10,7 @@ Giai đoạn 3 (MVP), giai đoạn 4 (đầy đủ). Trụ cột E.
 
 ## Hiện trạng
 
-- `/today/community` đang là `ComingSoon` ("Cộng đồng mẹ"), sau flag `NEXT_PUBLIC_TODAY_COMMUNITY`.
+- `/community` đang là `ComingSoon` ("Cộng đồng mẹ"), sau flag `NEXT_PUBLIC_TODAY_COMMUNITY`.
 - Có `NotificationSseService` (SSE) để đẩy realtime; có `social_posts` (tối thiểu).
 
 ## Phạm vi nhóm
@@ -76,7 +76,7 @@ CREATE TABLE chat_reports (
 - Rate limit gửi tin (ví dụ 20 tin/phút/người, config).
 
 ### 11.2 MVP FE
-- `/today/community` → danh sách nhóm lớp; `/today/community/[roomId]` → màn chat mobile-first (input dính đáy,
+- `/community` → danh sách nhóm lớp; `/community/[roomId]` → màn chat mobile-first (input dính đáy,
   tin nhắn theo ngày, ảnh, trả lời tin).
 - Lần đầu vào: chọn tên hiển thị + đồng ý nội quy.
 - Badge số tin chưa đọc ở bottom tab "Cộng đồng".

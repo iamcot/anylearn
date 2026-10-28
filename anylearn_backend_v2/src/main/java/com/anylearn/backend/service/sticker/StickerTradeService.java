@@ -26,7 +26,7 @@ import java.util.*;
 @RequiredArgsConstructor
 public class StickerTradeService {
 
-    private static final String ROUTE = "/today/fun/sticker";
+    private static final String ROUTE = "/fun/sticker";
 
     private final JdbcTemplate jdbc;
     private final StickerService stickers;

@@ -22,7 +22,7 @@ export default function LobbyView({ me, prep, onMult, onShield, onTopic, onStart
   return (
     <div className="grid gap-4">
       <RankCard profile={me.profile} />
-      <Link href="/today/fun/quiz/board" className="flex min-h-12 items-center justify-between rounded-2xl bg-white px-4 text-sm font-extrabold text-ink no-underline ring-1 ring-line">Bảng xếp hạng tuần, tháng và theo hạng <span aria-hidden className="text-muted">›</span></Link>
+      <Link href="/fun/quiz/board" className="flex min-h-12 items-center justify-between rounded-2xl bg-white px-4 text-sm font-extrabold text-ink no-underline ring-1 ring-line">Bảng xếp hạng tuần, tháng và theo hạng <span aria-hidden className="text-muted">›</span></Link>
 
       <div className="flex items-center justify-between rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-line">
         <span className="font-bold">Hôm nay: {me.today.correct} đúng / {me.today.games} câu</span>

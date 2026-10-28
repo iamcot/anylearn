@@ -55,7 +55,7 @@ Content-Type: application/json
 GET {{baseUrl}}/fun/coins
 Authorization: Bearer {{jwtToken}}
 
-### Leo Xu ledger, paged (the page /today/fun/coins)
+### Leo Xu ledger, paged (the page /fun/coins)
 GET {{baseUrl}}/fun/coins/history?page=1&size=20
 Authorization: Bearer {{jwtToken}}
 

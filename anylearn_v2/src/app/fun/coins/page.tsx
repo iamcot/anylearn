@@ -38,7 +38,7 @@ export default function CoinHistoryPage() {
 
   return (
     <main className="mx-auto max-w-xl px-4 pb-10 pt-4">
-      <Link href="/today/fun" className="mb-3 inline-flex items-center gap-1 text-sm font-bold text-muted no-underline"><ChevronLeftIcon className="size-4" /> Vui học</Link>
+      <Link href="/fun" className="mb-3 inline-flex items-center gap-1 text-sm font-bold text-muted no-underline"><ChevronLeftIcon className="size-4" /> Vui học</Link>
       {data && (
         <div className="flex items-center justify-between">
           <h1 className="m-0 text-xl font-extrabold">Lịch sử <BrandText text={data.coinName} coinName={data.coinName} /></h1>

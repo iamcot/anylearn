@@ -69,19 +69,19 @@ export default function FunPage() {
 
       {access && !access.checkin && !access.quiz && !access.sticker && !access.explore && <p className="mt-4 rounded-2xl bg-white p-4 text-center text-sm text-muted ring-1 ring-line">Vui học đang thử nghiệm với một nhóm nhỏ, bạn sẽ được chơi sớm thôi!</p>}
 
-      {access?.quiz !== false && <Link href="/today/fun/quiz" className="mt-4 flex items-center gap-3 rounded-2xl border border-line bg-white p-3 text-ink no-underline">
+      {access?.quiz !== false && <Link href="/fun/quiz" className="mt-4 flex items-center gap-3 rounded-2xl border border-line bg-white p-3 text-ink no-underline">
         <img src="/fun/leo_rank.png" alt="" className="size-16 shrink-0 rounded-xl object-contain" />
         <div className="min-w-0 flex-1"><div className="font-bold"><BrandText text="Leo rank" /></div><div className="text-sm text-muted">Trả lời câu hỏi, lên hạng và nhận quà</div></div>
         <span aria-hidden className="text-muted">›</span>
       </Link>}
 
-      {access?.sticker !== false && <Link href="/today/fun/sticker" className="mt-4 flex items-center gap-3 rounded-2xl border border-line bg-white p-3 text-ink no-underline">
+      {access?.sticker !== false && <Link href="/fun/sticker" className="mt-4 flex items-center gap-3 rounded-2xl border border-line bg-white p-3 text-ink no-underline">
         <img src="/fun/leo_sticker.png" alt="" className="size-16 shrink-0 rounded-xl object-contain" />
         <div className="min-w-0 flex-1"><div className="font-bold">Sticker</div><div className="text-sm text-muted">Sưu tầm bộ sticker, đổi với bạn bè và mời bạn nhận quà</div></div>
         <span aria-hidden className="text-muted">›</span>
       </Link>}
 
-      {access?.explore !== false && <Link href="/today/fun/explore" className="mt-4 flex items-center gap-3 rounded-2xl border border-line bg-white p-3 text-ink no-underline">
+      {access?.explore !== false && <Link href="/fun/explore" className="mt-4 flex items-center gap-3 rounded-2xl border border-line bg-white p-3 text-ink no-underline">
         <img src="/fun/leo_discovery.png" alt="" className="size-16 shrink-0 rounded-xl object-contain" />
         <div className="min-w-0 flex-1"><div className="font-bold">Khám phá</div><div className="text-sm text-muted">Mẹo nuôi dạy con, clip và hình ảnh vui</div></div>
         <span aria-hidden className="text-muted">›</span>

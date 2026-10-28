@@ -16,5 +16,5 @@ export function countText(n: number): string {
 
 /** The link a post is shared with; it opens the viewer on that post. */
 export function postLink(origin: string, id: number): string {
-  return `${origin.replace(/\/+$/, '')}/today/fun/explore?p=${id}`
+  return `${origin.replace(/\/+$/, '')}/fun/explore?p=${id}`
 }

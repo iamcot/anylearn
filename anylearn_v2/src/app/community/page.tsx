@@ -39,7 +39,7 @@ export default function CommunityPage() {
         <ul className="mt-4 flex flex-col gap-2">
           {rooms.map(room => (
             <li key={room.id}>
-              <Link href={`/today/community/${room.id}`} className="flex items-center gap-3 rounded-2xl border border-line bg-white p-4 no-underline">
+              <Link href={`/community/${room.id}`} className="flex items-center gap-3 rounded-2xl border border-line bg-white p-4 no-underline">
                 <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-green-soft font-black text-green">{room.title.charAt(0).toUpperCase()}</span>
                 <span className="min-w-0 flex-1">
                   <span className="flex items-baseline justify-between gap-2">

@@ -113,7 +113,7 @@ public class FunController {
             welcomePackService.onCheckin(userId);
             if (sticker != null) {
                 notificationService.createNotification(userId, "sticker_drop", "Bạn nhận được sticker mới",
-                        "Sticker " + sticker.get("name") + " vừa vào album của bạn.", "/today/fun/sticker");
+                        "Sticker " + sticker.get("name") + " vừa vào album của bạn.", "/fun/sticker");
             }
             return sticker;
         } catch (Exception e) {

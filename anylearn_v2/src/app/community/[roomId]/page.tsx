@@ -201,7 +201,7 @@ export default function ChatRoomPage() {
   if (error) return (
     <div className="mx-auto max-w-[520px] px-4 py-10 text-center">
       <p className="text-warn-text">{error}</p>
-      <Link href="/today/community" className={`${btnGreen} mt-4 no-underline`}>Về danh sách nhóm</Link>
+      <Link href="/community" className={`${btnGreen} mt-4 no-underline`}>Về danh sách nhóm</Link>
     </div>
   )
   if (!room) return <div className="px-4 py-6"><div className="h-8 w-56 animate-pulse rounded-lg bg-slate-200" /></div>
@@ -212,7 +212,7 @@ export default function ChatRoomPage() {
   return (
     <div className="mx-auto flex min-h-[calc(100dvh-76px)] max-w-[720px] flex-col">
       <div className="sticky top-0 z-10 flex items-center gap-2 border-b border-line bg-white px-4 py-3">
-        <Link href="/today/community" className="text-xl font-black text-green no-underline" aria-label="Quay lại">‹</Link>
+        <Link href="/community" className="text-xl font-black text-green no-underline" aria-label="Quay lại">‹</Link>
         <h1 className="truncate text-base font-black">{room.title}</h1>
       </div>
       {room.pinned.length > 0 && (

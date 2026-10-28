@@ -36,7 +36,7 @@ public class AchievementService {
                     userId, type, dedupKey, title, subtitle, icon, token);
             if (rows != 1) return null;
             try {
-                notifications.createNotification(userId, "achievement", title, "Bấm để tạo ảnh chia sẻ và mời bạn bè cùng chơi.", "/today/fun/share/" + token);
+                notifications.createNotification(userId, "achievement", title, "Bấm để tạo ảnh chia sẻ và mời bạn bè cùng chơi.", "/fun/share/" + token);
             } catch (Exception e) {
                 log.warn("[achievement] notification for user {} failed: {}", userId, e.getMessage());
             }

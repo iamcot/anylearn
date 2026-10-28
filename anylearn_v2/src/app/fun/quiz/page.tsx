@@ -85,7 +85,7 @@ export default function QuizPage() {
   return (
     <div className="mx-auto max-w-[720px] px-4 pb-28 pt-5 lg:px-0 lg:pb-12 lg:pt-8">
       {view.kind === 'lobby'
-        ? <Link href="/today/fun" className="inline-flex min-h-11 items-center gap-1 text-sm font-bold text-text no-underline"><ChevronLeftIcon className="size-4" /> Vui học</Link>
+        ? <Link href="/fun" className="inline-flex min-h-11 items-center gap-1 text-sm font-bold text-text no-underline"><ChevronLeftIcon className="size-4" /> Vui học</Link>
         : view.kind === 'result'
           ? <button type="button" onClick={backToLobby} className="inline-flex min-h-11 cursor-pointer items-center gap-1 border-0 bg-transparent p-0 text-sm font-bold text-text"><ChevronLeftIcon className="size-4" /> Về sảnh</button>
           : <div className="min-h-11" />}
