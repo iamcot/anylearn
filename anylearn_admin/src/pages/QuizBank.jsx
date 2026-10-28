@@ -139,7 +139,7 @@ function Settings({ settings }) {
       <Form.Item name="targetPerCell" label="Mục tiêu mỗi ô"><InputNumber min={20} max={5000} /></Form.Item>
       <Form.Item name="batchSize" label="Câu mỗi lần gọi"><InputNumber min={5} max={40} /></Form.Item>
       <Form.Item name="nightlyBatches" label="Lần gọi tối đa mỗi đêm"><InputNumber min={1} max={30} /></Form.Item>
-      <Form.Item name="autoApprove" label="Tự bật câu AI chấm đúng" valuePropName="checked"><Switch /></Form.Item>
+      <Form.Item name="autoApprove" label="Câu AI chấm khớp vào dùng ngay, không cần duyệt" valuePropName="checked"><Switch /></Form.Item>
       <Button type="primary" htmlType="submit" loading={save.isPending}>Lưu</Button>
     </Form>
   )

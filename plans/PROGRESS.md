@@ -552,3 +552,7 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 - Chưa chạy với MySQL thật và chưa gọi AI thật, nên chất lượng câu và tỉ lệ trùng thực tế chưa biết; nên chạy thử một lô mỗi ô trước khi bật job đêm. `times_served/times_correct` chờ giai đoạn quiz lõi cập nhật. Chưa có trang tra cứu (`searchable` mới là cờ).
 - Quyết định của chủ sản phẩm (28/10): **5 mức độ khó** (Rất dễ đến Rất khó) thay vì 3; mỗi rank có tỉ lệ ra câu theo mức (Đồng 100% mức 1, Bạc 80/20, ... sửa được trong admin); chủ đề cấu hình trong admin (bảng `quiz_topics`, 8 chủ đề đầu). Khi làm quiz lõi dùng `QuizRules.pickDifficulty` và lùi về mức gần nhất còn câu nếu ô trống.
 
+### 28/10/2026 – Vui học, Ali và cảnh nền
+- Nhân vật tên **Ali** (vẽ từ logo, không còn con cú), nói qua bong bóng thoại phát ra từ miệng, câu thoại đổi theo ngữ cảnh (chưa mở hộp, đang mở, vừa nhận x anyPoint, đã nhận, còn bao ngày tới quà ngày 7) và nhắc lớp học sắp tới trong ngày của con. Nền là component riêng với ánh sáng tỏa từ mặt trời nhiều lớp; đã bỏ ngôi nhà.
+- **Việc để sau (chủ sản phẩm nhắc nhớ):** (1) Ali bung ra trên mọi trang web làm người hướng dẫn; (2) admin chọn nền theo chủ đề và mùa (`SCENE_THEMES`); (3) câu thoại chúc mừng theo sự kiện của các chế độ game (rank lên, kỷ lục chuỗi, top tuần) khi làm quiz lõi; (4) nhắc thêm theo học phí sắp đến hạn và buổi chưa điểm danh.
+

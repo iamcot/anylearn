@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { getCheckin, type CheckinStatus } from '@/lib/api/fun'
 import FunScene from '@/components/fun/FunScene'
+import { ALI_NAME, reminderFor } from '@/lib/fun/ali'
+import { getLearners, getToday } from '@/lib/today/api'
 
 const COMING = [
   { icon: '🧩', title: 'Đố vui leo rank', text: 'Trả lời câu hỏi, lên hạng và so tài trên bảng xếp hạng' },
@@ -17,6 +19,7 @@ export default function FunPage() {
   const { user, token, isAuthLoading } = useAuth()
   const [status, setStatus] = useState<CheckinStatus | null>(null)
   const [error, setError] = useState('')
+  const [reminder, setReminder] = useState<string | null>(null)
 
   useEffect(() => {
     if (!isAuthLoading && !user) router.replace('/login?redirect=/today/fun')
@@ -30,13 +33,26 @@ export default function FunPage() {
     })
   }, [token])
 
+  // Ali also nudges the parent about the next class today, so playing never makes them forget it.
+  useEffect(() => {
+    if (!token) return
+    let cancelled = false
+    ;(async () => {
+      const { data: learners } = await getLearners(token)
+      const active = (learners?.learners ?? []).filter(l => l.hasEnrollment).slice(0, 4)
+      const days = (await Promise.all(active.map(l => getToday(l.id, token)))).flatMap(r => (r.data ? [r.data] : []))
+      if (!cancelled) setReminder(reminderFor(days, new Date()))
+    })()
+    return () => { cancelled = true }
+  }, [token])
+
   return (
     <div className="mx-auto max-w-[720px] px-4 pb-28 pt-5 lg:px-0 lg:pb-12 lg:pt-8">
       <h1 className="text-2xl font-black lg:text-3xl">Vui học</h1>
-      <p className="mt-1 text-sm text-muted">Giải trí nhẹ nhàng lúc chờ con, nhận anyPoint mỗi ngày.</p>
+      <p className="mt-1 text-sm text-muted">Giải trí nhẹ nhàng cùng <b className="italic">{ALI_NAME}</b> và nhận anyPoint mỗi ngày.</p>
       {error && <p className="mt-4 text-warn-text">{error}</p>}
       {!error && !status && <div className="mt-4 h-[250px] animate-pulse rounded-[22px] bg-slate-200" />}
-      {status && token && <div className="mt-4"><FunScene token={token} initial={status} /></div>}
+      {status && token && <div className="mt-4"><FunScene token={token} initial={status} reminder={reminder} /></div>}
 
       <h2 className="mb-2 mt-6 text-base font-extrabold">Sắp ra mắt</h2>
       <ul className="m-0 grid list-none gap-2 p-0">

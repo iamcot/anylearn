@@ -372,27 +372,35 @@ body {
   .gift-fly { animation: none; opacity: 1 }
 }
 
-/* Vui học mascot "Any": walks along the hill, bobs, swings arms, blinks */
-@keyframes mascot-walk {
-  0% { transform: translateX(0) scaleX(1) }
-  45% { transform: translateX(120px) scaleX(1) }
-  50% { transform: translateX(120px) scaleX(-1) }
-  95% { transform: translateX(0) scaleX(-1) }
-  100% { transform: translateX(0) scaleX(1) }
-}
-@keyframes mascot-bob { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-3px) } }
-@keyframes mascot-step-a { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-4px) } }
-@keyframes mascot-step-b { 0%, 100% { transform: translateY(-4px) } 50% { transform: translateY(0) } }
-@keyframes mascot-swing-a { 0%, 100% { transform: rotate(14deg) } 50% { transform: rotate(-14deg) } }
-@keyframes mascot-swing-b { 0%, 100% { transform: rotate(-14deg) } 50% { transform: rotate(14deg) } }
-@keyframes mascot-blink { 0%, 92%, 100% { transform: scaleY(1) } 96% { transform: scaleY(.1) } }
-.mascot-walk { animation: mascot-walk 14s linear infinite; transform-origin: 0 0 }
-.mascot-bob { animation: mascot-bob .55s ease-in-out infinite }
-.mascot-leg-a { animation: mascot-step-a .55s ease-in-out infinite }
-.mascot-leg-b { animation: mascot-step-b .55s ease-in-out infinite }
-.mascot-arm-a { animation: mascot-swing-a .55s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 0 }
-.mascot-arm-b { animation: mascot-swing-b .55s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 0 }
-.mascot-eyes { animation: mascot-blink 4s infinite; transform-box: fill-box; transform-origin: 50% 50% }
+/* Vui học: Ali (mascot) walks along the hill without turning around, bobs, swings arms and blinks */
+@keyframes ali-walk { from { transform: translateX(0) } to { transform: translateX(150%) } }
+@keyframes ali-bob { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-3px) } }
+@keyframes ali-step-a { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-4px) } }
+@keyframes ali-step-b { 0%, 100% { transform: translateY(-4px) } 50% { transform: translateY(0) } }
+@keyframes ali-swing-a { 0%, 100% { transform: rotate(14deg) } 50% { transform: rotate(-14deg) } }
+@keyframes ali-swing-b { 0%, 100% { transform: rotate(-14deg) } 50% { transform: rotate(14deg) } }
+@keyframes ali-blink { 0%, 92%, 100% { transform: scaleY(1) } 96% { transform: scaleY(.1) } }
+@keyframes ali-pop { from { transform: scale(.85) translateY(4px); opacity: 0 } to { transform: scale(1) translateY(0); opacity: 1 } }
+.ali-walk { animation: ali-walk 11s ease-in-out infinite alternate }
+.ali-bob { animation: ali-bob .55s ease-in-out infinite }
+.ali-leg-a { animation: ali-step-a .55s ease-in-out infinite }
+.ali-leg-b { animation: ali-step-b .55s ease-in-out infinite }
+.ali-arm-a { animation: ali-swing-a .55s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 0 }
+.ali-arm-b { animation: ali-swing-b .55s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 0 }
+.ali-eyes { animation: ali-blink 4s infinite; transform-box: fill-box; transform-origin: 50% 50% }
+.ali-pop { animation: ali-pop .3s ease-out }
+.ali-still .ali-bob, .ali-still .ali-leg-a, .ali-still .ali-leg-b, .ali-still .ali-arm-a, .ali-still .ali-arm-b { animation: none }
 @media (prefers-reduced-motion: reduce) {
-  .mascot-walk, .mascot-bob, .mascot-leg-a, .mascot-leg-b, .mascot-arm-a, .mascot-arm-b, .mascot-eyes { animation: none }
+  .ali-walk, .ali-bob, .ali-leg-a, .ali-leg-b, .ali-arm-a, .ali-arm-b, .ali-eyes, .ali-pop { animation: none }
+}
+
+/* Vui học: light from the sun, several layers that sway and breathe */
+@keyframes sun-sway-a { from { transform: rotate(-3deg) } to { transform: rotate(3deg) } }
+@keyframes sun-sway-b { from { transform: rotate(3deg) } to { transform: rotate(-3deg) } }
+@keyframes sun-breathe { 0%, 100% { opacity: .85; transform: scale(1) } 50% { opacity: 1; transform: scale(1.06) } }
+.sun-rays-a { transform-origin: 300px 38px; animation: sun-sway-a 8s ease-in-out infinite alternate }
+.sun-rays-b { transform-origin: 300px 38px; animation: sun-sway-b 11s ease-in-out infinite alternate }
+.sun-glow { transform-origin: 300px 38px; animation: sun-breathe 5s ease-in-out infinite }
+@media (prefers-reduced-motion: reduce) {
+  .sun-rays-a, .sun-rays-b, .sun-glow { animation: none }
 }
