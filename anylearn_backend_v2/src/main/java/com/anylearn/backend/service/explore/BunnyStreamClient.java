@@ -18,6 +18,7 @@ import java.util.Map;
  * Bunny Stream for the clips of Khám phá (plan 15, section 9). The server only creates the video and signs the upload; the
  * browser then sends the file straight to Bunny with TUS, so the big file never goes through this server. Empty settings = off.
  */
+@lombok.extern.slf4j.Slf4j
 @Component
 public class BunnyStreamClient {
 
@@ -41,6 +42,20 @@ public class BunnyStreamClient {
 
     public boolean isEnabled() {
         return !libraryId.isEmpty() && !apiKey.isEmpty() && !cdnHost.isEmpty();
+    }
+
+    /** Deletes the video behind a link of our library; other links are ignored. Never throws: a failure is only logged. */
+    public void deleteVideoOf(String mediaUrl) {
+        if (!isEnabled()) return;
+        String videoId = BunnyRules.videoIdOf(cdnHost, mediaUrl);
+        if (videoId == null) return;
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("AccessKey", apiKey);
+            http.exchange(API_BASE + "/library/" + libraryId + "/videos/" + videoId, HttpMethod.DELETE, new HttpEntity<>(headers), String.class);
+        } catch (Exception e) {
+            log.warn("Bunny video {} not deleted: {}", videoId, e.getMessage());
+        }
     }
 
     /** Creates the video on Bunny and returns what the browser needs for the TUS upload and what to save on the post. */

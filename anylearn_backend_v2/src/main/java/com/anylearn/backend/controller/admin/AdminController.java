@@ -29,6 +29,7 @@ import com.anylearn.backend.service.EmailTemplates;
 public class AdminController {
 
     private final MeilisearchService meilisearchService;
+    private final com.anylearn.backend.service.explore.ExploreSearchIndex exploreSearchIndex;
     private final ZnsService znsService;
     private final com.anylearn.backend.service.ScheduleNotificationService scheduleNotificationService;
     private final NotificationService notificationService;
@@ -87,6 +88,7 @@ public class AdminController {
         meilisearchService.reindexAll();
         // The school and teacher lists read the users index, so it is rebuilt together with the courses.
         meilisearchService.reindexAllUsers();
+        exploreSearchIndex.reindexAll();
         return ApiResponse.ok("Reindex complete");
     }
 

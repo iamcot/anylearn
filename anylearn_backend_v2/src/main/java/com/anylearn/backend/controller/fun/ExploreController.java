@@ -7,6 +7,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.List;
 import java.util.Map;
 
 /** Khám phá for signed-in players (plan 14, phase 7): feed, likes, comments and reports. */
@@ -17,10 +21,30 @@ public class ExploreController {
 
     private final ExploreService explore;
 
+    /**
+     * The feed for this person (plan 16.6). `since` = epoch milliseconds of when the list was opened (keeps pages stable),
+     * `exclude` = post ids already on screen.
+     */
     @GetMapping
-    public ApiResponse<?> feed(@AuthenticationPrincipal User user, @RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int size) {
+    public ApiResponse<?> feed(@AuthenticationPrincipal User user, @RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int size,
+                               @RequestParam(required = false) Long since, @RequestParam(required = false) List<Long> exclude) {
         if (user == null) return ApiResponse.fail("Unauthorized");
-        return ApiResponse.ok(explore.feed(user.getId(), page, size));
+        LocalDateTime at = since == null ? null : LocalDateTime.ofInstant(Instant.ofEpochMilli(since), ZoneId.systemDefault());
+        return ApiResponse.ok(explore.feed(user.getId(), page, size, at, exclude == null ? List.of() : exclude));
+    }
+
+    /** Posts matching words in the title, the description or a tag (empty = the feed). */
+    @GetMapping("/search")
+    public ApiResponse<?> search(@AuthenticationPrincipal User user, @RequestParam(required = false) String q, @RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "12") int size) {
+        if (user == null) return ApiResponse.fail("Unauthorized");
+        return ApiResponse.ok(explore.search(user.getId(), q, page, size));
+    }
+
+    @GetMapping("/{id}")
+    public ApiResponse<?> post(@AuthenticationPrincipal User user, @PathVariable long id) {
+        if (user == null) return ApiResponse.fail("Unauthorized");
+        Map<String, Object> post = explore.post(user.getId(), id);
+        return post == null ? ApiResponse.fail("Bài viết không còn") : ApiResponse.ok(post);
     }
 
     @PostMapping("/{id}/view")
