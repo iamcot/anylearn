@@ -9,6 +9,7 @@ import BrandText from '@/components/fun/BrandText'
 import CoinWalletCard from '@/components/fun/CoinWalletCard'
 import MissionsCard from '@/components/fun/MissionsCard'
 import MyAchievements from '@/components/fun/share/MyAchievements'
+import ExploreBrowser from '@/components/fun/explore/ExploreBrowser'
 import { LEO_NAME, reminderFor } from '@/lib/fun/leo'
 import { getLearners, getToday } from '@/lib/today/api'
 import { sendDevice } from '@/lib/api/stickers'
@@ -88,6 +89,8 @@ export default function FunPage() {
         <div className="min-w-0 flex-1"><div className="font-bold">Khám phá</div><div className="text-sm text-muted">Mẹo nuôi dạy con, clip và hình ảnh vui</div></div>
         <span aria-hidden className="text-muted">›</span>
       </Link>}
+
+      {token && access && access.explore !== false && <ExploreBrowser token={token} />}
     </div>
   )
 }

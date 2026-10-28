@@ -25,6 +25,7 @@ public class ExploreCreatorController {
     private final ExploreCreatorService creators;
     private final BunnyStreamClient bunny;
     private final S3Service s3Service;
+    private final com.anylearn.backend.service.MeilisearchService meilisearch;
 
     private static ApiResponse<?> run(User user, Supplier<Object> action) {
         if (user == null) return ApiResponse.fail("Unauthorized");
@@ -66,8 +67,11 @@ public class ExploreCreatorController {
     }
 
     private ApiResponse<?> save(User user, Long id, Map<String, Object> body) {
-        return run(user, () -> Map.of("id", creators.save(user.getId(), id, (String) body.get("kind"), (String) body.get("title"), (String) body.get("body"),
-                (String) body.get("mediaUrl"), (String) body.get("posterUrl"), asLong(body.get("itemId")), longs(body.get("tagIds")), Boolean.TRUE.equals(body.get("uploading")))));
+        return run(user, () -> {
+            long saved = creators.save(user.getId(), id, (String) body.get("kind"), (String) body.get("title"), (String) body.get("body"),
+                    (String) body.get("mediaUrl"), (String) body.get("posterUrl"), asLong(body.get("itemId")), longs(body.get("tagIds")), Boolean.TRUE.equals(body.get("uploading")));
+            return Map.of("id", saved, "status", creators.myPost(user.getId(), saved).get("status"));
+        });
     }
 
     /** Body `{kind, title, body, mediaUrl, posterUrl, itemId, tagIds, uploading}`; `uploading` = a clip is on its way to Bunny. */
@@ -110,6 +114,15 @@ public class ExploreCreatorController {
     @GetMapping("/tags")
     public ApiResponse<?> tags(@AuthenticationPrincipal User user, @RequestParam(required = false) String q) {
         return run(user, () -> creators.tags(q));
+    }
+
+    /** Live courses to attach to a post (the visitors' search, not logged as a search). */
+    @GetMapping("/courses")
+    public ApiResponse<?> courses(@AuthenticationPrincipal User user, @RequestParam(required = false) String q) {
+        if (user == null) return ApiResponse.fail("Unauthorized");
+        if (creators.levelOf(user.getId()) == null) return ApiResponse.fail("Bạn chưa được mở quyền đăng bài Khám phá");
+        var filters = com.anylearn.backend.service.search.SearchFilters.Builder.empty().today(java.time.LocalDate.now()).build();
+        return ApiResponse.ok(meilisearch.search(q == null ? "" : q.trim(), 0, 10, "popular", filters));
     }
 
     /** A photo for a post or a clip poster (S3 folder `explore`); returns its link. */
