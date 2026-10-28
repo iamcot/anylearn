@@ -20,6 +20,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final com.anylearn.backend.service.referral.ReferralService referralService;
 
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private EmailTemplateService emailTemplateService;
@@ -45,6 +46,11 @@ public class AuthService {
     }
 
     public LoginResponse register(String name, String phone, String email, String password) {
+        return register(name, phone, email, password, null, null);
+    }
+
+    /** {@code ref} is the referrer's code (their phone) from a /ref link; a wrong code is ignored, never an error. */
+    public LoginResponse register(String name, String phone, String email, String password, String ref, String game) {
         if (userRepository.findByPhone(phone).isPresent()) {
             throw new IllegalArgumentException("Số điện thoại này đã được đăng ký.");
         }
@@ -59,7 +65,11 @@ public class AuthService {
         NewUserDefaults.apply(user);
         user.setApiToken(generateApiToken());
 
+        User referrer = referralService.findReferrer(ref, phone).orElse(null);
+        if (referrer != null) user.setUserId(referrer.getId());
+
         userRepository.save(user);
+        if (referrer != null) referralService.record(referrer, user, game);
         if (emailTemplateService != null && !user.getEmail().isBlank()) {
             try {
                 emailTemplateService.sendToUser(user.getId(), "email-user_register", "Chào mừng bạn đến với anyLEARN",

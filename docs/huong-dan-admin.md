@@ -493,3 +493,14 @@ Không có trang riêng trong admin. Phụ huynh bấm "So sánh" trên khóa h�
 - **AI đọc mô tả:** phần "Ý chính trong mô tả khóa học" do AI rút ra từ mô tả khóa (phù hợp với ai, cách học, đã bao gồm, cần chuẩn bị, kết quả mong đợi), chỉ ghi lại điều mô tả nêu, mục không nêu thì trống. **Mô tả viết rõ các ý này thì bảng đầy đủ hơn.** Sửa mô tả thì AI đọc lại ở lần xem tiếp theo (mỗi khóa tốn một lần gọi AI cho tới khi mô tả đổi).
 - Dùng chung công tắc "Gợi ý AI" ở Cài đặt > Vận hành và khóa `ANTHROPIC_API_KEY`: tắt thì không đọc thêm khóa mới (các khóa đã đọc vẫn hiện).
 - **Cảnh báo khác lĩnh vực:** nếu một khóa không chung danh mục hoặc tag nào với các khóa còn lại, bảng so sánh ghi chú "khác lĩnh vực". Vì vậy cần gán đúng danh mục và tag cho khóa; khóa chưa có danh mục và tag thì không bị cảnh báo.
+
+### Tải ảnh lên (khóa học, bài viết, avatar)
+
+- Có thể chọn ảnh gốc từ máy ảnh hoặc điện thoại, **tối đa 10MB mỗi ảnh**. Hệ thống tự thu nhỏ về cạnh dài tối đa 1080px (avatar 720px) và nén trước khi lưu, nên ảnh hiển thị nhanh hơn và không cần nén trước.
+- Ảnh đã nhỏ và nhẹ (dưới khoảng 400KB), ảnh GIF và ảnh định dạng webp được giữ nguyên. Ảnh PNG có nền trong suốt vẫn là PNG.
+- Ảnh quá lớn (trên 10MB hoặc trên 60 triệu điểm ảnh) bị từ chối kèm thông báo.
+
+### Link giới thiệu (/ref)
+
+- Mỗi thành viên có link `https://anylearn.vn/ref/{số điện thoại}` (xem ở "Ưu đãi của tôi"). Người đăng ký qua link được ghi nhận người giới thiệu (cột người giới thiệu của thành viên), nên hoa hồng giới thiệu hiện có áp dụng cho các đơn của họ. Mã sai thì vẫn đăng ký bình thường, chỉ không có người giới thiệu.
+- Nếu link có thêm `?game=...` (dùng cho Vui học) thì sau khi đăng ký người mới được đưa tới trò chơi đó; link không có thì tới trang giới thiệu anyLEARN.

@@ -536,3 +536,8 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 
 
 - Đối chiếu script prod với `export_all.tsv` (dữ liệu thật): sửa `all_caps` của file export (so sánh BINARY, trước đó 1478/1497 tên bị báo sai); B5 điền tuổi cả khi là mặc định 0-30; B9 điền `partner_type` cho giáo viên (tutor), tên có "trung tâm" (center), "clb" (club), còn lại school; B13 mới điền số buổi (`cycle_amount`) từ tên "N buổi" (~48 khóa). B6 không tác dụng (mọi `item_category_id` = 0). B10 sửa được 179/353 khóa offline thiếu địa chỉ, 174 khóa của đối tác nhiều cơ sở vẫn làm tay. B11 chưa mô phỏng được (export không có mô tả). Còn mở: khóa `extra` có `date_start` tương lai có nên đặt ngày bắt đầu cho ca linh hoạt không.
+
+### 28/10/2026 – Vui học (Plan 14: Vui học, nội dung giải trí lúc chờ con), giai đoạn 0
+- Thiết kế đầy đủ (quiz leo rank, item, sticker, banner chia sẻ, admin) nằm ở `notes/vui-hoc-quiz-leo-rank.md` của project, mockup đã được chủ sản phẩm duyệt hướng. Chốt: đổi sticker mỗi cặp 30 ngày một lần và chỉ cùng độ hiếm.
+- Làm xong giai đoạn 0: ghi nhận giới thiệu khi đăng ký (`/ref/[code]`, `referral_events`, điều hướng theo `game`). `GAME_ROUTES` còn trống chờ trang Vui học nên link có `game` hiện tới trang giới thiệu.
+- Sửa upload ảnh: trần 10MB cho ảnh gốc rồi nén về 1080 (avatar 720) trước khi lên S3. Chưa thử với S3 thật và chưa thử ảnh có EXIF xoay (thư viện tự xử lý, chưa có test).

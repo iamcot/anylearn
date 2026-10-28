@@ -23,6 +23,12 @@ public class GlobalExceptionHandler {
         log.debug("[SSE] client disconnect / timeout: {}", ex.getMessage());
     }
 
+    @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
+    @ResponseStatus(HttpStatus.PAYLOAD_TOO_LARGE)
+    public ApiResponse<?> handleUploadTooLarge(Exception ex) {
+        return ApiResponse.fail("Ảnh quá lớn, tối đa 10MB");
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiResponse<?> handleValidation(MethodArgumentNotValidException ex) {

@@ -1,4 +1,9 @@
 spring:
+  servlet:
+    multipart:
+      # original camera photos are accepted up to 10 MB and shrunk before they go to S3 (ImageCompressor)
+      max-file-size: 10MB
+      max-request-size: 12MB
   datasource:
     url: jdbc:mysql://localhost:3306/anylearn?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
     username: root

@@ -43,4 +43,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
             ORDER BY id
             """, nativeQuery = true)
     List<User> findAdminNotificationRecipients();
+
+    Optional<User> findFirstByRefcode(String refcode);
 }

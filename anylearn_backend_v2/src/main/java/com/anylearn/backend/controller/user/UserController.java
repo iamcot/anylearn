@@ -128,7 +128,7 @@ public class UserController {
                                       @AuthenticationPrincipal User user) {
         try {
             String folder = "users/" + user.getId() + "/" + type;
-            String imageUrl = s3Service.uploadImage(file, folder);
+            String imageUrl = s3Service.uploadImage(file, folder, "avatar".equals(type) ? S3Service.AVATAR_EDGE : S3Service.DEFAULT_EDGE);
             return ApiResponse.ok(userService.updateImageUrl(type, imageUrl, user));
         } catch (Exception e) {
             log.error("Upload image error for user {}: {}", user.getId(), e.getMessage());
