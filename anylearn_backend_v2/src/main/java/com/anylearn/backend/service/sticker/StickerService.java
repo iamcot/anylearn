@@ -33,9 +33,13 @@ public class StickerService {
     /** One sticker as the API shows it. */
     public Map<String, Object> view(long id) {
         List<Map<String, Object>> rows = jdbc.query(
-                "SELECT id, name, description, emoji, image_url, rarity FROM sticker_defs WHERE id = ?",
-                (rs, i) -> viewRow(rs.getLong("id"), rs.getString("name"), rs.getString("description"), rs.getString("emoji"),
-                        rs.getString("image_url"), rs.getString("rarity")), id);
+                "SELECT id, name, description, emoji, image_url, rarity, collection_id FROM sticker_defs WHERE id = ?",
+                (rs, i) -> {
+                    Map<String, Object> m = viewRow(rs.getLong("id"), rs.getString("name"), rs.getString("description"), rs.getString("emoji"),
+                            rs.getString("image_url"), rs.getString("rarity"));
+                    m.put("collectionId", rs.getLong("collection_id"));
+                    return m;
+                }, id);
         return rows.isEmpty() ? null : rows.get(0);
     }
 
@@ -52,7 +56,7 @@ public class StickerService {
     }
 
     public List<StickerRules.Weighted> pool() {
-        return jdbc.query("SELECT id, rarity, drop_weight FROM sticker_defs WHERE active = 1",
+        return jdbc.query("SELECT d.id, d.rarity, d.drop_weight FROM sticker_defs d JOIN sticker_collections c ON c.id = d.collection_id AND c.active = 1 WHERE d.active = 1",
                 (rs, i) -> new StickerRules.Weighted(rs.getLong("id"), rs.getString("rarity"), rs.getInt("drop_weight")));
     }
 
@@ -121,48 +125,93 @@ public class StickerService {
         return StickerRules.eligible(age, checkinDays(userId), settings.number("eligible_age_days"), settings.number("eligible_checkins"));
     }
 
-    /** The album of one person: every active sticker (and any inactive one they hold) with the copies and what can be traded. */
+    /**
+     * The album of one person: every sticker of every collection that is on (and any inactive one they hold) with the copies and what can
+     * be traded, plus one summary per collection (progress and the state of its full-set reward).
+     */
     public Map<String, Object> album(long userId) {
         Map<Long, Integer> owned = new HashMap<>();
         jdbc.query("SELECT sticker_id, qty FROM user_stickers WHERE user_id = ?", rs -> { owned.put(rs.getLong("sticker_id"), rs.getInt("qty")); }, userId);
         Map<Long, Integer> locked = new HashMap<>();
         jdbc.query("SELECT sticker_id, COUNT(*) AS n FROM sticker_grants WHERE user_id = ? AND revoked = 0 AND locked_until > ? GROUP BY sticker_id",
                 rs -> { locked.put(rs.getLong("sticker_id"), rs.getInt("n")); }, userId, Timestamp.valueOf(now()));
+        Set<Long> claimed = new HashSet<>(jdbc.queryForList("SELECT collection_id FROM sticker_set_rewards WHERE user_id = ?", Long.class, userId));
+
+        List<Map<String, Object>> collections = jdbc.query(
+                "SELECT id, name, description, emoji, image_url, reward_coins, active FROM sticker_collections ORDER BY sort_order, id",
+                (rs, i) -> {
+                    Map<String, Object> m = new LinkedHashMap<>();
+                    m.put("id", rs.getLong("id"));
+                    m.put("name", rs.getString("name"));
+                    m.put("description", rs.getString("description"));
+                    m.put("emoji", rs.getString("emoji"));
+                    m.put("image", rs.getString("image_url"));
+                    Object coins = rs.getObject("reward_coins");
+                    m.put("rewardPoints", coins == null ? settings.number("set_reward_points") : ((Number) coins).intValue());
+                    m.put("active", rs.getBoolean("active"));
+                    return m;
+                });
+        Map<Long, Map<String, Object>> byId = new LinkedHashMap<>();
+        for (Map<String, Object> c : collections) {
+            c.put("total", 0);
+            c.put("owned", 0);
+            c.put("held", 0);
+            byId.put((Long) c.get("id"), c);
+        }
+
         List<Map<String, Object>> items = new ArrayList<>();
-        int total = 0;
-        int have = 0;
         List<Map<String, Object>> defs = jdbc.query(
-                "SELECT id, name, description, emoji, image_url, rarity, active FROM sticker_defs ORDER BY sort_order, id",
+                "SELECT id, name, description, emoji, image_url, rarity, active, collection_id FROM sticker_defs ORDER BY sort_order, id",
                 (rs, i) -> {
                     Map<String, Object> m = viewRow(rs.getLong("id"), rs.getString("name"), rs.getString("description"), rs.getString("emoji"),
                             rs.getString("image_url"), rs.getString("rarity"));
+                    m.put("collectionId", rs.getLong("collection_id"));
                     m.put("active", rs.getBoolean("active"));
                     return m;
                 });
         for (Map<String, Object> def : defs) {
             long id = (Long) def.get("id");
+            Map<String, Object> collection = byId.get((Long) def.get("collectionId"));
+            if (collection == null) continue;
             int qty = owned.getOrDefault(id, 0);
-            boolean active = (Boolean) def.get("active");
-            if (!active && qty == 0) continue;
+            boolean live = (Boolean) def.get("active") && (Boolean) collection.get("active");
+            if (!live && qty == 0) continue;
             def.put("qty", qty);
             def.put("tradable", StickerRules.tradableCopies(qty, locked.getOrDefault(id, 0)));
             def.remove("active");
             items.add(def);
-            if (active) {
-                total++;
-                if (qty > 0) have++;
+            if (qty > 0) collection.merge("held", 1, (x, y) -> (Integer) x + 1);
+            if (live) {
+                collection.merge("total", 1, (x, y) -> (Integer) x + 1);
+                if (qty > 0) collection.merge("owned", 1, (x, y) -> (Integer) x + 1);
+            }
+        }
+
+        int total = 0;
+        int have = 0;
+        List<Map<String, Object>> shown = new ArrayList<>();
+        for (Map<String, Object> c : collections) {
+            boolean on = (Boolean) c.get("active");
+            if (!on && (Integer) c.get("held") == 0) continue;
+            int t = (Integer) c.get("total");
+            int o = (Integer) c.get("owned");
+            c.remove("held");
+            c.put("rewardClaimed", claimed.contains((Long) c.get("id")));
+            c.put("complete", on && t > 0 && o >= t);
+            shown.add(c);
+            if (on) {
+                total += t;
+                have += o;
             }
         }
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("enabled", settings.enabled());
+        out.put("collections", shown);
         out.put("items", items);
         out.put("total", total);
         out.put("owned", have);
         out.put("eligible", eligible(userId));
-        out.put("setReward", settings.number("set_reward_points"));
         out.put("coinName", funSettings.coinName());
-        out.put("setRewardClaimed", count("SELECT COUNT(*) FROM sticker_set_rewards WHERE user_id = ?", userId) > 0);
-        out.put("setComplete", total > 0 && have >= total);
         return out;
     }
 
@@ -172,25 +221,30 @@ public class StickerService {
     }
 
     /**
-     * Anyone who holds every active sticker gets the full-set reward (in game coins) once. Copies still locked from a welcome pack do not count,
-     * and the account must be eligible, so a pile of fresh accounts cannot collect it.
+     * Anyone who holds every active sticker of a collection gets that collection's full-set reward (in game coins) once. Copies still locked
+     * from a welcome pack do not count, and the account must be eligible, so a pile of fresh accounts cannot collect it.
      */
     @Transactional
-    public Map<String, Object> claimSetReward(long userId) {
+    public Map<String, Object> claimSetReward(long userId, long collectionId) {
         if (!settings.enabled()) throw new IllegalStateException("Sticker đang tạm đóng");
         if (!eligible(userId)) throw new IllegalStateException("Tài khoản cần hoạt động thêm vài ngày mới nhận được thưởng đủ bộ");
-        long active = count("SELECT COUNT(*) FROM sticker_defs WHERE active = 1");
+        List<Map<String, Object>> rows = jdbc.queryForList("SELECT name, reward_coins FROM sticker_collections WHERE id = ? AND active = 1", collectionId);
+        if (rows.isEmpty()) throw new IllegalStateException("Không tìm thấy bộ sưu tập này");
+        String name = String.valueOf(rows.get(0).get("name"));
+        long active = count("SELECT COUNT(*) FROM sticker_defs WHERE active = 1 AND collection_id = ?", collectionId);
         long counted = count("SELECT COUNT(DISTINCT d.id) FROM sticker_defs d JOIN sticker_grants g ON g.sticker_id = d.id AND g.user_id = ? AND g.revoked = 0 " +
-                "AND (g.locked_until IS NULL OR g.locked_until <= ?) JOIN user_stickers us ON us.user_id = g.user_id AND us.sticker_id = d.id AND us.qty > 0 WHERE d.active = 1",
-                userId, Timestamp.valueOf(now()));
+                "AND (g.locked_until IS NULL OR g.locked_until <= ?) JOIN user_stickers us ON us.user_id = g.user_id AND us.sticker_id = d.id AND us.qty > 0 " +
+                "WHERE d.active = 1 AND d.collection_id = ?", userId, Timestamp.valueOf(now()), collectionId);
         if (active == 0 || counted < active) throw new IllegalStateException("Chưa đủ bộ sticker");
-        int points = settings.number("set_reward_points");
-        int rows = jdbc.update("INSERT IGNORE INTO sticker_set_rewards (user_id, points) VALUES (?, ?)", userId, points);
-        if (rows != 1) throw new IllegalStateException("Bạn đã nhận thưởng đủ bộ rồi");
-        if (points > 0) coinService.credit(userId, points, CoinService.SOURCE_STICKER_SET, "Thưởng đủ bộ sticker");
-        gameEvents.record(userId, GameEventService.GAME_STICKER, "set_reward", "Đủ bộ sticker", points);
+        Object custom = rows.get(0).get("reward_coins");
+        int points = custom == null ? settings.number("set_reward_points") : ((Number) custom).intValue();
+        int inserted = jdbc.update("INSERT IGNORE INTO sticker_set_rewards (user_id, collection_id, points) VALUES (?, ?, ?)", userId, collectionId, points);
+        if (inserted != 1) throw new IllegalStateException("Bạn đã nhận thưởng đủ bộ này rồi");
+        if (points > 0) coinService.credit(userId, points, CoinService.SOURCE_STICKER_SET, "Thưởng đủ bộ " + name);
+        gameEvents.record(userId, GameEventService.GAME_STICKER, "set_reward", "Đủ bộ " + name, points);
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("points", points);
+        out.put("collection", name);
         return out;
     }
 }

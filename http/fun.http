@@ -43,9 +43,12 @@ Authorization: Bearer {{jwtToken}}
 POST {{baseUrl}}/stickers/offers/1/decline
 Authorization: Bearer {{jwtToken}}
 
-### Full-set reward (once)
+### Full-set reward of one collection (once per person and collection)
 POST {{baseUrl}}/stickers/set-reward
 Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{ "collectionId": 1 }
 
 
 ### Balance and last movements of the game currency (Leo Xu)

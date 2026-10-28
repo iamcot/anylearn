@@ -10,11 +10,28 @@ export interface StickerItem {
   image: string | null
   rarity: Rarity
   rarityLabel: string
+  collectionId: number
   qty: number
   tradable: number
 }
 
-export type StickerView = Omit<StickerItem, 'qty' | 'tradable'>
+export type StickerView = Omit<StickerItem, 'qty' | 'tradable' | 'collectionId'> & { collectionId?: number }
+
+/** A collection ("bộ sưu tập") of stickers with the player's progress and the state of its full-set reward. */
+export interface StickerCollection {
+  id: number
+  name: string
+  description: string | null
+  emoji: string | null
+  image: string | null
+  /** Leo Xu given once when the player holds every sticker of the collection. */
+  rewardPoints: number
+  active: boolean
+  total: number
+  owned: number
+  rewardClaimed: boolean
+  complete: boolean
+}
 
 export interface StickerOffer {
   id: number
@@ -26,14 +43,12 @@ export interface StickerOffer {
 
 export interface Album {
   enabled: boolean
+  collections: StickerCollection[]
   items: StickerItem[]
   total: number
   owned: number
   eligible: boolean
-  setReward: number
   coinName: string
-  setRewardClaimed: boolean
-  setComplete: boolean
   pack?: { status: string; part1: boolean; part2: boolean }
   invited: number
   invitedDone: number
@@ -54,7 +69,8 @@ export const declineOffer = (token: string, id: number) => authFetch<{ ok: boole
 
 export const cancelOffer = (token: string, id: number) => authFetch<{ ok: boolean }>(`/stickers/offers/${id}/cancel`, token, { method: 'POST' })
 
-export const claimSetReward = (token: string) => authFetch<{ points: number }>('/stickers/set-reward', token, { method: 'POST' })
+export const claimSetReward = (token: string, collectionId: number) =>
+  authFetch<{ points: number; collection: string }>('/stickers/set-reward', token, { method: 'POST', body: JSON.stringify({ collectionId }) })
 
 export const sendDevice = (token: string, deviceId: string) =>
   authFetch<{ ok: boolean }>('/fun/device', token, { method: 'POST', body: JSON.stringify({ deviceId }) })

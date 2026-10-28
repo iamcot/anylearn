@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import type { StickerItem } from '@/lib/api/stickers'
-import { progressText, stickerInviteLink, tradables, tradeStep, wantables } from './rules'
+import type { StickerCollection, StickerItem } from '@/lib/api/stickers'
+import { itemsOfCollection, progressText, rewardLine, selectCollection, stickerInviteLink, tradables, tradeStep, wantables } from './rules'
 
 const item = (id: number, rarity: StickerItem['rarity'], qty: number, tradable = Math.max(qty - 1, 0)): StickerItem =>
-  ({ id, name: `s${id}`, description: null, emoji: '⭐', image: null, rarity, rarityLabel: '', qty, tradable })
+  ({ id, name: `s${id}`, description: null, emoji: '⭐', image: null, rarity, rarityLabel: '', collectionId: id <= 3 ? 1 : 2, qty, tradable })
 
 const items = [item(1, 'common', 3), item(2, 'common', 0), item(3, 'rare', 0), item(4, 'common', 1), item(5, 'common', 0)]
 
@@ -27,5 +27,29 @@ describe('stickers rules', () => {
   })
   it('writes the progress', () => {
     expect(progressText(3, 12)).toBe('3/12')
+  })
+
+  const collection = (id: number, over: Partial<StickerCollection> = {}): StickerCollection =>
+    ({ id, name: `c${id}`, description: null, emoji: null, image: null, rewardPoints: 200, active: true, total: 3, owned: 0, rewardClaimed: false, complete: false, ...over })
+
+  it('groups stickers by collection', () => {
+    expect(itemsOfCollection(items, 1).map(i => i.id)).toEqual([1, 2, 3])
+    expect(itemsOfCollection(items, 2).map(i => i.id)).toEqual([4, 5])
+    expect(itemsOfCollection(items, 9)).toEqual([])
+  })
+  it('opens the picked collection, else the first unfinished one', () => {
+    const list = [collection(1, { complete: true, owned: 3 }), collection(2), collection(3)]
+    expect(selectCollection(list, 3)?.id).toBe(3)
+    expect(selectCollection(list, null)?.id).toBe(2)
+    expect(selectCollection(list, 99)?.id).toBe(2)
+    expect(selectCollection([collection(1, { complete: true })], null)?.id).toBe(1)
+    expect(selectCollection([], null)).toBeNull()
+  })
+  it('tells the state of the full-set reward', () => {
+    expect(rewardLine(collection(1))).toBe('pending')
+    expect(rewardLine(collection(1, { complete: true }))).toBe('ready')
+    expect(rewardLine(collection(1, { complete: true, rewardClaimed: true }))).toBe('claimed')
+    expect(rewardLine(collection(1, { rewardPoints: 0 }))).toBe('none')
+    expect(rewardLine(collection(1, { active: false }))).toBe('none')
   })
 })

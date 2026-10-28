@@ -1,4 +1,4 @@
-import type { Rarity, StickerItem } from '@/lib/api/stickers'
+import type { Rarity, StickerCollection, StickerItem } from '@/lib/api/stickers'
 
 export const RARITY_STYLE: Record<Rarity, { ring: string; chip: string; label: string }> = {
   common: { ring: 'border-line', chip: 'bg-slate-100 text-muted', label: 'Thường' },
@@ -33,4 +33,21 @@ export function stickerInviteLink(referralLink: string): string {
 
 export function progressText(owned: number, total: number): string {
   return `${owned}/${total}`
+}
+
+/** The collection to show: the one picked when it still exists, else the first one that is not finished, else the first. */
+export function selectCollection(collections: StickerCollection[], pickedId: number | null): StickerCollection | null {
+  if (collections.length === 0) return null
+  return collections.find(c => c.id === pickedId) ?? collections.find(c => c.active && !c.complete) ?? collections[0]
+}
+
+export function itemsOfCollection(items: StickerItem[], collectionId: number): StickerItem[] {
+  return items.filter(item => item.collectionId === collectionId)
+}
+
+/** The line under a collection's progress bar. */
+export function rewardLine(c: StickerCollection): 'claimed' | 'ready' | 'pending' | 'none' {
+  if (c.rewardPoints <= 0 || !c.active) return 'none'
+  if (c.rewardClaimed) return 'claimed'
+  return c.complete ? 'ready' : 'pending'
 }

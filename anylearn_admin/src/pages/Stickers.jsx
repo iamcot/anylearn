@@ -20,7 +20,7 @@ const SETTING_FIELDS = [
   ['eligible_checkins', 'Tài khoản đủ điều kiện: số ngày điểm danh tối thiểu', null],
   ['hold_score', 'Điểm rủi ro từ đó gói quà chờ duyệt', 'Điểm cao khi nhiều tài khoản dùng chung thiết bị hoặc IP hoặc cùng người mời.'],
   ['invite_month_cap', 'Người mời nhận thưởng tối đa mỗi tháng (lượt)', null],
-  ['set_reward_points', 'Thưởng đủ bộ (Leo Xu, 0 = tắt)', 'Trao một lần cho mỗi người, chỉ tài khoản đủ điều kiện.'],
+  ['set_reward_points', 'Thưởng đủ bộ mặc định (Leo Xu, 0 = tắt)', 'Dùng cho bộ sưu tập không đặt thưởng riêng. Trao một lần cho mỗi người và mỗi bộ, chỉ tài khoản đủ điều kiện.'],
 ]
 
 function useStickers() {
@@ -32,7 +32,7 @@ function Thumb({ item }) {
   return <Avatar shape="square" size={44} style={{ background: '#f1f3f5', fontSize: 26 }}>{item.emoji || '?'}</Avatar>
 }
 
-function StickerForm({ item, onClose }) {
+function StickerForm({ item, collections, onClose }) {
   const qc = useQueryClient()
   const [form] = Form.useForm()
   const [file, setFile] = useState(null)
@@ -54,7 +54,10 @@ function StickerForm({ item, onClose }) {
   return (
     <Modal open title={item?.id ? 'Sửa sticker' : 'Thêm sticker'} onCancel={onClose} okText="Lưu" cancelText="Hủy"
       confirmLoading={save.isPending} onOk={() => form.validateFields().then(values => save.mutate(values))}>
-      <Form form={form} layout="vertical" initialValues={item ?? { rarity: 'common', dropWeight: 10, active: true, sortOrder: 0 }}>
+      <Form form={form} layout="vertical" initialValues={item?.id ? item : { rarity: 'common', dropWeight: 10, active: true, sortOrder: 0, collectionId: collections[0]?.id, ...item }}>
+        <Form.Item name="collectionId" label="Bộ sưu tập" rules={[{ required: true, message: 'Chọn bộ sưu tập' }]}>
+          <Select options={collections.map(c => ({ value: c.id, label: c.name }))} />
+        </Form.Item>
         <Form.Item name="name" label="Tên" rules={[{ required: true }]}><Input maxLength={80} /></Form.Item>
         <Form.Item name="description" label="Nội dung ngắn"><Input maxLength={255} /></Form.Item>
         <Form.Item label="Hình (PNG vuông, nền trong)" extra="Không có hình thì hiện emoji bên dưới.">
@@ -73,14 +76,95 @@ function StickerForm({ item, onClose }) {
   )
 }
 
+function CollectionForm({ item, defaultReward, onClose }) {
+  const qc = useQueryClient()
+  const [form] = Form.useForm()
+  const [file, setFile] = useState(null)
+  const save = useMutation({
+    mutationFn: values => {
+      const body = new FormData()
+      Object.entries(values).forEach(([k, v]) => { if (v !== undefined && v !== null) body.append(k, v) })
+      if (file) body.append('image', file)
+      const config = { headers: { 'Content-Type': 'multipart/form-data' } }
+      return (item?.id ? client.put(`/admin/stickers/collections/${item.id}`, body, config) : client.post('/admin/stickers/collections', body, config)).then(r => r.data)
+    },
+    onSuccess: res => {
+      if (res.resultCode !== 1) return message.error(res.message)
+      message.success('Đã lưu bộ sưu tập')
+      qc.invalidateQueries({ queryKey: ['admin-stickers'] })
+      onClose()
+    },
+  })
+  return (
+    <Modal open title={item?.id ? 'Sửa bộ sưu tập' : 'Thêm bộ sưu tập'} onCancel={onClose} okText="Lưu" cancelText="Hủy"
+      confirmLoading={save.isPending} onOk={() => form.validateFields().then(values => save.mutate(values))}>
+      <Form form={form} layout="vertical" initialValues={item?.id ? { ...item, rewardCoins: item.rewardCoins ?? undefined } : { active: true, sortOrder: 0 }}>
+        <Form.Item name="name" label="Tên bộ" rules={[{ required: true }]}><Input maxLength={80} /></Form.Item>
+        <Form.Item name="description" label="Mô tả ngắn"><Input maxLength={255} /></Form.Item>
+        <Form.Item label="Hình đại diện (PNG vuông)" extra="Không có hình thì hiện emoji bên dưới.">
+          <input type="file" accept="image/*" onChange={e => setFile(e.target.files?.[0] ?? null)} />
+          {item?.image && !file && <div style={{ marginTop: 8 }}><Thumb item={item} /></div>}
+        </Form.Item>
+        <Form.Item name="emoji" label="Emoji thay hình"><Input maxLength={16} style={{ width: 120 }} /></Form.Item>
+        <Space size="large" align="start">
+          <Form.Item name="rewardCoins" label="Thưởng đủ bộ (Leo Xu)" extra={`Để trống = dùng mặc định (${defaultReward}). 0 = không thưởng.`}><InputNumber min={0} max={5000} /></Form.Item>
+          <Form.Item name="sortOrder" label="Thứ tự"><InputNumber /></Form.Item>
+        </Space>
+        <Form.Item name="active" label="Đang mở" valuePropName="checked" extra="Tắt bộ thì sticker của bộ không rơi nữa và không tính vào thưởng; ai đã có vẫn giữ."><Switch /></Form.Item>
+      </Form>
+    </Modal>
+  )
+}
+
+function CollectionsCard({ data }) {
+  const qc = useQueryClient()
+  const [editing, setEditing] = useState(null)
+  const remove = useMutation({
+    mutationFn: id => client.delete(`/admin/stickers/collections/${id}`).then(r => r.data),
+    onSuccess: res => {
+      if (res.resultCode !== 1) return message.error(res.message)
+      message.success('Đã xóa bộ sưu tập')
+      qc.invalidateQueries({ queryKey: ['admin-stickers'] })
+    },
+  })
+  const collections = data?.collections ?? []
+  const columns = [
+    { title: '', width: 60, render: (_, item) => <Thumb item={item} /> },
+    { title: 'Bộ sưu tập', dataIndex: 'name', render: (v, item) => <div><b>{v}</b><div style={{ fontSize: 12, color: '#888' }}>{item.description}</div></div> },
+    { title: 'Sticker', width: 100, align: 'right', render: (_, c) => `${c.activeStickers}/${c.stickers}` },
+    { title: 'Đã đủ bộ', dataIndex: 'completed', width: 90, align: 'right' },
+    { title: 'Thưởng đủ bộ', width: 130, render: (_, c) => (c.rewardCoins == null ? `Mặc định (${data?.defaultRewardCoins ?? 0})` : c.rewardCoins) },
+    { title: 'Trạng thái', dataIndex: 'active', width: 100, render: a => (a ? <Tag color="green">Đang mở</Tag> : <Tag>Tắt</Tag>) },
+    { title: '', width: 130, render: (_, c) => (
+      <Space>
+        <Button size="small" onClick={() => setEditing(c)}>Sửa</Button>
+        <Popconfirm title="Xóa bộ sưu tập này?" description="Chỉ xóa được bộ không còn sticker." okText="Xóa" cancelText="Hủy" onConfirm={() => remove.mutate(c.id)}>
+          <Button size="small" danger>Xóa</Button>
+        </Popconfirm>
+      </Space>
+    ) },
+  ]
+  return (
+    <Card size="small" title="Bộ sưu tập" style={{ marginBottom: 16 }} extra={<Button type="primary" size="small" onClick={() => setEditing({})}>+ Thêm bộ</Button>}>
+      <Table rowKey="id" size="small" columns={columns} dataSource={collections} pagination={false} />
+      {editing && <CollectionForm item={editing} defaultReward={data?.defaultRewardCoins ?? 0} onClose={() => setEditing(null)} />}
+    </Card>
+  )
+}
+
 function SetTab() {
   const { data, isLoading } = useStickers()
   const [editing, setEditing] = useState(null)
-  const items = data?.items ?? []
-  const totalWeight = items.filter(i => i.active).reduce((s, i) => s + i.dropWeight, 0)
+  const [collectionId, setCollectionId] = useState(null)
+  const collections = data?.collections ?? []
+  const allItems = data?.items ?? []
+  const items = collectionId ? allItems.filter(i => i.collectionId === collectionId) : allItems
+  const collectionName = id => collections.find(c => c.id === id)?.name ?? ''
+  const totalWeight = allItems.filter(i => i.active && collections.find(c => c.id === i.collectionId)?.active).reduce((s, i) => s + i.dropWeight, 0)
   const columns = [
     { title: '', width: 60, render: (_, item) => <Thumb item={item} /> },
     { title: 'Tên', dataIndex: 'name', render: (v, item) => <div><b>{v}</b><div style={{ fontSize: 12, color: '#888' }}>{item.description}</div></div> },
+    { title: 'Bộ', dataIndex: 'collectionId', width: 140, render: id => collectionName(id) },
     { title: 'Độ hiếm', dataIndex: 'rarity', width: 110, render: r => <Tag color={RARITY[r]?.[1]}>{RARITY[r]?.[0] ?? r}</Tag> },
     { title: 'Tỉ lệ rơi', dataIndex: 'dropWeight', width: 110, render: (w, item) => (item.active && totalWeight ? `${((w / totalWeight) * 100).toFixed(1)}%` : '–') },
     { title: 'Người có', dataIndex: 'owners', width: 90, align: 'right' },
@@ -90,13 +174,15 @@ function SetTab() {
   ]
   return (
     <>
+      <CollectionsCard data={data} />
       <Space style={{ marginBottom: 12 }} wrap>
-        <Button type="primary" onClick={() => setEditing({})}>+ Thêm sticker</Button>
+        <Select allowClear placeholder="Mọi bộ sưu tập" style={{ width: 220 }} value={collectionId} onChange={v => setCollectionId(v ?? null)} options={collections.map(c => ({ value: c.id, label: c.name }))} />
+        <Button type="primary" onClick={() => setEditing({ collectionId: collectionId ?? collections[0]?.id })}>+ Thêm sticker</Button>
         <Tag>{data?.playersWithStickers ?? 0} người đang sưu tầm</Tag>
         <Tag>Hôm nay: {data?.grantsToday ?? 0} sticker được phát, {data?.tradesToday ?? 0} lượt đổi</Tag>
       </Space>
       <Table rowKey="id" loading={isLoading} columns={columns} dataSource={items} pagination={false} />
-      {editing && <StickerForm item={editing} onClose={() => setEditing(null)} />}
+      {editing && <StickerForm item={editing} collections={collections} onClose={() => setEditing(null)} />}
     </>
   )
 }

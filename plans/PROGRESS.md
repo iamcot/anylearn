@@ -574,6 +574,10 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 - **Lần đầu chạy với MySQL/MariaDB thật** (cài MariaDB 10.11 trong môi trường làm việc): toàn bộ migration V1 đến V55 chạy được, `contextLoads` qua, `QuizGameFlowTest` 13 ca (sảnh, hộp quà, đúng / sai / bảo hộ, may mắn x3 và khiên, 4 quyền trợ giúp, bỏ dở, trễ giờ, không lặp câu, kho trống, lên hạng, mua vật phẩm, album sticker) qua; trình duyệt chạy luồng thật qua backend thật. Đã sửa lỗi câu lấy album sticker thiếu tham số người dùng (báo từ máy của chủ sản phẩm).
 - Chưa làm: BXH, tổng kết tuần / tháng, admin cấu hình và danh sách gắn cờ (giai đoạn 5); khóa ANTHROPIC_API_KEY chưa dùng nên kho câu hỏi AI thật chưa được tạo thử.
 
+### 28/10/2026 – Vui học: sticker có nhiều bộ sưu tập
+- Chủ sản phẩm yêu cầu: sticker chia thành nhiều bộ, mỗi bộ 12 sticker hoặc nhiều hơn tùy ý, giao diện nhóm và chuyển theo bộ. Đã làm: V56 (`sticker_collections`, `sticker_defs.collection_id`, thưởng đủ bộ tính theo từng bộ, 12 sticker cũ vào bộ đầu "Leo ham học"), API người chơi và admin, trang admin quản lý bộ (thêm / sửa / xóa, thưởng riêng, tắt bộ), trang Sticker có thẻ chuyển bộ với tiến độ và thưởng từng bộ. Đổi sticker vẫn cùng độ hiếm và đổi được giữa các bộ. V56 đã chạy thành công trên DB đã có V55 (đường nâng cấp), 7 test mới (`StickerCollectionsFlowTest`) qua.
+- Chưa làm: ảnh bìa bộ trên trang chính Vui học, nhãn bộ trong bảng chọn đổi sticker, thưởng đủ bộ bằng sticker hiếm thay vì xu.
+
 ### 28/10/2026 – Vui học: đổi tên nhân vật thành Leo và tiền thành Leo Xu
 - Chủ sản phẩm chốt: nhân vật **Leo** (từ LEarn, "leo rank"), tiền **Leo Xu**. Tên cũ Ali / Ali Xu bị bỏ vì dễ liên tưởng thương hiệu Alibaba (Alipay, Aliexpress), nhất là ở phần tiền. Cần tra nhãn hiệu "Leo" trước khi ra mắt chính thức (chưa tra được).
 - Đã đổi trong code (`components/fun/Leo.tsx`, `lib/fun/leo.ts`, các lớp CSS `leo-*`), admin, tài liệu; V54 đổi tên sticker mẫu và tên tiền đã lưu. Quy ước hiển thị: mọi chỗ trong app nhắc tới "Leo" hoặc "Leo Xu" là chữ **đậm màu xanh brand, không nghiêng** (`components/fun/BrandText`). Thông báo gửi từ hệ thống (chuông) là chữ thường, không tô màu được.

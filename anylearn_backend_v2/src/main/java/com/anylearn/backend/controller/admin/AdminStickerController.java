@@ -34,13 +34,20 @@ public class AdminStickerController {
     public ApiResponse<?> list(@AuthenticationPrincipal User user) {
         if (notAdmin(user)) return ApiResponse.fail("Forbidden");
         List<Map<String, Object>> items = jdbc.queryForList(
-                "SELECT d.id, d.name, d.description, d.emoji, d.image_url AS image, d.rarity, d.drop_weight AS dropWeight, d.active, d.sort_order AS sortOrder, " +
+                "SELECT d.id, d.name, d.description, d.emoji, d.image_url AS image, d.rarity, d.drop_weight AS dropWeight, d.active, d.sort_order AS sortOrder, d.collection_id AS collectionId, " +
                         "(SELECT COUNT(*) FROM user_stickers us WHERE us.sticker_id = d.id AND us.qty > 0) AS owners, " +
                         "(SELECT COALESCE(SUM(us.qty), 0) FROM user_stickers us WHERE us.sticker_id = d.id) AS copies " +
                         "FROM sticker_defs d ORDER BY d.sort_order, d.id");
         for (Map<String, Object> item : items) item.put("rarityLabel", StickerRules.rarityLabel(String.valueOf(item.get("rarity"))));
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("items", items);
+        out.put("collections", jdbc.queryForList(
+                "SELECT c.id, c.name, c.description, c.emoji, c.image_url AS image, c.reward_coins AS rewardCoins, c.sort_order AS sortOrder, c.active, " +
+                        "(SELECT COUNT(*) FROM sticker_defs d WHERE d.collection_id = c.id) AS stickers, " +
+                        "(SELECT COUNT(*) FROM sticker_defs d WHERE d.collection_id = c.id AND d.active = 1) AS activeStickers, " +
+                        "(SELECT COUNT(*) FROM sticker_set_rewards r WHERE r.collection_id = c.id) AS completed " +
+                        "FROM sticker_collections c ORDER BY c.sort_order, c.id"));
+        out.put("defaultRewardCoins", settings.number("set_reward_points"));
         out.put("playersWithStickers", stickers.count("SELECT COUNT(DISTINCT user_id) FROM user_stickers WHERE qty > 0"));
         out.put("tradesToday", stickers.count("SELECT COUNT(*) FROM sticker_trades WHERE status = 'done' AND created_at >= CURDATE()"));
         out.put("grantsToday", stickers.count("SELECT COUNT(*) FROM sticker_grants WHERE created_at >= CURDATE()"));
@@ -48,9 +55,11 @@ public class AdminStickerController {
         return ApiResponse.ok(out);
     }
 
-    private String saveDef(Long id, String name, String description, String emoji, String rarity, Integer dropWeight, Boolean active, Integer sortOrder, MultipartFile image) {
+    private String saveDef(Long id, Long collectionId, String name, String description, String emoji, String rarity, Integer dropWeight, Boolean active, Integer sortOrder, MultipartFile image) {
         String cleanName = name == null ? "" : name.trim();
         if (cleanName.isEmpty() || cleanName.length() > 80) return "Tên sticker từ 1 đến 80 ký tự";
+        if (collectionId == null) return "Hãy chọn bộ sưu tập cho sticker";
+        if (jdbc.queryForObject("SELECT COUNT(*) FROM sticker_collections WHERE id = ?", Integer.class, collectionId) == 0) return "Không tìm thấy bộ sưu tập";
         String cleanRarity = StickerRules.cleanRarity(rarity);
         if (cleanRarity == null) return "Độ hiếm không hợp lệ";
         int weight = dropWeight == null ? 10 : dropWeight;
@@ -68,37 +77,106 @@ public class AdminStickerController {
         String desc = description == null || description.isBlank() ? null : description.trim();
         if (desc != null && desc.length() > 255) return "Nội dung tối đa 255 ký tự";
         if (id == null) {
-            jdbc.update("INSERT INTO sticker_defs (name, description, emoji, image_url, rarity, drop_weight, active, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                    cleanName, desc, cleanEmoji, imageUrl, cleanRarity, weight, active == null || active ? 1 : 0, sortOrder == null ? 0 : sortOrder);
+            jdbc.update("INSERT INTO sticker_defs (name, description, emoji, image_url, rarity, drop_weight, active, sort_order, collection_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    cleanName, desc, cleanEmoji, imageUrl, cleanRarity, weight, active == null || active ? 1 : 0, sortOrder == null ? 0 : sortOrder, collectionId);
         } else {
-            jdbc.update("UPDATE sticker_defs SET name = ?, description = ?, emoji = ?, rarity = ?, drop_weight = ?, active = ?, sort_order = ?" +
+            jdbc.update("UPDATE sticker_defs SET name = ?, description = ?, emoji = ?, rarity = ?, drop_weight = ?, active = ?, sort_order = ?, collection_id = ?" +
                             (imageUrl != null ? ", image_url = ?" : "") + " WHERE id = ?",
                     imageUrl != null
-                            ? new Object[]{cleanName, desc, cleanEmoji, cleanRarity, weight, active == null || active ? 1 : 0, sortOrder == null ? 0 : sortOrder, imageUrl, id}
-                            : new Object[]{cleanName, desc, cleanEmoji, cleanRarity, weight, active == null || active ? 1 : 0, sortOrder == null ? 0 : sortOrder, id});
+                            ? new Object[]{cleanName, desc, cleanEmoji, cleanRarity, weight, active == null || active ? 1 : 0, sortOrder == null ? 0 : sortOrder, collectionId, imageUrl, id}
+                            : new Object[]{cleanName, desc, cleanEmoji, cleanRarity, weight, active == null || active ? 1 : 0, sortOrder == null ? 0 : sortOrder, collectionId, id});
         }
         return null;
     }
 
     @PostMapping(consumes = "multipart/form-data")
-    public ApiResponse<?> create(@AuthenticationPrincipal User user, @RequestParam String name, @RequestParam(required = false) String description,
+    public ApiResponse<?> create(@AuthenticationPrincipal User user, @RequestParam(required = false) Long collectionId, @RequestParam String name, @RequestParam(required = false) String description,
                                  @RequestParam(required = false) String emoji, @RequestParam String rarity, @RequestParam(required = false) Integer dropWeight,
                                  @RequestParam(required = false) Boolean active, @RequestParam(required = false) Integer sortOrder,
                                  @RequestParam(required = false) MultipartFile image) {
         if (notAdmin(user)) return ApiResponse.fail("Forbidden");
-        String problem = saveDef(null, name, description, emoji, rarity, dropWeight, active, sortOrder, image);
+        String problem = saveDef(null, collectionId, name, description, emoji, rarity, dropWeight, active, sortOrder, image);
         return problem == null ? list(user) : ApiResponse.fail(problem);
     }
 
     @PutMapping(value = "/{id}", consumes = "multipart/form-data")
-    public ApiResponse<?> update(@AuthenticationPrincipal User user, @PathVariable long id, @RequestParam String name, @RequestParam(required = false) String description,
+    public ApiResponse<?> update(@AuthenticationPrincipal User user, @PathVariable long id, @RequestParam(required = false) Long collectionId, @RequestParam String name, @RequestParam(required = false) String description,
                                  @RequestParam(required = false) String emoji, @RequestParam String rarity, @RequestParam(required = false) Integer dropWeight,
                                  @RequestParam(required = false) Boolean active, @RequestParam(required = false) Integer sortOrder,
                                  @RequestParam(required = false) MultipartFile image) {
         if (notAdmin(user)) return ApiResponse.fail("Forbidden");
         if (stickers.view(id) == null) return ApiResponse.fail("Không tìm thấy sticker");
-        String problem = saveDef(id, name, description, emoji, rarity, dropWeight, active, sortOrder, image);
+        String problem = saveDef(id, collectionId, name, description, emoji, rarity, dropWeight, active, sortOrder, image);
         return problem == null ? list(user) : ApiResponse.fail(problem);
+    }
+
+    private String saveCollection(Long id, String name, String description, String emoji, String rewardCoins, Integer sortOrder, Boolean active, MultipartFile image) {
+        String cleanName = name == null ? "" : name.trim();
+        if (cleanName.isEmpty() || cleanName.length() > 80) return "Tên bộ sưu tập từ 1 đến 80 ký tự";
+        String desc = description == null || description.isBlank() ? null : description.trim();
+        if (desc != null && desc.length() > 255) return "Mô tả tối đa 255 ký tự";
+        String cleanEmoji = emoji == null || emoji.isBlank() ? null : emoji.trim();
+        if (cleanEmoji != null && cleanEmoji.length() > 16) return "Emoji quá dài";
+        Integer coins = null;
+        if (rewardCoins != null && !rewardCoins.isBlank()) {
+            try {
+                coins = Integer.parseInt(rewardCoins.trim());
+            } catch (NumberFormatException e) {
+                return "Thưởng đủ bộ phải là số";
+            }
+            if (coins < 0 || coins > 5000) return "Thưởng đủ bộ từ 0 đến 5000";
+        }
+        String imageUrl = null;
+        if (image != null && !image.isEmpty()) {
+            try {
+                imageUrl = s3Service.uploadImage(image, "stickers", 512);
+            } catch (Exception e) {
+                return "Upload hình thất bại: " + e.getMessage();
+            }
+        }
+        int on = active == null || active ? 1 : 0;
+        int order = sortOrder == null ? 0 : sortOrder;
+        if (id == null) {
+            jdbc.update("INSERT INTO sticker_collections (name, description, emoji, image_url, reward_coins, sort_order, active) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    cleanName, desc, cleanEmoji, imageUrl, coins, order, on);
+        } else {
+            jdbc.update("UPDATE sticker_collections SET name = ?, description = ?, emoji = ?, reward_coins = ?, sort_order = ?, active = ?" + (imageUrl != null ? ", image_url = ?" : "") + " WHERE id = ?",
+                    imageUrl != null ? new Object[]{cleanName, desc, cleanEmoji, coins, order, on, imageUrl, id} : new Object[]{cleanName, desc, cleanEmoji, coins, order, on, id});
+        }
+        return null;
+    }
+
+    @PostMapping(value = "/collections", consumes = "multipart/form-data")
+    public ApiResponse<?> createCollection(@AuthenticationPrincipal User user, @RequestParam String name, @RequestParam(required = false) String description,
+                                           @RequestParam(required = false) String emoji, @RequestParam(required = false) String rewardCoins,
+                                           @RequestParam(required = false) Integer sortOrder, @RequestParam(required = false) Boolean active,
+                                           @RequestParam(required = false) MultipartFile image) {
+        if (notAdmin(user)) return ApiResponse.fail("Forbidden");
+        String problem = saveCollection(null, name, description, emoji, rewardCoins, sortOrder, active, image);
+        return problem == null ? list(user) : ApiResponse.fail(problem);
+    }
+
+    @PutMapping(value = "/collections/{id}", consumes = "multipart/form-data")
+    public ApiResponse<?> updateCollection(@AuthenticationPrincipal User user, @PathVariable long id, @RequestParam String name, @RequestParam(required = false) String description,
+                                           @RequestParam(required = false) String emoji, @RequestParam(required = false) String rewardCoins,
+                                           @RequestParam(required = false) Integer sortOrder, @RequestParam(required = false) Boolean active,
+                                           @RequestParam(required = false) MultipartFile image) {
+        if (notAdmin(user)) return ApiResponse.fail("Forbidden");
+        if (jdbc.queryForObject("SELECT COUNT(*) FROM sticker_collections WHERE id = ?", Integer.class, id) == 0) return ApiResponse.fail("Không tìm thấy bộ sưu tập");
+        String problem = saveCollection(id, name, description, emoji, rewardCoins, sortOrder, active, image);
+        return problem == null ? list(user) : ApiResponse.fail(problem);
+    }
+
+    /** Only an empty collection can go; otherwise switch it off (people keep their stickers) or move its stickers first. */
+    @DeleteMapping("/collections/{id}")
+    public ApiResponse<?> deleteCollection(@AuthenticationPrincipal User user, @PathVariable long id) {
+        if (notAdmin(user)) return ApiResponse.fail("Forbidden");
+        if (jdbc.queryForObject("SELECT COUNT(*) FROM sticker_defs WHERE collection_id = ?", Integer.class, id) > 0) {
+            return ApiResponse.fail("Bộ còn sticker. Hãy chuyển sticker sang bộ khác hoặc tắt bộ này");
+        }
+        if (jdbc.queryForObject("SELECT COUNT(*) FROM sticker_collections", Integer.class) <= 1) return ApiResponse.fail("Cần giữ ít nhất một bộ sưu tập");
+        jdbc.update("DELETE FROM sticker_collections WHERE id = ?", id);
+        return list(user);
     }
 
     @GetMapping("/members")

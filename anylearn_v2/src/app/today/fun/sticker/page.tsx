@@ -6,8 +6,9 @@ import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { claimSetReward, getAlbum, sendDevice, type Album } from '@/lib/api/stickers'
 import { deviceId } from '@/lib/stickers/device'
-import { progressText } from '@/lib/stickers/rules'
+import { itemsOfCollection, progressText, rewardLine, selectCollection } from '@/lib/stickers/rules'
 import { ChevronLeftIcon } from '@/components/icons'
+import CollectionTabs from '@/components/fun/sticker/CollectionTabs'
 import StickerTile from '@/components/fun/sticker/StickerTile'
 import TradePanel from '@/components/fun/sticker/TradePanel'
 import OffersCard from '@/components/fun/sticker/OffersCard'
@@ -18,6 +19,7 @@ export default function StickerPage() {
   const [album, setAlbum] = useState<Album | null>(null)
   const [error, setError] = useState('')
   const [note, setNote] = useState('')
+  const [picked, setPicked] = useState<number | null>(null)
 
   const load = useCallback(async () => {
     if (!token) return
@@ -37,15 +39,17 @@ export default function StickerPage() {
     if (token && id) sendDevice(token, id)
   }, [token])
 
+  const current = album ? selectCollection(album.collections, picked) : null
+
   const done = (text?: string) => {
     if (text) setNote(text)
     load()
   }
 
-  const claim = async () => {
+  const claim = async (collectionId: number) => {
     if (!token) return
-    const { data, error: err } = await claimSetReward(token)
-    setNote(err ?? `Chúc mừng! Bạn nhận ${data?.points ?? 0} ${album?.coinName ?? 'Leo Xu'} vì đủ bộ sticker.`)
+    const { data, error: err } = await claimSetReward(token, collectionId)
+    setNote(err ?? `Chúc mừng! Bạn nhận ${data?.points ?? 0} ${album?.coinName ?? 'Leo Xu'} vì đủ bộ ${data?.collection ?? 'sticker'}.`)
     load()
   }
 
@@ -66,18 +70,33 @@ export default function StickerPage() {
           {!album.enabled && <p className="m-0 rounded-xl bg-amber-50 p-3 text-sm text-amber-900">Game sticker đang tạm nghỉ, album của bạn vẫn được giữ nguyên.</p>}
           {note && <p className="m-0 rounded-xl bg-green-soft p-3 text-sm font-bold text-green-dark" role="status"><BrandText text={note} coinName={album?.coinName} /></p>}
 
-          <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
-            {album.items.map(item => <StickerTile key={item.id} item={item} />)}
-          </div>
-
-          {album.setReward > 0 && (
-            <div className="rounded-2xl border border-line bg-white p-4 text-sm">
-              {album.setRewardClaimed
-                ? <span>Bạn đã nhận thưởng đủ bộ. Giỏi quá!</span>
-                : album.setComplete
-                  ? <div className="flex flex-wrap items-center gap-3"><span className="font-bold">Bạn đã đủ bộ!</span><button type="button" onClick={claim} className="min-h-11 cursor-pointer rounded-full border-0 bg-green px-5 font-black text-white">Nhận {album.setReward} {album.coinName}</button></div>
-                  : <span>Sưu tầm đủ bộ để nhận <b className="font-extrabold not-italic text-green">{album.setReward} {album.coinName}</b>.</span>}
-            </div>
+          <CollectionTabs collections={album.collections} selectedId={current?.id ?? null} onSelect={setPicked} />
+          {current && (
+            <section aria-label={current.name} className="grid gap-3">
+              <div>
+                <div className="flex items-center justify-between gap-2">
+                  <h2 className="m-0 text-lg font-extrabold"><BrandText text={current.name} coinName={album.coinName} /></h2>
+                  <span className="text-sm font-bold">{progressText(current.owned, current.total)}</span>
+                </div>
+                {current.description && <p className="m-0 mt-0.5 text-sm text-muted">{current.description}</p>}
+                <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-black/10" role="progressbar" aria-valuenow={current.owned} aria-valuemax={current.total}>
+                  <div className="h-full rounded-full bg-green" style={{ width: `${current.total ? (current.owned / current.total) * 100 : 0}%` }} />
+                </div>
+                {!current.active && <p className="m-0 mt-2 rounded-xl bg-amber-50 p-2 text-sm text-amber-900">Bộ này đã khép lại, sticker của bạn vẫn được giữ nguyên.</p>}
+              </div>
+              <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
+                {itemsOfCollection(album.items, current.id).map(item => <StickerTile key={item.id} item={item} />)}
+              </div>
+              {rewardLine(current) !== 'none' && (
+                <div className="rounded-2xl border border-line bg-white p-4 text-sm">
+                  {rewardLine(current) === 'claimed' && <span>Bạn đã nhận thưởng đủ bộ này. Giỏi quá!</span>}
+                  {rewardLine(current) === 'ready' && (
+                    <div className="flex flex-wrap items-center gap-3"><span className="font-bold">Bạn đã đủ bộ!</span><button type="button" onClick={() => claim(current.id)} className="min-h-11 cursor-pointer rounded-full border-0 bg-green px-5 font-black text-white">Nhận {current.rewardPoints} {album.coinName}</button></div>
+                  )}
+                  {rewardLine(current) === 'pending' && <span>Sưu tầm đủ bộ để nhận <b className="font-extrabold not-italic text-green">{current.rewardPoints} {album.coinName}</b>.</span>}
+                </div>
+              )}
+            </section>
           )}
 
           <OffersCard token={token} title="Lời mời đổi dành cho bạn" offers={album.incoming} incoming onDone={done} />

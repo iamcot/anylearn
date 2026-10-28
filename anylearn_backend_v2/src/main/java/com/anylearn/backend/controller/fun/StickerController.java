@@ -79,10 +79,11 @@ public class StickerController {
     }
 
     @PostMapping("/set-reward")
-    public ApiResponse<?> setReward(@AuthenticationPrincipal User user) {
+    public ApiResponse<?> setReward(@AuthenticationPrincipal User user, @RequestBody Map<String, Object> body) {
         if (user == null) return ApiResponse.fail("Unauthorized");
+        if (!(body.get("collectionId") instanceof Number collectionId)) return ApiResponse.fail("Thiếu bộ sưu tập");
         try {
-            return ApiResponse.ok(stickers.claimSetReward(user.getId()));
+            return ApiResponse.ok(stickers.claimSetReward(user.getId(), collectionId.longValue()));
         } catch (IllegalStateException e) {
             return ApiResponse.fail(e.getMessage());
         }
