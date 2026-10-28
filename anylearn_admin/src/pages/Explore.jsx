@@ -84,17 +84,19 @@ function PostDrawer({ post, open, onClose, onSaved }) {
               <Form.Item name="mediaUrl" noStyle><Input placeholder="https://..." /></Form.Item>
               {kind === 'image' && <UploadButton onDone={url => form.setFieldValue('mediaUrl', url)} />}
               {kind === 'video' && bunny && !bunny.enabled && <Typography.Text type="secondary">Chưa bật tính năng tải video lên (cần tài khoản Bunny, xem mục Bunny trong hướng dẫn admin). Tạm thời hãy dán link YouTube hoặc link file mp4 vào ô trên.</Typography.Text>}
-              {kind === 'video' && bunny?.enabled && <Upload showUploadList={false} accept="video/*" disabled={uploads.length > 0} beforeUpload={file => { uploadVideo(file); return false }}>
-                <Button icon={<VideoCameraAddOutlined />} disabled={uploads.length > 0}>Tải video lên</Button>
-              </Upload>
-              {uploads.map(u => (
+              {kind === 'video' && bunny?.enabled && (
+                <Upload showUploadList={false} accept="video/*" disabled={uploads.length > 0} beforeUpload={file => { uploadVideo(file); return false }}>
+                  <Button icon={<VideoCameraAddOutlined />} disabled={uploads.length > 0}>Tải video lên</Button>
+                </Upload>
+              )}
+              {kind === 'video' && uploads.map(u => (
                 <div key={u.id}>
                   <Progress percent={u.percent} size="small" />
                   <Typography.Text type="secondary" style={{ fontSize: 12 }}>
                     Bạn có thể đóng form hoặc sang trang khác, video vẫn tiếp tục tải (đừng đóng tab). <a onClick={() => cancelVideoUpload(u.id)}>Hủy tải</a>
                   </Typography.Text>
                 </div>
-              ))}}
+              ))}
             </Space>
           </Form.Item>
         )}
