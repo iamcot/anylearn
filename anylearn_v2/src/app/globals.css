@@ -373,15 +373,16 @@ body {
 }
 
 /* Vui học: Ali (mascot) walks along the hill without turning around, bobs, swings arms and blinks */
-@keyframes ali-walk { from { transform: translateX(0) } to { transform: translateX(150%) } }
 @keyframes ali-bob { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-3px) } }
 @keyframes ali-step-a { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-4px) } }
 @keyframes ali-step-b { 0%, 100% { transform: translateY(-4px) } 50% { transform: translateY(0) } }
 @keyframes ali-swing-a { 0%, 100% { transform: rotate(14deg) } 50% { transform: rotate(-14deg) } }
 @keyframes ali-swing-b { 0%, 100% { transform: rotate(-14deg) } 50% { transform: rotate(14deg) } }
+@keyframes ali-stride-a { 0%, 100% { transform: translate(-4px, 0) } 50% { transform: translate(5px, -3px) } }
+@keyframes ali-stride-b { 0%, 100% { transform: translate(5px, -3px) } 50% { transform: translate(-4px, 0) } }
+@keyframes ali-wave { 0%, 100% { transform: rotate(-150deg) } 50% { transform: rotate(-110deg) } }
 @keyframes ali-blink { 0%, 92%, 100% { transform: scaleY(1) } 96% { transform: scaleY(.1) } }
 @keyframes ali-pop { from { transform: scale(.85) translateY(4px); opacity: 0 } to { transform: scale(1) translateY(0); opacity: 1 } }
-.ali-walk { animation: ali-walk 11s ease-in-out infinite alternate }
 .ali-bob { animation: ali-bob .55s ease-in-out infinite }
 .ali-leg-a { animation: ali-step-a .55s ease-in-out infinite }
 .ali-leg-b { animation: ali-step-b .55s ease-in-out infinite }
@@ -389,9 +390,12 @@ body {
 .ali-arm-b { animation: ali-swing-b .55s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 0 }
 .ali-eyes { animation: ali-blink 4s infinite; transform-box: fill-box; transform-origin: 50% 50% }
 .ali-pop { animation: ali-pop .3s ease-out }
+.ali-stride-a { animation: ali-stride-a .55s ease-in-out infinite }
+.ali-stride-b { animation: ali-stride-b .55s ease-in-out infinite }
+.ali-wave { animation: ali-wave .5s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 0 }
 .ali-still .ali-bob, .ali-still .ali-leg-a, .ali-still .ali-leg-b, .ali-still .ali-arm-a, .ali-still .ali-arm-b { animation: none }
 @media (prefers-reduced-motion: reduce) {
-  .ali-walk, .ali-bob, .ali-leg-a, .ali-leg-b, .ali-arm-a, .ali-arm-b, .ali-eyes, .ali-pop { animation: none }
+  .ali-bob, .ali-stride-a, .ali-stride-b, .ali-wave, .ali-leg-a, .ali-leg-b, .ali-arm-a, .ali-arm-b, .ali-eyes, .ali-pop { animation: none }
 }
 
 /* Vui học: light from the sun, several layers that sway and breathe */

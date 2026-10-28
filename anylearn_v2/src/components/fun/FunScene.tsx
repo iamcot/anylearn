@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { claimCheckin, type CheckinStatus } from '@/lib/api/fun'
 import { afterClaim } from '@/lib/fun/checkin'
 import { aliLines, type AliContext } from '@/lib/fun/ali'
-import { Ali, AliBubble } from './Ali'
+import { Ali, AliBubble, useAliWalk } from './Ali'
 import SceneBackground from './SceneBackground'
 
 // Ali says one line after another; the key remounts this when the context changes so the first line shows at once.
@@ -37,6 +37,7 @@ export default function FunScene({ token, initial, reminder, onClaimed }: { toke
   const busy = phase.kind === 'opening'
   const canOpen = status.enabled && !status.claimedToday
   const ctx = contextOf(status, phase)
+  const walk = useAliWalk()
 
   const open = async () => {
     if (busy || !canOpen) return
@@ -67,9 +68,9 @@ export default function FunScene({ token, initial, reminder, onClaimed }: { toke
       </div>
 
       <div className="absolute bottom-[26px] left-4 w-14">
-        <div className="ali-walk relative">
+        <div className="relative" style={{ transform: `translateX(${walk.atEnd ? 150 : 0}%)`, transition: walk.walkMs ? `transform ${walk.walkMs}ms linear` : 'none' }}>
           <AliSpeech key={ctx.kind} lines={aliLines(ctx, ctx.kind === 'done' || ctx.kind === 'claimed' ? reminder : null)} />
-          <Ali walking={!busy} />
+          <Ali view={walk.view} moving={walk.moving} waving={walk.waving} />
         </div>
       </div>
 
