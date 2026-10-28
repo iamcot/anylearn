@@ -38,9 +38,9 @@ export default function ItemShop({ token, shop, buyLeft, onBought }: { token: st
         <span className="inline-flex items-center gap-1 text-sm font-black text-[#b45309]"><CoinIcon className="size-5" /> {shop.coins}</span>
       </div>
       <p className="m-0 mt-1 text-xs text-muted">Mua bằng <BrandText text={shop.coinName} coinName={shop.coinName} />, còn {buyLeft} lượt mua vật phẩm hôm nay.</p>
-      {list(items)}
       {packs.length > 0 && <h3 className="m-0 mt-4 text-sm font-extrabold">Gói tập luyện</h3>}
       {packs.length > 0 && list(packs)}
+      {list(items)}
       <Link href="/fun/shop" className="mt-3 block text-center text-sm font-bold text-green-dark no-underline">Xem cả cửa hàng <BrandText text={shop.coinName} coinName={shop.coinName} /> ›</Link>
     </section>
   )
