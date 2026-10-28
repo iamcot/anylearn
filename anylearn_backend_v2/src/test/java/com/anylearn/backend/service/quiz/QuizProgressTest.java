@@ -27,10 +27,27 @@ class QuizProgressTest {
     }
 
     @Test
-    void enoughStarsRankUpAndKeepTheExtra() {
+    void enoughStarsRankUpStartWithOneStarAndKeepTheExtra() {
         var r = QuizProgress.apply(stars, new QuizProgress.State(0, 4, 0), true, 3, false);
         assertTrue(r.rankedUp());
-        assertEquals(new QuizProgress.State(1, 2, 1), r.after());
+        assertEquals(new QuizProgress.State(1, 3, 1), r.after());
+    }
+
+    @Test
+    void fullBarStartsTheNextRankAtOneStar() {
+        var r = QuizProgress.apply(stars, new QuizProgress.State(0, 4, 1), true, 1, false);
+        assertTrue(r.rankedUp());
+        assertEquals(new QuizProgress.State(1, 1, 1), r.after());
+    }
+
+    @Test
+    void losingTheOneStarOfANewRankDoesNotDropYetThenTheNextMissDoes() {
+        var first = QuizProgress.apply(stars, new QuizProgress.State(1, 1, 1), false, 1, false);
+        assertEquals(new QuizProgress.State(1, 0, 0), first.after());
+        assertFalse(first.rankedDown());
+        var second = QuizProgress.apply(stars, first.after(), false, 1, false);
+        assertTrue(second.rankedDown());
+        assertEquals(new QuizProgress.State(0, 4, 1), second.after());
     }
 
     @Test

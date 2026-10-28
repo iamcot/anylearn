@@ -26,8 +26,9 @@ public final class QuizProgress {
 
     /**
      * Applies one graded question. `multiplier` (1, 2 or 3) counts only when the answer is right; `shield` keeps the
-     * stars and the guard when it is wrong. At 0 stars a first miss only costs the guard, a second one drops the rank
-     * (to `max - 1` stars of the lower rank, with the guard back); the lowest rank never drops.
+     * stars and the guard when it is wrong. A new rank starts with 1 star (the extra stars of a big win carry over). Losing the
+     * last star of a rank above the lowest only empties it (guard off); the next miss drops the rank (to `max - 1`
+     * stars of the lower rank, guard back); the lowest rank never drops.
      */
     public static Result apply(List<Integer> stars, State before, boolean correct, int multiplier, boolean shield) {
         int rank = before.rank();
@@ -39,7 +40,7 @@ public final class QuizProgress {
             have += gained;
             boolean up = false;
             while (rank < last && have >= needed(stars, rank)) {
-                have -= needed(stars, rank);
+                have = have - needed(stars, rank) + 1;
                 rank++;
                 up = true;
                 guard = 1;
@@ -50,6 +51,7 @@ public final class QuizProgress {
         if (shield) return new Result(before, false, 0, false, false, false, true);
         if (have > 0) {
             have--;
+            if (have == 0 && rank > 0) guard = 0;
             return new Result(new State(rank, have, guard), false, -1, false, false, false, false);
         }
         if (guard == 1) return new Result(new State(rank, 0, 0), false, 0, false, false, true, false);
