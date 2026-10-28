@@ -49,7 +49,7 @@ export function cancelVideoUpload(id) {
   message.info(`Đã hủy tải video "${u.title}"`)
 }
 
-export async function startVideoUpload({ postId, title, file }) {
+export async function startVideoUpload({ postId, title, file, onDone }) {
   const id = `${postId}-${Date.now()}`
   uploads = [...uploads, { id, postId, title, percent: 0, tus: null }]
   emit()
@@ -75,6 +75,7 @@ export async function startVideoUpload({ postId, title, file }) {
           const done = await client.put(`/admin/explore/posts/${postId}/media`, { mediaUrl: info.mediaUrl, posterUrl: info.posterUrl }).then(r => r.data)
           if (done.resultCode !== 1) throw new Error(done.message)
           remove(id)
+          onDone?.({ mediaUrl: info.mediaUrl, posterUrl: info.posterUrl })
           message.success(`Video "${title}" đã tải xong và gắn vào bài. Bunny cần vài phút xử lý trước khi phát được, bài đang ở Nháp.`, 8)
           onFinished()
         } catch (e) {

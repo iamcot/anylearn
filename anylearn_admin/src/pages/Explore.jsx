@@ -1,6 +1,6 @@
 import { Alert, Button, Card, Col, Drawer, Form, Input, InputNumber, Popconfirm, Progress, Radio, Row, Select, Space, Statistic, Switch, Table, Tabs, Tag, Typography, Upload, message } from 'antd'
 import { UploadOutlined, VideoCameraAddOutlined } from '@ant-design/icons'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import client from '../api/client'
 import { fmtDateTime } from '../utils/format'
@@ -30,31 +30,40 @@ function UploadButton({ onDone }) {
 function PostDrawer({ post, open, onClose, onSaved }) {
   const [form] = Form.useForm()
   const kind = Form.useWatch('kind', form)
-  const title = Form.useWatch('title', form)
   const { data: bunny } = useQuery({ queryKey: ['admin-explore-video-status'], queryFn: () => client.get('/admin/explore/video-upload/status').then(r => r.data?.data ?? { enabled: false }) })
   useEffect(() => {
     if (open) form.setFieldsValue(post ?? { kind: 'article', status: 'draft', pinned: false, title: '', body: '', mediaUrl: '', posterUrl: '', itemId: null })
   }, [open, post, form])
-  // The post is saved as a draft first, then the video goes up in the background: the form can be closed and the admin can work elsewhere.
-  const uploadInBackground = async file => {
+  // Picking a video saves the post as a draft (so the upload has a post to belong to) and starts the upload. The form stays open and shows
+  // the progress; if it is closed the upload goes on in the background and attaches the clip to the post when it ends.
+  const [createdId, setCreatedId] = useState(null)
+  const postId = post?.id ?? createdId
+  const mounted = useRef(true)
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false } }, [])
+  useEffect(() => { if (!open) setCreatedId(null) }, [open])
+  const uploads = useVideoUploads().filter(u => u.postId === postId)
+  const uploadVideo = async file => {
     try {
       await form.validateFields(['title'])
     } catch { return }
     const values = form.getFieldsValue()
-    let postId = post?.id
-    if (!postId) {
+    let id = postId
+    if (!id) {
       const res = await client.post('/admin/explore/posts', { ...values, kind: 'video', status: 'draft', mediaUrl: '', itemId: values.itemId || null }).then(r => r.data)
       if (res.resultCode !== 1) return message.error(res.message)
-      postId = res.data.id
+      id = res.data.id
+      setCreatedId(id)
+      onSaved()
     }
-    startVideoUpload({ postId, title: values.title, file })
-    message.info('Bài đã lưu ở trạng thái Nháp. Video đang tải lên ở nền, bạn có thể làm việc khác.')
-    onSaved()
-    onClose()
+    startVideoUpload({
+      postId: id, title: values.title, file,
+      // when the form is still on screen it takes the new links too, so pressing Lưu afterwards does not wipe them
+      onDone: ({ mediaUrl, posterUrl }) => { if (mounted.current) form.setFieldsValue({ mediaUrl, ...(form.getFieldValue('posterUrl') ? {} : { posterUrl }) }) },
+    })
   }
   const save = useMutation({
-    mutationFn: values => (post?.id
-      ? client.put(`/admin/explore/posts/${post.id}`, values)
+    mutationFn: values => (postId
+      ? client.put(`/admin/explore/posts/${postId}`, values)
       : client.post('/admin/explore/posts', values)).then(r => r.data),
     onSuccess: res => {
       if (res.resultCode !== 1) return message.error(res.message)
@@ -64,7 +73,7 @@ function PostDrawer({ post, open, onClose, onSaved }) {
     },
   })
   return (
-    <Drawer title={post?.id ? 'Sửa bài' : 'Bài mới'} open={open} onClose={onClose} width={520} destroyOnClose>
+    <Drawer title={postId ? 'Sửa bài' : 'Bài mới'} open={open} onClose={onClose} width={520} destroyOnClose>
       <Form form={form} layout="vertical" onFinish={v => save.mutate({ ...v, itemId: v.itemId || null })}>
         <Form.Item name="kind" label="Loại bài"><Radio.Group options={Object.entries(KINDS).map(([value, label]) => ({ value, label }))} /></Form.Item>
         <Form.Item name="title" label="Tiêu đề" rules={[{ required: true, message: 'Nhập tiêu đề' }]}><Input maxLength={160} /></Form.Item>
@@ -75,9 +84,17 @@ function PostDrawer({ post, open, onClose, onSaved }) {
               <Form.Item name="mediaUrl" noStyle><Input placeholder="https://..." /></Form.Item>
               {kind === 'image' && <UploadButton onDone={url => form.setFieldValue('mediaUrl', url)} />}
               {kind === 'video' && bunny && !bunny.enabled && <Typography.Text type="secondary">Chưa bật tính năng tải video lên (cần tài khoản Bunny, xem mục Bunny trong hướng dẫn admin). Tạm thời hãy dán link YouTube hoặc link file mp4 vào ô trên.</Typography.Text>}
-              {kind === 'video' && bunny?.enabled && <Upload showUploadList={false} accept="video/*" beforeUpload={file => { uploadInBackground(file); return false }}>
-                <Button icon={<VideoCameraAddOutlined />}>Tải video lên (chạy nền)</Button>
-              </Upload>}
+              {kind === 'video' && bunny?.enabled && <Upload showUploadList={false} accept="video/*" disabled={uploads.length > 0} beforeUpload={file => { uploadVideo(file); return false }}>
+                <Button icon={<VideoCameraAddOutlined />} disabled={uploads.length > 0}>Tải video lên</Button>
+              </Upload>
+              {uploads.map(u => (
+                <div key={u.id}>
+                  <Progress percent={u.percent} size="small" />
+                  <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                    Bạn có thể đóng form hoặc sang trang khác, video vẫn tiếp tục tải (đừng đóng tab). <a onClick={() => cancelVideoUpload(u.id)}>Hủy tải</a>
+                  </Typography.Text>
+                </div>
+              ))}}
             </Space>
           </Form.Item>
         )}
