@@ -101,7 +101,7 @@ public class AiSuggestionService {
         Long id;
         try {
             jdbc.update("INSERT INTO ai_suggestions (user_id, learner_id, day, model, status, candidates, input_tokens, output_tokens, items_json) VALUES (?,?,?,?,?,?,?,?,?)",
-                    account.getId(), pool.learnerId(), today, anthropic.model(), usable ? "ai" : "fallback", ranked.size(), answer.inputTokens(), answer.outputTokens(), toJson(stored));
+                    account.getId(), pool.learnerId(), today, anthropic.model(AiUsageService.SUGGEST), usable ? "ai" : "fallback", ranked.size(), answer.inputTokens(), answer.outputTokens(), toJson(stored));
             id = jdbc.queryForObject("SELECT id FROM ai_suggestions WHERE learner_id = ? AND day = ?", Long.class, pool.learnerId(), today);
         } catch (DuplicateKeyException e) {
             return answer(account, pool.learnerId(), savedFor(pool.learnerId(), today));

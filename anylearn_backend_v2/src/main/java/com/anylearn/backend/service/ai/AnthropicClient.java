@@ -23,13 +23,16 @@ public class AnthropicClient {
     private final String apiKey;
     private final String model;
     private final AiUsageService usage;
+    private final AiModelSettings models;
 
     public AnthropicClient(@Qualifier("anthropicRestTemplate") RestTemplate http,
                            @Value("${app.ai.base-url:https://api.anthropic.com}") String baseUrl,
                            @Value("${app.ai.api-key:}") String apiKey,
                            @Value("${app.ai.model:claude-haiku-5-5}") String model,
-                           AiUsageService usage) {
+                           AiUsageService usage,
+                           AiModelSettings models) {
         this.usage = usage;
+        this.models = models;
         this.http = http;
         this.baseUrl = baseUrl;
         this.apiKey = apiKey;
@@ -40,8 +43,14 @@ public class AnthropicClient {
         return apiKey != null && !apiKey.isBlank();
     }
 
+    /** The default model (`app.ai.model`); a feature may be set to another one, see {@link #model(String)}. */
     public String model() {
         return model;
+    }
+
+    /** The model the feature is set to right now. */
+    public String model(String feature) {
+        return models.modelFor(feature);
     }
 
     private static final Map<String, Object> PICK_TOOL = Map.of(
@@ -62,6 +71,7 @@ public class AnthropicClient {
 
     /** Same call with another forced tool: the answer is the tool's JSON input. Every call is logged under `feature` (see {@link AiUsageService}). */
     public Answer askTool(String feature, String system, String user, int maxTokens, Map<String, Object> tool) {
+        String model = models.modelFor(feature);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("x-api-key", apiKey);

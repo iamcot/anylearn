@@ -1,5 +1,6 @@
 package com.anylearn.backend.service.ai;
 
+import java.util.List;
 import java.util.Map;
 
 /** List prices of the Anthropic API in USD per million tokens (input, output), used only to show an estimate in the back office. */
@@ -21,6 +22,10 @@ public final class AiPricing {
             Map.entry("claude-opus-4-6", new double[]{5.00, 25.00}),
             Map.entry("claude-fable-5-1", new double[]{10.00, 50.00}),
             Map.entry("claude-fable-5", new double[]{10.00, 50.00}));
+
+    /** Models an admin may pick for a feature, cheapest first. */
+    public static final List<String> MODELS = List.of("claude-haiku-5-5", "claude-haiku-4-5", "claude-sonnet-5-5", "claude-sonnet-5", "claude-sonnet-4-6",
+            "claude-opus-5-5", "claude-opus-5", "claude-opus-4-8", "claude-fable-5-1");
 
     /** USD per million tokens {input, output} or null for a model we have no price for. */
     public static double[] prices(String model) {

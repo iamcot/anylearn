@@ -1,6 +1,6 @@
-import { Alert, Card, Col, Row, Segmented, Space, Statistic, Table, Typography } from 'antd'
-import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { Alert, Button, Card, Col, Row, Segmented, Select, Space, Statistic, Table, Typography, message } from 'antd'
+import { useEffect, useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import client from '../api/client'
 
 const fmt = v => Number(v ?? 0).toLocaleString('vi-VN')
@@ -10,9 +10,47 @@ const usd = v => {
   return `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: n < 1 ? 4 : 2 })}`
 }
 
+// Which model each AI feature calls; saved at once, no deploy needed.
+function ModelPicker({ onSaved }) {
+  const qc = useQueryClient()
+  const { data, isLoading } = useQuery({ queryKey: ['admin-ai-models'], queryFn: () => client.get('/admin/ai-usage/models').then(r => r.data?.data) })
+  const [picks, setPicks] = useState({})
+  const [saving, setSaving] = useState(false)
+  useEffect(() => { if (data) setPicks(Object.fromEntries(data.features.map(f => [f.feature, f.model]))) }, [data])
+  const options = (data?.models ?? []).map(m => ({ value: m.model, label: `${m.model}  ($${m.priceInput} gửi đi / $${m.priceOutput} nhận về mỗi 1 triệu token)` }))
+  const dirty = (data?.features ?? []).some(f => picks[f.feature] !== f.model)
+  const save = async () => {
+    setSaving(true)
+    try {
+      const res = await client.put('/admin/ai-usage/models', { models: picks }).then(r => r.data)
+      if (res?.resultCode !== 1) message.error(res.message || 'Không lưu được')
+      else { message.success('Đã lưu, áp dụng từ lần gọi AI kế tiếp'); qc.invalidateQueries({ queryKey: ['admin-ai-models'] }); onSaved?.() }
+    } catch (e) {
+      message.error(e.message || 'Không lưu được')
+    } finally { setSaving(false) }
+  }
+  return (
+    <Card title="Mô hình cho từng tính năng" style={{ marginTop: 16 }} loading={isLoading}>
+      <Typography.Paragraph type="secondary">
+        Mỗi tính năng chọn một mô hình riêng. Mô hình rẻ (Haiku) đủ cho việc nhẹ, mô hình mạnh hơn (Sonnet, Opus) chính xác hơn nhưng đắt hơn nhiều lần. Đổi xong có hiệu lực ngay, không cần deploy; mặc định của máy chủ là {data?.defaultModel}.
+      </Typography.Paragraph>
+      <Space direction="vertical" style={{ width: '100%' }}>
+        {(data?.features ?? []).map(f => (
+          <Row key={f.feature} gutter={12} align="middle">
+            <Col xs={24} md={8}>{f.label}</Col>
+            <Col xs={24} md={16}><Select style={{ width: '100%' }} value={picks[f.feature]} options={options} onChange={v => setPicks(p => ({ ...p, [f.feature]: v }))} /></Col>
+          </Row>
+        ))}
+        <Button type="primary" loading={saving} disabled={!dirty} onClick={save}>Lưu</Button>
+      </Space>
+    </Card>
+  )
+}
+
 // Tokens in and out of every feature that calls the Anthropic API (AnthropicClient logs each call into ai_usage_log).
 export default function AiUsage() {
   const [days, setDays] = useState(30)
+  const qc = useQueryClient()
   const { data, isLoading } = useQuery({
     queryKey: ['admin-ai-usage', days],
     queryFn: () => client.get('/admin/ai-usage', { params: { days } }).then(r => r.data?.data),
@@ -46,7 +84,7 @@ export default function AiUsage() {
       </Space>
       <Typography.Paragraph type="secondary">
         Mọi lần gọi API của Anthropic (gợi ý khóa học, so sánh khóa học, quiz) đều ghi vào đây, kể cả lần bị lỗi. Số liệu bắt đầu từ lúc bản này được triển khai.
-        Mô hình đang dùng: {data?.model ?? '–'}.
+        Mô hình mặc định của máy chủ: {data?.model ?? '–'} (mỗi tính năng có thể chọn mô hình riêng ở bảng bên dưới).
         Chi phí là số ước tính theo giá niêm yết của Anthropic cho từng mô hình (USD cho mỗi triệu token, xem bảng "Theo mô hình"), chưa tính giảm giá khi dùng cache hay phụ phí prompt dài trên 100.000 token.
       </Typography.Paragraph>
       {data?.hasUnpriced && <Alert type="info" showIcon style={{ marginBottom: 16 }} message="Có mô hình chưa có giá trong hệ thống, chi phí của mô hình đó đang tính là $0." />}
@@ -60,6 +98,8 @@ export default function AiUsage() {
         <Col xs={12} md={6}><Card loading={isLoading}><Statistic title="Chi phí ước tính" value={usd(t?.costUsd)} /></Card></Col>
         <Col xs={12} md={6}><Card loading={isLoading}><Statistic title="Chi phí TB mỗi lần gọi" value={usd(t?.calls ? t.costUsd / t.calls : 0)} /></Card></Col>
       </Row>
+
+      <ModelPicker onSaved={() => qc.invalidateQueries({ queryKey: ['admin-ai-usage'] })} />
 
       <Card title="Theo tính năng" style={{ marginTop: 16 }} loading={isLoading}>
         <Table size="small" rowKey="feature" pagination={false} dataSource={features} scroll={{ x: 700 }}

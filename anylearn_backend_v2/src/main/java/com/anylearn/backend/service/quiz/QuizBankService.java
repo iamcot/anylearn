@@ -186,7 +186,7 @@ public class QuizBankService {
             return jdbc.update("INSERT IGNORE INTO quiz_questions (topic, difficulty, body, opt_a, opt_b, opt_c, opt_d, correct, explanation, hash, status, verified, review_note, model) "
                             + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     topic, difficulty, c.body(), c.options().get(0), c.options().get(1), c.options().get(2), c.options().get(3),
-                    c.correct(), c.explanation(), QuizRules.hash(c.body()), status, verified, note, anthropic.model()) > 0;
+                    c.correct(), c.explanation(), QuizRules.hash(c.body()), status, verified, note, anthropic.model(AiUsageService.QUIZ_WRITE)) > 0;
         } catch (Exception e) {
             log.warn("[quiz-bank] insert failed: {}", e.getMessage());
             return false;

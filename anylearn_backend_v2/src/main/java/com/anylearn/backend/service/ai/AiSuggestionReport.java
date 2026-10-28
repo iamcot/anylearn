@@ -28,7 +28,7 @@ public class AiSuggestionReport {
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("enabled", settings.aiEnabled());
         out.put("configured", anthropic.isConfigured());
-        out.put("model", anthropic.model());
+        out.put("model", anthropic.model(AiUsageService.SUGGEST));
 
         Map<String, Object> usage = jdbc.queryForMap("""
                 SELECT COUNT(*) AS suggestions, COALESCE(SUM(status <> 'ai'),0) AS fallbacks, COUNT(DISTINCT learner_id) AS learners, COALESCE(SUM(input_tokens),0) AS input_tokens,
