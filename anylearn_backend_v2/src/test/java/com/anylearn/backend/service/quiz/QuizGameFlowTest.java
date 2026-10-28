@@ -192,7 +192,7 @@ class QuizGameFlowTest {
     void rankUpPaysCoinsAShieldAndASticker() {
         long u = user();
         questions(1, 20);
-        jdbc.update("INSERT INTO quiz_profiles (user_id, rank_idx, stars, guard) VALUES (?, 0, 4, 1)", u);
+        jdbc.update("INSERT INTO quiz_profiles (user_id, rank_idx, stars, guard) VALUES (?, 0, 5, 1)", u);
         long id = ((Number) game.start(u, null, false, null).get("attemptId")).longValue();
         Map<String, Object> res = game.answer(u, id, rightPosition(id), false);
         assertEquals(true, res.get("rankedUp"));
@@ -200,6 +200,18 @@ class QuizGameFlowTest {
         assertEquals(20L, coins.balance(u));
         assertEquals(1, map(res.get("reward")).get("shield"));
         assertNotNull(map(res.get("reward")).get("sticker"));
+    }
+
+    @Test
+    void rankRewardIsPaidOnlyOncePerRank() {
+        long u = user();
+        questions(1, 20);
+        jdbc.update("INSERT INTO quiz_profiles (user_id, rank_idx, stars, guard, best_rank_idx) VALUES (?, 0, 5, 1, 1)", u);
+        long id = ((Number) game.start(u, null, false, null).get("attemptId")).longValue();
+        Map<String, Object> res = game.answer(u, id, rightPosition(id), false);
+        assertEquals(true, res.get("rankedUp"));
+        assertEquals(0L, coins.balance(u));
+        assertTrue(map(res.get("reward")).isEmpty());
     }
 
     @Test

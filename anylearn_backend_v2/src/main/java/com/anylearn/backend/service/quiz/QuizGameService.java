@@ -521,8 +521,9 @@ public class QuizGameService {
         out.put("rankBefore", p.rank());
 
         Map<String, Object> reward = new LinkedHashMap<>();
-        if (r.rankedUp()) {
-            int ranksGained = after.rank() - p.rank();
+        // the reward of a rank is paid once per person: only ranks above the best one reached so far pay
+        if (r.rankedUp() && after.rank() > p.best()) {
+            int ranksGained = after.rank() - p.best();
             int coinReward = settings.rankRewardCoins() * Math.max(ranksGained, 1);
             if (coinReward > 0) coins.credit(userId, coinReward, CoinService.SOURCE_QUIZ_RANK, "Lên hạng " + QuizRules.RANKS.get(after.rank()).label());
             int shieldAdded = addItem(userId, QuizItems.SHIELD, 1, "rankup", QuizRules.RANKS.get(after.rank()).key());

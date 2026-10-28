@@ -30,14 +30,17 @@ class QuizProgressTest {
     void enoughStarsRankUpStartWithOneStarAndKeepTheExtra() {
         var r = QuizProgress.apply(stars, new QuizProgress.State(0, 4, 0), true, 3, false);
         assertTrue(r.rankedUp());
-        assertEquals(new QuizProgress.State(1, 3, 1), r.after());
+        assertEquals(new QuizProgress.State(1, 2, 1), r.after());
     }
 
     @Test
-    void fullBarStartsTheNextRankAtOneStar() {
-        var r = QuizProgress.apply(stars, new QuizProgress.State(0, 4, 1), true, 1, false);
-        assertTrue(r.rankedUp());
-        assertEquals(new QuizProgress.State(1, 1, 1), r.after());
+    void fullBarDoesNotPromoteTheNextRightAnswerDoesAtOneStar() {
+        var full = QuizProgress.apply(stars, new QuizProgress.State(0, 4, 1), true, 1, false);
+        assertFalse(full.rankedUp());
+        assertEquals(new QuizProgress.State(0, 5, 1), full.after());
+        var up = QuizProgress.apply(stars, full.after(), true, 1, false);
+        assertTrue(up.rankedUp());
+        assertEquals(new QuizProgress.State(1, 1, 1), up.after());
     }
 
     @Test
@@ -55,7 +58,7 @@ class QuizProgressTest {
         var r = QuizProgress.apply(stars, new QuizProgress.State(0, 4, 1), true, 3, false);
         assertEquals(1, r.after().rank());
         var big = QuizProgress.apply(List.of(1, 1, 1), new QuizProgress.State(0, 0, 1), true, 3, false);
-        assertEquals(3, big.after().rank());
+        assertEquals(2, big.after().rank());
     }
 
     @Test

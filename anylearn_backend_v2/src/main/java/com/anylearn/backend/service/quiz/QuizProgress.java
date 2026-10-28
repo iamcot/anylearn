@@ -26,7 +26,7 @@ public final class QuizProgress {
 
     /**
      * Applies one graded question. `multiplier` (1, 2 or 3) counts only when the answer is right; `shield` keeps the
-     * stars and the guard when it is wrong. A new rank starts with 1 star (the extra stars of a big win carry over). Losing the
+     * stars and the guard when it is wrong. Filling the bar (5/5) does not promote: the next right answer does, and the new rank starts with 1 star (the extra stars of a big win carry over). Losing the
      * last star of a rank above the lowest only empties it (guard off); the next miss drops the rank (to `max - 1`
      * stars of the lower rank, guard back); the lowest rank never drops.
      */
@@ -39,8 +39,8 @@ public final class QuizProgress {
             int gained = Math.max(multiplier, 1);
             have += gained;
             boolean up = false;
-            while (rank < last && have >= needed(stars, rank)) {
-                have = have - needed(stars, rank) + 1;
+            while (rank < last && have > needed(stars, rank)) {
+                have = have - needed(stars, rank);
                 rank++;
                 up = true;
                 guard = 1;
