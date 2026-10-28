@@ -110,7 +110,14 @@ V66 (chỉ ALTER, bảng gần như rỗng; nếu prod có dòng cũ của porta
 | 17.6 | Gợi ý khi gần xong | |
 | 17.7 | `docs/huong-dan-admin.md`, `CLAUDE.md`, `http/learn.http` | |
 
-## 8. Câu hỏi cho chủ sản phẩm
+## 8. Đã chốt (28/10/2026)
+
+1. Thư viện Bunny riêng có ký link. Bài xem thử vẫn ở chung thư viện, link được ký cho mọi người khi bài đang bật `is_free`.
+2. Xem trọn đời.
+3. Tiến độ riêng từng người học, phụ huynh cũng là một người học.
+4. Chỉ admin tải video.
+
+## 8b. Câu hỏi ban đầu
 
 1. Video trả phí đặt ở **thư viện Bunny riêng có ký link** (đề xuất) hay dùng chung thư viện Khám phá (đơn giản, nhưng ai có link là xem được)?
 2. Thời hạn xem: **trọn đời** (đề xuất), hoặc theo `cycle` của khóa nếu admin nhập?

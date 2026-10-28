@@ -19,6 +19,7 @@ import AiSuggestEntry from '@/components/aisuggest/AiSuggestEntry'
 import TodayRecommendation from '@/components/recommendations/TodayRecommendation'
 import SurveyCard from '@/components/today/SurveyCard'
 import MissedAttendanceCard from '@/components/today/MissedAttendanceCard'
+import VideoTodayCard from '@/components/today/VideoTodayCard'
 import SlotCard from '@/components/today/SlotCard'
 import WeekStrip from '@/components/today/WeekStrip'
 import AppPromptCard from '@/components/pwa/AppPromptCard'
@@ -102,6 +103,7 @@ function TodayContent() {
     <PageFrame>
       <div className="mb-4 empty:hidden"><PendingOrdersCard /></div>
       {token && <div className="mb-4 empty:hidden"><SurveyCard key={selectedId} learnerId={selectedId} token={token} /></div>}
+      {token && <div className="mb-4 empty:hidden"><VideoTodayCard key={selectedId} learnerId={selectedId} token={token} /></div>}
       {token && <div className="mb-4 empty:hidden"><MissedAttendanceCard key={`${selectedId}-${reloadCount}`} learnerId={selectedId} token={token} /></div>}
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <h1 className="text-2xl font-black lg:text-3xl">{titleFor(selected.self)}</h1>

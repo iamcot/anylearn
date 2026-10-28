@@ -49,8 +49,9 @@ public class VideoLearnService {
                     m.put("videoStatus", rs.getString("videoStatus"));
                     m.put("typeValue", rs.getString("typeValue"));
                     int d = rs.getInt("durationSeconds");
+                    Integer duration = rs.wasNull() ? null : d;
                     return new Lesson(rs.getLong("id"), rs.getLong("chapterId"), rs.getString("title"), rs.getString("description"), rs.getString("type"),
-                            rs.getString("typeValue"), rs.getString("videoId"), rs.getString("videoStatus"), rs.wasNull() ? null : d,
+                            rs.getString("typeValue"), rs.getString("videoId"), rs.getString("videoStatus"), duration,
                             rs.getString("posterUrl"), rs.getString("attachments"), rs.getInt("isFree") == 1, VideoCourseAdminService.playable(m));
                 }, itemId);
     }
@@ -131,6 +132,7 @@ public class VideoLearnService {
         }
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("itemId", itemId);
+        jdbc.queryForList("SELECT title, seo_url AS seoUrl, image, price FROM items WHERE id = ?", itemId).stream().findFirst().ifPresent(out::putAll);
         out.put("chapters", chapters);
         out.put("totalChapters", chapters.size());
         out.put("totalLessons", lessons.size());
