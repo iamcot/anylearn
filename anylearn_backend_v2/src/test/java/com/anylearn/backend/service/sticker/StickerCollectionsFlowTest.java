@@ -61,6 +61,7 @@ class StickerCollectionsFlowTest {
     @Test
     void albumGroupsStickersPerCollectionWithProgress() {
         long u = user();
+        int base = (Integer) stickers.album(u).get("total");
         long c = collection("Bộ thử", null, true);
         long a = sticker(c, "Thử 1", "common");
         sticker(c, "Thử 2", "common");
@@ -70,7 +71,7 @@ class StickerCollectionsFlowTest {
         Map<String, Object> mine = byName(album, "Bộ thử");
         assertEquals(3, mine.get("total"));
         assertEquals(1, mine.get("owned"));
-        assertEquals(15, album.get("total"));
+        assertEquals(base + 3, album.get("total"));
         long inCollection = ((List<?>) album.get("items")).stream().filter(i -> ((Map<?, ?>) i).get("collectionId").equals(c)).count();
         assertEquals(3, inCollection);
     }
@@ -78,6 +79,7 @@ class StickerCollectionsFlowTest {
     @Test
     void switchedOffCollectionIsHiddenUnlessThePlayerHoldsAStickerOfIt() {
         long u = user();
+        int base = (Integer) stickers.album(u).get("total");
         long c = collection("Bộ đã tắt", null, false);
         long s = sticker(c, "Cũ 1", "common");
         sticker(c, "Cũ 2", "common");
@@ -86,7 +88,7 @@ class StickerCollectionsFlowTest {
         Map<String, Object> shown = byName(stickers.album(u), "Bộ đã tắt");
         assertEquals(false, shown.get("active"));
         // it does not count towards the overall progress
-        assertEquals(12, stickers.album(u).get("total"));
+        assertEquals(base, stickers.album(u).get("total"));
     }
 
     @Test
