@@ -1,30 +1,31 @@
 'use client'
 
+import BrandText from './BrandText'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { claimCheckin, type CheckinStatus } from '@/lib/api/fun'
 import type { StickerView } from '@/lib/api/stickers'
 import StickerArt from '@/components/fun/sticker/StickerArt'
 import { afterClaim } from '@/lib/fun/checkin'
-import { aliLines, type AliContext } from '@/lib/fun/ali'
-import { Ali, AliBubble, useAliWalk } from './Ali'
+import { leoLines, type LeoContext } from '@/lib/fun/leo'
+import { Leo, LeoBubble, useLeoWalk } from './Leo'
 import SceneBackground from './SceneBackground'
 import CoinIcon from './CoinIcon'
 
-// Ali says one line after another; the key remounts this when the context changes so the first line shows at once.
-function AliSpeech({ lines }: { lines: string[] }) {
+// Leo says one line after another; the key remounts this when the context changes so the first line shows at once.
+function LeoSpeech({ lines }: { lines: string[] }) {
   const [tick, setTick] = useState(0)
   useEffect(() => {
     if (lines.length < 2) return
     const id = setInterval(() => setTick(t => t + 1), 6000)
     return () => clearInterval(id)
   }, [lines.length])
-  return <AliBubble text={lines[tick % lines.length]} />
+  return <LeoBubble text={lines[tick % lines.length]} />
 }
 
 type Phase = { kind: 'idle' } | { kind: 'opening' } | { kind: 'claimed'; points: number; capped: boolean; streak: number; sticker?: StickerView | null } | { kind: 'error'; message: string }
 
-function contextOf(status: CheckinStatus, phase: Phase, coinName: string): AliContext {
+function contextOf(status: CheckinStatus, phase: Phase, coinName: string): LeoContext {
   if (phase.kind === 'opening') return { kind: 'opening' }
   if (phase.kind === 'claimed') return { kind: 'claimed', points: phase.points, capped: phase.capped, streak: phase.streak, sticker: phase.sticker?.name, coinName }
   if (phase.kind === 'error') return { kind: 'error', message: phase.message }
@@ -33,7 +34,7 @@ function contextOf(status: CheckinStatus, phase: Phase, coinName: string): AliCo
   return { kind: 'waiting' }
 }
 
-// The Vui học landing: the scene (background component), Ali who talks in a bubble, the week of the streak and the daily gift.
+// The Vui học landing: the scene (background component), Leo who talks in a bubble, the week of the streak and the daily gift.
 export default function FunScene({ token, initial, reminder, onClaimed }: { token: string; initial: CheckinStatus; reminder?: string | null; onClaimed?: () => void }) {
   const [status, setStatus] = useState(initial)
   const [phase, setPhase] = useState<Phase>({ kind: 'idle' })
@@ -42,7 +43,7 @@ export default function FunScene({ token, initial, reminder, onClaimed }: { toke
   const canOpen = status.enabled && !status.claimedToday
   const coinName = status.coinName
   const ctx = contextOf(status, phase, coinName)
-  const walk = useAliWalk()
+  const walk = useLeoWalk()
 
   const open = async () => {
     if (busy || !canOpen) return
@@ -75,8 +76,8 @@ export default function FunScene({ token, initial, reminder, onClaimed }: { toke
 
       <div className="absolute bottom-[26px] left-4 w-14">
         <div className="relative" style={{ transform: `translateX(${walk.atEnd ? 150 : 0}%)`, transition: walk.walkMs ? `transform ${walk.walkMs}ms linear` : 'none' }}>
-          <AliSpeech key={ctx.kind} lines={aliLines(ctx, ctx.kind === 'done' || ctx.kind === 'claimed' ? reminder : null)} />
-          <Ali view={walk.view} moving={walk.moving} waving={walk.waving} />
+          <LeoSpeech key={ctx.kind} lines={leoLines(ctx, ctx.kind === 'done' || ctx.kind === 'claimed' ? reminder : null)} />
+          <Leo view={walk.view} moving={walk.moving} waving={walk.waving} />
         </div>
       </div>
 
@@ -87,7 +88,7 @@ export default function FunScene({ token, initial, reminder, onClaimed }: { toke
       </button>
       {phase.kind === 'claimed' && phase.sticker && (
         <Link href="/today/fun/sticker" className="absolute right-3 top-12 flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-xs font-extrabold text-ink no-underline shadow">
-          <span className="size-6"><StickerArt sticker={phase.sticker} className="size-full text-xl" /></span> Sticker mới: {phase.sticker.name}
+          <span className="size-6"><StickerArt sticker={phase.sticker} className="size-full text-xl" /></span> Sticker mới: <BrandText text={phase.sticker.name} />
         </Link>
       )}
       {reward > 0 && (

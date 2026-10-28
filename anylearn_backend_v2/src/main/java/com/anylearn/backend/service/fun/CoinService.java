@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * The currency of Vui học (default name "Ali Xu", see {@link FunSettings#coinName()}). It is **not** anyPoint: nothing here touches
+ * The currency of Vui học (default name "Leo Xu", see {@link FunSettings#coinName()}). It is **not** anyPoint: nothing here touches
  * `wallet_c`, creates a `transactions` row or sends a notification. Every game pays and charges through this class so the ledger
  * (`fun_coin_ledger`) is complete. Turning coins into anyPoint or gifts will be designed later.
  */

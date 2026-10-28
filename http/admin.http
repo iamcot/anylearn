@@ -405,7 +405,7 @@ PUT {{baseUrl}}/admin/fun/coins/name
 Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
 Content-Type: application/json
 
-{ "name": "Ali Xu" }
+{ "name": "Leo Xu" }
 
 ###
 POST {{baseUrl}}/admin/fun/coins/adjust

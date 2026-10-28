@@ -37,7 +37,7 @@ export default function FunCheckin() {
   // A rough cost per day: the average of the week's gifts for the people who opened it in the last 7 days.
   const weekAverage = dayPoints.reduce((sum, p) => sum + (p ?? 0), 0) / DAY_COUNT
   const estimate = Math.round(weekAverage * (data?.claimsPerDay7 ?? 0))
-  const coin = data?.coinName ?? 'Ali Xu'
+  const coin = data?.coinName ?? 'Leo Xu'
   const overCap = cap > 0 && estimate > cap
 
   return (

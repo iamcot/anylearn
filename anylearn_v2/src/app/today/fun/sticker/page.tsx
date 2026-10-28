@@ -1,5 +1,6 @@
 'use client'
 
+import BrandText from '@/components/fun/BrandText'
 import Link from 'next/link'
 import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
@@ -44,7 +45,7 @@ export default function StickerPage() {
   const claim = async () => {
     if (!token) return
     const { data, error: err } = await claimSetReward(token)
-    setNote(err ?? `Chúc mừng! Bạn nhận ${data?.points ?? 0} ${album?.coinName ?? 'Ali Xu'} vì đủ bộ sticker.`)
+    setNote(err ?? `Chúc mừng! Bạn nhận ${data?.points ?? 0} ${album?.coinName ?? 'Leo Xu'} vì đủ bộ sticker.`)
     load()
   }
 
@@ -63,7 +64,7 @@ export default function StickerPage() {
             </div>
           </div>
           {!album.enabled && <p className="m-0 rounded-xl bg-amber-50 p-3 text-sm text-amber-900">Game sticker đang tạm nghỉ, album của bạn vẫn được giữ nguyên.</p>}
-          {note && <p className="m-0 rounded-xl bg-green-soft p-3 text-sm font-bold text-green-dark" role="status">{note}</p>}
+          {note && <p className="m-0 rounded-xl bg-green-soft p-3 text-sm font-bold text-green-dark" role="status"><BrandText text={note} coinName={album?.coinName} /></p>}
 
           <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
             {album.items.map(item => <StickerTile key={item.id} item={item} />)}
@@ -75,7 +76,7 @@ export default function StickerPage() {
                 ? <span>Bạn đã nhận thưởng đủ bộ. Giỏi quá!</span>
                 : album.setComplete
                   ? <div className="flex flex-wrap items-center gap-3"><span className="font-bold">Bạn đã đủ bộ!</span><button type="button" onClick={claim} className="min-h-11 cursor-pointer rounded-full border-0 bg-green px-5 font-black text-white">Nhận {album.setReward} {album.coinName}</button></div>
-                  : <span>Sưu tầm đủ bộ để nhận <b>{album.setReward} {album.coinName}</b>.</span>}
+                  : <span>Sưu tầm đủ bộ để nhận <b className="font-extrabold not-italic text-green">{album.setReward} {album.coinName}</b>.</span>}
             </div>
           )}
 

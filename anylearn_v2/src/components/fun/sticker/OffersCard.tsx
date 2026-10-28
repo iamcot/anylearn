@@ -1,5 +1,6 @@
 'use client'
 
+import BrandText from '../BrandText'
 import { useState } from 'react'
 import { acceptOffer, cancelOffer, declineOffer, type StickerOffer } from '@/lib/api/stickers'
 import StickerArt from './StickerArt'
@@ -23,7 +24,7 @@ function Row({ offer, incoming, token, onDone }: { offer: StickerOffer; incoming
         <span aria-hidden>⇄</span>
         <span className="size-11 shrink-0"><StickerArt sticker={offer.want} /></span>
         <div className="min-w-0 flex-1 text-sm">
-          <b>{offer.otherName}</b> {giveText} <b>{offer.give.name}</b>, đổi lấy <b>{offer.want.name}</b>
+          <b>{offer.otherName}</b> {giveText} <b><BrandText text={offer.give.name} /></b>, đổi lấy <b><BrandText text={offer.want.name} /></b>
         </div>
       </div>
       <div className="mt-2 flex gap-2">

@@ -1,5 +1,6 @@
 'use client'
 
+import BrandText from './BrandText'
 import { useEffect, useState } from 'react'
 import CoinIcon from './CoinIcon'
 import { getCoins, type CoinWallet } from '@/lib/api/fun'
@@ -20,10 +21,10 @@ export default function CoinWalletCard({ token, refreshKey }: { token: string; r
   return (
     <section className="mt-4 rounded-2xl border border-line bg-white p-4" aria-label={`Ví ${wallet.coinName}`}>
       <div className="flex items-center justify-between">
-        <h2 className="m-0 text-base font-extrabold">Ví {wallet.coinName}</h2>
+        <h2 className="m-0 text-base font-extrabold">Ví <BrandText text={wallet.coinName} coinName={wallet.coinName} /></h2>
         <span className="inline-flex items-center gap-1.5 text-xl font-black text-[#b45309]"><CoinIcon className="size-6" /> {wallet.balance}</span>
       </div>
-      <p className="mb-0 mt-1 text-sm text-muted">{wallet.coinName} là tiền riêng của các trò chơi, không phải anyPoint.</p>
+      <p className="mb-0 mt-1 text-sm text-muted"><BrandText text={wallet.coinName} coinName={wallet.coinName} /> là tiền riêng của các trò chơi, không phải anyPoint.</p>
       {wallet.history.length > 0 && (
         <ul className="m-0 mt-3 grid list-none gap-1.5 p-0">
           {wallet.history.slice(0, 5).map(row => (

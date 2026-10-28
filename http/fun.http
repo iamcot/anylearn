@@ -48,6 +48,6 @@ POST {{baseUrl}}/stickers/set-reward
 Authorization: Bearer {{jwtToken}}
 
 
-### Balance and last movements of the game currency (Ali Xu)
+### Balance and last movements of the game currency (Leo Xu)
 GET {{baseUrl}}/fun/coins
 Authorization: Bearer {{jwtToken}}

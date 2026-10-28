@@ -17,7 +17,7 @@ public class FunSettings {
     public static final String KEY_CHECKIN_POINTS = "fun/checkin_points";
     public static final String KEY_CHECKIN_DAILY_CAP = "fun/checkin_daily_cap";
     public static final String KEY_COIN_NAME = "fun/coin_name";
-    public static final String DEFAULT_COIN_NAME = "Ali Xu";
+    public static final String DEFAULT_COIN_NAME = "Leo Xu";
 
     private final ConfigurationRepository configurationRepository;
 

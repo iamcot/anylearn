@@ -1,10 +1,10 @@
 import { formatClock, parseLocal } from '@/lib/today/format'
 import type { TodayData } from '@/lib/today/types'
 
-export const ALI_NAME = 'Ali'
+export const LEO_NAME = 'Leo'
 
-/** What Ali knows right now; each kind maps to a few lines he says in turn. New games add their own kinds here (plan 14). */
-export type AliContext =
+/** What Leo knows right now; each kind maps to a few lines he says in turn. New games add their own kinds here (plan 14). */
+export type LeoContext =
   | { kind: 'waiting' }
   | { kind: 'opening' }
   | { kind: 'claimed'; points: number; coinName?: string; capped?: boolean; streak?: number; sticker?: string }
@@ -12,8 +12,8 @@ export type AliContext =
   | { kind: 'closed' }
   | { kind: 'error'; message: string }
 
-/** The lines Ali says for a context, shown one after another; a reminder (class today, fee due...) joins them once the gift is taken. */
-export function aliLines(ctx: AliContext, reminder?: string | null): string[] {
+/** The lines Leo says for a context, shown one after another; a reminder (class today, fee due...) joins them once the gift is taken. */
+export function leoLines(ctx: LeoContext, reminder?: string | null): string[] {
   const extra = reminder ? [reminder] : []
   switch (ctx.kind) {
     case 'waiting':
@@ -22,7 +22,7 @@ export function aliLines(ctx: AliContext, reminder?: string | null): string[] {
       return ['Hộp quà đang rung rinh... chờ chút nhé!']
     case 'claimed': {
       const lines: string[] = []
-      if (ctx.points > 0) lines.push(`Chúc mừng bạn đã nhận được ${ctx.points} ${ctx.coinName ?? 'Ali Xu'}!`)
+      if (ctx.points > 0) lines.push(`Chúc mừng bạn đã nhận được ${ctx.points} ${ctx.coinName ?? 'Leo Xu'}!`)
       if (ctx.sticker) lines.push(`Wow, bạn còn nhận thêm sticker ${ctx.sticker} nữa nè!`)
       if (ctx.capped) lines.push('Hôm nay quà hết phần rồi, mai quay lại nhé!')
       if (ctx.streak && ctx.streak > 1) lines.push(`Chuỗi ${ctx.streak} ngày liên tiếp rồi, giỏi quá!`)

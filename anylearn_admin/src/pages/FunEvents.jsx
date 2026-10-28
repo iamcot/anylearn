@@ -41,7 +41,7 @@ export default function FunEvents() {
     },
     { title: 'Sự kiện', dataIndex: 'type', width: 170, render: t => TYPE_LABELS[t] ?? t },
     { title: 'Chi tiết', dataIndex: 'detail' },
-    { title: data?.coinName ?? 'Ali Xu', dataIndex: 'points', width: 90, align: 'right', render: p => (p ? `+${p}` : '') },
+    { title: data?.coinName ?? 'Leo Xu', dataIndex: 'points', width: 90, align: 'right', render: p => (p ? `+${p}` : '') },
   ]
 
   return (
@@ -59,7 +59,7 @@ export default function FunEvents() {
       <Row gutter={[12, 12]} style={{ marginBottom: 16 }}>
         <Col xs={12} md={6}><Card size="small"><Statistic title="Người chơi hôm nay" value={data?.playersToday ?? 0} /></Card></Col>
         <Col xs={12} md={6}><Card size="small"><Statistic title="Sự kiện hôm nay" value={data?.eventsToday ?? 0} /></Card></Col>
-        <Col xs={12} md={6}><Card size="small"><Statistic title={`${data?.coinName ?? 'Ali Xu'} phát ra hôm nay`} value={data?.pointsToday ?? 0} /></Card></Col>
+        <Col xs={12} md={6}><Card size="small"><Statistic title={`${data?.coinName ?? 'Leo Xu'} phát ra hôm nay`} value={data?.pointsToday ?? 0} /></Card></Col>
         <Col xs={12} md={6}><Card size="small"><Statistic title="Đăng ký từ link giới thiệu" value={data?.referralsToday ?? 0} /></Card></Col>
       </Row>
       <Card>

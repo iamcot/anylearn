@@ -9,7 +9,7 @@ export function giftNote(status: CheckinStatus): string {
 }
 
 /** What the toast says after a claim. */
-export function claimMessage(claim: CheckinClaim, coinName = 'Ali Xu'): string {
+export function claimMessage(claim: CheckinClaim, coinName = 'Leo Xu'): string {
   if (claim.alreadyClaimed) return 'Bạn đã nhận quà hôm nay rồi'
   if (claim.points > 0) return `+${claim.points} ${claim.coinName ?? coinName}` + (claim.capped ? ' (quà hôm nay đã hết phần, mai quay lại nhé)' : '')
   return claim.capped ? 'Quà hôm nay đã hết phần, mai quay lại nhé' : 'Đã điểm danh hôm nay'

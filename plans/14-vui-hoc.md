@@ -1,7 +1,7 @@
 # Quiz leo rank (Vui học, Plan 14: Vui học, nội dung giải trí lúc chờ con)
 
 Mockup bấm thử: https://claude.ai/artifact/T9UANV9XQxwBmuZrHiCqux (bấm "Leo rank" ở cảnh chính).
-**Cập nhật 28/10/2026: mọi chỗ trong tài liệu này nói thưởng bằng anyPoint nay đổi thành tiền game riêng "Ali Xu" (xem `plans/PROGRESS.md`); mua item cũng trả bằng Ali Xu, không bằng anyPoint.**
+**Cập nhật 28/10/2026: mọi chỗ trong tài liệu này nói thưởng bằng anyPoint nay đổi thành tiền game riêng "Leo Xu" (xem `plans/PROGRESS.md`); mua item cũng trả bằng Leo Xu, không bằng anyPoint.**
 Trạng thái: giai đoạn 0 đến 3 đã code (xem `plans/PROGRESS.md`); từ giai đoạn 4 là thiết kế.
 
 ## 1. Vòng chơi một câu

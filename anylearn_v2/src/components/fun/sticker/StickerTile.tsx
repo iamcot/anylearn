@@ -1,3 +1,4 @@
+import BrandText from '../BrandText'
 import type { StickerItem } from '@/lib/api/stickers'
 import { RARITY_STYLE } from '@/lib/stickers/rules'
 import StickerArt from './StickerArt'
@@ -11,7 +12,7 @@ export default function StickerTile({ item, selected, reveal, onClick }: { item:
         <StickerArt sticker={item} className="size-[72%]" />
         {item.qty > 1 && <span className="absolute -right-1 -top-1 rounded-full bg-green px-1.5 py-0.5 text-[11px] font-black text-white">x{item.qty}</span>}
       </div>
-      <div className="mt-1 line-clamp-2 text-center text-[12px] font-bold leading-tight text-ink">{have || reveal ? item.name : '???'}</div>
+      <div className="mt-1 line-clamp-2 text-center text-[12px] font-bold leading-tight text-ink">{have || reveal ? <BrandText text={item.name} /> : '???'}</div>
       <div className="text-center"><span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${style.chip}`}>{style.label}</span></div>
     </>
   )

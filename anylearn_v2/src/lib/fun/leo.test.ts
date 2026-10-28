@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { aliLines, reminderFor } from './ali'
+import { leoLines, reminderFor } from './leo'
 
 const now = new Date(2026, 9, 28, 10, 0)
 const day = (name: string, self: boolean, startAt: string | null) => ({
@@ -7,25 +7,25 @@ const day = (name: string, self: boolean, startAt: string | null) => ({
   nextSession: startAt ? ({ title: 'Toán tư duy', startAt } as never) : null,
 })
 
-describe('aliLines', () => {
+describe('leoLines', () => {
   it('asks to open the gift while it waits', () => {
-    expect(aliLines({ kind: 'waiting' })[0]).toBe('Nhanh tay mở hộp xem hôm nay có quà gì nào!')
+    expect(leoLines({ kind: 'waiting' })[0]).toBe('Nhanh tay mở hộp xem hôm nay có quà gì nào!')
   })
   it('congratulates with the points after opening', () => {
-    expect(aliLines({ kind: 'claimed', points: 10, streak: 3 })).toEqual([
-      'Chúc mừng bạn đã nhận được 10 Ali Xu!', 'Chuỗi 3 ngày liên tiếp rồi, giỏi quá!',
+    expect(leoLines({ kind: 'claimed', points: 10, streak: 3 })).toEqual([
+      'Chúc mừng bạn đã nhận được 10 Leo Xu!', 'Chuỗi 3 ngày liên tiếp rồi, giỏi quá!',
     ])
   })
   it('says the gift is used up when capped with no points', () => {
-    expect(aliLines({ kind: 'claimed', points: 5, sticker: 'Ali tên lửa' })).toEqual([
-      'Chúc mừng bạn đã nhận được 5 Ali Xu!',
-      'Wow, bạn còn nhận thêm sticker Ali tên lửa nữa nè!',
+    expect(leoLines({ kind: 'claimed', points: 5, sticker: 'Leo tên lửa' })).toEqual([
+      'Chúc mừng bạn đã nhận được 5 Leo Xu!',
+      'Wow, bạn còn nhận thêm sticker Leo tên lửa nữa nè!',
     ])
-    expect(aliLines({ kind: 'claimed', points: 0, capped: true })).toEqual(['Hôm nay quà hết phần rồi, mai quay lại nhé!'])
+    expect(leoLines({ kind: 'claimed', points: 0, capped: true })).toEqual(['Hôm nay quà hết phần rồi, mai quay lại nhé!'])
   })
   it('adds the reminder after the gift is taken, not while opening', () => {
-    expect(aliLines({ kind: 'done', daysToWeekGift: 2 }, 'Nhắc nhé').at(-1)).toBe('Nhắc nhé')
-    expect(aliLines({ kind: 'opening' }, 'Nhắc nhé')).toHaveLength(1)
+    expect(leoLines({ kind: 'done', daysToWeekGift: 2 }, 'Nhắc nhé').at(-1)).toBe('Nhắc nhé')
+    expect(leoLines({ kind: 'opening' }, 'Nhắc nhé')).toHaveLength(1)
   })
 })
 

@@ -14,7 +14,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/** Back office of the Vui học currency (default "Ali Xu"): its name, how much is in circulation, balances, and manual adjustments. */
+/** Back office of the Vui học currency (default "Leo Xu"): its name, how much is in circulation, balances, and manual adjustments. */
 @RestController
 @RequestMapping("/admin/fun/coins")
 @RequiredArgsConstructor

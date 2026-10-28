@@ -5,8 +5,9 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { getCheckin, type CheckinStatus } from '@/lib/api/fun'
 import FunScene from '@/components/fun/FunScene'
+import BrandText from '@/components/fun/BrandText'
 import CoinWalletCard from '@/components/fun/CoinWalletCard'
-import { ALI_NAME, reminderFor } from '@/lib/fun/ali'
+import { LEO_NAME, reminderFor } from '@/lib/fun/leo'
 import { getLearners, getToday } from '@/lib/today/api'
 import { sendDevice } from '@/lib/api/stickers'
 import { deviceId } from '@/lib/stickers/device'
@@ -37,7 +38,7 @@ export default function FunPage() {
     })
   }, [token])
 
-  // Ali also nudges the parent about the next class today, so playing never makes them forget it.
+  // Leo also nudges the parent about the next class today, so playing never makes them forget it.
   useEffect(() => {
     if (!token) return
     let cancelled = false
@@ -53,7 +54,7 @@ export default function FunPage() {
   return (
     <div className="mx-auto max-w-[720px] px-4 pb-28 pt-5 lg:px-0 lg:pb-12 lg:pt-8">
       <h1 className="text-2xl font-black lg:text-3xl">Vui học</h1>
-      <p className="mt-1 text-sm text-muted">Giải trí nhẹ nhàng cùng <b className="italic">{ALI_NAME}</b> và nhận {status?.coinName ?? 'quà'} mỗi ngày.</p>
+      <p className="mt-1 text-sm text-muted">Giải trí nhẹ nhàng cùng <BrandText text={LEO_NAME} /> và nhận {status?.coinName ? <BrandText text={status.coinName} coinName={status.coinName} /> : 'quà'} mỗi ngày.</p>
       {error && <p className="mt-4 text-warn-text">{error}</p>}
       {!error && !status && <div className="mt-4 h-[250px] animate-pulse rounded-[22px] bg-slate-200" />}
       {status && token && <div className="mt-4"><FunScene token={token} initial={status} reminder={reminder} onClaimed={() => setClaims(n => n + 1)} /></div>}

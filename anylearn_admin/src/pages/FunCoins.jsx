@@ -16,7 +16,7 @@ export default function FunCoins() {
     queryKey: ['admin-fun-coins'],
     queryFn: () => client.get('/admin/fun/coins').then(r => r.data?.data ?? null),
   })
-  const name = data?.name ?? 'Ali Xu'
+  const name = data?.name ?? 'Leo Xu'
   const [newName, setNewName] = useState('')
   useEffect(() => { if (data?.name) setNewName(data.name) }, [data?.name])
 
