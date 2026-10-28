@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { ChevronLeftIcon } from '@/components/icons'
+import FixedBar from '@/components/fun/FixedBar'
 import RankBadge from '@/components/fun/quiz/RankBadge'
 import { getQuizBoard, getQuizMe, setBoardHidden, type Board, type BoardEntry, type BoardType, type QuizMe } from '@/lib/api/quiz'
 import { BOARD_TABS, boardHint, ownLineApart, periodLabel, scoreText } from '@/lib/quiz/board'
@@ -104,9 +105,7 @@ export default function QuizBoardPage() {
         </ol>
       )}
       {apart && (
-        <div className="sticky bottom-[calc(3.75rem+var(--app-tabs-pad,0px)+0.5rem)] z-30 mt-3 lg:bottom-4">
-          <ol className="m-0 list-none p-0 shadow-[0_6px_16px_rgba(15,23,42,.18)]"><Line entry={apart} type={type} /></ol>
-        </div>
+        <FixedBar><ol className="m-0 list-none p-0 shadow-[0_6px_16px_rgba(15,23,42,.18)]"><Line entry={apart} type={type} /></ol></FixedBar>
       )}
 
       {board && (
