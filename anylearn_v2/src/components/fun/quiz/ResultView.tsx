@@ -5,6 +5,7 @@ import FixedBar from '../FixedBar'
 import StickerArt from '../sticker/StickerArt'
 import type { QuizMe, QuizResult } from '@/lib/api/quiz'
 import { guardWarning, resultTitle, starsLine } from '@/lib/quiz/rules'
+import { packTitle, remainingText } from '@/lib/shop/rules'
 import ItemIcon from './ItemIcon'
 import PrepRow, { type Prep } from './PrepRow'
 import RankCard from './RankCard'
@@ -22,6 +23,7 @@ export default function ResultView({ me, result, prep, onMult, onShield, onTopic
   onLobby: () => void
   busy: boolean
 }) {
+  if (result.practice) return <PracticeResult result={result} onAgain={onAgain} onLobby={onLobby} busy={busy} />
   const warning = guardWarning(result.profile)
   const reward = result.reward
   const bigWin = result.rankedUp
@@ -68,6 +70,35 @@ export default function ResultView({ me, result, prep, onMult, onShield, onTopic
       <FixedBar><div className="grid grid-cols-[auto_1fr] items-center gap-3">
         <button type="button" onClick={onLobby} className="min-h-12 cursor-pointer rounded-full border border-line bg-white px-4 text-sm font-bold text-ink shadow-[0_6px_16px_rgba(15,23,42,.18)]">← Về sảnh</button>
         <button type="button" disabled={busy} onClick={onAgain} className="min-h-12 cursor-pointer rounded-full border-0 bg-green px-5 text-base font-black text-white shadow-[0_8px_20px_rgba(22,163,74,.45)] disabled:opacity-60">Chơi tiếp</button>
+      </div></FixedBar>
+    </div>
+  )
+}
+
+/** The page after a practice question: no stars, rank or drops, only the answer and what is left of the pack. */
+function PracticeResult({ result, onAgain, onLobby, busy }: { result: QuizResult; onAgain: () => void; onLobby: () => void; busy: boolean }) {
+  const left = result.pack?.remaining ?? 0
+  return (
+    <div className="grid gap-4">
+      <div className={`rounded-3xl p-5 text-center ${result.correct ? 'bg-green-soft' : 'bg-amber-50'}`}>
+        <div className="text-3xl font-black">{resultTitle(result)}</div>
+        <div className="mt-1 text-sm font-bold text-muted">Tập luyện: không tính sao, không đổi hạng</div>
+      </div>
+      {result.explanation && (
+        <div className="rounded-2xl border border-line bg-white p-3 text-sm">
+          <b>Giải thích: </b>{result.explanation}
+        </div>
+      )}
+      {result.pack && (
+        <p className="m-0 rounded-2xl bg-white p-3 text-center text-sm font-bold ring-1 ring-line" role="status">
+          {left > 0 ? `${remainingText(result.pack)} trong ${packTitle(result.pack).toLowerCase()}` : 'Bạn đã dùng hết gói này, quay lại leo rank nhé'}
+        </p>
+      )}
+      <FixedBar><div className="grid grid-cols-[auto_1fr] items-center gap-3">
+        <button type="button" onClick={onLobby} className="min-h-12 cursor-pointer rounded-full border border-line bg-white px-4 text-sm font-bold text-ink shadow-[0_6px_16px_rgba(15,23,42,.18)]">← Về sảnh</button>
+        {left > 0
+          ? <button type="button" disabled={busy} onClick={onAgain} className="min-h-12 cursor-pointer rounded-full border-0 bg-navy px-5 text-base font-black text-white shadow-[0_8px_20px_rgba(7,27,51,.35)] disabled:opacity-60">Tập tiếp</button>
+          : <button type="button" onClick={onLobby} className="min-h-12 cursor-pointer rounded-full border-0 bg-green px-5 text-base font-black text-white shadow-[0_8px_20px_rgba(22,163,74,.45)]">Về leo rank</button>}
       </div></FixedBar>
     </div>
   )

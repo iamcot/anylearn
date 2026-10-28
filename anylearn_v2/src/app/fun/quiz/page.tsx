@@ -8,9 +8,9 @@ import BrandText from '@/components/fun/BrandText'
 import LobbyView from '@/components/fun/quiz/LobbyView'
 import QuestionView from '@/components/fun/quiz/QuestionView'
 import ResultView from '@/components/fun/quiz/ResultView'
-import ItemShop from '@/components/fun/quiz/ItemShop'
 import type { Prep } from '@/components/fun/quiz/PrepRow'
-import { getQuizMe, openQuizBox, startQuiz, type ItemKey, type QuizMe, type QuizQuestion, type QuizResult } from '@/lib/api/quiz'
+import { deactivateQuizPack, getQuizMe, openQuizBox, startQuiz, type ItemKey, type QuizMe, type QuizQuestion, type QuizResult } from '@/lib/api/quiz'
+import { getShop, type Shop } from '@/lib/api/shop'
 import { sendDevice } from '@/lib/api/stickers'
 import { deviceId } from '@/lib/stickers/device'
 import { clockOffset, toggleMult } from '@/lib/quiz/rules'
@@ -25,6 +25,9 @@ const NO_PREP: Prep = { mult: null, shield: false, topic: null }
 export default function QuizPage() {
   const { token } = useAuth()
   const [me, setMe] = useState<QuizMe | null>(null)
+  const [shop, setShop] = useState<Shop | null>(null)
+  // when `me` was read: the energy countdown on the lobby counts from it
+  const [meAt, setMeAt] = useState(() => Date.now())
   const [view, setView] = useState<View>({ kind: 'lobby' })
   const [prep, setPrep] = useState<Prep>(NO_PREP)
   const [busy, setBusy] = useState(false)
@@ -33,11 +36,19 @@ export default function QuizPage() {
 
   const load = useCallback(async () => {
     if (!token) return
-    const { data, error: err } = await getQuizMe(token)
+    const [{ data, error: err }, shopResult] = await Promise.all([getQuizMe(token), getShop(token)])
     if (err || !data) return setError(err ?? 'Không tải được Leo rank')
     setError('')
     setMe(data)
+    setMeAt(Date.now())
+    // the shop is an extra: Leo rank still plays when it does not load
+    setShop(shopResult.data)
   }, [token])
+
+  const takeMe = useCallback((next: QuizMe) => {
+    setMe(next)
+    setMeAt(Date.now())
+  }, [])
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -53,7 +64,9 @@ export default function QuizPage() {
     if (!token) return
     setBusy(true)
     setError('')
-    const { data, error: err } = await startQuiz(token, { mult: prep.mult, shield: prep.shield, topic: prep.topic })
+    // a training pack in use takes no items
+    const practice = me?.activePackId != null
+    const { data, error: err } = await startQuiz(token, practice ? {} : { mult: prep.mult, shield: prep.shield, topic: prep.topic })
     setBusy(false)
     if (err || !data) return setError(err ?? 'Không bắt đầu được')
     setPrep(NO_PREP)
@@ -70,6 +83,15 @@ export default function QuizPage() {
     const names = data.given.map(key => me?.itemList.find(r => r.key === key)?.label ?? key)
     setBoxText(`Bạn nhận được: ${names.join(', ')}`)
     load()
+  }
+
+  const leavePractice = async () => {
+    if (!token) return
+    setBusy(true)
+    const { data, error: err } = await deactivateQuizPack(token)
+    setBusy(false)
+    if (err || !data) return setError(err ?? 'Không thoát được tập luyện')
+    takeMe(data)
   }
 
   const done = useCallback((result: QuizResult) => setView({ kind: 'result', result }), [])
@@ -98,8 +120,8 @@ export default function QuizPage() {
       {me && token && me.enabled && view.kind === 'lobby' && (
         <div className="mt-3 grid gap-4">
           {me.forfeited && <p className="m-0 rounded-xl bg-amber-50 p-3 text-sm text-amber-900" role="status">Câu bỏ dở lần trước đã tính là sai.</p>}
-          <LobbyView me={me} prep={prep} busy={busy} boxText={boxText} onStart={start} onOpenBox={openBox} {...prepHandlers} />
-          <ItemShop token={token} me={me} onBought={(next, text) => { setMe({ ...me, items: next.items, coins: next.coins, buyLeft: next.buyLeft, itemList: me.itemList.map(r => ({ ...r, qty: next.items[r.key] ?? 0 })) }); setBoxText(text) }} />
+          <LobbyView token={token} me={me} shop={shop} fetchedAt={meAt} prep={prep} busy={busy} boxText={boxText} onStart={start} onOpenBox={openBox}
+            onLeavePractice={leavePractice} onMe={takeMe} onChanged={load} {...prepHandlers} />
         </div>
       )}
 
