@@ -34,6 +34,7 @@ public class AdminBadgeController {
         counts.put("priceReports", count("SELECT COUNT(*) FROM price_reports WHERE status NOT IN ('fixed', 'rejected')"));
         counts.put("chatReports", count("SELECT COUNT(*) FROM chat_reports WHERE status = 'open'"));
         counts.put("stickerReview", count("SELECT COUNT(*) FROM welcome_packs WHERE status = 'review'"));
+        counts.put("quizFlagged", count("SELECT COUNT(*) FROM quiz_attempts WHERE flagged = 1 AND issued_at >= DATE_SUB(CURDATE(), INTERVAL 14 DAY)"));
         counts.put("reviewsResubmitted", reviewService.resubmittedCount());
         counts.put("reviewsReported", reviewService.reportedCount());
         return ApiResponse.ok(counts);

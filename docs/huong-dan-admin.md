@@ -529,6 +529,15 @@ Menu "Vui học" > "Sự kiện game" > nút "Kho câu hỏi" ở góc phải tr
 
 Thành viên vào Vui học > Leo rank: bấm "Sẵn sàng" để nhận một câu hỏi từ Kho câu hỏi, có 20 giây trả lời. Đúng thì +1 sao, sai thì -1 sao; đủ sao thì thanh đầy (ví dụ 5/5), trả lời đúng thêm một câu nữa mới lên hạng và vào hạng mới với 1 sao (Đồng 5 sao, Bạc 6, Vàng 7, Bạch kim 8, Kim cương 10, Thông thái 12, Siêu phàm 15, Huyền thoại không giới hạn). Thưởng lên hạng (xu, khiên, sticker) chỉ nhận một lần cho mỗi hạng, rớt xuống rồi lên lại không nhận nữa. Mất hết sao thì chưa rớt hạng ngay (hết bảo hộ), sai thêm lần nữa mới rớt xuống hạng dưới với số sao tối đa trừ 1 (ví dụ Bạc 1 sao: sai xuống 0 sao, sai tiếp về Đồng 4 sao). Đáp án được chấm trên máy chủ, rời màn hình hoặc hết giờ tính là sai.
 
+**Bảng xếp hạng và tổng kết.** Trong Leo rank có nút "Bảng xếp hạng": Cùng hạng (theo sao), Tuần này và Tháng này (theo số sao tăng ròng trong kỳ, đúng cộng, sai trừ, dùng Khiên thì không tính), Mọi thời (theo hạng rồi sao). Tên trên bảng chỉ là hai từ cuối của tên thành viên, không có điện thoại hay email, và thành viên có thể tự bấm "Ẩn tôi khỏi bảng". Câu bị gắn cờ không được cộng vào bảng tuần và tháng.
+
+Vào menu "Vui học" > "Sự kiện game" > nút "Quiz Leo rank" (số đỏ ở "Sự kiện game" là số câu bị gắn cờ trong 14 ngày) để:
+- **Tổng quan**: số người chơi, phân bố hạng, tỉ lệ đúng theo chủ đề 30 ngày.
+- **Bảng xếp hạng**: xem bảng như người chơi thấy.
+- **Tổng kết & thưởng**: top 3 mỗi tuần (thứ Hai 00:05) và mỗi tháng (ngày 1, 00:10) nhận vật phẩm ngẫu nhiên, tháng thêm một sticker, thông báo cho người trúng. Tự động khi bật "Tự động tổng kết", hoặc bấm "Trao thưởng" cho một kỳ đã kết thúc (mỗi kỳ chỉ trao một lần, người bị ẩn hoặc bị chặn không nhận).
+- **Gắn cờ**: câu trả lời đúng dưới 1,5 giây hoặc rời trang. "Bỏ cờ" khi thấy bình thường, "Chặn BXH" để người đó không lên bảng và không nhận thưởng. Hệ thống không tự cấm ai.
+- **Cấu hình**: bật tắt game, số sao mỗi hạng, giây trả lời, xu thưởng lên hạng, tỉ lệ rơi, giá và tỉ trọng từng vật phẩm, thưởng top 3 (ví dụ 3,2,1 là hạng nhất nhận 3 vật phẩm). Lưu xong có hiệu lực từ câu kế tiếp, không cần khởi động lại.
+
 - **Vật phẩm**: Sao may mắn x2/x3, Khiên bảo hộ, Chọn chủ đề (dùng trước câu); 50:50, Hỏi cộng đồng, Thêm 15 giây, Đổi câu (dùng trong câu, mỗi loại một lần mỗi câu). Nhận từ hộp quà khởi động mỗi ngày (luôn 1 món trước câu và 1 món trong câu), rơi ngẫu nhiên sau mỗi câu (khoảng 12%, tăng dần nếu lâu không rơi, đúng liên tiếp 3, 6, 9... câu thì chắc chắn rơi, tối đa 8 món rơi mỗi ngày), thưởng lên hạng (1 Khiên), hoặc **mua bằng Leo Xu** (giá 15 đến 60, tối đa 5 món mỗi ngày). Kho mỗi loại có trần (Sao x3 tối đa 3, Khiên 5, loại khác 10).
 - **Thưởng lên hạng**: 20 Leo Xu, 1 Khiên và 1 sticker ngẫu nhiên. Không cộng tiền theo từng câu. Mọi thưởng và giá đều bằng Leo Xu, không phải anyPoint; mua vật phẩm và thưởng hiện trong "Tiền game" với nguồn "quiz_item" và "quiz_rank".
 - **Câu không lặp**: một người không gặp lại câu đã làm trong 30 ngày; hết câu mới thì game nới độ khó, cuối cùng mới lặp lại câu cũ, nên kho cạn sẽ không làm game dừng nhưng người chơi thấy câu cũ.

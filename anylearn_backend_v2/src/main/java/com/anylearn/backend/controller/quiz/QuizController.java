@@ -3,10 +3,12 @@ package com.anylearn.backend.controller.quiz;
 import com.anylearn.backend.dto.response.ApiResponse;
 import com.anylearn.backend.entity.User;
 import com.anylearn.backend.service.quiz.QuizBankService;
+import com.anylearn.backend.service.quiz.QuizBoardService;
 import com.anylearn.backend.service.quiz.QuizGameService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 /** The rank quiz game (plan 14, phase 4). Login needed for everything; grading happens on the server. */
@@ -16,10 +18,12 @@ public class QuizController {
 
     private final QuizBankService bank;
     private final QuizGameService game;
+    private final QuizBoardService board;
 
-    public QuizController(QuizBankService bank, QuizGameService game) {
+    public QuizController(QuizBankService bank, QuizGameService game, QuizBoardService board) {
         this.bank = bank;
         this.game = game;
+        this.board = board;
     }
 
     private interface Call {
@@ -50,6 +54,24 @@ public class QuizController {
     @GetMapping("/me")
     public ApiResponse<?> me(@AuthenticationPrincipal User user) {
         return guarded(user, () -> game.me(user.getId()));
+    }
+
+    /** `type` = rank (same rank, `rank` = rank index), week, month or all; the caller's own line is always included. */
+    @GetMapping("/leaderboard")
+    public ApiResponse<?> leaderboard(@AuthenticationPrincipal User user, @RequestParam(defaultValue = "rank") String type,
+                                      @RequestParam(required = false) Integer rank) {
+        return guarded(user, () -> {
+            if (!List.of("rank", "week", "month", "all").contains(type)) throw new IllegalArgumentException("Loại bảng xếp hạng không hợp lệ");
+            Integer wanted = rank;
+            if (wanted == null && "rank".equals(type)) wanted = ((Number) ((Map<?, ?>) game.me(user.getId()).get("profile")).get("rank")).intValue();
+            return board.leaderboard(type, wanted, user.getId());
+        });
+    }
+
+    /** Body {hidden: bool}: leave or join the boards (the name shows as a display name only). */
+    @PostMapping("/board/visibility")
+    public ApiResponse<?> visibility(@AuthenticationPrincipal User user, @RequestBody Map<String, Object> body) {
+        return guarded(user, () -> board.hide(user.getId(), Boolean.TRUE.equals(body.get("hidden"))));
     }
 
     /** Body {mult?: mult2|mult3, shield?: bool, topic?: key}: takes the items and hands out the next question. */

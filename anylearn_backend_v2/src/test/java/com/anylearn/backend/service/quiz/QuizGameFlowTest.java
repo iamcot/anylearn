@@ -22,6 +22,9 @@ class QuizGameFlowTest {
     @Autowired CoinService coins;
     @Autowired StickerService stickers;
     @Autowired JdbcTemplate jdbc;
+    @Autowired QuizBoardService board;
+    @Autowired QuizSettlementService settlements;
+    @Autowired QuizGameSettings gameSettings;
 
     private long user() {
         String phone = "09" + (long) (Math.random() * 100000000L);
@@ -260,5 +263,84 @@ class QuizGameFlowTest {
         long u = user();
         Map<String, Object> album = stickers.album(u);
         assertNotNull(album.get("items"));
+    }
+
+    private long player(String name, int rank, int stars) {
+        long u = user();
+        jdbc.update("UPDATE users SET name = ? WHERE id = ?", name, u);
+        jdbc.update("INSERT INTO quiz_profiles (user_id, rank_idx, stars, games, correct) VALUES (?, ?, ?, 5, 3)", u, rank, stars);
+        return u;
+    }
+
+    @Test
+    void answersFeedTheWeeklyAndMonthlyNetStars() {
+        long u = user();
+        questions(1, 5);
+        long fast = ((Number) game.start(u, null, false, null).get("attemptId")).longValue();
+        game.answer(u, fast, rightPosition(fast), false);
+        // an answer that is right in under 1.5 s is flagged and does not count for the boards
+        assertEquals(0, jdbc.queryForObject("SELECT COUNT(*) FROM quiz_rank_weekly WHERE user_id = ?", Integer.class, u));
+        long id = ((Number) game.start(u, null, false, null).get("attemptId")).longValue();
+        jdbc.update("UPDATE quiz_attempts SET issued_at = DATE_SUB(issued_at, INTERVAL 10 SECOND) WHERE id = ?", id);
+        game.answer(u, id, rightPosition(id), false);
+        Long net = jdbc.queryForObject("SELECT SUM(net_stars) FROM quiz_rank_weekly WHERE user_id = ?", Long.class, u);
+        assertEquals(2L, net); // 1 star in the week row and 1 in the month row
+        assertEquals(2, jdbc.queryForObject("SELECT COUNT(*) FROM quiz_rank_weekly WHERE user_id = ?", Integer.class, u));
+    }
+
+    @Test
+    void leaderboardSortsByStarsHidesNamesAndRespectsHiding() {
+        board.clearCache();
+        long a = player("Nguyễn Văn An", 3, 4);
+        long b = player("Trần Bình", 3, 6);
+        long c = player("0911222333", 3, 1);
+        Map<String, Object> out = board.leaderboard("rank", 3, c);
+        List<Map<String, Object>> entries = (List<Map<String, Object>>) out.get("entries");
+        java.util.List<String> names = entries.stream().map(e -> (String) e.get("name")).toList();
+        assertTrue(names.indexOf("Trần Bình") < names.indexOf("Văn An"));
+        assertTrue(names.contains("Người chơi"));
+        assertFalse(names.stream().anyMatch(n -> n.contains("0911")));
+        assertEquals(true, map(out.get("me")).get("me"));
+        board.hide(a, true);
+        board.clearCache();
+        List<Map<String, Object>> after = (List<Map<String, Object>>) board.leaderboard("rank", 3, c).get("entries");
+        assertFalse(after.stream().anyMatch(e -> "Văn An".equals(e.get("name"))));
+        assertEquals(true, board.leaderboard("rank", 3, a).get("hidden"));
+        board.block(b, true);
+        board.clearCache();
+        List<Map<String, Object>> blocked = (List<Map<String, Object>>) board.leaderboard("rank", 3, c).get("entries");
+        assertFalse(blocked.stream().anyMatch(e -> "Trần Bình".equals(e.get("name"))));
+    }
+
+    @Test
+    void settlementPaysTheTopThreeOnceAndOnlyForAFinishedPeriod() {
+        long a = player("Người Một", 0, 0);
+        long b = player("Người Hai", 0, 0);
+        long c = player("Người Ba", 0, 0);
+        long d = player("Người Bốn", 0, 0);
+        String period = "W2020-10";
+        jdbc.update("INSERT INTO quiz_rank_weekly (user_id, period, net_stars, answers) VALUES (?, ?, 9, 10), (?, ?, 7, 10), (?, ?, 5, 10), (?, ?, 1, 10)", a, period, b, period, c, period, d, period);
+        Map<String, Object> out = settlements.settle(period, "manual");
+        List<Map<String, Object>> winners = (List<Map<String, Object>>) out.get("winners");
+        assertEquals(3, winners.size());
+        assertEquals("Người Một", winners.get(0).get("name"));
+        int itemsOfFirst = jdbc.queryForObject("SELECT COALESCE(SUM(qty), 0) FROM quiz_user_items WHERE user_id = ?", Integer.class, a);
+        assertEquals(gameSettings.boardWeekItems().get(0).intValue(), itemsOfFirst);
+        assertEquals(0, jdbc.queryForObject("SELECT COALESCE(SUM(qty), 0) FROM quiz_user_items WHERE user_id = ?", Integer.class, d));
+        assertThrows(IllegalStateException.class, () -> settlements.settle(period, "manual"));
+        String current = QuizBoardRules.periodKey("week", java.time.LocalDate.now());
+        assertThrows(IllegalStateException.class, () -> settlements.settle(current, "manual"));
+        assertThrows(IllegalArgumentException.class, () -> settlements.settle("nope", "manual"));
+    }
+
+    @Test
+    void settingsFormValidatesAndSaves() {
+        assertNotNull(gameSettings.save(Map.of("numbers", Map.of("seconds", 1))));
+        assertNotNull(gameSettings.save(Map.of("rankStars", "1,2,3")));
+        assertNotNull(gameSettings.save(Map.of("boardWeekItems", "x")));
+        assertNull(gameSettings.save(Map.of("numbers", Map.of("seconds", 25), "rankStars", "5,6,7,8,10,12,16", "boardWeekItems", "4,3,2")));
+        assertEquals(25, gameSettings.seconds());
+        assertEquals(16, gameSettings.rankStars().get(6).intValue());
+        assertEquals(List.of(4, 3, 2), gameSettings.boardWeekItems());
     }
 }

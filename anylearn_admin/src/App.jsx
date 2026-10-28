@@ -14,6 +14,7 @@ import FunCheckin from './pages/FunCheckin'
 import QuizBank from './pages/QuizBank'
 import Stickers from './pages/Stickers'
 import FunCoins from './pages/FunCoins'
+import QuizGame from './pages/QuizGame'
 import ChatModeration from './pages/ChatModeration'
 import Membership from './pages/Membership'
 import Tags from './pages/Tags'
@@ -109,6 +110,7 @@ export default function App() {
                   <Route path="quiz-bank" element={<QuizBank />} />
                   <Route path="stickers" element={<Stickers />} />
                   <Route path="fun-coins" element={<FunCoins />} />
+                  <Route path="quiz-game" element={<QuizGame />} />
                   <Route path="chat" element={<ChatModeration />} />
                   <Route path="membership" element={<Membership />} />
                   <Route path="tags" element={<Tags />} />

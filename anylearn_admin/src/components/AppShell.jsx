@@ -41,7 +41,7 @@ const NAV_GROUPS = [
   ] },
 ]
 // Opened from buttons on the "Sự kiện game" page, not from the menu.
-const FUN_SUBPAGES = ['/fun-checkin', '/quiz-bank', '/stickers', '/fun-coins']
+const FUN_SUBPAGES = ['/fun-checkin', '/quiz-bank', '/quiz-game', '/stickers', '/fun-coins']
 const NAV_ITEMS = NAV_GROUPS.flatMap(group => group.children)
 
 // Things people ask the team for sit in the top bar, left of the bell, with the red number of what waits.
@@ -63,14 +63,15 @@ const BADGE_FIELDS = {
   '/course-requests': 'courseRequests',
   '/price-reports': 'priceReports',
   '/chat': 'chatReports',
-  '/fun-events': 'stickerReview',
+  '/fun-events': ['stickerReview', 'quizFlagged'],
 }
 
 function withBadges(groups, counts) {
   return groups.map(group => ({
     ...group,
     children: group.children.map(item => {
-      const count = counts?.[BADGE_FIELDS[item.key]] ?? 0
+      const fields = [].concat(BADGE_FIELDS[item.key] ?? [])
+      const count = fields.reduce((sum, f) => sum + (counts?.[f] ?? 0), 0)
       if (!count) return item
       return { ...item, label: <Flex justify="space-between" align="center"><span>{item.label}</span><Badge count={count} overflowCount={999} size="small" /></Flex> }
     }),

@@ -38,6 +38,7 @@ public class QuizGameService {
     private final FunSettings funSettings;
     private final StickerService stickers;
     private final GameEventService events;
+    private final QuizBoardService board;
 
     private final Random random = new Random();
 
@@ -77,6 +78,7 @@ public class QuizGameService {
         LocalDateTime start = today().atStartOfDay();
         Map<String, Object> day = jdbc.queryForMap("SELECT COUNT(*) AS games, COALESCE(SUM(outcome = 'correct'), 0) AS correct FROM quiz_attempts WHERE user_id = ? AND issued_at >= ? AND outcome <> 'open'", userId, Timestamp.valueOf(start));
         out.put("today", Map.of("games", ((Number) day.get("games")).intValue(), "correct", ((Number) day.get("correct")).intValue()));
+        out.put("hideBoard", board.isHidden(userId));
         if (forfeited != null) out.put("forfeited", forfeited);
         return out;
     }
@@ -150,6 +152,17 @@ public class QuizGameService {
         jdbc.update("INSERT INTO quiz_user_items (user_id, item_key, qty) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE qty = qty + VALUES(qty)", userId, item, add);
         jdbc.update("INSERT INTO quiz_item_log (user_id, item_key, delta, source, ref) VALUES (?, ?, ?, ?, ?)", userId, item, add, source, ref);
         return add;
+    }
+
+    /** Gives `count` random items (by the drop weights, never past a cap) as a prize; returns the item keys really given. */
+    public List<String> grantRandomItems(long userId, int count, String source, String ref) {
+        List<String> given = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            String item = QuizItems.pick(weights(), QuizItems.ALL, items(userId), random.nextDouble());
+            if (item == null) break;
+            if (addItem(userId, item, 1, source, ref) > 0) given.add(item);
+        }
+        return given;
     }
 
     private boolean useItem(long userId, String item, String ref) {
@@ -505,6 +518,7 @@ public class QuizGameService {
                 after.rank(), after.stars(), after.guard(), streak, best, correct ? 1 : 0, correct ? 0 : 1, userId);
         jdbc.update("UPDATE quiz_attempts SET stars_after = ?, answer = ?, outcome = ?, flagged = ?, answered_at = ? WHERE id = ?",
                 after.stars(), chosen, outcome, flagged ? 1 : 0, Timestamp.valueOf(now()), a.id());
+        board.accumulate(userId, r.starsGained(), flagged);
         if (correct) jdbc.update("UPDATE quiz_questions SET times_correct = times_correct + 1 WHERE id = ?", q.id());
 
         Map<String, Object> out = new LinkedHashMap<>();

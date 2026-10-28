@@ -36,3 +36,51 @@ Authorization: Bearer {{jwtToken}}
 Content-Type: application/json
 
 { "item": "shield" }
+
+### Leaderboard: rank (same rank, optional rank index) | week | month | all
+GET {{baseUrl}}/quiz/leaderboard?type=week
+Authorization: Bearer {{jwtToken}}
+
+### Leave or join the boards
+POST {{baseUrl}}/quiz/board/visibility
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{ "hidden": true }
+
+### Admin: quiz numbers (GET), save (PUT), overview, flagged, boards, settlements
+GET {{$dotenv BE_BASE_URL}}/admin/quiz/settings
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+###
+PUT {{$dotenv BE_BASE_URL}}/admin/quiz/settings
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+Content-Type: application/json
+
+{ "numbers": { "seconds": 25 }, "rankStars": "5,6,7,8,10,12,15", "boardWeekItems": "3,2,1" }
+
+###
+GET {{$dotenv BE_BASE_URL}}/admin/quiz/overview
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+###
+GET {{$dotenv BE_BASE_URL}}/admin/quiz/flagged
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+###
+PUT {{$dotenv BE_BASE_URL}}/admin/quiz/users/1/board-block
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+Content-Type: application/json
+
+{ "blocked": true }
+
+###
+GET {{$dotenv BE_BASE_URL}}/admin/quiz/settlements
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+###
+POST {{$dotenv BE_BASE_URL}}/admin/quiz/settlements
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+Content-Type: application/json
+
+{ "period": "W2026-43" }

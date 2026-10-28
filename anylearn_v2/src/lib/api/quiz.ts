@@ -30,6 +30,7 @@ export interface QuizMe {
   items: Partial<Record<ItemKey, number>>
   itemList: QuizItemRow[]
   boxReady: boolean
+  hideBoard?: boolean
   topics: { key: string; label: string }[]
   seconds: number
   buyLeft: number
@@ -90,3 +91,31 @@ export const openQuizBox = (token: string) =>
 
 export const buyQuizItem = (token: string, item: ItemKey) =>
   authFetch<{ items: Partial<Record<ItemKey, number>>; coins: number; buyLeft: number }>('/quiz/items/buy', token, { method: 'POST', body: JSON.stringify({ item }) })
+
+export type BoardType = 'rank' | 'week' | 'month' | 'all'
+
+export interface BoardEntry {
+  place: number
+  name: string
+  rankKey: string
+  rankName: string
+  stars: number
+  netStars: number
+  me: boolean
+}
+
+export interface Board {
+  type: BoardType
+  /** `W2026-44` or `M2026-10` for the week and month boards. */
+  period: string | null
+  rank: number | null
+  entries: BoardEntry[]
+  me: BoardEntry | null
+  hidden: boolean
+}
+
+export const getQuizBoard = (token: string, type: BoardType, rank?: number) =>
+  authFetch<Board>(`/quiz/leaderboard?type=${type}${rank !== undefined ? `&rank=${rank}` : ''}`, token)
+
+export const setBoardHidden = (token: string, hidden: boolean) =>
+  authFetch<{ hidden: boolean }>('/quiz/board/visibility', token, { method: 'POST', body: JSON.stringify({ hidden }) })
