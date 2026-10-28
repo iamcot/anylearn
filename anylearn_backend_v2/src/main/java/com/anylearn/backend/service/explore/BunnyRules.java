@@ -44,4 +44,19 @@ public final class BunnyRules {
         if (clean.isEmpty()) clean = "Khám phá";
         return clean.length() > 200 ? clean.substring(0, 200) : clean;
     }
+
+    /**
+     * The Bunny video id of a link of our own library (`https://{cdnHost}/{videoId}/...`), or null for any other link
+     * (YouTube, an mp4 elsewhere, another library), so deleting never touches a video that is not ours.
+     */
+    public static String videoIdOf(String cdnHost, String url) {
+        String host = cleanHost(cdnHost);
+        if (host.isEmpty() || url == null) return null;
+        String prefix = "https://" + host + "/";
+        if (!url.startsWith(prefix)) return null;
+        String rest = url.substring(prefix.length());
+        int slash = rest.indexOf('/');
+        String id = slash < 0 ? rest : rest.substring(0, slash);
+        return id.matches("[0-9a-fA-F-]{16,64}") ? id : null;
+    }
 }

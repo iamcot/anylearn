@@ -142,6 +142,19 @@ function Media({ post, active, near }: { post: ExplorePost; active: boolean; nea
   return <div className="absolute inset-0 bg-gradient-to-b from-green-dark to-[#064e3b]" />
 }
 
+/** The creator's name and the tags of a post, above its title. */
+function Byline({ post }: { post: ExplorePost }) {
+  const tags = post.tags ?? []
+  if (!post.authorName && tags.length === 0) return null
+  return (
+    <p className="m-0 mb-1 text-xs font-bold text-white/85">
+      {post.authorName && <span>@{post.authorName}</span>}
+      {post.authorName && tags.length > 0 && ' · '}
+      {tags.slice(0, 4).map(t => `#${t.name}`).join(' ')}
+    </p>
+  )
+}
+
 /** One full-screen post of the viewer: media or text card, title, link to the course and the action rail. */
 export default function PostSlide({ post, active, near, commentsOn, onLike, onComments, onShare, index }: {
   post: ExplorePost; active: boolean; near: boolean; commentsOn: boolean; onLike: () => void; onComments: () => void; onShare: () => void; index: number
@@ -152,12 +165,14 @@ export default function PostSlide({ post, active, near, commentsOn, onLike, onCo
       <Media post={post} active={active} near={near} />
       {isArticle && (
         <div className="absolute inset-x-0 bottom-28 top-20 overflow-y-auto px-6 pr-20">
+          <Byline post={post} />
           <h2 className="m-0 text-2xl font-black leading-tight">{post.title}</h2>
           {post.body && <p className="mt-4 whitespace-pre-line text-base leading-relaxed text-white/90">{post.body}</p>}
         </div>
       )}
       {!isArticle && (
         <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent px-4 pb-8 pt-20 pr-20">
+          <Byline post={post} />
           <h2 className="m-0 text-lg font-extrabold leading-snug">{post.title}</h2>
           {post.body && <p className="mt-1 line-clamp-3 text-sm text-white/85">{post.body}</p>}
         </div>

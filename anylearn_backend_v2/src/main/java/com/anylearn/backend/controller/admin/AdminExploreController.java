@@ -4,6 +4,7 @@ import com.anylearn.backend.dto.response.ApiResponse;
 import com.anylearn.backend.entity.User;
 import com.anylearn.backend.service.S3Service;
 import com.anylearn.backend.service.explore.BunnyStreamClient;
+import com.anylearn.backend.service.explore.ExploreCreatorService;
 import com.anylearn.backend.service.explore.ExploreService;
 import com.anylearn.backend.service.explore.ExploreSettings;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ public class AdminExploreController {
     private final ExploreSettings settings;
     private final S3Service s3Service;
     private final BunnyStreamClient bunny;
+    private final ExploreCreatorService creators;
 
     private static boolean notAdmin(User user) {
         return user == null || !"admin".equals(user.getRole());
@@ -42,11 +44,21 @@ public class AdminExploreController {
         return value instanceof Number n ? n.longValue() : null;
     }
 
+    /** `tagIds` absent = tags unchanged. */
+    private static java.util.List<Long> tagIds(Object value) {
+        if (!(value instanceof java.util.List<?> list)) return null;
+        java.util.List<Long> out = new java.util.ArrayList<>();
+        for (Object v : list) if (v instanceof Number n) out.add(n.longValue());
+        return out;
+    }
+
     private ApiResponse<?> save(User user, Long id, Map<String, Object> body) {
         if (notAdmin(user)) return ApiResponse.fail("Forbidden");
         try {
+            Map<String, Object> before = id == null ? null : explore.row(id);
             long saved = explore.savePost(id, (String) body.get("kind"), (String) body.get("title"), (String) body.get("body"), (String) body.get("mediaUrl"),
-                    (String) body.get("posterUrl"), asLong(body.get("itemId")), (String) body.get("status"), Boolean.TRUE.equals(body.get("pinned")));
+                    (String) body.get("posterUrl"), asLong(body.get("itemId")), (String) body.get("status"), Boolean.TRUE.equals(body.get("pinned")), tagIds(body.get("tagIds")));
+            creators.afterAdminSave(before);
             return ApiResponse.ok(Map.of("id", saved));
         } catch (IllegalArgumentException e) {
             return ApiResponse.fail(e.getMessage());
@@ -78,6 +90,7 @@ public class AdminExploreController {
     @DeleteMapping("/posts/{id}")
     public ApiResponse<?> delete(@AuthenticationPrincipal User user, @PathVariable long id) {
         if (notAdmin(user)) return ApiResponse.fail("Forbidden");
+        creators.beforeAdminDelete(id);
         explore.deletePost(id);
         return ApiResponse.ok(Map.of("ok", true));
     }
@@ -111,6 +124,51 @@ public class AdminExploreController {
         } catch (Exception e) {
             return ApiResponse.fail("Không tạo được video trên Bunny: " + e.getMessage());
         }
+    }
+
+    /** Body `{action: approve | reject | hide | show, note}`: the creator of the post is told; reject needs a note. */
+    @PutMapping("/posts/{id}/review")
+    public ApiResponse<?> review(@AuthenticationPrincipal User user, @PathVariable long id, @RequestBody Map<String, Object> body) {
+        if (notAdmin(user)) return ApiResponse.fail("Forbidden");
+        try {
+            creators.review(id, (String) body.get("action"), body.get("note") instanceof String s ? s : null);
+            return ApiResponse.ok(Map.of("ok", true));
+        } catch (IllegalArgumentException e) {
+            return ApiResponse.fail(e.getMessage());
+        }
+    }
+
+    // ---- creators (plan 16) ----
+
+    @GetMapping("/creators")
+    public ApiResponse<?> creators(@AuthenticationPrincipal User user) {
+        if (notAdmin(user)) return ApiResponse.fail("Forbidden");
+        return ApiResponse.ok(creators.creators());
+    }
+
+    @GetMapping("/creators/user-search")
+    public ApiResponse<?> userSearch(@AuthenticationPrincipal User user, @RequestParam(required = false) String q) {
+        if (notAdmin(user)) return ApiResponse.fail("Forbidden");
+        return ApiResponse.ok(creators.searchUsers(q));
+    }
+
+    /** Body `{level: creator | s_creator, note}`: adds the member or changes their level. */
+    @PutMapping("/creators/{userId}")
+    public ApiResponse<?> setCreator(@AuthenticationPrincipal User user, @PathVariable long userId, @RequestBody Map<String, Object> body) {
+        if (notAdmin(user)) return ApiResponse.fail("Forbidden");
+        try {
+            creators.setCreator(userId, (String) body.get("level"), body.get("note") instanceof String s ? s : null, user.getId());
+            return ApiResponse.ok(Map.of("ok", true));
+        } catch (IllegalArgumentException e) {
+            return ApiResponse.fail(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/creators/{userId}")
+    public ApiResponse<?> removeCreator(@AuthenticationPrincipal User user, @PathVariable long userId) {
+        if (notAdmin(user)) return ApiResponse.fail("Forbidden");
+        creators.removeCreator(userId);
+        return ApiResponse.ok(Map.of("ok", true));
     }
 
     @GetMapping("/comments")

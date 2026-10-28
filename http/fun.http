@@ -114,6 +114,49 @@ Content-Type: application/json
 
 {"reason": "Quảng cáo"}
 
+### Khám phá (plan 16): feed for this person (since = epoch ms when the list opened, exclude = ids on screen), search, one post
+GET {{baseUrl}}/explore?page=1&size=12&since=1793200000000&exclude=5
+Authorization: Bearer {{jwtToken}}
+
+###
+GET {{baseUrl}}/explore/search?q=tiếng anh&page=1&size=12
+Authorization: Bearer {{jwtToken}}
+
+###
+GET {{baseUrl}}/explore/5
+Authorization: Bearer {{jwtToken}}
+
+### Creator: am I a creator (level creator | s_creator | null), my posts
+GET {{baseUrl}}/explore/creator/me
+Authorization: Bearer {{jwtToken}}
+
+###
+GET {{baseUrl}}/explore/creator/posts?page=1&size=12
+Authorization: Bearer {{jwtToken}}
+
+### Creator: new post (uploading = a clip is on its way to Bunny, the post waits as a draft until /media)
+POST {{baseUrl}}/explore/creator/posts
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{"kind": "video", "title": "3 trò chơi học từ vựng", "body": "", "mediaUrl": "https://youtu.be/abcDEF12345", "posterUrl": "", "itemId": null, "tagIds": [1, 2], "uploading": false}
+
+###
+POST {{baseUrl}}/explore/creator/posts/5/hide
+Authorization: Bearer {{jwtToken}}
+
+###
+POST {{baseUrl}}/explore/creator/posts/5/show
+Authorization: Bearer {{jwtToken}}
+
+###
+GET {{baseUrl}}/explore/creator/tags?q=anh
+Authorization: Bearer {{jwtToken}}
+
+###
+GET {{baseUrl}}/explore/creator/courses?q=piano
+Authorization: Bearer {{jwtToken}}
+
 ### Weekly missions (plan 15): progress of the current ISO week
 GET {{baseUrl}}/fun/missions
 Authorization: Bearer {{jwtToken}}

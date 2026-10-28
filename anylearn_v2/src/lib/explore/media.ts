@@ -24,3 +24,14 @@ export function countText(n: number): string {
 export function postLink(origin: string, id: number): string {
   return `${origin.replace(/\/+$/, '')}/fun/explore?p=${id}`
 }
+
+/** A picture for a grid tile: the photo, the clip's poster, a YouTube thumbnail, the Bunny thumbnail, or null (article). */
+export function thumbOf(post: { kind: string; mediaUrl: string | null; posterUrl: string | null }): string | null {
+  if (post.kind === 'image') return post.mediaUrl
+  if (post.posterUrl) return post.posterUrl
+  const url = post.mediaUrl ?? ''
+  const yt = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{6,15})/)
+  if (yt) return `https://img.youtube.com/vi/${yt[1]}/hqdefault.jpg`
+  if (isHls(url)) return url.replace(/playlist\.m3u8.*$/i, 'thumbnail.jpg')
+  return null
+}

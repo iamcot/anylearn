@@ -7,15 +7,21 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
- * Khám phá (plan 14, phase 7): the feed of published posts, likes, comments with reports, and the admin side (posts,
- * comment moderation, a comment ban, numbers). Counters on the post row are kept in step by the methods here.
+ * Khám phá (plan 14, phase 7; plan 16): the feed of published posts (unseen first, then by interest), search, likes,
+ * comments with reports, and the admin side (posts, comment moderation, a comment ban, numbers). Counters on the post row
+ * are kept in step by the methods here. Creators' own actions and the review notifications are in ExploreCreatorService.
  */
 @Service
 @RequiredArgsConstructor
@@ -24,41 +30,165 @@ public class ExploreService {
     private final JdbcTemplate jdbc;
     private final ExploreSettings settings;
     private final GameEventService events;
+    private final ExploreSearchIndex index;
+    private final ExploreMediaCleaner cleaner;
 
-    private static final String POST_COLUMNS = "p.id, p.kind, p.title, p.body, p.media_url AS mediaUrl, p.poster_url AS posterUrl, p.item_id AS itemId, p.status, p.pinned, " +
-            "p.published_at AS publishedAt, p.views, p.likes, p.shares, p.comments_count AS comments, p.created_at AS createdAt, i.title AS itemTitle, i.seo_url AS itemSeoUrl";
-    private static final String POST_FROM = " FROM explore_posts p LEFT JOIN items i ON i.id = p.item_id ";
+    static final String POST_COLUMNS = "p.id, p.kind, p.title, p.body, p.media_url AS mediaUrl, p.poster_url AS posterUrl, p.item_id AS itemId, p.status, p.pinned, " +
+            "p.published_at AS publishedAt, p.views, p.likes, p.shares, p.comments_count AS comments, p.created_at AS createdAt, i.title AS itemTitle, i.seo_url AS itemSeoUrl, " +
+            "i.image AS itemImage, i.price AS itemPrice, p.author_id AS authorId, au.name AS authorFullName, p.approved, p.hidden_by AS hiddenBy, p.review_note AS reviewNote, p.after_upload AS afterUpload";
+    static final String POST_FROM = " FROM explore_posts p LEFT JOIN items i ON i.id = p.item_id LEFT JOIN users au ON au.id = p.author_id ";
+
+    /**
+     * Tag weights of a person (4 parameters: user, since, user, user): tags of posts they liked, and of courses they liked,
+     * put in the cart or bought.
+     */
+    private static final String AFFINITY = "SELECT tag_id, COUNT(*) AS w FROM (" +
+            "SELECT pt.tag_id FROM explore_likes l JOIN explore_post_tags pt ON pt.post_id = l.post_id WHERE l.user_id = ? AND l.created_at < ? " +
+            "UNION ALL SELECT it.tag_id FROM item_user_actions a JOIN item_tags it ON it.item_id = a.item_id WHERE a.user_id = ? AND ((a.type = 'fav' AND a.value = '1') OR a.type = 'cart') " +
+            "UNION ALL SELECT it.tag_id FROM order_details od JOIN item_tags it ON it.item_id = od.item_id WHERE od.user_id = ? AND od.status NOT LIKE 'cancel%'" +
+            ") x GROUP BY tag_id";
 
     private long count(String sql, Object... args) {
         Long v = jdbc.queryForObject(sql, Long.class, args);
         return v == null ? 0 : v;
     }
 
+    /** Refreshes the search index once the current transaction has committed (or now when there is none). */
+    void indexLater(long postId) {
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override public void afterCommit() { index.indexPost(postId); }
+            });
+        } else {
+            index.indexPost(postId);
+        }
+    }
+
+    /** Deletes the files of `urls` once the transaction has committed, when no post uses them any more. */
+    void cleanLater(List<String> urls) {
+        List<String> list = urls.stream().filter(u -> u != null && !u.isBlank()).distinct().toList();
+        if (list.isEmpty()) return;
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override public void afterCommit() { cleaner.deleteUnused(list); }
+            });
+        } else {
+            cleaner.deleteUnused(list);
+        }
+    }
+
+    private List<String> mediaOf(long id) {
+        return jdbc.query("SELECT media_url, poster_url FROM explore_posts WHERE id = ?", (rs, i) -> java.util.Arrays.asList(rs.getString(1), rs.getString(2)), id)
+                .stream().findFirst().orElse(null);
+    }
+
+    /** Adds `tags` [{id, name}] and `tagIds` to each row, and the author's short name; drops the full name unless asked. */
+    List<Map<String, Object>> decorate(List<Map<String, Object>> rows, boolean keepFullName) {
+        if (rows.isEmpty()) return rows;
+        String ids = rows.stream().map(r -> String.valueOf(((Number) r.get("id")).longValue())).collect(Collectors.joining(","));
+        Map<Long, List<Map<String, Object>>> tags = new HashMap<>();
+        for (Map<String, Object> t : jdbc.queryForList("SELECT pt.post_id AS postId, t.id, t.name FROM explore_post_tags pt JOIN tags t ON t.id = pt.tag_id WHERE pt.post_id IN (" + ids + ") ORDER BY t.sort_order, t.name")) {
+            Map<String, Object> tag = new LinkedHashMap<>();
+            tag.put("id", ((Number) t.get("id")).longValue());
+            tag.put("name", t.get("name"));
+            tags.computeIfAbsent(((Number) t.get("postId")).longValue(), k -> new ArrayList<>()).add(tag);
+        }
+        for (Map<String, Object> r : rows) {
+            List<Map<String, Object>> list = tags.getOrDefault(((Number) r.get("id")).longValue(), List.of());
+            r.put("tags", list);
+            r.put("tagIds", list.stream().map(t -> t.get("id")).toList());
+            String full = (String) r.get("authorFullName");
+            r.put("authorName", full == null ? null : ExploreRules.authorName(full));
+            if (!keepFullName) r.remove("authorFullName");
+            if (r.get("approved") instanceof Number n) r.put("approved", n.intValue() == 1);
+            if (r.get("pinned") instanceof Number n) r.put("pinned", n.intValue() == 1);
+            if (r.get("likedByMe") instanceof Number n) r.put("likedByMe", n.intValue() > 0);
+        }
+        return rows;
+    }
+
     // ---- visitors ----
 
-    /** Published posts, pinned first then newest, with whether the caller liked each. */
-    public Map<String, Object> feed(long userId, int page, int size) {
-        int safeSize = Math.max(1, Math.min(size, 30));
-        int safePage = Math.max(1, page);
-        List<Map<String, Object>> rows = jdbc.queryForList("SELECT " + POST_COLUMNS + ", (SELECT COUNT(*) FROM explore_likes l WHERE l.post_id = p.id AND l.user_id = ?) AS likedByMe" + POST_FROM +
-                "WHERE p.status = 'published' ORDER BY p.pinned DESC, p.published_at DESC, p.id DESC LIMIT ? OFFSET ?", userId, safeSize, (safePage - 1) * safeSize);
-        for (Map<String, Object> r : rows) r.put("likedByMe", ((Number) r.get("likedByMe")).intValue() > 0);
+    private Map<String, Object> page(List<Map<String, Object>> items, long total, int page) {
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("enabled", settings.enabled());
         out.put("commentsEnabled", settings.commentsEnabled());
-        out.put("items", settings.enabled() ? rows : List.of());
-        out.put("total", count("SELECT COUNT(*) FROM explore_posts WHERE status = 'published'"));
-        out.put("page", safePage);
+        out.put("items", settings.enabled() ? items : List.of());
+        out.put("total", settings.enabled() ? total : 0);
+        out.put("page", page);
         return out;
+    }
+
+    private static String likedByMe() {
+        return ", (SELECT COUNT(*) FROM explore_likes l WHERE l.post_id = p.id AND l.user_id = ?) AS likedByMe";
+    }
+
+    /** Published posts in the order of plan 16.6 (no `since` = now). */
+    public Map<String, Object> feed(long userId, int page, int size) {
+        return feed(userId, page, size, null, List.of());
+    }
+
+    /**
+     * Published posts for one person: pinned posts they have not seen, then every post they have not seen ranked by
+     * ExploreRules.rankScore (tags matching their interests, freshness, engagement), then posts they saw, the longest ago
+     * first. `since` = when the person opened the list: views and likes after it do not move posts between pages.
+     * `exclude` = posts already on screen (the post a viewer was opened on).
+     */
+    public Map<String, Object> feed(long userId, int page, int size, LocalDateTime since, List<Long> exclude) {
+        int safeSize = Math.max(1, Math.min(size, 30));
+        int safePage = Math.max(1, page);
+        LocalDateTime at = since == null || since.isAfter(LocalDateTime.now()) ? LocalDateTime.now() : since;
+        String notIn = exclude == null || exclude.isEmpty() ? "" : " AND p.id NOT IN (" + exclude.stream().limit(50).map(String::valueOf).collect(Collectors.joining(",")) + ")";
+        String unseen = "s.post_id IS NULL";
+        String score = "LEAST(COALESCE(m.matches, 0), 5) * 3 + 2 / (1 + GREATEST(TIMESTAMPDIFF(HOUR, p.published_at, ?), 0) / 168) " +
+                "+ 5 * (p.likes + 2 * p.comments_count + 3 * p.shares) / (p.views + 20)";
+        List<Map<String, Object>> rows = jdbc.queryForList("SELECT " + POST_COLUMNS + likedByMe() + POST_FROM +
+                        "LEFT JOIN explore_seen s ON s.post_id = p.id AND s.user_id = ? AND s.first_at < ? " +
+                        "LEFT JOIN (SELECT pt.post_id, SUM(a.w) AS matches FROM explore_post_tags pt JOIN (" + AFFINITY + ") a ON a.tag_id = pt.tag_id GROUP BY pt.post_id) m ON m.post_id = p.id " +
+                        "WHERE p.status = 'published'" + notIn +
+                        " ORDER BY (" + unseen + " AND p.pinned = 1) DESC, (" + unseen + ") DESC, CASE WHEN " + unseen + " THEN " + score + " ELSE 0 END DESC, s.last_at ASC, p.id DESC LIMIT ? OFFSET ?",
+                userId, userId, at, userId, at, userId, userId, at, safeSize, (safePage - 1) * safeSize);
+        return page(decorate(rows, false), count("SELECT COUNT(*) FROM explore_posts p WHERE p.status = 'published'" + notIn), safePage);
+    }
+
+    /** One published post (the post a shared link or a grid tile opens on), or null. */
+    public Map<String, Object> post(long userId, long postId) {
+        List<Map<String, Object>> rows = jdbc.queryForList("SELECT " + POST_COLUMNS + likedByMe() + POST_FROM + "WHERE p.id = ? AND p.status = 'published'", userId, postId);
+        return rows.isEmpty() || !settings.enabled() ? null : decorate(rows, false).get(0);
+    }
+
+    /** Published posts matching words in the title, the description or a tag name: Meilisearch, or SQL when it is down. */
+    public Map<String, Object> search(long userId, String rawQ, int page, int size) {
+        String q = rawQ == null ? "" : rawQ.trim();
+        if (q.isEmpty()) return feed(userId, page, size);
+        int safeSize = Math.max(1, Math.min(size, 30));
+        int safePage = Math.max(1, page);
+        int offset = (safePage - 1) * safeSize;
+        ExploreSearchIndex.Hits hits = index.search(q, offset, safeSize);
+        if (hits != null) {
+            if (hits.ids().isEmpty()) return page(List.of(), hits.total(), safePage);
+            String ids = hits.ids().stream().map(String::valueOf).collect(Collectors.joining(","));
+            List<Map<String, Object>> rows = jdbc.queryForList("SELECT " + POST_COLUMNS + likedByMe() + POST_FROM + "WHERE p.status = 'published' AND p.id IN (" + ids + ") ORDER BY FIELD(p.id, " + ids + ")", userId);
+            return page(decorate(rows, false), hits.total(), safePage);
+        }
+        String like = "%" + q.replace("\\", "").replace("%", "").replace("_", "") + "%";
+        String where = "WHERE p.status = 'published' AND (p.title LIKE ? OR p.body LIKE ? OR EXISTS (SELECT 1 FROM explore_post_tags pt JOIN tags t ON t.id = pt.tag_id WHERE pt.post_id = p.id AND t.name LIKE ?))";
+        List<Map<String, Object>> rows = jdbc.queryForList("SELECT " + POST_COLUMNS + likedByMe() + POST_FROM + where + " ORDER BY p.published_at DESC, p.id DESC LIMIT ? OFFSET ?",
+                userId, like, like, like, safeSize, offset);
+        return page(decorate(rows, false), count("SELECT COUNT(*) FROM explore_posts p " + where, like, like, like), safePage);
     }
 
     private boolean published(long postId) {
         return count("SELECT COUNT(*) FROM explore_posts WHERE id = ? AND status = 'published'", postId) > 0;
     }
 
-    /** Counts one opening of a post by a person; the game event feeds the weekly mission "xem bài ở Khám phá". */
+    /**
+     * Counts one opening of a post by a person and remembers that they saw it (the feed puts it after unseen posts); the
+     * game event feeds the weekly mission "xem bài ở Khám phá".
+     */
     public void countView(long userId, long postId) {
         if (jdbc.update("UPDATE explore_posts SET views = views + 1 WHERE id = ? AND status = 'published'", postId) > 0) {
+            jdbc.update("INSERT INTO explore_seen (user_id, post_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE last_at = NOW(), times = times + 1", userId, postId);
             events.record(userId, GameEventService.GAME_EXPLORE, "view", "Bài #" + postId, 0);
         }
     }
@@ -144,12 +274,39 @@ public class ExploreService {
     // ---- back office ----
 
     public List<Map<String, Object>> adminPosts() {
-        return jdbc.queryForList("SELECT " + POST_COLUMNS + POST_FROM + "ORDER BY p.id DESC LIMIT 300");
+        return decorate(jdbc.queryForList("SELECT " + POST_COLUMNS + ", au.phone AS authorPhone" + POST_FROM + "ORDER BY (p.status = 'pending') DESC, p.id DESC LIMIT 300"), true);
     }
 
-    /** Creates (id null) or updates a post. Publishing sets the publication date once. Returns the id. */
-    @Transactional
+    /** The raw row of a post (status, author, approval...), or null. */
+    public Map<String, Object> row(long id) {
+        List<Map<String, Object>> rows = jdbc.queryForList("SELECT " + POST_COLUMNS + POST_FROM + "WHERE p.id = ?", id);
+        return rows.isEmpty() ? null : decorate(rows, true).get(0);
+    }
+
+    /** Creates (id null) or updates a post as an admin, tags unchanged. */
     public long savePost(Long id, String kind, String title, String body, String mediaUrl, String posterUrl, Long itemId, String status, boolean pinned) {
+        return savePost(id, kind, title, body, mediaUrl, posterUrl, itemId, status, pinned, null);
+    }
+
+    /**
+     * Creates (id null) or updates a post as an admin. Publishing sets the publication date once and approves the content;
+     * hiding marks it hidden by an admin. `tagIds` null = tags unchanged. Returns the id.
+     */
+    @Transactional
+    public long savePost(Long id, String kind, String title, String body, String mediaUrl, String posterUrl, Long itemId, String status, boolean pinned, List<Long> tagIds) {
+        String cleanStatus = ExploreRules.cleanStatus(status);
+        Boolean approved = "published".equals(cleanStatus) ? Boolean.TRUE : "rejected".equals(cleanStatus) || "pending".equals(cleanStatus) ? Boolean.FALSE : null;
+        String hiddenBy = "hidden".equals(cleanStatus) ? "admin" : null;
+        return write(id, null, kind, title, body, mediaUrl, posterUrl, itemId, cleanStatus, pinned, approved, hiddenBy, null, tagIds);
+    }
+
+    /**
+     * The one place that inserts or updates a post. `authorId` is used on insert only; `approved` null = unchanged (true on
+     * insert); `afterUpload` = the status to take once the clip has uploaded (null = none). Checks tags and the course.
+     */
+    @Transactional
+    long write(Long id, Long authorId, String kind, String title, String body, String mediaUrl, String posterUrl, Long itemId, String status, boolean pinned,
+               Boolean approved, String hiddenBy, String afterUpload, List<Long> tagIds) {
         String cleanKind = ExploreRules.cleanKind(kind);
         String cleanTitle = ExploreRules.cleanTitle(title);
         String cleanStatus = ExploreRules.cleanStatus(status);
@@ -158,35 +315,82 @@ public class ExploreService {
         String text = body == null || body.isBlank() ? null : body.trim();
         if (text != null && text.length() > 8000) throw new IllegalArgumentException("Nội dung tối đa 8000 ký tự");
         if (itemId != null && count("SELECT COUNT(*) FROM items WHERE id = ?", itemId) == 0) throw new IllegalArgumentException("Không tìm thấy khóa học gắn kèm");
-        if (id == null) {
-            jdbc.update("INSERT INTO explore_posts (kind, title, body, media_url, poster_url, item_id, status, pinned, published_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, " +
-                    ("published".equals(cleanStatus) ? "NOW()" : "NULL") + ")", cleanKind, cleanTitle, text, media, poster, itemId, cleanStatus, pinned ? 1 : 0);
-            return count("SELECT LAST_INSERT_ID()");
+        List<Long> tags = tagIds == null ? null : ExploreRules.cleanTagIds(tagIds);
+        if (tags != null && !tags.isEmpty()) {
+            String ids = tags.stream().map(String::valueOf).collect(Collectors.joining(","));
+            if (count("SELECT COUNT(*) FROM tags WHERE id IN (" + ids + ")") != tags.size()) throw new IllegalArgumentException("Có tag không còn trong danh sách");
         }
-        if (count("SELECT COUNT(*) FROM explore_posts WHERE id = ?", id) == 0) throw new IllegalArgumentException("Không tìm thấy bài viết");
-        jdbc.update("UPDATE explore_posts SET kind = ?, title = ?, body = ?, media_url = ?, poster_url = ?, item_id = ?, status = ?, pinned = ?, " +
-                "published_at = IF(? = 'published' AND published_at IS NULL, NOW(), published_at) WHERE id = ?", cleanKind, cleanTitle, text, media, poster, itemId, cleanStatus, pinned ? 1 : 0, cleanStatus, id);
-        return id;
+        String publishedAt = "IF(? = 'published' AND published_at IS NULL, NOW(), published_at)";
+        long postId;
+        if (id == null) {
+            jdbc.update("INSERT INTO explore_posts (author_id, kind, title, body, media_url, poster_url, item_id, status, pinned, approved, hidden_by, after_upload, published_at) " +
+                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, " + ("published".equals(cleanStatus) ? "NOW()" : "NULL") + ")",
+                    authorId, cleanKind, cleanTitle, text, media, poster, itemId, cleanStatus, pinned ? 1 : 0, approved == null || approved ? 1 : 0, hiddenBy, afterUpload);
+            postId = count("SELECT LAST_INSERT_ID()");
+        } else {
+            List<String> old = mediaOf(id);
+            if (old == null) throw new IllegalArgumentException("Không tìm thấy bài viết");
+            cleanLater(old.stream().filter(u -> u != null && !u.equals(media) && !u.equals(poster)).toList());
+            jdbc.update("UPDATE explore_posts SET kind = ?, title = ?, body = ?, media_url = ?, poster_url = ?, item_id = ?, status = ?, pinned = ?, approved = COALESCE(?, approved), " +
+                            "hidden_by = ?, after_upload = ?, review_note = IF(? IN ('published', 'pending'), NULL, review_note), published_at = " + publishedAt + " WHERE id = ?",
+                    cleanKind, cleanTitle, text, media, poster, itemId, cleanStatus, pinned ? 1 : 0, approved == null ? null : approved ? 1 : 0,
+                    hiddenBy, afterUpload, cleanStatus, cleanStatus, id);
+            postId = id;
+        }
+        if (tags != null) {
+            jdbc.update("DELETE FROM explore_post_tags WHERE post_id = ?", postId);
+            for (Long tagId : tags) jdbc.update("INSERT IGNORE INTO explore_post_tags (post_id, tag_id) VALUES (?, ?)", postId, tagId);
+        }
+        indexLater(postId);
+        return postId;
+    }
+
+    /** Changes only the status fields of a post (review actions, hide / show). */
+    @Transactional
+    void setStatus(long id, String status, Boolean approved, String hiddenBy, String reviewNote) {
+        String clean = ExploreRules.cleanStatus(status);
+        jdbc.update("UPDATE explore_posts SET status = ?, approved = COALESCE(?, approved), hidden_by = ?, review_note = ?, after_upload = NULL, " +
+                "published_at = IF(? = 'published' AND published_at IS NULL, NOW(), published_at) WHERE id = ?", clean, approved == null ? null : approved ? 1 : 0, hiddenBy, reviewNote, clean, id);
+        indexLater(id);
     }
 
     /**
-     * Sets the clip and the poster of a post when an upload to Bunny finishes. Touches nothing else, so edits the admin made
-     * while the video was uploading are kept; an existing poster is not replaced.
+     * Sets the clip and the poster of a post when an upload to Bunny finishes. Touches nothing else, so edits made while the
+     * video was uploading are kept; a poster chosen by hand is not replaced (the thumbnail of the replaced clip is). A post
+     * waiting for its clip (`after_upload`) now takes that status. The replaced clip is deleted.
      */
     @Transactional
     public void attachMedia(long id, String mediaUrl, String posterUrl) {
         String media = ExploreRules.cleanMedia("video", mediaUrl, "published");
         String poster = posterUrl == null || posterUrl.isBlank() ? null : posterUrl.trim();
-        int rows = jdbc.update("UPDATE explore_posts SET media_url = ?, poster_url = COALESCE(NULLIF(poster_url, ''), ?) WHERE id = ?", media, poster, id);
-        if (rows == 0) throw new IllegalArgumentException("Không tìm thấy bài viết");
+        List<String> old = mediaOf(id);
+        if (old == null) throw new IllegalArgumentException("Không tìm thấy bài viết");
+        String oldMedia = old.get(0), oldPoster = old.get(1);
+        boolean posterOfOldClip = oldMedia != null && oldPoster != null && oldMedia.endsWith("/playlist.m3u8")
+                && oldPoster.startsWith(oldMedia.substring(0, oldMedia.length() - "playlist.m3u8".length()));
+        String keptPoster = oldPoster == null || oldPoster.isBlank() || posterOfOldClip ? poster : oldPoster;
+        jdbc.update("UPDATE explore_posts SET media_url = ?, poster_url = ?, status = COALESCE(after_upload, status), " +
+                "published_at = IF(after_upload = 'published' AND published_at IS NULL, NOW(), published_at), after_upload = NULL WHERE id = ?", media, keptPoster, id);
+        cleanLater(java.util.stream.Stream.of(oldMedia, oldPoster).filter(u -> u != null && !u.equals(media) && !u.equals(keptPoster)).toList());
+        indexLater(id);
     }
 
+    /** Deletes a post with its comments, likes, views, tags and its files (Bunny clip, S3 photos). */
     @Transactional
     public void deletePost(long id) {
+        List<String> media = mediaOf(id);
         jdbc.update("DELETE FROM explore_comment_reports WHERE comment_id IN (SELECT id FROM explore_comments WHERE post_id = ?)", id);
         jdbc.update("DELETE FROM explore_comments WHERE post_id = ?", id);
         jdbc.update("DELETE FROM explore_likes WHERE post_id = ?", id);
+        jdbc.update("DELETE FROM explore_seen WHERE post_id = ?", id);
+        jdbc.update("DELETE FROM explore_post_tags WHERE post_id = ?", id);
         jdbc.update("DELETE FROM explore_posts WHERE id = ?", id);
+        indexLater(id);
+        if (media != null) cleanLater(media);
+    }
+
+    public long pendingPosts() {
+        return count("SELECT COUNT(*) FROM explore_posts WHERE status = 'pending'");
     }
 
     /** Comments for moderation: filter all / reported (open reports) / hidden. */
@@ -236,6 +440,7 @@ public class ExploreService {
         out.put("shares", count("SELECT COALESCE(SUM(shares), 0) FROM explore_posts"));
         out.put("comments", count("SELECT COUNT(*) FROM explore_comments WHERE status = 'visible'"));
         out.put("openReports", openReports());
+        out.put("pending", pendingPosts());
         return out;
     }
 }

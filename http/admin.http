@@ -440,6 +440,28 @@ Content-Type: application/json
 GET {{baseUrl}}/../admin/explore/comments?filter=reported
 Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
 
+### Khám phá creators (plan 16): list, find a member, add / change level (creator | s_creator), remove
+GET {{baseUrl}}/../admin/explore/creators
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+###
+GET {{baseUrl}}/../admin/explore/creators/user-search?q=090
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+###
+PUT {{baseUrl}}/../admin/explore/creators/12
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+Content-Type: application/json
+
+{"level": "creator", "note": "Mẹ bỉm hay làm clip"}
+
+### Review a creator's post: approve | reject (note needed) | hide | show
+PUT {{baseUrl}}/../admin/explore/posts/5/review
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+Content-Type: application/json
+
+{"action": "reject", "note": "Clip bị mờ, bạn quay lại nhé"}
+
 ### Weekly missions config (plan 15): numbers keyed "{mission}/target|reward|enabled" and "bonus_needed"
 GET {{baseUrl}}/admin/fun/missions-config
 Authorization: Bearer {{$dotenv ADMIN_TOKEN}}

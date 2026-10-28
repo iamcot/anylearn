@@ -27,4 +27,15 @@ class BunnyRulesTest {
         assertEquals("Khám phá", BunnyRules.cleanTitle(null));
         assertEquals(200, BunnyRules.cleanTitle("x".repeat(500)).length());
     }
+
+    @Test
+    void videoIdOnlyForOurLibrary() {
+        String id = "3f0c2a6e-1b2c-4d5e-8f90-0123456789ab";
+        assertEquals(id, BunnyRules.videoIdOf("vz-1.b-cdn.net", "https://vz-1.b-cdn.net/" + id + "/playlist.m3u8"));
+        assertEquals(id, BunnyRules.videoIdOf("https://vz-1.b-cdn.net/", "https://vz-1.b-cdn.net/" + id + "/thumbnail.jpg"));
+        assertNull(BunnyRules.videoIdOf("vz-1.b-cdn.net", "https://vz-2.b-cdn.net/" + id + "/playlist.m3u8"));
+        assertNull(BunnyRules.videoIdOf("vz-1.b-cdn.net", "https://www.youtube.com/watch?v=abc"));
+        assertNull(BunnyRules.videoIdOf("", "https://vz-1.b-cdn.net/" + id + "/playlist.m3u8"));
+        assertNull(BunnyRules.videoIdOf("vz-1.b-cdn.net", "https://vz-1.b-cdn.net/../x"));
+    }
 }

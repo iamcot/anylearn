@@ -7,16 +7,19 @@ import { useAuth } from '@/context/AuthContext'
 import { CloseIcon } from '@/components/icons'
 import CommentsSheet from '@/components/fun/explore/CommentsSheet'
 import PostSlide from '@/components/fun/explore/PostSlide'
-import { countExploreShare, countExploreView, getExploreFeed, toggleExploreLike, type ExplorePost } from '@/lib/api/explore'
+import { countExploreShare, countExploreView, getExploreFeed, getExplorePost, getMyPost, searchExplore, toggleExploreLike, type ExplorePost } from '@/lib/api/explore'
+import { browseList } from '@/lib/explore/browse'
+import { mergePosts } from '@/lib/explore/creator'
 import { postLink } from '@/lib/explore/media'
 
-const PAGE = 10
+const PAGE = 12
 
 // Khám phá: a full-screen viewer, one post per screen, swipe up for the next. The cross at the top goes back to Vui học.
 function Explorer() {
   const { token } = useAuth()
   const search = useSearchParams()
   const wanted = Number(search.get('p')) || 0
+  const from = search.get('from')
   const [posts, setPosts] = useState<ExplorePost[]>([])
   const [commentsOn, setCommentsOn] = useState(true)
   const [enabled, setEnabled] = useState(true)
@@ -24,38 +27,61 @@ function Explorer() {
   const [error, setError] = useState('')
   const [active, setActive] = useState(0)
   const [openComments, setOpenComments] = useState<number | null>(null)
-  const page = useRef(1)
-  const total = useRef(0)
+  // where the next posts come from: the grid's search or the suggested feed (plan 16.4 / 16.6)
+  const source = useRef({ q: '', page: 0, total: 0, since: 0, exclude: [] as number[] })
   const loading = useRef(false)
+  const started = useRef(false)
   const seen = useRef(new Set<number>())
   const scroller = useRef<HTMLDivElement>(null)
 
   const loadMore = useCallback(async () => {
     if (!token || loading.current) return
     loading.current = true
-    const { data, error: err } = await getExploreFeed(token, page.current, PAGE)
+    const s = source.current
+    const next = s.page + 1
+    if (!s.since) s.since = Date.now()
+    const { data, error: err } = s.q ? await searchExplore(token, s.q, next, PAGE) : await getExploreFeed(token, next, PAGE, s.since, s.exclude)
     loading.current = false
     if (err || !data) return setError(err ?? 'Không tải được bài viết')
-    page.current += 1
-    total.current = data.total
+    s.page = next
+    s.total = data.total + s.exclude.length
     setEnabled(data.enabled)
     setCommentsOn(data.commentsEnabled)
-    setPosts(prev => [...prev, ...data.items.filter(i => !prev.some(p => p.id === i.id))])
+    setPosts(prev => mergePosts(prev, data.items))
     setLoaded(true)
   }, [token])
 
+  // Opened from a grid tile: go on with the grid's list. Opened on one post (shared link, "Xem" of a creator): that post
+  // first, then the feed without it. Otherwise the feed.
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    loadMore()
-  }, [loadMore])
+    if (!token || started.current) return
+    started.current = true
+    const list = from === 'list' ? browseList() : null
+    if (list && list.posts.some(p => p.id === wanted)) {
+      source.current = { q: list.q, page: list.page, total: list.total, since: list.since, exclude: [] }
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setPosts(list.posts)
+      setLoaded(true)
+      return
+    }
+    if (!wanted) { loadMore(); return }
+    ;(async () => {
+      const { data } = from === 'mine' ? await getMyPost(token, wanted) : await getExplorePost(token, wanted)
+      if (data) {
+        source.current.exclude = [data.id]
+        setPosts([data])
+      }
+      loadMore()
+    })()
+  }, [token, wanted, from, loadMore])
 
-  // the link of a shared post opens on that post (loading more pages until it is found)
+  // the post the viewer was opened on is shown first
   useEffect(() => {
     if (!wanted || posts.length === 0) return
     const index = posts.findIndex(p => p.id === wanted)
-    if (index >= 0) scroller.current?.querySelector(`[data-index="${index}"]`)?.scrollIntoView()
-    else if (posts.length < total.current) loadMore()
-  }, [wanted, posts, loadMore])
+    if (index > 0 && active === 0) scroller.current?.querySelector(`[data-index="${index}"]`)?.scrollIntoView()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wanted, posts.length > 0])
 
   // which post is on screen: count its view once, and load more near the end
   useEffect(() => {
@@ -68,7 +94,7 @@ function Explorer() {
         const id = Number((e.target as HTMLElement).dataset.post)
         setActive(index)
         if (token && !seen.current.has(id)) { seen.current.add(id); countExploreView(token, id) }
-        if (index >= posts.length - 3 && posts.length < total.current) loadMore()
+        if (index >= posts.length - 3 && posts.length < source.current.total) loadMore()
       }
     }, { root, threshold: 0.6 })
     root.querySelectorAll('section[data-post]').forEach(el => observer.observe(el))
@@ -94,7 +120,7 @@ function Explorer() {
 
   return (
     <div className="fixed inset-0 z-[60] bg-black">
-      <Link href="/fun" aria-label="Đóng Khám phá" className="absolute right-3 top-3 z-30 grid size-11 place-items-center rounded-full bg-black/50 text-white no-underline"><CloseIcon className="size-5" /></Link>
+      <Link href={from === 'mine' ? '/fun/explore/mine' : '/fun'} aria-label="Đóng Khám phá" className="absolute right-3 top-3 z-30 grid size-11 place-items-center rounded-full bg-black/50 text-white no-underline"><CloseIcon className="size-5" /></Link>
       <div ref={scroller} className="h-dvh snap-y snap-mandatory overflow-y-scroll overscroll-contain">
         {posts.map((p, i) => (
           <PostSlide key={p.id} post={p} index={i} active={i === active} near={i === active + 1} commentsOn={commentsOn}

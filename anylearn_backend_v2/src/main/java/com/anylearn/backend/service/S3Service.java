@@ -87,6 +87,25 @@ public class S3Service {
         return baseUrl + "/" + key;
     }
 
+    /**
+     * Deletes a file we stored, only when its link is ours and its key is inside `folder` (so a photo used elsewhere is never
+     * touched). Never throws: a failure is only logged.
+     */
+    public void deleteOwnFile(String url, String folder) {
+        if (!isOwnUrl(url) || accessKey.isBlank() || secretKey.isBlank() || bucket.isBlank()) return;
+        String key = url.substring(publicBaseUrl().length() + 1).replaceAll("[?#].*$", "");
+        if (!key.startsWith(folder + "/") || key.contains("..")) return;
+        try (S3Client s3 = S3Client.builder()
+                .region(Region.of(region))
+                .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKey, secretKey)))
+                .build()) {
+            s3.deleteObject(software.amazon.awssdk.services.s3.model.DeleteObjectRequest.builder().bucket(bucket).key(key).build());
+            log.info("[S3] Deleted: {}", key);
+        } catch (Exception e) {
+            log.warn("[S3] {} not deleted: {}", key, e.getMessage());
+        }
+    }
+
     private String getExtension(String filename) {
         if (filename == null || !filename.contains(".")) return "jpg";
         return filename.substring(filename.lastIndexOf('.') + 1).toLowerCase();

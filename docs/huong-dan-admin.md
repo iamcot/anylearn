@@ -640,6 +640,30 @@ Bunny Stream là dịch vụ lưu và phát video. Khi cài xong, form bài lo�
 
 Nếu nút vẫn không hiện: kiểm tra đủ cả 3 secret và không có ô nào để trống.
 
+### Khám phá: creator đăng bài, duyệt bài, tags và gắn khóa học (plan 16)
+
+**Creator là ai.** Thành viên được admin cho phép đăng bài Khám phá từ app (Vui học > ô tìm Khám phá > nút **Bài đăng của tôi**). Có hai loại:
+- **Creator**: mỗi bài mới, và mỗi lần sửa bài, đều chờ admin duyệt rồi mới hiện.
+- **S-creator**: tự đăng, bài hiện ngay. Admin vẫn ẩn được bất cứ lúc nào.
+
+**Thêm / đổi / gỡ creator.** Trang Khám phá > tab **Creator**: gõ tên, số điện thoại hoặc email vào ô "Thêm creator", chọn loại, bấm **+ Thêm**. Người được thêm nhận thông báo. Trong bảng bên dưới đổi loại bằng ô chọn, bấm **Gỡ** để thu quyền (bài đã đăng vẫn giữ nguyên, chỉ admin sửa hoặc xóa được nữa).
+
+**Duyệt bài.** Có bài chờ duyệt thì menu "Khám phá" có số đỏ, và mọi người trong danh sách "Người nhận thông báo admin" nhận thông báo. Tab **Bài viết**: bài chờ duyệt nằm đầu danh sách, cột **Người đăng** ghi tên creator (bài của anyLEARN ghi "anyLEARN"), bộ lọc "Người đăng" để xem riêng bài của creator. Với bài của creator, cột Trạng thái có nút:
+- **Duyệt** (bài hiện ngay), **Từ chối** (bắt buộc ghi lý do, creator đọc lý do để sửa rồi gửi lại).
+- Bài đang hiện: **Ẩn** (lý do tùy chọn). Bài admin đã ẩn thì creator không tự hiện lại được, bấm "Hiện" bên phía creator là gửi duyệt lại.
+- Bài đang ẩn: **Hiện lại**.
+Mỗi thao tác này, sửa bài trong form, hay xóa bài của creator đều gửi thông báo cho creator.
+
+**Tags.** Bài Khám phá dùng **chung từ điển tag với khóa học** (trang Tags). Form bài có ô Tags: chọn tag có sẵn, hoặc gõ tên mới rồi bấm "+ Tạo tag" (chỉ admin tạo được, creator chỉ chọn). Tag giúp người xem tìm bài, và giúp hệ thống đưa bài hợp với người đã mua hoặc thích khóa học cùng tag lên trước. Mỗi bài tối đa 8 tag.
+
+**Gắn khóa học.** Ô "Gắn khóa học" giờ là ô tìm: gõ tên khóa học (ít nhất 2 chữ), chọn trong danh sách, khóa học hiện thành một dòng nhỏ có nút × để bỏ. Không cần nhớ mã khóa học nữa.
+
+**Người xem thấy gì.** Trang Vui học có ô tìm bài Khám phá (tìm theo tiêu đề, mô tả và tên tag) và lưới bài 3 cột, mỗi lần 12 bài, kéo xuống tự tải thêm. Không gõ gì thì lưới xếp theo gợi ý: **bài người đó chưa xem lên trước** (bài đã xem xuống cuối), trong các bài chưa xem thì bài có tag hợp với họ (tag của bài họ đã thích, của khóa học họ đã mua, đang trong giỏ hoặc đã thích) đứng đầu, rồi đến bài mới và bài được nhiều người thích, bình luận, chia sẻ. Bài ghim chỉ đứng đầu với người chưa xem nó. Bấm một ô là mở trình xem toàn màn hình từ bài đó và lướt tiếp trong cùng danh sách.
+
+**Tìm kiếm.** Bài đang hiện được đưa vào Meilisearch (index `explore_posts`) mỗi lần lưu hoặc đổi trạng thái, và dựng lại lúc 5:20 sáng hằng ngày. Sau lần deploy đầu tiên có tính năng này, bấm nút dựng lại chỉ mục ở Cài đặt > Vận hành (`POST /admin/reindex`) một lần để các bài cũ vào chỉ mục. Meilisearch lỗi thì ô tìm vẫn chạy (tìm chậm hơn trong database).
+
+**Xóa bài xóa luôn file.** Xóa một bài (admin hoặc creator) sẽ xóa video của bài trên Bunny và hình, ảnh bìa trên S3 (chỉ file trong thư mục `explore/` của anyLEARN; link YouTube hay link ngoài không bị đụng tới). Đổi hình, ảnh bìa hoặc tải video mới cho bài cũng xóa file cũ. Một file mà bài khác còn dùng thì được giữ lại.
+
 ### Danh sách bài Khám phá: lọc, công tắc Hiện/Nháp, hình nhỏ
 
 Trang Khám phá > tab **Bài viết**: phía trên bảng có ô tìm theo tiêu đề và hai bộ lọc Loại bài, Trạng thái (kèm số bài đang lọc). Mỗi dòng có hình nhỏ để nhận ra nội dung (ảnh của bài ảnh, hình đại diện của clip, hình YouTube hoặc ô "Aa" với bài viết chữ). Cột **Trạng thái** là công tắc: bật = Đang hiện, tắt = Nháp, bấm là đổi ngay, không cần mở form. Bài loại ảnh hoặc clip chưa có hình hoặc clip thì không bật Hiện được (hệ thống báo lỗi). Bài đang ở trạng thái Ẩn hiện thêm nhãn đỏ "Ẩn"; bật công tắc sẽ chuyển nó sang Đang hiện. Danh sách lấy tối đa 300 bài mới nhất.

@@ -37,6 +37,7 @@ public class AdminBadgeController {
         counts.put("stickerReview", count("SELECT COUNT(*) FROM welcome_packs WHERE status = 'review'"));
         counts.put("quizFlagged", count("SELECT COUNT(*) FROM quiz_attempts WHERE flagged = 1 AND issued_at >= DATE_SUB(CURDATE(), INTERVAL 14 DAY)"));
         counts.put("exploreReports", exploreService.openReports());
+        counts.put("explorePending", exploreService.pendingPosts());
         counts.put("reviewsResubmitted", reviewService.resubmittedCount());
         counts.put("reviewsReported", reviewService.reportedCount());
         return ApiResponse.ok(counts);
