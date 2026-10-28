@@ -4,8 +4,8 @@ import type { StickerView } from '@/lib/api/stickers'
 type Art = Pick<StickerView, 'image' | 'emoji' | 'name'> & { rarity?: StickerView['rarity'] }
 
 const SPARKLES: Record<'rare' | 'epic', { x: number; y: number; s: number; d: number }[]> = {
-  rare: [{ x: 14, y: 20, s: 13, d: 0 }, { x: 80, y: 30, s: 9, d: 0.9 }, { x: 70, y: 80, s: 11, d: 1.7 }],
-  epic: [{ x: 12, y: 18, s: 14, d: 0 }, { x: 84, y: 22, s: 10, d: 0.5 }, { x: 88, y: 62, s: 13, d: 1.1 }, { x: 16, y: 74, s: 9, d: 1.6 }, { x: 52, y: 8, s: 8, d: 0.8 }, { x: 60, y: 88, s: 11, d: 2.1 }],
+  rare: [{ x: 8, y: 16, s: 17, d: 0 }, { x: 88, y: 24, s: 12, d: 0.9 }, { x: 76, y: 86, s: 15, d: 1.7 }, { x: 14, y: 78, s: 10, d: 2.3 }],
+  epic: [{ x: 6, y: 14, s: 18, d: 0 }, { x: 90, y: 18, s: 13, d: 0.5 }, { x: 94, y: 62, s: 17, d: 1.1 }, { x: 10, y: 74, s: 12, d: 1.6 }, { x: 50, y: 2, s: 11, d: 0.8 }, { x: 62, y: 92, s: 15, d: 2.1 }, { x: 34, y: 94, s: 10, d: 2.6 }, { x: 98, y: 38, s: 9, d: 1.9 }],
 }
 
 /** A stable hue from the name, so every common sticker has its own pastel colour. */
@@ -61,6 +61,15 @@ function PhotoArt({ sticker, className }: { sticker: Art; className: string }) {
       {SPARKLES[rarity].map((p, i) => (
         <span key={i} className={`stk-spark stp-spark-${rarity}`} style={{ left: `${p.x}%`, top: `${p.y}%`, width: `${p.s}cqw`, height: `${p.s}cqw`, animationDelay: `${p.d}s` }} />
       ))}
+    </span>
+  )
+}
+
+/** A sticker the player has not collected: a soft badge in the colour of its rarity with a "?" (the picture and the emoji are never drawn). */
+export function UnknownArt({ rarity = 'common', className = 'size-full' }: { rarity?: StickerView['rarity']; className?: string }) {
+  return (
+    <span className={`${className} relative block aspect-square`} role="img" aria-label="Sticker chưa sưu tầm" style={{ containerType: 'inline-size' } as CSSProperties}>
+      <span className={`stk-unknown stk-unknown-${rarity}`}><span className="stk-q" aria-hidden>?</span></span>
     </span>
   )
 }

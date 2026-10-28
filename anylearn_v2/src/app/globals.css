@@ -468,40 +468,46 @@ body {
 }
 
 /* Generated stickers (StickerArt): a die-cut badge around the emoji, effects by rarity */
-.stk { position: absolute; inset: 3%; display: block; border-radius: 34%; border: 4cqw solid #fff; overflow: hidden;
+.stk { position: absolute; inset: 2%; display: block; border-radius: 34%; border: 4cqw solid #fff; overflow: hidden;
   box-shadow: 0 2cqw 5cqw rgba(15, 23, 42, 0.22), 0 0 0 0.6cqw rgba(15, 23, 42, 0.08); transform: rotate(-3deg); }
 .stk-face, .stk-holo, .stk-sweep { position: absolute; inset: 0; }
 .stk-emoji { position: absolute; inset: 0; display: grid; place-items: center; font-size: 50cqw; line-height: 1; filter: drop-shadow(0 1.5cqw 1.5cqw rgba(15, 23, 42, 0.25)); }
 .stk-common .stk-face { background: radial-gradient(circle at 30% 25%, #fff 0, hsl(var(--stk-hue) 90% 90%) 45%, hsl(var(--stk-hue) 75% 80%) 100%); }
-.stk-rare { box-shadow: 0 2cqw 5cqw rgba(37, 99, 235, 0.45), 0 0 0 0.8cqw #fcd34d; }
+.stk-rare { box-shadow: 0 2cqw 8cqw rgba(37, 99, 235, 0.55), 0 0 12cqw 2cqw rgba(96, 165, 250, 0.55), 0 0 0 1cqw #fcd34d; }
 .stk-rare .stk-face { background: radial-gradient(circle at 30% 20%, #e0f2fe 0, #60a5fa 45%, #2563eb 100%); }
 .stk-rare::after { content: ''; position: absolute; inset: 0; background: linear-gradient(160deg, rgba(255, 255, 255, 0.55) 0, rgba(255, 255, 255, 0) 42%); pointer-events: none; }
-.stk-epic { animation: stk-glow 2.4s ease-in-out infinite; box-shadow: 0 0 0 0.8cqw #f0abfc; }
+.stk-epic { animation: stk-glow 3.2s ease-in-out infinite; box-shadow: 0 0 0 1cqw #f0abfc, 0 0 14cqw 3cqw rgba(192, 132, 252, 0.6); }
 .stk-epic .stk-face { background: radial-gradient(circle at 30% 20%, #fdf4ff 0, #c084fc 40%, #6d28d9 100%); }
 .stk-holo { background: conic-gradient(from 0deg, #ff6ec7, #ffd86e, #6effb2, #6ec9ff, #b66eff, #ff6ec7); mix-blend-mode: hard-light; opacity: 0.6; animation: stk-spin 6s linear infinite; transform-origin: 50% 50%; scale: 1.6; }
-.stk-sweep { background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.75) 50%, transparent 65%); transform: translateX(-120%); animation: stk-sweep 3.2s ease-in-out infinite; }
-.stk-spark { position: absolute; background: #fff; clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%); filter: drop-shadow(0 0 1.5cqw rgba(255, 255, 255, 0.9)); animation: stk-twinkle 1.8s ease-in-out infinite; }
-@keyframes stk-sweep { 0%, 55% { transform: translateX(-120%); } 100% { transform: translateX(120%); } }
+.stk-sweep { background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.8) 50%, transparent 70%); transform: translateX(-120%); animation: stk-sweep 5.4s ease-in-out infinite; }
+.stk-spark { position: absolute; background: #fff; clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%); filter: drop-shadow(0 0 2.5cqw rgba(255, 255, 255, 0.95)); animation: stk-twinkle 2.6s ease-in-out infinite; }
+@keyframes stk-sweep { 0%, 40% { transform: translateX(-120%); } 100% { transform: translateX(120%); } }
 @keyframes stk-twinkle { 0%, 100% { opacity: 0.2; transform: scale(0.5) rotate(0deg); } 50% { opacity: 1; transform: scale(1) rotate(45deg); } }
 @keyframes stk-spin { to { transform: rotate(360deg); } }
-@keyframes stk-glow { 0%, 100% { filter: drop-shadow(0 0 1.5cqw rgba(192, 132, 252, 0.7)); } 50% { filter: drop-shadow(0 0 4cqw rgba(232, 121, 249, 1)); } }
+@keyframes stk-glow { 0%, 100% { filter: drop-shadow(0 0 3cqw rgba(192, 132, 252, 0.8)); } 50% { filter: drop-shadow(0 0 8cqw rgba(232, 121, 249, 1)); } }
+/* A sticker the player has not collected yet: a soft badge in the colour of its rarity with a question mark (no picture, no name) */
+.stk-unknown { position: absolute; inset: 4%; display: grid; place-items: center; border-radius: 34%; border: 1.6cqw dashed var(--stk-q-edge); background: var(--stk-q-bg); color: var(--stk-q-ink); }
+.stk-unknown-common { --stk-q-edge: #cbd5e1; --stk-q-bg: #f1f5f9; --stk-q-ink: #94a3b8; }
+.stk-unknown-rare { --stk-q-edge: #93c5fd; --stk-q-bg: radial-gradient(circle at 30% 25%, #eff6ff 0, #dbeafe 100%); --stk-q-ink: #60a5fa; box-shadow: 0 0 8cqw rgba(96, 165, 250, 0.45); }
+.stk-unknown-epic { --stk-q-edge: #d8b4fe; --stk-q-bg: radial-gradient(circle at 30% 25%, #faf5ff 0, #f3e8ff 100%); --stk-q-ink: #c084fc; box-shadow: 0 0 9cqw rgba(192, 132, 252, 0.55); }
+.stk-q { font-size: 58cqw; font-weight: 900; line-height: 1; }
 @media (prefers-reduced-motion: reduce) { .stk-holo, .stk-sweep, .stk-spark, .stk-epic { animation: none; } .stk-spark { opacity: 0.9; } }
 
 /* Rarity effects around an uploaded sticker picture (StickerArt > PhotoArt) */
-.stp-img { position: absolute; inset: 8%; width: 84%; height: 84%; object-fit: contain; }
-.stp-halo { position: absolute; inset: 0; border-radius: 50%; }
-.stp-halo-rare { background: radial-gradient(circle, rgba(96, 165, 250, 0.55) 0, rgba(96, 165, 250, 0.25) 45%, transparent 70%); animation: stp-pulse 2.4s ease-in-out infinite; }
-.stp-halo-epic { background: radial-gradient(circle, rgba(232, 121, 249, 0.8) 0, rgba(168, 85, 247, 0.45) 48%, transparent 74%); animation: stp-pulse 2s ease-in-out infinite; }
-.stp-rays { position: absolute; inset: -6%; border-radius: 50%; opacity: 0.8; animation: stk-spin 9s linear infinite;
+.stp-img { position: absolute; inset: 4%; width: 92%; height: 92%; object-fit: contain; }
+.stp-halo { position: absolute; inset: -16%; border-radius: 50%; }
+.stp-halo-rare { background: radial-gradient(circle, rgba(96, 165, 250, 0.55) 0, rgba(96, 165, 250, 0.25) 45%, transparent 70%); animation: stp-pulse 3.4s ease-in-out infinite; }
+.stp-halo-epic { background: radial-gradient(circle, rgba(232, 121, 249, 0.8) 0, rgba(168, 85, 247, 0.45) 48%, transparent 74%); animation: stp-pulse 2.8s ease-in-out infinite; }
+.stp-rays { position: absolute; inset: -22%; border-radius: 50%; opacity: 0.8; animation: stk-spin 9s linear infinite;
   background: repeating-conic-gradient(from 0deg, rgba(217, 70, 239, 0.55) 0 6deg, transparent 6deg 14deg, rgba(250, 204, 21, 0.55) 14deg 20deg, transparent 20deg 28deg);
   -webkit-mask-image: radial-gradient(circle, transparent 28%, #000 48%, transparent 72%); mask-image: radial-gradient(circle, transparent 28%, #000 48%, transparent 72%); }
-.stp-img-rare { filter: drop-shadow(0 0 0.8cqw #fff) drop-shadow(0 0 2cqw #3b82f6) drop-shadow(0 0 4cqw rgba(59, 130, 246, 0.8)); }
-.stp-img-epic { filter: drop-shadow(0 0 0.8cqw #fff) drop-shadow(0 0 2.2cqw #d946ef) drop-shadow(0 0 5cqw rgba(168, 85, 247, 0.9)); animation: stp-outline 2.6s linear infinite; }
-.stp-flash { filter: brightness(0) invert(1); opacity: 0.8; clip-path: polygon(-40% 0, -20% 0, -45% 100%, -65% 100%); animation: stp-flash 3.4s ease-in-out infinite; }
-.stp-flash-epic { animation-duration: 2.6s; }
-.stp-spark-rare { filter: drop-shadow(0 0 1.5cqw #60a5fa); }
-.stp-spark-epic { background: #fdf4ff; filter: drop-shadow(0 0 2cqw #e879f9); }
+.stp-img-rare { filter: drop-shadow(0 0 1cqw #fff) drop-shadow(0 0 3.5cqw #3b82f6) drop-shadow(0 0 8cqw rgba(59, 130, 246, 0.85)); }
+.stp-img-epic { filter: drop-shadow(0 0 1cqw #fff) drop-shadow(0 0 4cqw #d946ef) drop-shadow(0 0 9cqw rgba(168, 85, 247, 0.95)); animation: stp-outline 4s linear infinite; }
+.stp-flash { filter: brightness(0) invert(1); opacity: 0.8; clip-path: polygon(-40% 0, -20% 0, -45% 100%, -65% 100%); animation: stp-flash 5.2s ease-in-out infinite; }
+.stp-flash-epic { animation-duration: 4.2s; }
+.stp-spark-rare { filter: drop-shadow(0 0 3cqw #60a5fa); }
+.stp-spark-epic { background: #fdf4ff; filter: drop-shadow(0 0 4cqw #e879f9); }
 @keyframes stp-pulse { 0%, 100% { opacity: 0.65; transform: scale(0.94); } 50% { opacity: 1; transform: scale(1.04); } }
-@keyframes stp-flash { 0%, 55% { clip-path: polygon(-40% 0, -20% 0, -45% 100%, -65% 100%); } 100% { clip-path: polygon(120% 0, 140% 0, 115% 100%, 95% 100%); } }
-@keyframes stp-outline { 0%, 100% { filter: drop-shadow(0 0 0.8cqw #fff) drop-shadow(0 0 2.2cqw #d946ef) drop-shadow(0 0 5cqw rgba(168, 85, 247, 0.9)); } 33% { filter: drop-shadow(0 0 0.8cqw #fff) drop-shadow(0 0 2.2cqw #c026d3) drop-shadow(0 0 5cqw rgba(236, 72, 153, 0.85)); } 66% { filter: drop-shadow(0 0 0.8cqw #fff) drop-shadow(0 0 2.2cqw #f59e0b) drop-shadow(0 0 5cqw rgba(251, 191, 36, 0.85)); } }
+@keyframes stp-flash { 0%, 40% { clip-path: polygon(-40% 0, -20% 0, -45% 100%, -65% 100%); } 100% { clip-path: polygon(120% 0, 140% 0, 115% 100%, 95% 100%); } }
+@keyframes stp-outline { 0%, 100% { filter: drop-shadow(0 0 1cqw #fff) drop-shadow(0 0 4cqw #d946ef) drop-shadow(0 0 9cqw rgba(168, 85, 247, 0.95)); } 33% { filter: drop-shadow(0 0 1cqw #fff) drop-shadow(0 0 4cqw #c026d3) drop-shadow(0 0 9cqw rgba(236, 72, 153, 0.9)); } 66% { filter: drop-shadow(0 0 1cqw #fff) drop-shadow(0 0 4cqw #f59e0b) drop-shadow(0 0 9cqw rgba(251, 191, 36, 0.9)); } }
 @media (prefers-reduced-motion: reduce) { .stp-halo, .stp-rays, .stp-flash, .stp-img-epic { animation: none; } .stp-flash { display: none; } }

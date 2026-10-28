@@ -43,6 +43,28 @@ Authorization: Bearer {{jwtToken}}
 POST {{baseUrl}}/stickers/offers/1/decline
 Authorization: Bearer {{jwtToken}}
 
+### Sticker market: listings (tab = match | all | mine)
+GET {{baseUrl}}/stickers/market?tab=match&page=1
+Authorization: Bearer {{jwtToken}}
+
+### Post "I have 1, 2, 3 and need 9" (same rarity, 9 must be a sticker you lack)
+POST {{baseUrl}}/stickers/market
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{ "give": [1, 2, 3], "want": 9 }
+
+### Take a listing: pick one of the offered stickers you lack; you give the wanted one
+POST {{baseUrl}}/stickers/market/1/take
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{ "stickerId": 2 }
+
+### Remove your own listing (unlocks the copies)
+DELETE {{baseUrl}}/stickers/market/1
+Authorization: Bearer {{jwtToken}}
+
 ### Full-set reward of one collection (once per person and collection)
 POST {{baseUrl}}/stickers/set-reward
 Authorization: Bearer {{jwtToken}}

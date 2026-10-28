@@ -27,6 +27,8 @@ public class StickerSettings {
         NUMBERS.put("eligible_checkins", new int[]{3, 0, 60});
         NUMBERS.put("hold_score", new int[]{50, 1, 100});          // risk score from which rewards wait for approval
         NUMBERS.put("invite_month_cap", new int[]{10, 1, 200});
+        NUMBERS.put("market_max_listings", new int[]{3, 1, 10});   // open market listings per person
+        NUMBERS.put("market_listing_days", new int[]{7, 1, 60});   // a listing expires after this many days
         NUMBERS.put("set_reward_points", new int[]{200, 0, 5000});
     }
 

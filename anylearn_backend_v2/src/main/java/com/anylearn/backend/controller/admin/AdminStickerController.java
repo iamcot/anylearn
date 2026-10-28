@@ -21,6 +21,7 @@ public class AdminStickerController {
     private final JdbcTemplate jdbc;
     private final StickerService stickers;
     private final StickerTradeService trades;
+    private final StickerMarketService market;
     private final WelcomePackService welcomePacks;
     private final RiskService risk;
     private final StickerSettings settings;
@@ -284,6 +285,23 @@ public class AdminStickerController {
         if (!List.of("blocked", "cleared", "open").contains(status)) return ApiResponse.fail("Trạng thái không hợp lệ");
         risk.setStatus(userId, status);
         return review(user);
+    }
+
+    @GetMapping("/market")
+    public ApiResponse<?> marketList(@AuthenticationPrincipal User user, @RequestParam(required = false) String status, @RequestParam(defaultValue = "1") int page) {
+        if (notAdmin(user)) return ApiResponse.fail("Forbidden");
+        return ApiResponse.ok(market.adminList(status, page));
+    }
+
+    @PostMapping("/market/{id}/cancel")
+    public ApiResponse<?> marketCancel(@AuthenticationPrincipal User user, @PathVariable long id) {
+        if (notAdmin(user)) return ApiResponse.fail("Forbidden");
+        try {
+            market.adminCancel(id);
+            return ApiResponse.ok(Map.of("ok", true));
+        } catch (IllegalStateException e) {
+            return ApiResponse.fail(e.getMessage());
+        }
     }
 
     @GetMapping("/settings")

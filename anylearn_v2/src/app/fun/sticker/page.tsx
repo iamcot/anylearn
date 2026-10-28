@@ -99,6 +99,10 @@ export default function StickerPage() {
             </section>
           )}
 
+          <Link href="/fun/sticker/market" className="flex min-h-11 items-center justify-between gap-3 rounded-2xl border border-line bg-white p-4 text-text no-underline">
+            <span><b className="block text-base font-extrabold">Chợ đổi sticker</b><span className="text-sm text-muted">Đăng &quot;mình có a, b, c, cần x&quot; hoặc tìm bạn đổi ngay.</span></span>
+            <span aria-hidden className="text-xl font-black text-green">›</span>
+          </Link>
           <OffersCard token={token} title="Lời mời đổi dành cho bạn" offers={album.incoming} incoming onDone={done} />
           <TradePanel token={token} items={album.items} eligible={album.eligible} onSent={() => done()} />
           <OffersCard token={token} title="Lời mời bạn đã gửi" offers={album.outgoing} incoming={false} onDone={done} />
