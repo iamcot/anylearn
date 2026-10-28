@@ -39,26 +39,26 @@ function Sparks() {
   )
 }
 
-/** The row of stars on a right answer: the new star(s) pop up, bounce twice and throw sparks. */
+/** The row of stars on a right answer: the new star(s) pop up, bounce twice and throw sparks; the empty slots of the rank stay grey. */
 export default function StarBurst({ result }: { result: QuizResult }) {
   const gained = Math.max(0, result.starsGained)
   const needed = result.profile.needed
-  const inRank = !result.rankedUp && needed > 0
-  const before = inRank ? Math.min(result.starsBefore, Math.max(0, MAX_SLOTS - gained)) : 0
-  const slots = Math.min(before + gained, MAX_SLOTS)
+  const inRank = !result.rankedUp && needed > 0 && needed <= MAX_SLOTS
+  const before = inRank ? result.starsBefore : 0
+  const slots = inRank ? needed : Math.min(gained, MAX_SLOTS)
   if (gained === 0 || slots === 0) return null
   return (
     <div className="mt-2 flex items-center justify-center gap-1" aria-hidden="true">
       {Array.from({ length: slots }, (_, i) => {
-        const isNew = inRank ? i >= before && i < before + gained : true
-                return (
+        const isNew = i >= before && i < before + gained
+        return (
           <span key={i} className="relative inline-flex size-9 items-center justify-center">
             {isNew ? (
-              <span className="quiz-star-new inline-flex" style={{ animationDelay: `${(inRank ? i - before : i) * 0.18}s` }}>
+              <span className="quiz-star-new inline-flex" style={{ animationDelay: `${(i - before) * 0.18}s` }}>
                 <StarShape className="size-9 drop-shadow" filled />
               </span>
             ) : (
-              <StarShape className="size-8" filled />
+              <StarShape className="size-8" filled={i < before} />
             )}
             {isNew && <Sparks />}
           </span>
@@ -71,14 +71,14 @@ export default function StarBurst({ result }: { result: QuizResult }) {
 /** A wrong answer that costs stars: the lost ones shake, crack into shards and end up grey. */
 export function StarLoss({ result }: { result: QuizResult }) {
   const lost = Math.max(0, -result.starsGained)
-  const total = Math.min(result.starsBefore, MAX_SLOTS)
-  const lostShown = Math.min(lost, total)
+  const total = result.profile.needed > 0 && result.profile.needed <= MAX_SLOTS ? result.profile.needed : Math.min(result.starsBefore, MAX_SLOTS)
+  const lostShown = Math.min(lost, result.starsBefore, total)
   if (lostShown === 0) return null
-  const kept = total - lostShown
+  const kept = Math.min(result.starsBefore, total) - lostShown
   return (
     <div className="mt-2 flex items-center justify-center gap-1" aria-hidden="true">
       {Array.from({ length: total }, (_, i) => {
-        if (i < kept) return <span key={i} className="inline-flex size-9 items-center justify-center"><StarShape className="size-8" filled /></span>
+        if (i < kept || i >= kept + lostShown) return <span key={i} className="inline-flex size-9 items-center justify-center"><StarShape className="size-8" filled={i < kept} /></span>
         const delay = `${(i - kept) * 0.2}s`
         return (
           <span key={i} className="relative inline-flex size-9 items-center justify-center">
