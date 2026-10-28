@@ -15,14 +15,19 @@ public final class QuizRules {
 
     private static final ObjectMapper JSON = new ObjectMapper();
 
-    /** Topic key -> label. Keep in step with `anylearn_admin/src/pages/QuizBank.jsx`. */
-    public static final Map<String, String> TOPICS = Map.of(
-            "parenting", "Nuôi dạy con",
-            "english", "Tiếng Anh",
-            "music", "Âm nhạc",
-            "art", "Mỹ thuật",
-            "science", "Khoa học");
-    public static final List<String> TOPIC_ORDER = List.of("parenting", "english", "music", "art", "science");
+    /** Topic key -> label, in display order. The back office page reads it from `GET /admin/quiz-bank/overview`. */
+    public static final Map<String, String> TOPICS = new java.util.LinkedHashMap<>();
+    static {
+        TOPICS.put("parenting", "Nuôi dạy con");
+        TOPICS.put("english", "Tiếng Anh");
+        TOPICS.put("music", "Âm nhạc");
+        TOPICS.put("art", "Mỹ thuật");
+        TOPICS.put("science", "Khoa học");
+        TOPICS.put("history", "Lịch sử");
+        TOPICS.put("geography", "Địa lý");
+        TOPICS.put("society", "Xã hội & đời sống");
+    }
+    public static final List<String> TOPIC_ORDER = List.copyOf(TOPICS.keySet());
     public static final List<Integer> DIFFICULTIES = List.of(1, 2, 3);
     public static final Set<String> STATUSES = Set.of("pending", "active", "hidden");
 

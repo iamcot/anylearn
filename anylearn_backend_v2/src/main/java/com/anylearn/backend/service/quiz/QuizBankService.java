@@ -39,6 +39,9 @@ public class QuizBankService {
             không chắc chắn thì bỏ qua câu đó (không ghi vào kết quả).""";
 
     private static final Map<String, String> TOPIC_HINTS = Map.of(
+            "history", "lịch sử Việt Nam và thế giới: nhân vật, sự kiện, triều đại, mốc thời gian quen thuộc",
+            "geography", "địa lý: các tỉnh thành, sông núi, quốc gia, thủ đô, khí hậu, bản đồ",
+            "society", "xã hội và đời sống: phong tục, lễ hội, nghề nghiệp, luật giao thông, văn hóa ứng xử, kiến thức đời thường",
             "parenting", "nuôi dạy con: dinh dưỡng, giấc ngủ, phát triển theo độ tuổi, kỹ năng sống, giao tiếp với con, an toàn",
             "english", "tiếng Anh cho trẻ và phụ huynh: từ vựng, ngữ pháp cơ bản, phát âm, thành ngữ, văn hóa các nước nói tiếng Anh",
             "music", "âm nhạc: nốt nhạc, nhạc cụ, nhà soạn nhạc nổi tiếng, thể loại, nhịp điệu",

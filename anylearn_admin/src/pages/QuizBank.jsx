@@ -3,8 +3,6 @@ import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import client from '../api/client'
 
-// Keep in step with QuizRules.TOPICS in the backend.
-const TOPICS = { parenting: 'Nuôi dạy con', english: 'Tiếng Anh', music: 'Âm nhạc', art: 'Mỹ thuật', science: 'Khoa học' }
 const LEVELS = { 1: 'Dễ', 2: 'Vừa', 3: 'Khó' }
 const STATUS = { pending: ['Chờ duyệt', 'gold'], active: ['Đang dùng', 'green'], hidden: ['Đã ẩn', 'default'] }
 const pct = v => (v == null ? '–' : `${Math.round(v * 100)}%`)
@@ -56,7 +54,7 @@ function Settings({ settings }) {
   )
 }
 
-function EditModal({ row, onClose }) {
+function EditModal({ row, onClose, topics }) {
   const qc = useQueryClient()
   const [form] = Form.useForm()
   useEffect(() => { if (row) form.setFieldsValue(row) }, [row, form])
@@ -73,7 +71,7 @@ function EditModal({ row, onClose }) {
     <Modal open={!!row} title={`Sửa câu #${row?.id}`} onCancel={onClose} onOk={() => form.submit()} confirmLoading={save.isPending} okText="Lưu" cancelText="Hủy" width={640}>
       <Form form={form} layout="vertical" onFinish={v => save.mutate(v)}>
         <Space>
-          <Form.Item name="topic" label="Chủ đề"><Select style={{ width: 160 }} options={Object.entries(TOPICS).map(([value, label]) => ({ value, label }))} /></Form.Item>
+          <Form.Item name="topic" label="Chủ đề"><Select style={{ width: 160 }} options={topics} /></Form.Item>
           <Form.Item name="difficulty" label="Độ khó"><Select style={{ width: 120 }} options={Object.entries(LEVELS).map(([value, label]) => ({ value: Number(value), label }))} /></Form.Item>
           <Form.Item name="searchable" label="Cho tra cứu" valuePropName="checked"><Switch /></Form.Item>
         </Space>
@@ -94,12 +92,13 @@ function EditModal({ row, onClose }) {
   )
 }
 
-function Questions() {
+function Questions({ topics }) {
   const qc = useQueryClient()
   const [filters, setFilters] = useState({ status: 'pending', topic: undefined, difficulty: undefined, q: '', reported: false })
   const [page, setPage] = useState(1)
   const [selected, setSelected] = useState([])
   const [editing, setEditing] = useState(null)
+  const topicLabel = Object.fromEntries(topics.map(t => [t.value, t.label]))
   const { data, isLoading } = useQuery({
     queryKey: ['admin-quiz-questions', filters, page],
     queryFn: () => client.get('/admin/quiz-bank/questions', { params: { ...filters, page, size: 20 } }).then(r => r.data?.data ?? { items: [], total: 0 }),
@@ -129,7 +128,7 @@ function Questions() {
     },
     {
       title: 'Ô', width: 130, render: (_, r) => (
-        <div>{TOPICS[r.topic]}<br />{LEVELS[r.difficulty]}</div>
+        <div>{topicLabel[r.topic] ?? r.topic}<br />{LEVELS[r.difficulty]}</div>
       ),
     },
     {
@@ -160,7 +159,7 @@ function Questions() {
         <Select style={{ width: 140 }} value={filters.status} onChange={v => change({ status: v })} allowClear placeholder="Trạng thái"
           options={Object.entries(STATUS).map(([value, [label]]) => ({ value, label }))} />
         <Select style={{ width: 150 }} value={filters.topic} onChange={v => change({ topic: v })} allowClear placeholder="Chủ đề"
-          options={Object.entries(TOPICS).map(([value, label]) => ({ value, label }))} />
+          options={topics} />
         <Select style={{ width: 110 }} value={filters.difficulty} onChange={v => change({ difficulty: v })} allowClear placeholder="Độ khó"
           options={Object.entries(LEVELS).map(([value, label]) => ({ value: Number(value), label }))} />
         <Input.Search style={{ width: 220 }} allowClear placeholder="Tìm trong câu hỏi" onSearch={v => change({ q: v })} />
@@ -177,7 +176,7 @@ function Questions() {
       <Table size="small" rowKey="id" loading={isLoading} dataSource={data?.items ?? []} columns={columns}
         rowSelection={{ selectedRowKeys: selected, onChange: setSelected }}
         pagination={{ current: page, pageSize: 20, total: data?.total ?? 0, showSizeChanger: false, onChange: p => { setPage(p); setSelected([]) } }} />
-      <EditModal row={editing} onClose={() => setEditing(null)} />
+      <EditModal row={editing} onClose={() => setEditing(null)} topics={topics} />
     </>
   )
 }
@@ -244,7 +243,7 @@ export default function QuizBank() {
         <Settings settings={data?.settings} />
       </Card>
       <Card title="Duyệt và quản lý câu hỏi">
-        <Questions />
+        <Questions topics={data?.topics ?? []} />
       </Card>
     </div>
   )

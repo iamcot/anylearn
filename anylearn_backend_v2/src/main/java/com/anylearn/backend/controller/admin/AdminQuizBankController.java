@@ -31,6 +31,7 @@ public class AdminQuizBankController {
         if (notAdmin(user)) return ApiResponse.fail("Forbidden");
         QuizBankService.Overview o = bank.overview(settings.targetPerCell());
         Map<String, Object> out = new LinkedHashMap<>();
+        out.put("topics", QuizRules.TOPIC_ORDER.stream().map(k -> Map.of("value", k, "label", QuizRules.TOPICS.get(k))).toList());
         out.put("cells", o.cells());
         out.put("totals", o.totals());
         out.put("settings", settingsMap());
