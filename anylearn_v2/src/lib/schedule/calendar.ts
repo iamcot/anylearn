@@ -1,3 +1,5 @@
+import type { MyVideoCourse } from '@/lib/api/learn'
+
 const WEEKDAY_INDEX: Record<string, number> = { mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6, sun: 0 }
 const FALLBACK_COURSE_YEARS = 1
 
@@ -23,6 +25,8 @@ export interface Enrollment {
   learnerId?: number
   learnerName?: string
   scheduleId?: number
+  /** A video course study plan shown as a calendar slot (not a class: no attendance, opens the learning page). */
+  selfStudy?: boolean
 }
 
 export interface Activity {
@@ -227,4 +231,27 @@ export function attendanceKey(learnerId: number, scheduleId: number, iso: string
 /** The session id the attendance API takes: schedule id + day without dashes. */
 export function sessionKeyOf(scheduleId: number, iso: string): string {
   return `${scheduleId}_${iso.replaceAll('-', '')}`
+}
+
+const ISO_WEEKDAY_KEYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
+
+/** The self-study plans of video courses as weekly calendar slots (plan days are 1 = Monday .. 7 = Sunday). Switched-off plans give nothing. */
+export function studyPlanEnrollments(courses: MyVideoCourse[]): Enrollment[] {
+  return courses.flatMap(course => {
+    const plan = course.plan
+    if (!plan || !plan.enabled || plan.weekdays.length === 0) return []
+    return [{
+      id: -(plan.id ?? course.itemId),
+      itemId: course.itemId,
+      itemTitle: course.title,
+      seoUrl: course.seoUrl ?? undefined,
+      scheduleType: 'recurring',
+      weekdays: plan.weekdays.map(day => ISO_WEEKDAY_KEYS[day - 1]).filter(Boolean).join(','),
+      timeStart: plan.time ?? undefined,
+      status: 'active',
+      learnerId: course.learnerId,
+      learnerName: course.learnerName,
+      selfStudy: true,
+    }]
+  })
 }

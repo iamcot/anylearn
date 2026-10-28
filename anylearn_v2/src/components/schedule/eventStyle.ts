@@ -6,11 +6,13 @@ const COURSE_COLORS = ['bg-event-1', 'bg-event-2', 'bg-event-3', 'bg-event-4', '
 const ACTIVITY_COLOR = 'bg-activity'
 
 export function eventColorClass(event: CalendarEvent): string {
+  if (event.kind === 'enrollment' && event.data.selfStudy) return 'bg-navy'
   return event.kind === 'activity' ? ACTIVITY_COLOR : COURSE_COLORS[event.data.id % COURSE_COLORS.length] ?? ACTIVITY_COLOR
 }
 
 export function eventLabel(event: CalendarEvent): string {
   if (event.kind === 'activity') return `${ACTIVITY_LABELS[event.data.type] ?? event.data.type} · ${event.data.itemTitle}`
+  if (event.data.selfStudy) return `${event.data.timeStart ? `${event.data.timeStart} ` : ''}Tự học · ${event.data.itemTitle}`
   return `${event.data.timeStart ? `${event.data.timeStart} ` : ''}${event.data.itemTitle}`
 }
 

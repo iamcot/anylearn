@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { getCourseUrl } from '@/lib/api'
+import { learnHref } from '@/lib/learn/rules'
 import { ACTIVITY_LABELS, WEEKDAY_LABELS } from '@/config/itemLabels'
 import type { CalendarEvent, Enrollment } from '@/lib/schedule/calendar'
 import ChevronLabel from '@/components/ChevronLabel'
@@ -51,7 +52,7 @@ function EnrollmentDetails({ enrollment }: { enrollment: Enrollment }) {
         </DetailRow>
       )}
       {(weekdays || time) && <DetailRow label="Lịch học"><span className="font-medium">{[weekdays, time].filter(Boolean).join(' · ')}</span></DetailRow>}
-      {!billingOnly && from && (
+      {!billingOnly && !enrollment.selfStudy && from && (
         <DetailRow label="Từ ngày">{formatDay(from)}{enrollment.dateEnd ? ` → ${formatDay(enrollment.dateEnd)}` : ''}</DetailRow>
       )}
       {enrollment.scheduleTitle && <DetailRow label="Ca học">{enrollment.scheduleTitle}</DetailRow>}
@@ -74,6 +75,7 @@ export default function EventPopup({ event, position, onClose, onCancelActivity,
     ? { left, width: POPOVER_WIDTH, ...(below ? { top: position.y + 10 } : { bottom: window.innerHeight - position.y + 10 }) }
     : undefined
 
+  const selfStudy = event.kind === 'enrollment' && event.data.selfStudy
   const courseUrl = getCourseUrl({ id: event.data.itemId, seoUrl: event.data.seoUrl, title: event.data.itemTitle })
 
   return (
@@ -87,6 +89,9 @@ export default function EventPopup({ event, position, onClose, onCancelActivity,
       >
         <div className="mb-3 flex items-start justify-between gap-2">
           <div>
+            {selfStudy && (
+              <span className="mb-1 inline-block rounded-full bg-navy px-2 py-0.5 text-[11px] font-medium text-white">Tự học video</span>
+            )}
             {activity && (
               <span className="mb-1 inline-block rounded-full bg-activity px-2 py-0.5 text-[11px] font-medium text-white">
                 {ACTIVITY_LABELS[activity.type] ?? activity.type}
@@ -119,7 +124,7 @@ export default function EventPopup({ event, position, onClose, onCancelActivity,
           </div>
         )}
 
-        {event.kind === 'enrollment' && <OrderItemRating itemId={event.data.itemId} />}
+        {event.kind === 'enrollment' && !selfStudy && <OrderItemRating itemId={event.data.itemId} />}
 
         <div className="mt-4 flex items-center justify-between gap-2">
           {activity ? (
@@ -140,9 +145,13 @@ export default function EventPopup({ event, position, onClose, onCancelActivity,
               </button>
             )
           ) : <span />}
-          <Link href={courseUrl} target="_blank" rel="noopener noreferrer" className="text-[13px] font-medium text-green-dark no-underline">
-            <ChevronLabel>Xem khóa học</ChevronLabel>
-          </Link>
+          {selfStudy ? (
+            <Link href={learnHref(event.data.itemId, null, event.data.learnerId)} className="btn btn--green py-2 text-sm">Vào học ngay</Link>
+          ) : (
+            <Link href={courseUrl} target="_blank" rel="noopener noreferrer" className="text-[13px] font-medium text-green-dark no-underline">
+              <ChevronLabel>Xem khóa học</ChevronLabel>
+            </Link>
+          )}
         </div>
       </div>
     </>

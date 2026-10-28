@@ -30,6 +30,7 @@ export default function LessonPlayer({ lesson, token, learnerId, mark, onProgres
   const lastTime = useRef<number | null>(null)
   const latest = useRef({ lesson, token, learnerId, onProgress })
   const [marking, setMarking] = useState(false)
+  const [playError, setPlayError] = useState<string | null>(null)
   const source = lesson.url ? videoSource(lesson.url) : null
 
   useEffect(() => {
@@ -55,12 +56,22 @@ export default function LessonPlayer({ lesson, token, learnerId, mark, onProgres
     let cancelled = false
     watched.current = 0
     lastTime.current = null
+    setPlayError(null)
     if (source.kind === 'hls' && !video.canPlayType('application/vnd.apple.mpegurl')) {
       import('hls.js').then(({ default: Hls }) => {
         if (cancelled || !Hls.isSupported()) return
-        hls = new Hls({ startPosition: lesson.positionSeconds || -1 })
-        hls.loadSource(source.src)
-        hls.attachMedia(video)
+        const player = new Hls({ startPosition: lesson.positionSeconds || -1 })
+        hls = player
+        // hls.js is silent by default: show what failed (HTTP code of the request, error type) instead of a still poster
+        player.on(Hls.Events.ERROR, (_event, data) => {
+          if (!data.fatal) return
+          if (data.type === Hls.ErrorTypes.MEDIA_ERROR) { player.recoverMediaError(); return }
+          const code = data.response?.code
+          console.warn('[lesson player]', data.type, data.details, code ?? '', data.response?.url ?? '')
+          setPlayError(`${data.details}${code ? ` (HTTP ${code})` : ''}`)
+        })
+        player.loadSource(source.src)
+        player.attachMedia(video)
       })
     } else {
       video.src = source.src
@@ -137,9 +148,15 @@ export default function LessonPlayer({ lesson, token, learnerId, mark, onProgres
           watched.current += watchStep(lastTime.current, now)
           lastTime.current = now
         }}
+        onError={() => setPlayError('Trình duyệt không mở được video')}
         onSeeking={() => { lastTime.current = null }}
         onPause={() => { lastTime.current = null; flush() }}
         onEnded={() => { flush(); onEnded() }} />
+      {playError && (
+        <div className="absolute inset-x-0 bottom-0 bg-black/75 p-3 text-center text-sm text-white">
+          Không phát được video. Hãy tải lại trang; nếu vẫn lỗi, báo cho anyLEARN kèm mã: {playError}
+        </div>
+      )}
       {mark && <span className="pointer-events-none absolute right-3 top-3 select-none text-xs font-bold text-white/30">{mark}</span>}
     </div>
   )
