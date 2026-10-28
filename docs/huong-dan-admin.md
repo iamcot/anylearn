@@ -623,3 +623,19 @@ Menu "Giải trí" > "Vui học" > nút "Cửa hàng Leo Xu". Người chơi th�
 - **Gói tập luyện**: người chơi mua gói rồi vào Leo rank, mục "Gói tập luyện của tôi", chọn chủ đề (gói theo cấp độ chọn được nhiều chủ đề, các gói khác một chủ đề) và bấm Lưu để dùng; nút "Sẵn sàng" đổi thành "Tập luyện". Mỗi câu phát ra trừ 1 lượt. Câu tập luyện **không tính sao, không rơi vật phẩm, không vào bảng xếp hạng, không dùng vật phẩm** và hiện đáp án đúng sau khi trả lời. Số câu mỗi gói sửa ở "Số câu của một gói tập luyện". Gói cần có câu hỏi trong Kho câu hỏi; chủ đề hoặc cấp chưa có câu hỏi thì hệ thống nới sang cấp gần nhất (chủ đề thì không đổi).
 - Cách đọc để chỉnh: xem "Sức khỏe game" (Leo Xu phát ra / đã tiêu theo nguồn: nguồn mới là Mua gói tập luyện, Nạp năng lượng, Mua rương sticker, Bán cho Leo). Tiêu quá ít thì giảm giá hoặc thêm món; người chơi tiêu hết liên tục thì tăng giá nạp năng lượng hoặc giảm giới hạn mỗi ngày.
 - Sự kiện mới trong "Sự kiện game": `buy_pack`, `buy_energy`, `sell_item` (Leo rank), `practice` (mỗi câu tập luyện), `chest` và `sell` (sticker).
+
+### Cài đặt Bunny Stream để tải video lên Khám phá (làm một lần)
+
+Bunny Stream là dịch vụ lưu và phát video. Khi cài xong, form bài loại **Clip** có nút **Tải video lên**. Chưa cài thì vẫn đăng clip bằng cách dán link YouTube hoặc link mp4.
+
+1. Vào bunny.net, đăng ký tài khoản và nạp một ít tiền (vài USD là đủ để thử).
+2. Menu **Stream** > **Add Video Library**. Đặt tên (ví dụ `anylearn`), chọn vùng lưu gần Việt Nam (Singapore), bấm Add.
+3. Mở library vừa tạo, tab **API**. Copy ba giá trị:
+   - **Library ID**: dãy số ở đầu trang hoặc trong đường dẫn.
+   - **API Key**: khóa của riêng library này (không phải khóa tài khoản).
+   - **CDN Hostname**: ở tab Delivery, dạng `vz-xxxxxxxx-xxx.b-cdn.net`.
+4. Trên GitHub, vào repo > Settings > Secrets and variables > Actions, tạo 3 secret: `BUNNY_STREAM_LIBRARY_ID`, `BUNNY_STREAM_API_KEY`, `BUNNY_STREAM_CDN_HOST` với ba giá trị trên.
+5. Chạy deploy lại. Sau khi deploy, mở Khám phá > **+ Đăng clip**: nút Tải video lên đã hiện.
+6. Tải thử một video ngắn, chờ vài phút cho Bunny xử lý, rồi chuyển bài sang Đang hiện.
+
+Nếu nút vẫn không hiện: kiểm tra đủ cả 3 secret và không có ô nào để trống.

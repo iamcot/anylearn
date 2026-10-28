@@ -100,7 +100,7 @@ function PostDrawer({ post, open, onClose, onSaved }) {
             <Space direction="vertical" style={{ width: '100%' }}>
               <Form.Item name="mediaUrl" noStyle><Input placeholder="https://..." /></Form.Item>
               {kind === 'image' && <UploadButton onDone={url => form.setFieldValue('mediaUrl', url)} />}
-              {kind === 'video' && bunny && !bunny.enabled && <Typography.Text type="secondary">Muốn tải video lên trực tiếp: tạo Stream library trên Bunny rồi thêm 3 biến BUNNY_STREAM_*. Khi chưa có, hãy dán link video.</Typography.Text>}
+              {kind === 'video' && bunny && !bunny.enabled && <Typography.Text type="secondary">Chưa bật tính năng tải video lên (cần tài khoản Bunny, xem mục Bunny trong hướng dẫn admin). Tạm thời hãy dán link YouTube hoặc link file mp4 vào ô trên.</Typography.Text>}
               {kind === 'video' && bunny?.enabled && <VideoUploadButton title={title} onDone={({ mediaUrl, posterUrl }) => form.setFieldsValue({ mediaUrl, posterUrl })} />}
             </Space>
           </Form.Item>
@@ -138,7 +138,11 @@ function Posts() {
           <Statistic title="Chia sẻ" value={stats.shares} /><Statistic title="Bình luận" value={stats.comments} /><Statistic title="Báo cáo chờ xử lý" value={stats.openReports} />
         </Space>
       )}
-      <Button type="primary" style={{ marginBottom: 12 }} onClick={() => { setEditing(null); setOpen(true) }}>+ Bài mới</Button>
+      <Space style={{ marginBottom: 12 }}>
+        {[['article', '+ Viết bài'], ['image', '+ Đăng hình ảnh'], ['video', '+ Đăng clip']].map(([kind, label]) => (
+          <Button key={kind} type="primary" onClick={() => { setEditing({ kind, status: 'draft', pinned: false, title: '', body: '', mediaUrl: '', posterUrl: '', itemId: null }); setOpen(true) }}>{label}</Button>
+        ))}
+      </Space>
       <Table rowKey="id" dataSource={data?.items ?? []} pagination={{ pageSize: 20 }} columns={[
         { title: 'Tiêu đề', dataIndex: 'title', render: (t, r) => <span>{r.pinned ? '📌 ' : ''}{t}</span> },
         { title: 'Loại', dataIndex: 'kind', render: k => KINDS[k] },
