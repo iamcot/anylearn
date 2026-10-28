@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import CoinIcon from './CoinIcon'
 import { getCoins, type CoinWallet } from '@/lib/api/fun'
 
-const SOURCE_LABEL: Record<string, string> = { checkin: 'Quà điểm danh', sticker_set: 'Thưởng đủ bộ sticker', admin: 'Điều chỉnh' }
+const SOURCE_LABEL: Record<string, string> = { checkin: 'Quà điểm danh', sticker_set: 'Thưởng đủ bộ sticker', admin: 'Điều chỉnh', quiz_rank: 'Thưởng lên hạng Leo rank', quiz_item: 'Mua vật phẩm Leo rank' }
 
 /** The balance of the game currency and its last movements; `refreshKey` changes after the person opens the daily gift. */
 export default function CoinWalletCard({ token, refreshKey }: { token: string; refreshKey: number }) {

@@ -20,6 +20,8 @@ public class CoinService {
     public static final String SOURCE_CHECKIN = "checkin";
     public static final String SOURCE_STICKER_SET = "sticker_set";
     public static final String SOURCE_ADMIN = "admin";
+    public static final String SOURCE_QUIZ_RANK = "quiz_rank";
+    public static final String SOURCE_QUIZ_ITEM = "quiz_item";
 
     private final JdbcTemplate jdbc;
 

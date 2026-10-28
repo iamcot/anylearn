@@ -514,7 +514,7 @@ Menu "Vui học" có trang "Sự kiện game"; "Tiền game", "Điểm danh & qu
 
 ### Vui học: Kho câu hỏi (quiz leo rank)
 
-Menu "Vui học" > "Sự kiện game" > nút "Kho câu hỏi" ở góc phải trên. Đây là kho câu hỏi cho quiz leo rank (trò chơi chưa mở cho thành viên, kho cần có sẵn trước).
+Menu "Vui học" > "Sự kiện game" > nút "Kho câu hỏi" ở góc phải trên. Đây là kho câu hỏi cho quiz leo rank (trò chơi đã mở cho thành viên ở Vui học > Leo rank; kho cần đủ câu ở mọi chủ đề và mức khó mà các rank dùng).
 
 - **Bảng số câu**: mỗi dòng là một chủ đề, mỗi cột là một mức độ khó (Rất dễ, Dễ, Vừa, Khó, Rất khó). Mỗi ô cho biết số câu đang dùng so với mục tiêu, số chờ duyệt, tỉ lệ trả lời đúng và tỉ lệ AI viết trùng trong 30 ngày. **Ô nào cũng cần đủ câu** vì mỗi rank lấy câu ở nhiều mức khác nhau. 300 mỗi ô là mục tiêu để AI bù tới, không phải trần, bạn đổi con số này ở phần Cấu hình.
 - **Chủ đề**: bảng "Chủ đề" cho thêm, đổi tên, sắp thứ tự, ẩn chủ đề. Ô "Mô tả cho AI" nói chủ đề gồm những gì (ví dụ "lịch sử Việt Nam và thế giới: nhân vật, sự kiện, triều đại"), AI viết câu hỏi theo đúng mô tả đó, nên viết cụ thể. Ẩn một chủ đề thì không tạo thêm và không ra câu mới, câu cũ vẫn giữ. Mới đầu có 8 chủ đề: Nuôi dạy con, Tiếng Anh, Âm nhạc, Mỹ thuật, Khoa học, Lịch sử, Địa lý, Xã hội & đời sống.
@@ -524,6 +524,16 @@ Menu "Vui học" > "Sự kiện game" > nút "Kho câu hỏi" ở góc phải tr
 - **Duyệt và quản lý**: mặc định hiện câu "Chờ duyệt". Đọc câu và đáp án (đáp án đúng màu xanh), bấm "Duyệt" hoặc tick nhiều câu rồi duyệt hàng loạt, "Ẩn" câu sai hoặc dở, "Sửa" để chỉnh chữ hay đổi đáp án đúng (câu sau khi sửa cần duyệt lại). Lọc theo trạng thái, chủ đề, độ khó, từ khóa hoặc "Chỉ câu bị báo lỗi".
 - **Báo lỗi**: người chơi sẽ có nút báo câu sai; câu bị 3 người báo tự ẩn cho tới khi bạn xem lại (duyệt lại sẽ xóa các báo lỗi).
 - Cần khóa `ANTHROPIC_API_KEY` và công tắc "Gợi ý AI" bật (dùng chung với gợi ý khóa học); thiếu thì trang báo màu vàng và không tạo được câu mới.
+
+### Vui học: Leo rank (game quiz)
+
+Thành viên vào Vui học > Leo rank: bấm "Sẵn sàng" để nhận một câu hỏi từ Kho câu hỏi, có 20 giây trả lời. Đúng thì +1 sao, sai thì -1 sao; đủ sao thì lên hạng (Đồng 5 sao, Bạc 6, Vàng 7, Bạch kim 8, Kim cương 10, Thông thái 12, Siêu phàm 15, Huyền thoại không giới hạn). Ở 0 sao có "bảo hộ đầu hạng": sai lần đầu chỉ mất bảo hộ, sai lần hai mới rớt hạng. Đáp án được chấm trên máy chủ, rời màn hình hoặc hết giờ tính là sai.
+
+- **Vật phẩm**: Sao may mắn x2/x3, Khiên bảo hộ, Chọn chủ đề (dùng trước câu); 50:50, Hỏi cộng đồng, Thêm 15 giây, Đổi câu (dùng trong câu, mỗi loại một lần mỗi câu). Nhận từ hộp quà khởi động mỗi ngày (luôn 1 món trước câu và 1 món trong câu), rơi ngẫu nhiên sau mỗi câu (khoảng 12%, tăng dần nếu lâu không rơi, đúng liên tiếp 3, 6, 9... câu thì chắc chắn rơi, tối đa 8 món rơi mỗi ngày), thưởng lên hạng (1 Khiên), hoặc **mua bằng Leo Xu** (giá 15 đến 60, tối đa 5 món mỗi ngày). Kho mỗi loại có trần (Sao x3 tối đa 3, Khiên 5, loại khác 10).
+- **Thưởng lên hạng**: 20 Leo Xu, 1 Khiên và 1 sticker ngẫu nhiên. Không cộng tiền theo từng câu. Mọi thưởng và giá đều bằng Leo Xu, không phải anyPoint; mua vật phẩm và thưởng hiện trong "Tiền game" với nguồn "quiz_item" và "quiz_rank".
+- **Câu không lặp**: một người không gặp lại câu đã làm trong 30 ngày; hết câu mới thì game nới độ khó, cuối cùng mới lặp lại câu cũ, nên kho cạn sẽ không làm game dừng nhưng người chơi thấy câu cũ.
+- **Cài đặt (chưa có trang riêng, trang cấu hình sẽ có ở giai đoạn 5)**: mọi con số là dòng `quiz/...` trong bảng `configurations` và đã có mặc định, không cần nhập gì: `quiz/game_enabled` (0 = tắt game), `quiz/seconds` (20), `quiz/extra_seconds` (15), `quiz/rank_stars` (danh sách 7 số, ví dụ `5,6,7,8,10,12,15`), `quiz/rank_reward_coins` (20), `quiz/drop_base` (12), `quiz/drop_pity_step` (4), `quiz/drop_pity_max` (12), `quiz/drop_wrong_bonus` (8), `quiz/drop_daily_cap` (8), `quiz/streak_every` (3), `quiz/buy_daily_cap` (5), `quiz/price_{mult2|mult3|shield|topic|fifty|community|time|swap}`, `quiz/weight_{...}` (tỉ lệ rơi từng loại), `quiz/no_repeat_days` (30). Tỉ lệ độ khó theo rank vẫn chỉnh ở Kho câu hỏi. Công tắc `fun/enabled` tắt cả Vui học.
+- Chưa có: bảng xếp hạng, tổng kết tuần/tháng, danh sách người bị gắn cờ trong admin (hệ thống đã ghi cờ khi trả lời quá nhanh hoặc rời màn hình, sẽ hiện ở giai đoạn 5).
 
 ### Vui học: Sticker
 

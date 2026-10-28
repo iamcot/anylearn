@@ -13,7 +13,6 @@ import { sendDevice } from '@/lib/api/stickers'
 import { deviceId } from '@/lib/stickers/device'
 
 const COMING = [
-  { icon: '🧩', title: 'Đố vui leo rank', text: 'Trả lời câu hỏi, lên hạng và so tài trên bảng xếp hạng' },
   { icon: '📖', title: 'Khám phá', text: 'Mẹo nuôi dạy con, clip và hình ảnh vui' },
 ]
 
@@ -60,6 +59,12 @@ export default function FunPage() {
       {status && token && <div className="mt-4"><FunScene token={token} initial={status} reminder={reminder} onClaimed={() => setClaims(n => n + 1)} /></div>}
 
       {token && status && <CoinWalletCard token={token} refreshKey={claims} />}
+
+      <Link href="/today/fun/quiz" className="mt-4 flex items-center gap-3 rounded-2xl border border-line bg-white p-3 text-ink no-underline">
+        <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-green-soft text-2xl" aria-hidden>🧩</span>
+        <div className="min-w-0 flex-1"><div className="font-bold"><BrandText text="Leo rank" /></div><div className="text-sm text-muted">Trả lời câu hỏi, lên hạng và nhận quà</div></div>
+        <span aria-hidden className="text-muted">›</span>
+      </Link>
 
       <Link href="/today/fun/sticker" className="mt-4 flex items-center gap-3 rounded-2xl border border-line bg-white p-3 text-ink no-underline">
         <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-green-soft text-2xl" aria-hidden>🦊</span>

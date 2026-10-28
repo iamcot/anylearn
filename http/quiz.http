@@ -1,0 +1,38 @@
+@baseUrl = {{$dotenv BE_BASE_URL}}/api
+@jwtToken = {{$dotenv JWT_TOKEN}}
+
+### Rank, stars, items, topics, today's numbers (an open question left behind is closed as wrong)
+GET {{baseUrl}}/quiz/me
+Authorization: Bearer {{jwtToken}}
+
+### Today's starter box (once a day)
+POST {{baseUrl}}/quiz/box/open
+Authorization: Bearer {{jwtToken}}
+
+### Hand out the next question; mult = mult2 | mult3, shield, topic = topic key (each takes one item)
+POST {{baseUrl}}/quiz/start
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{ "mult": "mult2", "shield": false, "topic": null }
+
+### Helper inside the question: fifty | community | time | swap
+POST {{baseUrl}}/quiz/lifeline
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{ "attemptId": 1, "item": "fifty" }
+
+### Answer: option is the position shown (0 to 3), null = no answer; away = the player left the page
+POST {{baseUrl}}/quiz/answer
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{ "attemptId": 1, "option": 2, "away": false }
+
+### Buy one item with the game currency
+POST {{baseUrl}}/quiz/items/buy
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{ "item": "shield" }
