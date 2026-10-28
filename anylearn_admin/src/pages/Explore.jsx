@@ -117,23 +117,79 @@ function PostDrawer({ post, open, onClose, onSaved }) {
   )
 }
 
+// A small picture to recognise a post: the photo, the clip's poster, a YouTube thumbnail, or a letter box for an article.
+function thumbOf(r) {
+  if (r.kind === 'image') return r.mediaUrl
+  if (r.posterUrl) return r.posterUrl
+  const yt = String(r.mediaUrl ?? '').match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{6,15})/)
+  if (yt) return `https://img.youtube.com/vi/${yt[1]}/mqdefault.jpg`
+  if (/\/playlist\.m3u8/i.test(String(r.mediaUrl ?? ''))) return String(r.mediaUrl).replace(/playlist\.m3u8.*$/i, 'thumbnail.jpg')
+  return null
+}
+
+function Thumb({ post }) {
+  const url = thumbOf(post)
+  const box = { width: 56, height: 56, borderRadius: 6, objectFit: 'cover', background: '#f0f0f0', display: 'grid', placeItems: 'center', color: '#999', fontSize: 12, flexShrink: 0 }
+  if (url) return <img src={url} alt="" style={box} loading="lazy" onError={e => { e.currentTarget.style.visibility = 'hidden' }} />
+  return <div style={box}>{post.kind === 'article' ? 'Aa' : post.kind === 'video' ? '▶' : '🖼'}</div>
+}
+
 function Posts({ data, refresh, onEdit }) {
   const uploading = Object.fromEntries(useVideoUploads().map(u => [u.postId, u.percent]))
+  const [q, setQ] = useState('')
+  const [kind, setKind] = useState('')
+  const [status, setStatus] = useState('')
   const del = useMutation({ mutationFn: id => client.delete(`/admin/explore/posts/${id}`).then(r => r.data), onSuccess: () => { message.success('Đã xóa'); refresh() } })
+  // the save endpoint replaces the whole post, so the switch sends the row with only its status changed
+  const toggle = useMutation({
+    mutationFn: ({ r, publish }) => client.put(`/admin/explore/posts/${r.id}`, {
+      kind: r.kind, title: r.title, body: r.body, mediaUrl: r.mediaUrl, posterUrl: r.posterUrl, itemId: r.itemId, pinned: r.pinned, status: publish ? 'published' : 'draft',
+    }).then(res => res.data),
+    onSuccess: (res, { publish }) => {
+      if (res.resultCode !== 1) message.error(res.message)
+      else message.success(publish ? 'Đã hiện bài' : 'Đã chuyển về Nháp')
+      refresh()
+    },
+  })
+  const needle = q.trim().toLowerCase()
+  const rows = (data?.items ?? []).filter(r => (!kind || r.kind === kind) && (!status || r.status === status) && (!needle || String(r.title ?? '').toLowerCase().includes(needle)))
   return (
-    <Table rowKey="id" dataSource={data?.items ?? []} pagination={{ pageSize: 20 }} columns={[
-      { title: 'Tiêu đề', dataIndex: 'title', render: (t, r) => <span>{r.pinned ? '📌 ' : ''}{t}</span> },
-      { title: 'Loại', dataIndex: 'kind', render: k => KINDS[k] },
-      { title: 'Trạng thái', dataIndex: 'status', render: (s, r) => (r.id in uploading ? <Tag color="processing">Đang tải video {uploading[r.id]}%</Tag> : <Tag color={STATUS[s]?.[1]}>{STATUS[s]?.[0]}</Tag>) },
-      { title: 'Xem', dataIndex: 'views' }, { title: 'Thích', dataIndex: 'likes' }, { title: 'Chia sẻ', dataIndex: 'shares' }, { title: 'Bình luận', dataIndex: 'comments' },
-      { title: 'Ngày đăng', dataIndex: 'publishedAt', render: v => (v ? fmtDateTime(v) : '') },
-      { title: '', key: 'a', render: (_, r) => (
-        <Space>
-          <a onClick={() => onEdit(r)}>Sửa</a>
-          <Popconfirm title="Xóa bài này cùng bình luận của nó?" onConfirm={() => del.mutate(r.id)}><a>Xóa</a></Popconfirm>
-        </Space>
-      ) },
-    ]} />
+    <>
+      <Space wrap style={{ marginBottom: 12 }}>
+        <Input.Search allowClear placeholder="Tìm theo tiêu đề" style={{ width: 240 }} onSearch={setQ} onChange={e => { if (!e.target.value) setQ('') }} />
+        <Select allowClear placeholder="Loại bài" style={{ width: 140 }} value={kind || undefined} onChange={v => setKind(v || '')} options={Object.entries(KINDS).map(([value, label]) => ({ value, label }))} />
+        <Select allowClear placeholder="Trạng thái" style={{ width: 150 }} value={status || undefined} onChange={v => setStatus(v || '')} options={Object.entries(STATUS).map(([value, [label]]) => ({ value, label }))} />
+        <Typography.Text type="secondary">{rows.length} bài</Typography.Text>
+      </Space>
+      <Table rowKey="id" dataSource={rows} pagination={{ pageSize: 20 }} columns={[
+        { title: 'Tiêu đề', dataIndex: 'title', render: (t, r) => (
+          <Space>
+            <Thumb post={r} />
+            <span>{r.pinned ? '📌 ' : ''}{t}</span>
+          </Space>
+        ) },
+        { title: 'Loại', dataIndex: 'kind', render: k => KINDS[k] },
+        { title: 'Trạng thái', dataIndex: 'status', render: (s, r) => {
+          if (r.id in uploading) return <Tag color="processing">Đang tải video {uploading[r.id]}%</Tag>
+          return (
+            <Space>
+              <Switch size="small" checked={s === 'published'} checkedChildren="Hiện" unCheckedChildren="Nháp"
+                loading={toggle.isPending && toggle.variables?.r.id === r.id}
+                onChange={publish => toggle.mutate({ r, publish })} />
+              {s === 'hidden' && <Tag color="red">Ẩn</Tag>}
+            </Space>
+          )
+        } },
+        { title: 'Xem', dataIndex: 'views' }, { title: 'Thích', dataIndex: 'likes' }, { title: 'Chia sẻ', dataIndex: 'shares' }, { title: 'Bình luận', dataIndex: 'comments' },
+        { title: 'Ngày đăng', dataIndex: 'publishedAt', render: v => (v ? fmtDateTime(v) : '') },
+        { title: '', key: 'a', render: (_, r) => (
+          <Space>
+            <a onClick={() => onEdit(r)}>Sửa</a>
+            <Popconfirm title="Xóa bài này cùng bình luận của nó?" onConfirm={() => del.mutate(r.id)}><a>Xóa</a></Popconfirm>
+          </Space>
+        ) },
+      ]} />
+    </>
   )
 }
 

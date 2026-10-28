@@ -639,3 +639,7 @@ Bunny Stream là dịch vụ lưu và phát video. Khi cài xong, form bài lo�
 6. Tải thử một video ngắn, chờ vài phút cho Bunny xử lý, rồi chuyển bài sang Đang hiện.
 
 Nếu nút vẫn không hiện: kiểm tra đủ cả 3 secret và không có ô nào để trống.
+
+### Danh sách bài Khám phá: lọc, công tắc Hiện/Nháp, hình nhỏ
+
+Trang Khám phá > tab **Bài viết**: phía trên bảng có ô tìm theo tiêu đề và hai bộ lọc Loại bài, Trạng thái (kèm số bài đang lọc). Mỗi dòng có hình nhỏ để nhận ra nội dung (ảnh của bài ảnh, hình đại diện của clip, hình YouTube hoặc ô "Aa" với bài viết chữ). Cột **Trạng thái** là công tắc: bật = Đang hiện, tắt = Nháp, bấm là đổi ngay, không cần mở form. Bài loại ảnh hoặc clip chưa có hình hoặc clip thì không bật Hiện được (hệ thống báo lỗi). Bài đang ở trạng thái Ẩn hiện thêm nhãn đỏ "Ẩn"; bật công tắc sẽ chuyển nó sang Đang hiện. Danh sách lấy tối đa 300 bài mới nhất.
