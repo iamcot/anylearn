@@ -100,6 +100,7 @@ function PostDrawer({ post, open, onClose, onSaved }) {
             <Space direction="vertical" style={{ width: '100%' }}>
               <Form.Item name="mediaUrl" noStyle><Input placeholder="https://..." /></Form.Item>
               {kind === 'image' && <UploadButton onDone={url => form.setFieldValue('mediaUrl', url)} />}
+              {kind === 'video' && bunny && !bunny.enabled && <Typography.Text type="secondary">Muốn tải video lên trực tiếp: tạo Stream library trên Bunny rồi thêm 3 biến BUNNY_STREAM_*. Khi chưa có, hãy dán link video.</Typography.Text>}
               {kind === 'video' && bunny?.enabled && <VideoUploadButton title={title} onDone={({ mediaUrl, posterUrl }) => form.setFieldsValue({ mediaUrl, posterUrl })} />}
             </Space>
           </Form.Item>
