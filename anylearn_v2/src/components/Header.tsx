@@ -12,7 +12,7 @@ import CountBadge from './header/CountBadge'
 import MobileMenu from './header/MobileMenu'
 import NotificationBell from './header/NotificationBell'
 import { useNotifications } from './header/useNotifications'
-import { ICON_BUTTON_CLASS, MEMBER_NAV_LINKS, NAV_LINKS } from './header/constants'
+import { ICON_BUTTON_CLASS, DESKTOP_NAV_LINKS } from './header/constants'
 import { ZALO_SUPPORT_URL } from '@/config/promise'
 import { BROWSE_HOME_URL, markBrowsing } from '@/lib/today/links'
 import { isNavActive } from '@/lib/today/nav'
@@ -24,7 +24,7 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
   const { user, cartCount, openAuthModal } = useAuth()
   const { unreadCount, setUnreadCount } = useNotifications()
-  const navLinks = user || isToday ? MEMBER_NAV_LINKS : NAV_LINKS
+  const navLinks = DESKTOP_NAV_LINKS
   const compactMobile = isToday || !!user
 
   const bell = user && <NotificationBell token={user.jwtToken} unreadCount={unreadCount} onUnreadChange={setUnreadCount} />
@@ -43,13 +43,20 @@ export default function Header() {
         </div>
 
         <nav className="hidden lg:flex gap-6 items-center">
-          {navLinks.map(({ href, label }) => {
+          {navLinks.map(link => {
+            const { href, label } = link
+            const icon = (link as { icon?: string }).icon
             const active = isNavActive(pathname, href)
             return (
               <Link key={label} href={href}
                 aria-current={active ? 'page' : undefined}
                 className={`font-extrabold text-[15px] no-underline py-2 border-b-2 transition-all duration-200 hover:text-blue hover:border-green ${active ? 'text-blue border-green' : 'text-text border-transparent'}`}>
-                {label}
+                {icon ? (
+                  <span className="inline-flex items-center gap-1.5">
+                    <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={icon} /></svg>
+                    {label}
+                  </span>
+                ) : label}
               </Link>
             )
           })}

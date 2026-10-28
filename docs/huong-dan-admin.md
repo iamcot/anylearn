@@ -493,3 +493,108 @@ Không có trang riêng trong admin. Phụ huynh bấm "So sánh" trên khóa h�
 - **AI đọc mô tả:** phần "Ý chính trong mô tả khóa học" do AI rút ra từ mô tả khóa (phù hợp với ai, cách học, đã bao gồm, cần chuẩn bị, kết quả mong đợi), chỉ ghi lại điều mô tả nêu, mục không nêu thì trống. **Mô tả viết rõ các ý này thì bảng đầy đủ hơn.** Sửa mô tả thì AI đọc lại ở lần xem tiếp theo (mỗi khóa tốn một lần gọi AI cho tới khi mô tả đổi).
 - Dùng chung công tắc "Gợi ý AI" ở Cài đặt > Vận hành và khóa `ANTHROPIC_API_KEY`: tắt thì không đọc thêm khóa mới (các khóa đã đọc vẫn hiện).
 - **Cảnh báo khác lĩnh vực:** nếu một khóa không chung danh mục hoặc tag nào với các khóa còn lại, bảng so sánh ghi chú "khác lĩnh vực". Vì vậy cần gán đúng danh mục và tag cho khóa; khóa chưa có danh mục và tag thì không bị cảnh báo.
+
+### Tải ảnh lên (khóa học, bài viết, avatar)
+
+- Có thể chọn ảnh gốc từ máy ảnh hoặc điện thoại, **tối đa 10MB mỗi ảnh**. Hệ thống tự thu nhỏ về cạnh dài tối đa 1080px (avatar 720px) và nén trước khi lưu, nên ảnh hiển thị nhanh hơn và không cần nén trước.
+- Ảnh đã nhỏ và nhẹ (dưới khoảng 400KB), ảnh GIF và ảnh định dạng webp được giữ nguyên. Ảnh PNG có nền trong suốt vẫn là PNG.
+- Ảnh quá lớn (trên 10MB hoặc trên 60 triệu điểm ảnh) bị từ chối kèm thông báo.
+
+### Link giới thiệu (/ref)
+
+- Mỗi thành viên có link `https://anylearn.vn/ref/{số điện thoại}` (xem ở "Ưu đãi của tôi"). Người đăng ký qua link được ghi nhận người giới thiệu (cột người giới thiệu của thành viên), nên hoa hồng giới thiệu hiện có áp dụng cho các đơn của họ. Mã sai thì vẫn đăng ký bình thường, chỉ không có người giới thiệu.
+- Nếu link có thêm `?game=...` (dùng cho Vui học) thì sau khi đăng ký người mới được đưa tới trò chơi đó; link không có thì tới trang giới thiệu anyLEARN (`/info`).
+
+### Vui học: Sự kiện game và Điểm danh & quà
+
+Menu "Vui học" có trang "Vui học"; "Tiền game", "Điểm danh & quà", "Sticker" và "Kho câu hỏi" mở bằng các nút ở góc phải trên của trang đó. Menu "Vui học" hiện số đỏ khi có gói quà sticker đang chờ bạn duyệt.
+
+- **Sự kiện game**: danh sách mọi việc xảy ra trong các game (mở quà điểm danh, đăng ký qua link giới thiệu, và các game sau này), mới nhất ở trên, lọc theo game. Phía trên là số người chơi, số sự kiện, tiền game (Leo Xu) đã phát và số lượt đăng ký từ link giới thiệu trong ngày. Trang tự làm mới mỗi 30 giây.
+- **Điểm danh & quà**: mỗi thành viên mở một quà mỗi ngày trên trang Vui học. Nhập số Leo Xu (tiền game, không phải anyPoint) cho từng ngày 1 đến 7 của chuỗi (ngày 7 là quà lớn; sau ngày 7 quay lại ngày 1). Bỏ một ngày thì chuỗi bắt đầu lại từ ngày 1. **Leo Xu phát ra là tiền game, chưa quy ra tiền thật, nhưng sau này có thể đổi được nên nên giữ trong tầm kiểm soát**, vì vậy có "Trần phát ra mỗi ngày" (0 = không giới hạn): khi chạm trần, người mở quà sau đó vẫn giữ chuỗi nhưng hôm đó không nhận Leo Xu. Trang hiện chi phí ước tính mỗi ngày để so với trần. Công tắc ở đầu trang tắt hẳn quà điểm danh. Thay đổi có hiệu lực ngay với lượt mở tiếp theo.
+
+### Vui học: Kho câu hỏi (quiz leo rank)
+
+Menu "Giải trí" > "Vui học" > nút "Kho câu hỏi" ở góc phải trên. Đây là kho câu hỏi cho quiz leo rank (trò chơi đã mở cho thành viên ở Vui học > Leo rank; kho cần đủ câu ở mọi chủ đề và mức khó mà các rank dùng).
+
+- **Bảng số câu**: mỗi dòng là một chủ đề, mỗi cột là một mức độ khó (Rất dễ, Dễ, Vừa, Khó, Rất khó). Mỗi ô cho biết số câu đang dùng so với mục tiêu, số chờ duyệt, tỉ lệ trả lời đúng và tỉ lệ AI viết trùng trong 30 ngày. **Ô nào cũng cần đủ câu** vì mỗi rank lấy câu ở nhiều mức khác nhau. 300 mỗi ô là mục tiêu để AI bù tới, không phải trần, bạn đổi con số này ở phần Cấu hình.
+- **Chủ đề**: bảng "Chủ đề" cho thêm, đổi tên, sắp thứ tự, ẩn chủ đề. Ô "Mô tả cho AI" nói chủ đề gồm những gì (ví dụ "lịch sử Việt Nam và thế giới: nhân vật, sự kiện, triều đại"), AI viết câu hỏi theo đúng mô tả đó, nên viết cụ thể. Ẩn một chủ đề thì không tạo thêm và không ra câu mới, câu cũ vẫn giữ. Mới đầu có 8 chủ đề: Nuôi dạy con, Tiếng Anh, Âm nhạc, Mỹ thuật, Khoa học, Lịch sử, Địa lý, Xã hội & đời sống.
+- **Tỉ lệ độ khó theo rank**: mỗi rank bốc câu theo tỉ lệ riêng. Mặc định Đồng 100% Rất dễ; Bạc 80% Rất dễ và 20% Dễ; Vàng 30/50/20% (Rất dễ/Dễ/Vừa); lên cao dần tới Huyền thoại 10% Vừa, 30% Khó, 60% Rất khó. Sửa các ô rồi bấm "Lưu tỉ lệ"; mỗi dòng phải cộng đúng 100%. Rank nào dùng mức nào thì mức đó cần có câu.
+- **Tạo thêm**: nút ở cuối mỗi dòng nhờ AI viết một lượt cho ô đó; nút "Đề xuất AI tạo thêm" ở trên cùng tạo cho các ô đang thiếu nhiều nhất. Mỗi lượt tốn tiền gọi AI. AI tự loại câu trùng với kho, rồi tự trả lời lại từng câu: câu AI chọn **khớp** đáp án đã viết có nhãn "AI chấm khớp", câu **lệch** bị ẩn sẵn, câu AI không chắc chờ bạn xem.
+- **Cấu hình**: "Tự tạo mỗi đêm" (mặc định tắt vì tốn tiền; bật thì 2h20 sáng hệ thống tự bù cho ô thiếu nhất, tối đa số lần gọi đã đặt), mục tiêu mỗi ô, số câu mỗi lần gọi, và "Câu AI chấm khớp vào dùng ngay, không cần duyệt" (bật thì câu AI chấm khớp vào game luôn, không qua bạn; nên để tắt cho tới khi bạn duyệt tay vài chục câu mỗi ô và thấy chất lượng ổn).
+- **Duyệt và quản lý**: mặc định hiện câu "Chờ duyệt". Đọc câu và đáp án (đáp án đúng màu xanh), bấm "Duyệt" hoặc tick nhiều câu rồi duyệt hàng loạt, "Ẩn" câu sai hoặc dở, "Sửa" để chỉnh chữ hay đổi đáp án đúng (câu sau khi sửa cần duyệt lại). Lọc theo trạng thái, chủ đề, độ khó, từ khóa hoặc "Chỉ câu bị báo lỗi".
+- **Báo lỗi**: người chơi sẽ có nút báo câu sai; câu bị 3 người báo tự ẩn cho tới khi bạn xem lại (duyệt lại sẽ xóa các báo lỗi).
+- Cần khóa `ANTHROPIC_API_KEY` và công tắc "Gợi ý AI" bật (dùng chung với gợi ý khóa học); thiếu thì trang báo màu vàng và không tạo được câu mới.
+
+### Vui học: Leo rank (game quiz)
+
+Thành viên vào Vui học > Leo rank: bấm "Sẵn sàng" để nhận một câu hỏi từ Kho câu hỏi, có 20 giây trả lời. Đúng thì +1 sao, sai thì -1 sao; đủ sao thì thanh đầy (ví dụ 5/5), trả lời đúng thêm một câu nữa mới lên hạng và vào hạng mới với 1 sao (Đồng 5 sao, Bạc 6, Vàng 7, Bạch kim 8, Kim cương 10, Thông thái 12, Siêu phàm 15, Huyền thoại không giới hạn). Thưởng lên hạng (xu, khiên, sticker) chỉ nhận một lần cho mỗi hạng, rớt xuống rồi lên lại không nhận nữa. Mất hết sao thì chưa rớt hạng ngay (hết bảo hộ), sai thêm lần nữa mới rớt xuống hạng dưới với số sao tối đa trừ 1 (ví dụ Bạc 1 sao: sai xuống 0 sao, sai tiếp về Đồng 4 sao). Đáp án được chấm trên máy chủ, rời màn hình hoặc hết giờ tính là sai.
+
+**Bảng xếp hạng và tổng kết.** Trong Leo rank có nút "Bảng xếp hạng": Cùng hạng (theo sao), Tuần này và Tháng này (theo số sao tăng ròng trong kỳ, đúng cộng, sai trừ, dùng Khiên thì không tính), Mọi thời (theo hạng rồi sao). Tên trên bảng chỉ là hai từ cuối của tên thành viên, không có điện thoại hay email, và thành viên có thể tự bấm "Ẩn tôi khỏi bảng". Câu bị gắn cờ không được cộng vào bảng tuần và tháng.
+
+Vào menu "Vui học" > "Vui học" > nút "Quiz Leo rank" (số đỏ ở "Vui học" là số câu bị gắn cờ trong 14 ngày) để:
+- **Tổng quan**: số người chơi, phân bố hạng, tỉ lệ đúng theo chủ đề 30 ngày.
+- **Bảng xếp hạng**: xem bảng như người chơi thấy.
+- **Tổng kết & thưởng**: top 3 mỗi tuần (thứ Hai 00:05) và mỗi tháng (ngày 1, 00:10) nhận vật phẩm ngẫu nhiên, tháng thêm một sticker, thông báo cho người trúng. Tự động khi bật "Tự động tổng kết", hoặc bấm "Trao thưởng" cho một kỳ đã kết thúc (mỗi kỳ chỉ trao một lần, người bị ẩn hoặc bị chặn không nhận).
+- **Gắn cờ**: câu trả lời đúng dưới 1,5 giây hoặc rời trang. "Bỏ cờ" khi thấy bình thường, "Chặn BXH" để người đó không lên bảng và không nhận thưởng. Hệ thống không tự cấm ai.
+- **Cấu hình**: bật tắt game, số sao mỗi hạng, giây trả lời, xu thưởng lên hạng, tỉ lệ rơi, giá và tỉ trọng từng vật phẩm, thưởng top 3 (ví dụ 3,2,1 là hạng nhất nhận 3 vật phẩm). Lưu xong có hiệu lực từ câu kế tiếp, không cần khởi động lại.
+
+- **Vật phẩm**: Sao may mắn x2/x3, Khiên bảo hộ, Chọn chủ đề (dùng trước câu); 50:50, Hỏi cộng đồng, Thêm 15 giây, Đổi câu (dùng trong câu, mỗi loại một lần mỗi câu). Nhận từ hộp quà khởi động mỗi ngày (luôn 1 món trước câu và 1 món trong câu), rơi ngẫu nhiên sau mỗi câu (khoảng 12%, tăng dần nếu lâu không rơi, đúng liên tiếp 3, 6, 9... câu thì chắc chắn rơi, tối đa 8 món rơi mỗi ngày), thưởng lên hạng (1 Khiên), hoặc **mua bằng Leo Xu** (giá 15 đến 60, tối đa 5 món mỗi ngày). Kho mỗi loại có trần (Sao x3 tối đa 3, Khiên 5, loại khác 10).
+- **Thưởng lên hạng**: 20 Leo Xu, 1 Khiên và 1 sticker ngẫu nhiên. Không cộng tiền theo từng câu. Mọi thưởng và giá đều bằng Leo Xu, không phải anyPoint; mua vật phẩm và thưởng hiện trong "Tiền game" với nguồn "quiz_item" và "quiz_rank".
+- **Câu không lặp**: một người không gặp lại câu đã làm trong 30 ngày; hết câu mới thì game nới độ khó, cuối cùng mới lặp lại câu cũ, nên kho cạn sẽ không làm game dừng nhưng người chơi thấy câu cũ.
+- **Cài đặt (chưa có trang riêng, trang cấu hình sẽ có ở giai đoạn 5)**: mọi con số là dòng `quiz/...` trong bảng `configurations` và đã có mặc định, không cần nhập gì: `quiz/game_enabled` (0 = tắt game), `quiz/seconds` (20), `quiz/extra_seconds` (15), `quiz/rank_stars` (danh sách 7 số, ví dụ `5,6,7,8,10,12,15`), `quiz/rank_reward_coins` (20), `quiz/drop_base` (12), `quiz/drop_pity_step` (4), `quiz/drop_pity_max` (12), `quiz/drop_wrong_bonus` (8), `quiz/drop_daily_cap` (8), `quiz/streak_every` (3), `quiz/buy_daily_cap` (5), `quiz/price_{mult2|mult3|shield|topic|fifty|community|time|swap}`, `quiz/weight_{...}` (tỉ lệ rơi từng loại), `quiz/no_repeat_days` (30). Tỉ lệ độ khó theo rank vẫn chỉnh ở Kho câu hỏi. Công tắc `fun/enabled` tắt cả Vui học.
+- Chưa có: bảng xếp hạng, tổng kết tuần/tháng, danh sách người bị gắn cờ trong admin (hệ thống đã ghi cờ khi trả lời quá nhanh hoặc rời màn hình, sẽ hiện ở giai đoạn 5).
+
+### Vui học: Sticker
+
+Menu "Giải trí" > "Vui học" > nút "Sticker". Người chơi sưu tầm sticker trên trang Vui học > Sticker: nhận khi điểm danh, nhận gói quà khi được bạn mời, và đổi với bạn bè.
+
+- **Bộ sưu tập**: sticker được chia thành nhiều bộ (ví dụ "Leo ham học", "Leo vui chơi"), mỗi bộ có số sticker tùy bạn (12 hoặc nhiều hơn). Ở đầu tab "Bộ sticker" có khung "Bộ sưu tập": thêm bộ (tên, mô tả, hình hoặc emoji, thứ tự), sửa, xóa (chỉ xóa được bộ không còn sticker). Mỗi bộ có **thưởng đủ bộ riêng** (Leo Xu); để trống thì dùng mức mặc định ở tab Cấu hình, 0 là không thưởng. Người chơi nhận thưởng một lần cho mỗi bộ. Tắt một bộ thì sticker của bộ không rơi nữa và không tính vào thưởng, ai đã có vẫn giữ và vẫn đổi được. Khi thêm hoặc sửa sticker phải chọn bộ; bảng sticker lọc được theo bộ. Trên trang Sticker của người chơi, các bộ hiện thành thẻ chuyển qua lại kèm tiến độ từng bộ; chỉ có một bộ thì không hiện thẻ. Đổi sticker vẫn theo luật cùng độ hiếm, và đổi được giữa các bộ với nhau.
+- **Bộ sticker**: mỗi sticker có tên, nội dung ngắn, hình (PNG vuông nền trong, tải lên) hoặc emoji khi chưa có hình, độ hiếm (Thường, Hiếm, Siêu hiếm), tỉ lệ rơi (trọng số, cột "Tỉ lệ rơi" cho thấy phần trăm thật trong các sticker đang dùng) và công tắc "Đang dùng". Có sẵn 12 sticker mẫu dùng emoji; hãy thay bằng hình thật. Tắt một sticker thì không rơi nữa nhưng ai đã có vẫn giữ. Thêm sticker mới làm bộ dài ra, người đã đủ bộ phải sưu tầm thêm.
+- **Cách sticker rơi**: quà điểm danh ngày 7 của chuỗi luôn có 1 sticker (tắt được trong Cấu hình); ngày thường có sticker theo tỉ lệ phần trăm bạn đặt. Gói quà cho người được mời không bao giờ có sticker Siêu hiếm.
+- **Luật đổi** (người chơi thấy trên trang Sticker): chỉ đổi 1 lấy 1, **cùng độ hiếm**, sticker mình trùng lấy sticker mình thiếu. Hai người chỉ đổi với nhau 1 lần trong 30 ngày, mỗi người tối đa 3 lần mỗi tuần và 10 người khác nhau mỗi tháng. Bên nhận phải bấm đồng ý. Sticker nhận từ gói quà bị khóa đổi 7 ngày. Mọi con số sửa được ở tab Cấu hình.
+- **Gói quà 3 sticker**: người đăng ký qua link giới thiệu nhận 1 sticker thường ngay, và 2 sticker nữa (tối đa 1 hiếm, tỉ lệ đặt ở Cấu hình) sau khi điểm danh ngày thứ 2. Người mời nhận 1 sticker khi người mới đủ điều kiện (tài khoản từ 3 ngày và điểm danh đủ 3 ngày, sửa được), tối đa 10 lượt mỗi tháng. Thưởng đủ bộ (mặc định 200 Leo Xu cho bộ không đặt mức riêng, 0 = tắt) trao một lần cho mỗi người, mỗi bộ, người đó phải đủ điều kiện, và sticker còn đang bị khóa không tính vào đủ bộ.
+- **Chống nhiều tài khoản**: ứng dụng gửi một mã ngẫu nhiên của trình duyệt. Hệ thống cộng điểm rủi ro khi nhiều tài khoản chung thiết bị, chung IP trong 24 giờ, cùng người mời đăng ký sát nhau, hoặc chỉ đổi với đúng một người rồi bỏ đi. **Hệ thống không tự khóa ai.** Điểm từ ngưỡng (mặc định 50) thì gói quà đợt 2 vào tab "Chờ duyệt & rủi ro": bạn xem rồi bấm Duyệt hoặc Hủy. Ở tab Thành viên bạn có thể Khóa (người đó không đổi được và quà luôn phải duyệt), Bỏ qua cảnh báo, hoặc Về tự động.
+- **Thành viên**: tìm theo tên hoặc số điện thoại để xem album, tặng thêm hoặc thu hồi một bản. **Giao dịch đổi** liệt kê mọi lượt đổi và nút Hủy trả lại sticker cho hai bên (không hủy được nếu một người đã không còn sticker vừa nhận); phía trên cảnh báo các cặp đổi nhiều lần. Mọi việc ghi vào "Vui học" (game Sticker).
+
+### Vui học: Tiền game (Leo Xu)
+
+Menu "Giải trí" > "Vui học" > nút "Tiền game". Các game dùng **một đồng tiền riêng, mặc định tên "Leo Xu"**, không phải anyPoint: nó không đụng ví anyPoint, không tạo giao dịch ví và không gửi thông báo anyPoint. Lý do là anyPoint gắn với tiền thật nên thưởng game bằng anyPoint dễ làm lệch cân đối tài chính và vướng pháp lý. Việc đổi Leo Xu sang anyPoint hoặc quà sẽ thiết kế sau.
+
+- **Tên đồng tiền**: đổi ở ô "Tên đồng tiền" (tối đa 20 ký tự); hiện ngay ở mọi màn hình của game. Số dư không đổi khi đổi tên.
+- **Số liệu**: Leo Xu đang lưu hành, số người đang giữ, phát ra hôm nay và 7 ngày qua, chia theo nguồn (điểm danh, đủ bộ sticker, admin điều chỉnh), 10 người giữ nhiều nhất.
+- **Điều chỉnh một thành viên**: tìm theo tên hoặc số điện thoại, nhập số dương để cộng hoặc số âm để trừ và **bắt buộc ghi lý do** (lưu vào lịch sử và Sự kiện game). Mỗi lần tối đa 1.000.000; không trừ quá số dư.
+- **Lịch sử**: mọi lần cộng trừ đều có một dòng (ai, bao nhiêu, nguồn, số dư sau đó), xem chung hoặc theo từng thành viên.
+- Mức thưởng điểm danh và thưởng đủ bộ sticker (đơn vị Leo Xu) chỉnh ở "Điểm danh & quà" và "Sticker" > Cấu hình.
+
+### Vui học: Banner thành tích
+
+Menu "Giải trí" > "Vui học" > nút "Banner thành tích". Khi người chơi **lên hạng Leo rank lần đầu, đạt mốc chuỗi điểm danh, đứng top 3 tuần hoặc tháng, hoặc đủ một bộ sticker**, hệ thống tạo một banner (ảnh dọc có mã QR) và gửi thông báo "Bạn có banner thành tích". Họ bấm vào để chia sẻ qua Zalo, Messenger, lưu ảnh hoặc chép liên kết; người nhận mở trang chia sẻ và bấm "Cùng chơi" để đăng ký qua link giới thiệu của người đó.
+
+- **Cấu hình**: công tắc chung, công tắc riêng từng loại và các mốc chuỗi điểm danh (mặc định 7, 14, 30, 60, 100 ngày). Mỗi người chỉ có một banner cho mỗi thành tích (ví dụ mỗi hạng một lần).
+- **Hiệu quả**: banner đã tạo, lượt bấm chia sẻ, lượt mở trang chia sẻ, số người đăng ký đến từ banner và số người đã chơi sau khi đăng ký. Bảng "Banner gần đây" cho thấy từng banner.
+- Tên trên banner chỉ gồm hai từ cuối của tên người chơi, không có số điện thoại. Banner dùng địa chỉ trang web trong biến `NEXT_PUBLIC_SITE_URL` (mặc định https://anylearn.vn) cho mã QR.
+- Người dùng có thể tắt thông báo banner ở "Tài khoản > Thông báo > Vui học".
+
+### Vui học: ví Leo Xu và sticker (cập nhật)
+
+- Trang Vui học chỉ hiện số dư Leo Xu; bấm vào thẻ ví để xem **lịch sử có phân trang** (20 dòng một trang).
+- Sticker rơi (điểm danh, lên hạng, tổng kết) **chọn bộ đều nhau trước**, rồi mới chọn sticker trong bộ theo tỉ lệ rơi, nên nhiều bộ vẫn được phát đều.
+- Nếu bạn sửa trực tiếp bảng cấp sticker trong cơ sở dữ liệu, album của người chơi tự cân lại số bản khi họ mở trang Sticker. Nút đổi chỉ hiện khi người chơi có **sticker trùng**.
+
+### Vui học: Khám phá
+
+Menu "Giải trí" > "Khám phá" (số đỏ = bình luận bị báo cáo chờ xử lý). Muốn có bài mẫu để thử, chạy `scripts/seed_explore_demo.sql` (chỉ dữ liệu thử). Người chơi vào Vui học > Khám phá để lướt từng bài toàn màn hình, thích, bình luận, chia sẻ; nút ✕ trên cùng để quay về.
+
+- **Bài viết**: bấm "+ Bài mới". Có 3 loại: **bài viết** (chỉ chữ), **hình ảnh** (tải hình lên hoặc dán đường dẫn https) và **clip** (dán đường dẫn YouTube hoặc file mp4; hình đại diện không bắt buộc). Có thể **gắn một khóa học** (nhập mã khóa học) để người xem bấm "Xem khóa học". Bài mới ở **Nháp**; chọn **Đang hiện** để người chơi thấy, **Ẩn** để gỡ mà không xóa. **Ghim** đưa bài lên đầu. Bài xếp theo ghim rồi mới nhất.
+- **Số liệu** trên đầu trang và từng dòng: lượt xem (mỗi người một lần mỗi lần mở), thích, chia sẻ, bình luận.
+- **Bình luận**: mặc định xem tab "Bị báo cáo" (kèm lý do). **Ẩn** bình luận sẽ đóng các báo cáo của nó; **Giữ lại** đóng báo cáo và giữ bình luận; **Khóa bình luận người này** chặn người đó viết tiếp (mở khóa cùng nút đó). Người viết chỉ hiện hai từ cuối của tên.
+- **Cấu hình**: bật / tắt cả Khám phá, bật / tắt riêng bình luận, số bình luận tối đa mỗi phút (mặc định 5) và danh sách từ bị chặn (không phân biệt dấu, hoa thường).
+- Liên kết chia sẻ một bài mở trình lướt đúng bài đó, người nhận cần đăng nhập.
+
+### Vui học: mở dần từng game và theo dõi sức khỏe
+
+Menu "Giải trí" > "Vui học", kéo xuống hai khối cuối trang.
+
+- **Mở dần từng game**: mỗi game (Điểm danh, Quiz Leo rank, Sticker, Khám phá) có 3 chế độ: **Mở cho mọi người**, **Chỉ nhóm thử** (chỉ các số điện thoại trong danh sách bên dưới và admin dùng được, người khác không thấy game trên trang Vui học và các lệnh gọi bị từ chối) và **Đóng** (chỉ admin). Nên mở theo thứ tự: nhóm thử vài chục người, xem "Sức khỏe game" vài ngày, rồi mở cho mọi người. Công tắc bật tắt riêng của từng game vẫn còn ở trang cấu hình của game đó.
+- **Trần Leo Xu mỗi ngày**: số Leo Xu tối đa một người nhận được từ game trong một ngày (điểm danh, thưởng lên hạng, đủ bộ sticker...), 0 là không giới hạn. Phần vượt trần không được cộng. Điều chỉnh tay của admin không bị cắt. Dùng khi nghi có người cày hoặc dùng nhiều tài khoản.
+- **Sức khỏe game, 7 ngày qua**: Leo Xu phát ra và đã tiêu (theo nguồn), số người chơi từng game, tỉ lệ trả lời đúng của quiz, tỉ lệ vật phẩm rơi trên mỗi câu đúng, số câu bị gắn cờ và người bị gắn cờ nhiều nhất, tài khoản rủi ro và gói quà chờ duyệt, số người chạm trần hôm nay. Cách đọc để chỉnh: tỉ lệ đúng quá cao (trên 80%) thì tăng độ khó ở "Kho câu hỏi" > tỉ lệ độ khó mỗi hạng; Leo Xu phát ra nhiều hơn nhiều lần so với tiêu thì giảm thưởng hoặc thêm vật phẩm bán trong shop; vật phẩm rơi quá nhiều thì giảm tỉ lệ rơi ở Cấu hình quiz.

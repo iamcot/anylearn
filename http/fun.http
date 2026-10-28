@@ -1,0 +1,93 @@
+@baseUrl = {{$dotenv BE_BASE_URL}}/api
+@jwtToken = {{$dotenv JWT_TOKEN}}
+
+### Check-in status of the signed-in account (streak, week, today's gift)
+GET {{baseUrl}}/fun/checkin
+Authorization: Bearer {{jwtToken}}
+
+### Open today's gift (once per day)
+POST {{baseUrl}}/fun/checkin/claim
+Authorization: Bearer {{jwtToken}}
+
+### Report a wrong question (3 reports hide it)
+POST {{baseUrl}}/quiz/questions/1/report
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{ "reason": "wrong_answer", "note": "Đáp án đúng phải là B" }
+
+
+### Send the browser id (risk score of the sticker game)
+POST {{baseUrl}}/fun/device
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{ "deviceId": "7f3c1e2a-9b4d-4e0f-8a1c-2d3b4c5d6e7f" }
+
+### Sticker album, welcome pack and offers
+GET {{baseUrl}}/stickers
+Authorization: Bearer {{jwtToken}}
+
+### Offer a trade: give a duplicate (giveId) for a sticker of the same rarity you lack (wantId)
+POST {{baseUrl}}/stickers/offers
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{ "toPhone": "0912345678", "giveId": 1, "wantId": 2 }
+
+### Answer an offer
+POST {{baseUrl}}/stickers/offers/1/accept
+Authorization: Bearer {{jwtToken}}
+
+###
+POST {{baseUrl}}/stickers/offers/1/decline
+Authorization: Bearer {{jwtToken}}
+
+### Full-set reward of one collection (once per person and collection)
+POST {{baseUrl}}/stickers/set-reward
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{ "collectionId": 1 }
+
+
+### Balance and last movements of the game currency (Leo Xu)
+GET {{baseUrl}}/fun/coins
+Authorization: Bearer {{jwtToken}}
+
+### Leo Xu ledger, paged (the page /today/fun/coins)
+GET {{baseUrl}}/fun/coins/history?page=1&size=20
+Authorization: Bearer {{jwtToken}}
+
+### My achievement banners
+GET {{baseUrl}}/achievements?limit=20
+Authorization: Bearer {{jwtToken}}
+
+### Public view of a banner (what the share page shows)
+GET {{baseUrl}}/achievements/abcdefghjkmn
+
+### Count a share press (owner only)
+POST {{baseUrl}}/achievements/abcdefghjkmn/share
+Authorization: Bearer {{jwtToken}}
+
+### Khám phá: feed, like, comment, report
+GET {{baseUrl}}/explore?page=1&size=10
+Authorization: Bearer {{jwtToken}}
+
+###
+POST {{baseUrl}}/explore/1/like
+Authorization: Bearer {{jwtToken}}
+
+###
+POST {{baseUrl}}/explore/1/comments
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{"body": "Mẹo hay quá!"}
+
+###
+POST {{baseUrl}}/explore/comments/1/report
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{"reason": "Quảng cáo"}

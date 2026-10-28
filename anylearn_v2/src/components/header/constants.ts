@@ -1,13 +1,16 @@
+import { TODAY_NAV } from '@/lib/today/nav'
+
 export const NAV_LINKS = [
   { href: '/info', label: 'Giới thiệu' },
   { href: '/search?mode=school', label: 'anySCHOOL' },
   { href: '/search?mode=teacher', label: 'anyPROFESSOR' },
 ]
 
-export const MEMBER_NAV_LINKS = [
-  { href: '/today', label: 'Hôm nay' },
-  { href: '/today/community', label: 'Cộng đồng' },
-]
+/** Same items and order as the mobile bottom tabs (schedule and account live in the user menu on desktop). */
+export const MEMBER_NAV_LINKS = TODAY_NAV.filter(item => ['Cộng đồng', 'Hôm nay', 'Vui học'].includes(item.label))
+
+/** The desktop top bar is the same for visitors and members: the signed-in pages ask a visitor to log in. */
+export const DESKTOP_NAV_LINKS = [NAV_LINKS[0], ...MEMBER_NAV_LINKS]
 
 export const ACCOUNT_MENU = [
   { href: '/today', label: 'Hôm nay' },
@@ -20,4 +23,4 @@ export const ACCOUNT_MENU = [
   { href: '/account/change-password', label: 'Đổi mật khẩu' },
 ]
 
-export const ICON_BUTTON_CLASS = 'relative grid size-11 cursor-pointer place-items-center rounded-full border border-line bg-white text-ink no-underline lg:size-[38px]'
+export const ICON_BUTTON_CLASS = 'relative grid size-11 shrink-0 cursor-pointer place-items-center rounded-full border border-line bg-white text-ink no-underline lg:size-[38px]'

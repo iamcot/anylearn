@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { API_BASE } from '@/lib/apiBase'
@@ -90,7 +90,6 @@ function Bubble({ message, canModerate, onReply, onReport, onHide, onPin }: {
 }
 
 export default function ChatRoomPage() {
-  const router = useRouter()
   const roomId = Number(useParams<{ roomId: string }>().roomId)
   const { user, token, isAuthLoading } = useAuth()
   const [room, setRoom] = useState<ChatRoom | null>(null)
@@ -104,9 +103,6 @@ export default function ChatRoomPage() {
   const bottomRef = useRef<HTMLDivElement>(null)
   const lastId = useRef(0)
 
-  useEffect(() => {
-    if (!isAuthLoading && !user) router.replace(`/login?redirect=/today/community/${roomId}`)
-  }, [isAuthLoading, user, router, roomId])
 
   const loadRoom = useCallback(async () => {
     if (!token) return

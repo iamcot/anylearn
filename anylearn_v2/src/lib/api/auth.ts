@@ -69,12 +69,12 @@ export async function resetPassword(token: string, newPassword: string): Promise
 }
 
 
-export async function registerApi(name: string, phone: string, email: string, password: string): Promise<{ user: AuthUser | null; error?: string }> {
+export async function registerApi(name: string, phone: string, email: string, password: string, referral?: { ref: string; game: string | null; ach?: string | null }): Promise<{ user: AuthUser | null; error?: string }> {
   try {
     const res = await fetch(`${API_BASE}/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, phone, email, password }),
+      body: JSON.stringify({ name, phone, email, password, ref: referral?.ref, game: referral?.game, ach: referral?.ach }),
     })
     const json = await res.json()
     if (!res.ok || json?.resultCode !== 1) return { user: null, error: json?.message || 'Đăng ký thất bại' }

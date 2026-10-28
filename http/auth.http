@@ -15,6 +15,21 @@ Content-Type: application/json
   "name": "Test User"
 }
 
+### Register through a friend's link (ref = the friend's phone; game is optional)
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{
+  "phone": "0123456780",
+  "password": "123456",
+  "name": "Test Referred",
+  "ref": "0123456789",
+  "game": "quiz"
+}
+
+### Check a referral link (public; shows only the last word of the name)
+GET {{baseUrl}}/ref/0123456789
+
 ### Simple Register
 POST {{baseUrl}}/simple-register
 Content-Type: application/json

@@ -9,6 +9,14 @@ import Activities from './pages/Activities'
 import Audit from './pages/Audit'
 import CourseRequests from './pages/CourseRequests'
 import PriceReports from './pages/PriceReports'
+import FunEvents from './pages/FunEvents'
+import FunCheckin from './pages/FunCheckin'
+import QuizBank from './pages/QuizBank'
+import Stickers from './pages/Stickers'
+import FunCoins from './pages/FunCoins'
+import QuizGame from './pages/QuizGame'
+import Achievements from './pages/Achievements'
+import Explore from './pages/Explore'
 import ChatModeration from './pages/ChatModeration'
 import Membership from './pages/Membership'
 import Tags from './pages/Tags'
@@ -99,6 +107,14 @@ export default function App() {
                   <Route path="schedule-requests" element={<ScheduleRequests />} />
                   <Route path="course-requests" element={<CourseRequests />} />
                   <Route path="price-reports" element={<PriceReports />} />
+                  <Route path="fun-events" element={<FunEvents />} />
+                  <Route path="fun-checkin" element={<FunCheckin />} />
+                  <Route path="quiz-bank" element={<QuizBank />} />
+                  <Route path="stickers" element={<Stickers />} />
+                  <Route path="fun-coins" element={<FunCoins />} />
+                  <Route path="quiz-game" element={<QuizGame />} />
+                  <Route path="achievements" element={<Achievements />} />
+                  <Route path="explore" element={<Explore />} />
                   <Route path="chat" element={<ChatModeration />} />
                   <Route path="membership" element={<Membership />} />
                   <Route path="tags" element={<Tags />} />

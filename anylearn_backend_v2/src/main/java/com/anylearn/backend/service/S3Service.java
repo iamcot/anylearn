@@ -1,5 +1,6 @@
 package com.anylearn.backend.service;
 
+import com.anylearn.backend.service.media.ImageCompressor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -43,13 +44,27 @@ public class S3Service {
         return cdnUrl.isBlank() ? "https://" + bucket + ".s3." + region + ".amazonaws.com" : cdnUrl.replaceAll("/+$", "");
     }
 
+    /** Longest side of a stored photo; avatars use {@link #AVATAR_EDGE}. */
+    public static final int DEFAULT_EDGE = 1080;
+    public static final int AVATAR_EDGE = 720;
+    /** Original files are accepted up to this size, then shrunk before they go to S3. */
+    public static final long MAX_UPLOAD_BYTES = 10L * 1024 * 1024;
+
     public String uploadImage(MultipartFile file, String folder) throws IOException {
+        return uploadImage(file, folder, DEFAULT_EDGE);
+    }
+
+    public String uploadImage(MultipartFile file, String folder, int maxEdge) throws IOException {
         if (accessKey.isBlank() || secretKey.isBlank() || bucket.isBlank()) {
             throw new RuntimeException("AWS S3 chưa được cấu hình");
         }
 
-        String ext = getExtension(file.getOriginalFilename());
-        String key = folder + "/" + UUID.randomUUID() + "." + ext;
+        if (file.getSize() > MAX_UPLOAD_BYTES) {
+            throw new IllegalArgumentException("Ảnh quá lớn, tối đa 10MB");
+        }
+        ImageCompressor.Result image = ImageCompressor.compress(
+                file.getBytes(), file.getContentType(), getExtension(file.getOriginalFilename()), maxEdge);
+        String key = folder + "/" + UUID.randomUUID() + "." + image.extension();
 
         S3Client s3 = S3Client.builder()
                 .region(Region.of(region))
@@ -60,15 +75,15 @@ public class S3Service {
         PutObjectRequest request = PutObjectRequest.builder()
                 .bucket(bucket)
                 .key(key)
-                .contentType(file.getContentType())
+                .contentType(image.contentType())
                 .build();
 
-        s3.putObject(request, RequestBody.fromBytes(file.getBytes()));
+        s3.putObject(request, RequestBody.fromBytes(image.bytes()));
         s3.close();
 
         String baseUrl = publicBaseUrl();
 
-        log.info("[S3] Uploaded: {}/{}", baseUrl, key);
+        log.info("[S3] Uploaded: {}/{} ({} KB -> {} KB)", baseUrl, key, file.getSize() / 1024, image.bytes().length / 1024);
         return baseUrl + "/" + key;
     }
 

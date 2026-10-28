@@ -23,6 +23,7 @@ describe('today routes', () => {
   it('opens /today with the child and survey of a lifecycle notification', () => {
     expect(resolveNotificationRoute('/today?child=5&survey=9')).toBe('/today?child=5&survey=9')
     expect(resolveNotificationRoute('/today')).toBe('/today')
+    expect(resolveNotificationRoute('/today/fun/quiz/board')).toBe('/today/fun/quiz/board')
     expect(resolveNotificationRoute('/todayx')).toBeNull()
   })
 })

@@ -64,12 +64,14 @@ function ContactLinks() {
   )
 }
 
-function Brand() {
+function Brand({ mobile = false }: { mobile?: boolean }) {
   return (
     <>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/cdn/anylearn/img/logo-white.svg" alt="anyLEARN" className="mb-4 h-10" />
-      <p className={TEXT_CLASS}>Nền tảng giúp phụ huynh tìm kiếm, so sánh và đăng ký trường học, khóa học, chuyên gia phù hợp cho con.</p>
+      {mobile
+        ? <Link href="/info" className={`${TEXT_CLASS} inline-block font-bold underline`}>Giới thiệu anyLEARN</Link>
+        : <p className={TEXT_CLASS}>Nền tảng giúp phụ huynh tìm kiếm, so sánh và đăng ký trường học, khóa học, chuyên gia phù hợp cho con.</p>}
     </>
   )
 }
@@ -94,7 +96,7 @@ export default async function Footer() {
     <footer className="bg-navy pt-8 text-white lg:pt-14">
       <div className="container">
         <div className="mb-6 lg:hidden">
-          <Brand />
+          <Brand mobile />
           <div className="mt-2 border-t border-white/15">
             <MobileSection title="Dành cho phụ huynh"><ParentLinks topKnowledge={topKnowledge} /></MobileSection>
             <MobileSection title="Điều khoản & Chính sách"><PolicyLinks /></MobileSection>

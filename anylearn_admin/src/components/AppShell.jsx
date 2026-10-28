@@ -2,7 +2,7 @@ import { Avatar, Badge, Dropdown, Flex, Layout, List, Menu, Popover, Spin, Typog
 import {
   RobotOutlined, AuditOutlined, BankOutlined, CreditCardOutlined, BellOutlined, BookOutlined, CalendarOutlined, DashboardOutlined, DollarOutlined, FileTextOutlined,
   CustomerServiceOutlined, FundOutlined, LineChartOutlined, SearchOutlined, LogoutOutlined, MailOutlined, ApiOutlined, OrderedListOutlined, SettingOutlined, SolutionOutlined, SwapOutlined,
-  TeamOutlined, UserOutlined, MessageOutlined, CrownOutlined,
+  TeamOutlined, UserOutlined, MessageOutlined, CrownOutlined, GiftOutlined, TrophyOutlined, CompassOutlined,
 } from '@ant-design/icons'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
@@ -36,7 +36,13 @@ const NAV_GROUPS = [
     { key: '/search-insights',  icon: <LineChartOutlined />,   label: 'Xu hướng nhu cầu' },
     { key: '/ai-suggestions',   icon: <RobotOutlined />,       label: 'Gợi ý AI' },
   ] },
+  { key: 'g-fun', type: 'group', label: 'Giải trí', children: [
+    { key: '/fun-events',       icon: <TrophyOutlined />,      label: 'Vui học' },
+    { key: '/explore',          icon: <CompassOutlined />,     label: 'Khám phá' },
+  ] },
 ]
+// Opened from buttons on the "Vui học" page, not from the menu.
+const FUN_SUBPAGES = ['/fun-checkin', '/quiz-bank', '/quiz-game', '/stickers', '/fun-coins', '/achievements']
 const NAV_ITEMS = NAV_GROUPS.flatMap(group => group.children)
 
 // Things people ask the team for sit in the top bar, left of the bell, with the red number of what waits.
@@ -58,13 +64,16 @@ const BADGE_FIELDS = {
   '/course-requests': 'courseRequests',
   '/price-reports': 'priceReports',
   '/chat': 'chatReports',
+  '/fun-events': ['stickerReview', 'quizFlagged'],
+  '/explore': 'exploreReports',
 }
 
 function withBadges(groups, counts) {
   return groups.map(group => ({
     ...group,
     children: group.children.map(item => {
-      const count = counts?.[BADGE_FIELDS[item.key]] ?? 0
+      const fields = [].concat(BADGE_FIELDS[item.key] ?? [])
+      const count = fields.reduce((sum, f) => sum + (counts?.[f] ?? 0), 0)
       if (!count) return item
       return { ...item, label: <Flex justify="space-between" align="center"><span>{item.label}</span><Badge count={count} overflowCount={999} size="small" /></Flex> }
     }),
@@ -188,9 +197,11 @@ export default function AppShell() {
 
   const selectedKey = COURSE_SUBPAGES.some(path => location.pathname.startsWith(path))
     ? '/items'
-    : HEADER_LINKS.some(link => location.pathname.startsWith(link.key)) || location.pathname.startsWith('/membership')
-      ? ''
-      : NAV_ITEMS.find(i => location.pathname.startsWith(i.key))?.key ?? '/dashboard'
+    : FUN_SUBPAGES.some(path => location.pathname.startsWith(path))
+      ? '/fun-events'
+      : HEADER_LINKS.some(link => location.pathname.startsWith(link.key)) || location.pathname.startsWith('/membership')
+        ? ''
+        : NAV_ITEMS.find(i => location.pathname.startsWith(i.key))?.key ?? '/dashboard'
 
   const { data: badgeCounts, refetch: refetchBadges } = useQuery({
     queryKey: ['admin-badges'],

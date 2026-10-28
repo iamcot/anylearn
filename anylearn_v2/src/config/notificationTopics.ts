@@ -5,6 +5,7 @@ export const NOTIFICATION_TOPICS = [
   { key: 'renewal', label: 'Nhắc gia hạn', hint: 'Khóa học sắp hết kỳ phí' },
   { key: 'review', label: 'Nhắc đánh giá', hint: 'Gợi ý viết đánh giá khi khóa học đi được nửa chặng hoặc kết thúc' },
   { key: 'points', label: 'Nhắc anyPoint sắp hết hạn', hint: 'Báo trước 30 ngày và 7 ngày khi anyPoint sắp hết hạn dùng' },
+  { key: 'fun', label: 'Vui học', hint: 'Banner thành tích và phần thưởng bảng xếp hạng' },
   { key: 'promo', label: 'Khóa học mới', hint: 'Khóa mới từ trường và trung tâm bạn theo dõi' },
 ] as const
 

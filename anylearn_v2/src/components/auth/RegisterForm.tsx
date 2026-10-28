@@ -1,17 +1,21 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState, useSyncExternalStore } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/context/AuthContext'
 import { passwordError } from '@/lib/auth/validation'
 import { MIN_PASSWORD_LENGTH } from '@/config/auth'
 import FormField from '@/components/FormField'
 import Alert from '@/components/Alert'
+import { afterRegisterPath, clearReferral, parseStoredReferral, readReferralRaw } from '@/lib/referral/store'
 
 interface Props {
-  onSuccess: () => void
+  // Gets the page a friend's link leads to (null for a normal registration, so the caller keeps its own destination).
+  onSuccess: (redirectTo?: string | null) => void
   onSwitchToLogin?: () => void
 }
+
+const subscribeNever = () => () => {}
 
 const EMPTY = { name: '', phone: '', email: '', password: '', confirm: '' }
 
@@ -21,6 +25,9 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: Props) {
   const [agreedTerms, setAgreedTerms] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  // The link's code lives in localStorage, which the server render cannot see, so it is read after hydration.
+  const referralRaw = useSyncExternalStore(subscribeNever, readReferralRaw, () => null)
+  const referral = useMemo(() => parseStoredReferral(referralRaw), [referralRaw])
 
   const bind = (field: keyof typeof EMPTY) => ({
     value: values[field],
@@ -34,14 +41,17 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: Props) {
     if (problem) { setError(problem); return }
     if (!agreedTerms) { setError('Vui lòng đồng ý với điều khoản sử dụng'); return }
     setLoading(true)
-    const { error: err } = await register(values.name, values.phone, values.email, values.password)
+    const { error: err } = await register(values.name, values.phone, values.email, values.password, referral ? { ref: referral.code, game: referral.game, ach: referral.ach } : undefined)
     setLoading(false)
     if (err) { setError(err); return }
-    onSuccess()
+    const redirectTo = afterRegisterPath(referral)
+    clearReferral()
+    onSuccess(redirectTo)
   }
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+      {referral?.name && <Alert kind="success">Bạn được {referral.name} giới thiệu. Đăng ký để cùng chơi và nhận quà.</Alert>}
       {error && <Alert kind="error">{error}</Alert>}
       <FormField label="Họ và tên">
         <input className="field" type="text" autoComplete="name" placeholder="Nhập họ và tên" {...bind('name')} required />

@@ -104,7 +104,7 @@ export default function ProfilePage() {
               {uploading ? 'Đang tải...' : 'Đổi ảnh đại diện'}
               <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
             </label>
-            <p className="mb-0 mt-1 text-xs text-muted">JPG, PNG tối đa 2MB</p>
+            <p className="mb-0 mt-1 text-xs text-muted">JPG, PNG tối đa 10MB</p>
           </div>
         </div>
 
