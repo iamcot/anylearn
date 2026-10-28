@@ -206,7 +206,7 @@ export default function QuizBank() {
   const totals = data?.totals
 
   return (
-    <div>
+    <div style={{ padding: 24 }}>
       <Typography.Title level={4} style={{ marginTop: 0 }}>Kho câu hỏi quiz leo rank</Typography.Title>
       <Typography.Paragraph type="secondary">
         AI viết sẵn câu hỏi theo chủ đề và độ khó, loại câu trùng, rồi tự trả lời lại để kiểm tra đáp án. Câu AI chấm khớp được duyệt nhanh; câu chấm lệch bị ẩn sẵn.

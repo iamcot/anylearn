@@ -1,5 +1,6 @@
-import { Card, Col, Row, Select, Statistic, Table, Tag, Typography } from 'antd'
+import { Button, Card, Col, Flex, Row, Select, Statistic, Table, Tag, Typography } from 'antd'
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import client from '../api/client'
 import { fmtDateTime } from '../utils/format'
@@ -17,6 +18,7 @@ const GAME_OPTIONS = Object.entries(GAMES).map(([value, [label]]) => ({ value, l
 const TYPE_LABELS = { claim: 'Mở quà điểm danh', register: 'Đăng ký qua link' }
 
 export default function FunEvents() {
+  const navigate = useNavigate()
   const [game, setGame] = useState('')
   const [page, setPage] = useState(1)
   const pageSize = 30
@@ -42,8 +44,14 @@ export default function FunEvents() {
   ]
 
   return (
-    <div>
-      <Typography.Title level={4} style={{ marginTop: 0 }}>Sự kiện game</Typography.Title>
+    <div style={{ padding: 24 }}>
+      <Flex justify="space-between" align="flex-start" wrap gap={8}>
+        <Typography.Title level={4} style={{ marginTop: 0 }}>Sự kiện game</Typography.Title>
+        <Flex gap={8}>
+          <Button onClick={() => navigate('/fun-checkin')}>Điểm danh & quà</Button>
+          <Button onClick={() => navigate('/quiz-bank')}>Kho câu hỏi</Button>
+        </Flex>
+      </Flex>
       <Typography.Paragraph type="secondary">Mọi việc xảy ra trong các game của Vui học, mới nhất ở trên. Tự làm mới mỗi 30 giây.</Typography.Paragraph>
       <Row gutter={[12, 12]} style={{ marginBottom: 16 }}>
         <Col xs={12} md={6}><Card size="small"><Statistic title="Người chơi hôm nay" value={data?.playersToday ?? 0} /></Card></Col>

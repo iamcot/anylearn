@@ -2,6 +2,7 @@ package com.anylearn.backend.service.fun;
 
 import com.anylearn.backend.entity.Transaction;
 import com.anylearn.backend.repository.TransactionRepository;
+import com.anylearn.backend.service.NotificationService;
 import com.anylearn.backend.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -33,6 +34,7 @@ public class CheckinService {
     private final WalletService walletService;
     private final TransactionRepository transactionRepository;
     private final GameEventService gameEvents;
+    private final NotificationService notificationService;
     private final Clock clock;
 
     private record Last(LocalDate day, int streak) {}
@@ -108,6 +110,10 @@ public class CheckinService {
         boolean capped = points < wanted;
         gameEvents.record(userId, GameEventService.GAME_CHECKIN, "claim",
                 "Ngày " + FunRules.dayInCycle(streak) + ", chuỗi " + streak + (capped ? " (chạm trần ngân sách ngày)" : ""), points);
+        if (points > 0) {
+            notificationService.createNotification(userId, TYPE_CHECKIN, "Quà điểm danh Vui học",
+                    "Bạn nhận " + points + " anyPoint, chuỗi " + streak + " ngày. Mai quay lại để giữ chuỗi nhé!", "/today/fun");
+        }
         out.put("alreadyClaimed", false);
         out.put("points", points);
         out.put("capped", capped);

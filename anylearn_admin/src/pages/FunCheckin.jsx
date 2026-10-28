@@ -37,7 +37,7 @@ export default function FunCheckin() {
   const overCap = cap > 0 && estimate > cap
 
   return (
-    <div>
+    <div style={{ padding: 24 }}>
       <Typography.Title level={4} style={{ marginTop: 0 }}>Điểm danh và quà</Typography.Title>
       <Typography.Paragraph type="secondary">
         Mỗi thành viên mở một quà mỗi ngày. Chuỗi ngày liên tiếp quyết định mức anyPoint trong tuần; ngày 7 là quà lớn, sau đó quay lại ngày 1.

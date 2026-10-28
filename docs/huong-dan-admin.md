@@ -507,14 +507,14 @@ Không có trang riêng trong admin. Phụ huynh bấm "So sánh" trên khóa h�
 
 ### Vui học: Sự kiện game và Điểm danh & quà
 
-Menu "Vui học" có hai trang.
+Menu "Vui học" có trang "Sự kiện game"; "Điểm danh & quà" và "Kho câu hỏi" mở bằng hai nút ở góc phải trên của trang đó.
 
 - **Sự kiện game**: danh sách mọi việc xảy ra trong các game (mở quà điểm danh, đăng ký qua link giới thiệu, và các game sau này), mới nhất ở trên, lọc theo game. Phía trên là số người chơi, số sự kiện, anyPoint đã phát và số lượt đăng ký từ link giới thiệu trong ngày. Trang tự làm mới mỗi 30 giây.
 - **Điểm danh & quà**: mỗi thành viên mở một quà mỗi ngày trên trang Vui học. Nhập anyPoint cho từng ngày 1 đến 7 của chuỗi (ngày 7 là quà lớn; sau ngày 7 quay lại ngày 1). Bỏ một ngày thì chuỗi bắt đầu lại từ ngày 1. **Mọi anyPoint ở đây là chi phí thật**, nên có "Trần anyPoint phát ra mỗi ngày" (0 = không giới hạn): khi chạm trần, người mở quà sau đó vẫn giữ chuỗi nhưng hôm đó không nhận anyPoint. Trang hiện chi phí ước tính mỗi ngày để so với trần. Công tắc ở đầu trang tắt hẳn quà điểm danh. Thay đổi có hiệu lực ngay với lượt mở tiếp theo.
 
 ### Vui học: Kho câu hỏi (quiz leo rank)
 
-Menu "Vui học" > "Kho câu hỏi". Đây là kho câu hỏi cho quiz leo rank (trò chơi chưa mở cho thành viên, kho cần có sẵn trước).
+Menu "Vui học" > "Sự kiện game" > nút "Kho câu hỏi" ở góc phải trên. Đây là kho câu hỏi cho quiz leo rank (trò chơi chưa mở cho thành viên, kho cần có sẵn trước).
 
 - **Bảng số câu**: 5 chủ đề (Nuôi dạy con, Tiếng Anh, Âm nhạc, Mỹ thuật, Khoa học) × 3 độ khó (Dễ, Vừa, Khó). Mỗi ô cho biết số câu đang dùng so với mục tiêu, số chờ duyệt, số đã ẩn, số lượt đã phát, tỉ lệ trả lời đúng và tỉ lệ AI viết trùng trong 30 ngày. Rank Đồng và Bạc lấy câu Dễ, Vàng và Bạch kim lấy câu Vừa, từ Kim cương trở lên lấy câu Khó, nên **ô nào cũng cần đủ câu** (nên giữ ít nhất 300 câu mỗi ô để một người không gặp lại câu cũ trong 30 ngày).
 - **Tạo thêm**: nút ở cuối mỗi dòng nhờ AI viết một lượt cho ô đó; nút "Đề xuất AI tạo thêm" ở trên cùng tạo cho các ô đang thiếu nhiều nhất. Mỗi lượt tốn tiền gọi AI. AI tự loại câu trùng với kho, rồi tự trả lời lại từng câu: câu AI chọn **khớp** đáp án đã viết có nhãn "AI chấm khớp", câu **lệch** bị ẩn sẵn, câu AI không chắc chờ bạn xem.

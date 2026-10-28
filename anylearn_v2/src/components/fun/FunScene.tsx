@@ -9,14 +9,20 @@ export default function FunScene({ token, initial, onClaimed }: { token: string;
   const [status, setStatus] = useState(initial)
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
+  const [opening, setOpening] = useState(false)
+  const [reward, setReward] = useState(0)
 
   const open = async () => {
     if (busy || status.claimedToday || !status.enabled) return
     setBusy(true)
-    const { data, error } = await claimCheckin(token)
+    setOpening(true)
+    // the box shakes at least 0.6 s so the person sees it open, even when the answer is quick
+    const [{ data, error }] = await Promise.all([claimCheckin(token), new Promise(resolve => setTimeout(resolve, 600))])
     setBusy(false)
+    setOpening(false)
     if (error || !data) { setMessage(error ?? 'Không mở được quà, thử lại sau'); return }
     setMessage(claimMessage(data))
+    if (data.points > 0) setReward(data.points)
     setStatus(prev => afterClaim(prev, data))
     onClaimed?.()
   }
@@ -46,9 +52,12 @@ export default function FunScene({ token, initial, onClaimed }: { token: string;
         </svg>
         <button type="button" onClick={open} disabled={!canOpen || busy}
           className="absolute left-3 top-3 flex min-h-11 min-w-11 cursor-pointer flex-col items-center rounded-2xl border-0 bg-white/85 px-2 py-1.5 text-[10px] font-bold text-ink disabled:cursor-default">
-          <span className={`text-3xl ${canOpen ? 'animate-bounce' : 'opacity-60'}`} aria-hidden>🎁</span>
+          <span className={`inline-block text-3xl ${opening ? 'gift-shake' : canOpen ? 'gift-wobble' : 'opacity-60'}`} aria-hidden>🎁</span>
           {canOpen ? 'Mở quà' : 'Đã nhận'}
         </button>
+        {reward > 0 && (
+          <div className="gift-fly pointer-events-none absolute left-4 top-16 text-xl font-black text-[#b45309]" aria-hidden>+{reward} anyPoint</div>
+        )}
         <div className="absolute inset-x-3 bottom-3 rounded-xl bg-white/90 px-3 py-1.5 text-center text-xs text-ink" role="status">
           {message ? <b className="text-green-dark">{message}</b> : giftNote(status)}
         </div>

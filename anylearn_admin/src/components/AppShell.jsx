@@ -1,7 +1,7 @@
 import { Avatar, Badge, Dropdown, Flex, Layout, List, Menu, Popover, Spin, Typography } from 'antd'
 import {
   RobotOutlined, AuditOutlined, BankOutlined, CreditCardOutlined, BellOutlined, BookOutlined, CalendarOutlined, DashboardOutlined, DollarOutlined, FileTextOutlined,
-  CustomerServiceOutlined, QuestionCircleOutlined, FundOutlined, LineChartOutlined, SearchOutlined, LogoutOutlined, MailOutlined, ApiOutlined, OrderedListOutlined, SettingOutlined, SolutionOutlined, SwapOutlined,
+  CustomerServiceOutlined, FundOutlined, LineChartOutlined, SearchOutlined, LogoutOutlined, MailOutlined, ApiOutlined, OrderedListOutlined, SettingOutlined, SolutionOutlined, SwapOutlined,
   TeamOutlined, UserOutlined, MessageOutlined, CrownOutlined, GiftOutlined, TrophyOutlined,
 } from '@ant-design/icons'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -38,10 +38,10 @@ const NAV_GROUPS = [
   ] },
   { key: 'g-fun', type: 'group', label: 'Vui học', children: [
     { key: '/fun-events',       icon: <TrophyOutlined />,      label: 'Sự kiện game' },
-    { key: '/fun-checkin',      icon: <GiftOutlined />,        label: 'Điểm danh & quà' },
-    { key: '/quiz-bank',        icon: <QuestionCircleOutlined />, label: 'Kho câu hỏi' },
   ] },
 ]
+// Opened from buttons on the "Sự kiện game" page, not from the menu.
+const FUN_SUBPAGES = ['/fun-checkin', '/quiz-bank']
 const NAV_ITEMS = NAV_GROUPS.flatMap(group => group.children)
 
 // Things people ask the team for sit in the top bar, left of the bell, with the red number of what waits.
@@ -193,9 +193,11 @@ export default function AppShell() {
 
   const selectedKey = COURSE_SUBPAGES.some(path => location.pathname.startsWith(path))
     ? '/items'
-    : HEADER_LINKS.some(link => location.pathname.startsWith(link.key)) || location.pathname.startsWith('/membership')
-      ? ''
-      : NAV_ITEMS.find(i => location.pathname.startsWith(i.key))?.key ?? '/dashboard'
+    : FUN_SUBPAGES.some(path => location.pathname.startsWith(path))
+      ? '/fun-events'
+      : HEADER_LINKS.some(link => location.pathname.startsWith(link.key)) || location.pathname.startsWith('/membership')
+        ? ''
+        : NAV_ITEMS.find(i => location.pathname.startsWith(i.key))?.key ?? '/dashboard'
 
   const { data: badgeCounts, refetch: refetchBadges } = useQuery({
     queryKey: ['admin-badges'],
