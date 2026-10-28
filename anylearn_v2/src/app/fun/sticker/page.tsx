@@ -55,7 +55,7 @@ export default function StickerPage() {
 
   return (
     <div className="mx-auto max-w-[720px] px-4 pb-28 pt-5 lg:px-0 lg:pb-12 lg:pt-8">
-      <Link href="/today/fun" className="inline-flex min-h-11 items-center gap-1 text-sm font-bold text-text no-underline"><ChevronLeftIcon className="size-4" /> Vui học</Link>
+      <Link href="/fun" className="inline-flex min-h-11 items-center gap-1 text-sm font-bold text-text no-underline"><ChevronLeftIcon className="size-4" /> Vui học</Link>
       <h1 className="m-0 text-2xl font-black lg:text-3xl">Sticker</h1>
       {error && <p className="mt-4 text-warn-text">{error}</p>}
       {!error && !album && <div className="mt-4 h-60 animate-pulse rounded-2xl bg-slate-200" />}

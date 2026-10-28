@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import AppTabs from '@/components/AppTabs'
 import CompareBar from '@/components/compare/CompareBar'
+import { inTodayZone } from '@/lib/today/nav'
 
 const NO_TABS_PREFIXES = ['/join', '/login', '/register', '/forgot-password']
 
@@ -15,7 +16,7 @@ interface Props {
 
 export default function SiteChrome({ header, footer, children }: Props) {
   const pathname = usePathname()
-  const isToday = pathname.startsWith('/today')
+  const isToday = inTodayZone(pathname)
   const isJoin = pathname.startsWith('/join')
   const isMap = pathname.startsWith('/search/map')
   const showTabs = !NO_TABS_PREFIXES.some(prefix => pathname.startsWith(prefix))

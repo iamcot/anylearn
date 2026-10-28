@@ -2,6 +2,7 @@ package com.anylearn.backend.service.compare;
 
 import com.anylearn.backend.entity.Item;
 import com.anylearn.backend.repository.ItemRepository;
+import com.anylearn.backend.service.ai.AiUsageService;
 import com.anylearn.backend.service.ai.AnthropicClient;
 import com.anylearn.backend.service.recommend.RecommendationSettings;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -90,7 +91,7 @@ public class CompareAiService {
                     .append(CompareRules.plainText(item.getContent())).append("\n");
         }
         try {
-            AnthropicClient.Answer answer = anthropic.askTool(SYSTEM, prompt.toString(), 1200, tool());
+            AnthropicClient.Answer answer = anthropic.askTool(AiUsageService.COMPARE, SYSTEM, prompt.toString(), 1200, tool());
             Set<Long> allowed = items.stream().map(Item::getId).collect(Collectors.toSet());
             Map<Long, Map<String, String>> parsed = CompareRules.parseFacts(answer.text(), allowed);
             int perItemIn = answer.inputTokens() / items.size();

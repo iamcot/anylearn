@@ -27,7 +27,7 @@ function Matrix({ data, onGenerate, generating }) {
             <div style={{ fontSize: 12, color: '#888' }}>
               {cell.served ? `đúng ${pct(cell.correctRate)}` : 'chưa ai chơi'}{cell.returned ? ` · trùng ${pct(cell.duplicateRate)}` : ''}
             </div>
-            <Button size="small" type="link" style={{ padding: 0 }} disabled={cell.shortfall <= 0} loading={generating === key}
+            <Button size="small" type="link" style={{ padding: 0 }} disabled={cell.shortfall <= 0} loading={generating.includes(key)}
               onClick={() => onGenerate(cell.topic, cell.difficulty, Math.min(cell.shortfall, data.settings.batchSize))}>
               {cell.shortfall > 0 ? `Tạo thêm (thiếu ${cell.shortfall})` : 'Đủ'}
             </Button>
@@ -276,13 +276,16 @@ function Questions({ topics, levels }) {
 export default function QuizBank() {
   const navigate = useNavigate()
   const qc = useQueryClient()
-  const [generating, setGenerating] = useState(null)
+  const [generating, setGenerating] = useState([]) // keys of the requests running now, several can run together
+  const start = key => setGenerating(g => [...g, key])
+  const stop = key => setGenerating(g => g.filter(k => k !== key))
   const { data, isLoading } = useQuery({
     queryKey: ['admin-quiz-bank'],
     queryFn: () => client.get('/admin/quiz-bank/overview').then(r => r.data?.data ?? null),
   })
   const generate = async (topic, difficulty, count) => {
-    setGenerating(`${topic}:${difficulty}`)
+    const key = `${topic}:${difficulty}`
+    start(key)
     try {
       const res = (await client.post('/admin/quiz-bank/generate', { topic, difficulty, count })).data
       if (res.resultCode !== 1) message.error(res.message)
@@ -290,7 +293,7 @@ export default function QuizBank() {
     } catch {
       message.error('Không tạo được, thử lại sau')
     } finally {
-      setGenerating(null)
+      stop(key)
       qc.invalidateQueries({ queryKey: ['admin-quiz-bank'] })
       qc.invalidateQueries({ queryKey: ['admin-quiz-questions'] })
     }
@@ -318,16 +321,16 @@ export default function QuizBank() {
             <Tag color="red">{totals.reported} bị báo lỗi</Tag>
             <Tag>Trùng: {pct(totals.duplicateRate)}</Tag>
             <Popconfirm title="Tạo thêm cho các ô thiếu nhiều nhất (tốn lượt gọi AI)?" onConfirm={async () => {
-              setGenerating('all')
+              start('all')
               try {
                 const res = (await client.post('/admin/quiz-bank/top-up')).data
                 if (res.resultCode !== 1) message.error(res.message); else message.success(`Đã lưu ${res.data.saved} câu mới`)
               } finally {
-                setGenerating(null)
+                stop('all')
                 qc.invalidateQueries({ queryKey: ['admin-quiz-bank'] })
               }
             }}>
-              <Button type="primary" loading={generating === 'all'} disabled={!totals.aiActive}>Đề xuất AI tạo thêm</Button>
+              <Button type="primary" loading={generating.includes('all')} disabled={!totals.aiActive}>Đề xuất AI tạo thêm</Button>
             </Popconfirm>
           </Space>
         )}>

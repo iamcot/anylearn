@@ -22,11 +22,14 @@ public class AnthropicClient {
     private final String baseUrl;
     private final String apiKey;
     private final String model;
+    private final AiUsageService usage;
 
     public AnthropicClient(@Qualifier("anthropicRestTemplate") RestTemplate http,
                            @Value("${app.ai.base-url:https://api.anthropic.com}") String baseUrl,
                            @Value("${app.ai.api-key:}") String apiKey,
-                           @Value("${app.ai.model:claude-haiku-5-5}") String model) {
+                           @Value("${app.ai.model:claude-haiku-5-5}") String model,
+                           AiUsageService usage) {
+        this.usage = usage;
         this.http = http;
         this.baseUrl = baseUrl;
         this.apiKey = apiKey;
@@ -54,11 +57,11 @@ public class AnthropicClient {
 
     /** Asks for the picks as a tool call, so the answer is always valid JSON `{"picks":[{"id","reason"}]}`. */
     public Answer ask(String system, String user, int maxTokens) {
-        return askTool(system, user, maxTokens, PICK_TOOL);
+        return askTool(AiUsageService.SUGGEST, system, user, maxTokens, PICK_TOOL);
     }
 
-    /** Same call with another forced tool: the answer is the tool's JSON input. */
-    public Answer askTool(String system, String user, int maxTokens, Map<String, Object> tool) {
+    /** Same call with another forced tool: the answer is the tool's JSON input. Every call is logged under `feature` (see {@link AiUsageService}). */
+    public Answer askTool(String feature, String system, String user, int maxTokens, Map<String, Object> tool) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("x-api-key", apiKey);
@@ -66,8 +69,20 @@ public class AnthropicClient {
         Map<String, Object> body = Map.of("model", model, "max_tokens", maxTokens, "system", system,
                 "messages", List.of(Map.of("role", "user", "content", user)),
                 "tools", List.of(tool), "tool_choice", Map.of("type", "tool", "name", tool.get("name")));
-        JsonNode answer = http.postForObject(baseUrl + "/v1/messages", new HttpEntity<>(body, headers), JsonNode.class);
-        if (answer == null) throw new IllegalStateException("Empty answer from the AI");
+        long started = System.currentTimeMillis();
+        JsonNode answer;
+        try {
+            answer = http.postForObject(baseUrl + "/v1/messages", new HttpEntity<>(body, headers), JsonNode.class);
+        } catch (RuntimeException e) {
+            usage.record(feature, model, 0, 0, System.currentTimeMillis() - started, String.valueOf(e.getMessage()));
+            throw e;
+        }
+        long took = System.currentTimeMillis() - started;
+        if (answer == null) {
+            usage.record(feature, model, 0, 0, took, "Empty answer");
+            throw new IllegalStateException("Empty answer from the AI");
+        }
+        usage.record(feature, model, usage(answer, "input_tokens"), usage(answer, "output_tokens"), took, null);
         StringBuilder text = new StringBuilder();
         for (JsonNode block : answer.path("content")) {
             if ("tool_use".equals(block.path("type").asText())) return new Answer(block.path("input").toString(), usage(answer, "input_tokens"), usage(answer, "output_tokens"));

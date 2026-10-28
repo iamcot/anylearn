@@ -23,7 +23,7 @@ import java.util.*;
 @Slf4j
 public class WelcomePackService {
 
-    private static final String ROUTE = "/today/fun/sticker";
+    private static final String ROUTE = "/fun/sticker";
 
     private final JdbcTemplate jdbc;
     private final StickerService stickers;

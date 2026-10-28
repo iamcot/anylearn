@@ -9,7 +9,7 @@ import { usePendingOrders } from '@/components/orders/usePendingOrders'
 import { useChatUnread } from '@/components/chat/useChatUnread'
 
 const ACCOUNT_HREF = '/account'
-const COMMUNITY_HREF = '/today/community'
+const COMMUNITY_HREF = '/community'
 
 function TabIcon({ path }: { path: string }) {
   return (

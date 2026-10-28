@@ -5,7 +5,7 @@ import { BROWSE_HOME_URL } from '@/lib/today/links'
 
 const SLOT_CONTENT: Record<SlotKind, { label: string; title: string; action: string; href: string }> = {
   roadmap: { label: 'Lộ trình', title: 'Lộ trình học của con sẽ hiện ở đây', action: 'Xem lộ trình', href: BROWSE_HOME_URL },
-  community: { label: 'Cộng đồng mẹ', title: 'Trao đổi với các mẹ cùng lớp trong nhóm lớp', action: 'Vào nhóm lớp', href: '/today/community' },
+  community: { label: 'Cộng đồng mẹ', title: 'Trao đổi với các mẹ cùng lớp trong nhóm lớp', action: 'Vào nhóm lớp', href: '/community' },
   search: { label: 'Tìm thêm khóa học', title: 'Gợi ý khóa học phù hợp cho con', action: 'Tìm khóa học', href: '/search' },
 }
 

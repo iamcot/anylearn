@@ -103,18 +103,18 @@ export default function FunScene({ token, initial, reminder, childName, onClaime
           <span className="mt-1 text-xs font-extrabold text-white [text-shadow:0_1px_3px_rgba(0,0,0,.45)]">{canOpen ? 'Mở quà' : 'Đã nhận'}</span>
         </button>
       ) : (
-        <Link href="/today/fun/quiz" className="absolute bottom-[22px] right-5 flex flex-col items-center text-white no-underline">
+        <Link href="/fun/quiz" className="absolute bottom-[22px] right-5 flex flex-col items-center text-white no-underline">
           <span className="gift-wobble inline-block drop-shadow-[0_3px_3px_rgba(0,0,0,.25)]"><RankBadge rankKey={rankKey} className="size-14" /></span>
           <span className="mt-1 text-xs font-extrabold [text-shadow:0_1px_3px_rgba(0,0,0,.45)]">Leo rank</span>
         </Link>
       )}
       {phase.kind === 'claimed' && phase.sticker && (
-        <Link href="/today/fun/sticker" className="absolute right-3 top-12 flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-xs font-extrabold text-ink no-underline shadow">
+        <Link href="/fun/sticker" className="absolute right-3 top-12 flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-xs font-extrabold text-ink no-underline shadow">
           <span className="size-6"><StickerArt sticker={phase.sticker} className="size-full text-xl" /></span> Sticker mới: <BrandText text={phase.sticker.name} />
         </Link>
       )}
       {phase.kind === 'claimed' && phase.achievement && (
-        <Link href={`/today/fun/share/${phase.achievement}`} className="absolute left-3 top-12 rounded-full bg-white/90 px-3 py-1.5 text-xs font-extrabold text-green-dark no-underline shadow">Khoe chuỗi {phase.streak} ngày</Link>
+        <Link href={`/fun/share/${phase.achievement}`} className="absolute left-3 top-12 rounded-full bg-white/90 px-3 py-1.5 text-xs font-extrabold text-green-dark no-underline shadow">Khoe chuỗi {phase.streak} ngày</Link>
       )}
       {reward > 0 && (
         <div className="gift-fly pointer-events-none absolute bottom-[96px] right-4 text-xl font-black text-[#b45309] [text-shadow:0_1px_2px_#fff]" aria-hidden>+{reward} {coinName}</div>

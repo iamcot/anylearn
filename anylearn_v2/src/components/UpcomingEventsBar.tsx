@@ -8,7 +8,7 @@ import { getUpcomingEvents, UpcomingEvent } from '@/lib/api'
 import { formatRelativeDay } from '@/lib/format/date'
 import { CalendarIcon } from './icons'
 
-const EXCLUDED = ['/checkout', '/order/', '/today']
+const EXCLUDED = ['/checkout', '/order/', '/today', '/fun', '/community']
 const TODAY_HREF = '/today'
 
 export default function UpcomingEventsBar() {

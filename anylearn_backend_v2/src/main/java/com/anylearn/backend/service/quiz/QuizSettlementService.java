@@ -70,7 +70,7 @@ public class QuizSettlementService {
             events.record(userId, GameEventService.GAME_QUIZ, "board_reward", period + " top" + (i + 1), 0);
             try {
                 notifications.createNotification(userId, "quiz_board_reward", "Bạn đứng thứ " + (i + 1) + " bảng xếp hạng " + label(period),
-                        "Phần thưởng: " + (reward.isBlank() ? "không có vật phẩm mới (kho đã đầy)" : reward) + ". Vào Leo rank để dùng nhé.", "/today/fun/quiz");
+                        "Phần thưởng: " + (reward.isBlank() ? "không có vật phẩm mới (kho đã đầy)" : reward) + ". Vào Leo rank để dùng nhé.", "/fun/quiz");
             } catch (Exception e) {
                 log.warn("[quiz] board notification for user {} failed: {}", userId, e.getMessage());
             }

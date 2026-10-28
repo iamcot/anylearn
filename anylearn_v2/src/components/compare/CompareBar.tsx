@@ -9,7 +9,7 @@ import { MAX_COMPARE } from '@/lib/compare/selection'
 import { ArrowRightIcon, CloseIcon } from '@/components/icons'
 
 // The bar stays on every page (the compare page too) until the parent closes the comparison; only the money and sign-in flows hide it.
-const HIDDEN_PREFIXES = ['/today', '/checkout', '/login', '/register', '/join', '/order']
+const HIDDEN_PREFIXES = ['/today', '/fun', '/community', '/checkout', '/login', '/register', '/join', '/order']
 
 /** The strip above the bottom tabs once a course is picked: the picks (green, like other selections), the way to the table, and "Đóng so sánh". */
 export default function CompareBar() {

@@ -19,7 +19,7 @@ export default function CoinWalletCard({ token, refreshKey }: { token: string; r
 
   if (!wallet) return null
   return (
-    <Link href="/today/fun/coins" className="mt-4 block rounded-2xl border border-line bg-white p-4 text-inherit no-underline" aria-label={`Xem lịch sử ${wallet.coinName}`}>
+    <Link href="/fun/coins" className="mt-4 block rounded-2xl border border-line bg-white p-4 text-inherit no-underline" aria-label={`Xem lịch sử ${wallet.coinName}`}>
       <div className="flex items-center justify-between">
         <h2 className="m-0 text-base font-extrabold">Ví <BrandText text={wallet.coinName} coinName={wallet.coinName} /></h2>
         <span className="inline-flex items-center gap-1.5 text-xl font-black text-[#b45309]"><CoinIcon className="size-6" /> {wallet.balance}<ChevronRightIcon className="size-5 text-muted" /></span>

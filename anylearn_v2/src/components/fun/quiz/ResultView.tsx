@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import BrandText from '../BrandText'
 import CoinIcon from '../CoinIcon'
+import FixedBar from '../FixedBar'
 import StickerArt from '../sticker/StickerArt'
 import type { QuizMe, QuizResult } from '@/lib/api/quiz'
 import { guardWarning, resultTitle, starsLine } from '@/lib/quiz/rules'
@@ -41,7 +42,7 @@ export default function ResultView({ me, result, prep, onMult, onShield, onTopic
             {!!reward.shield && <span className="inline-flex items-center gap-1 rounded-full bg-sky-50 px-3 py-1 text-sky-800"><ItemIcon item="shield" className="size-5" /> +{reward.shield} Khiên</span>}
             {reward.sticker && <span className="inline-flex items-center gap-1 rounded-full bg-green-soft px-3 py-1 text-green-dark"><span className="size-6"><StickerArt sticker={reward.sticker} className="size-full text-lg" /></span> <BrandText text={reward.sticker.name} /></span>}
           </div>
-          {result.achievement && <Link href={`/today/fun/share/${result.achievement}`} className="mt-3 inline-flex min-h-10 items-center rounded-full bg-green px-5 text-sm font-extrabold text-white no-underline">Khoe thành tích với bạn bè</Link>}
+          {result.achievement && <Link href={`/fun/share/${result.achievement}`} className="mt-3 inline-flex min-h-10 items-center rounded-full bg-green px-5 text-sm font-extrabold text-white no-underline">Khoe thành tích với bạn bè</Link>}
         </div>
       )}
       {result.drop && (
@@ -64,10 +65,10 @@ export default function ResultView({ me, result, prep, onMult, onShield, onTopic
         <PrepRow me={me} items={result.items} prep={prep} onMult={onMult} onShield={onShield} onTopic={onTopic} />
       </section>
 
-      <div className="sticky bottom-[calc(3.75rem+var(--app-tabs-pad,0px)+0.5rem)] z-30 grid grid-cols-[auto_1fr] items-center gap-3 lg:bottom-4">
+      <FixedBar><div className="grid grid-cols-[auto_1fr] items-center gap-3">
         <button type="button" onClick={onLobby} className="min-h-12 cursor-pointer rounded-full border border-line bg-white px-4 text-sm font-bold text-ink shadow-[0_6px_16px_rgba(15,23,42,.18)]">← Về sảnh</button>
         <button type="button" disabled={busy} onClick={onAgain} className="min-h-12 cursor-pointer rounded-full border-0 bg-green px-5 text-base font-black text-white shadow-[0_8px_20px_rgba(22,163,74,.45)] disabled:opacity-60">Chơi tiếp</button>
-      </div>
+      </div></FixedBar>
     </div>
   )
 }

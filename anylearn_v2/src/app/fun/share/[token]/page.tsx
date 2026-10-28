@@ -43,7 +43,7 @@ export default function ShareAchievementPage() {
 
   return (
     <div className="mx-auto max-w-[480px] px-4 pb-28 pt-5 lg:pb-12 lg:pt-8">
-      <Link href="/today/fun" className="mb-3 inline-flex items-center gap-1 text-sm font-bold text-muted no-underline"><ChevronLeftIcon className="size-4" /> Vui học</Link>
+      <Link href="/fun" className="mb-3 inline-flex items-center gap-1 text-sm font-bold text-muted no-underline"><ChevronLeftIcon className="size-4" /> Vui học</Link>
       {missing && <p className="rounded-2xl bg-white p-4 text-center text-sm text-muted ring-1 ring-line">Không tìm thấy banner này.</p>}
       {!missing && !a && <div className="h-96 animate-pulse rounded-3xl bg-slate-200" />}
       {a && (
