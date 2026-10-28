@@ -1,4 +1,5 @@
 import { authFetch } from './client'
+import type { StickerView } from './stickers'
 
 export interface CheckinDay { day: number; points: number; state: 'done' | 'today' | 'todo' }
 
@@ -19,6 +20,7 @@ export interface CheckinClaim {
   capped?: boolean
   streak?: number
   dayInCycle?: number
+  sticker?: StickerView | null
 }
 
 export function getCheckin(token: string) {

@@ -557,8 +557,8 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 - **Việc để sau (chủ sản phẩm nhắc nhớ):** (1) Ali bung ra trên mọi trang web làm người hướng dẫn; (2) admin chọn nền theo chủ đề và mùa (`SCENE_THEMES`); (3) câu thoại chúc mừng theo sự kiện của các chế độ game (rank lên, kỷ lục chuỗi, top tuần) khi làm quiz lõi; (4) nhắc thêm theo học phí sắp đến hạn và buổi chưa điểm danh.
 
 
-### 28/10/2026 – Vui học, giai đoạn 3 (sticker), đang làm
+### 28/10/2026 – Vui học, giai đoạn 3 (sticker)
 - Thiết kế đầy đủ nay nằm trong repo ở `plans/14-vui-hoc.md` (bản sao của ghi chú dự án), các giai đoạn 0 đến 8 ở cuối file.
 - Đã có (backend, V52): bộ sticker (`sticker_defs`, 12 sticker mẫu dùng emoji, admin tải hình lên sau), album (`user_stickers`, `sticker_grants`), rơi sticker khi điểm danh (ngày 7 luôn có, ngày thường theo tỉ lệ), đổi bạn bè qua lời mời (1 đổi 1, cùng độ hiếm, mỗi cặp 30 ngày một lần, trần 3 lần/tuần và 10 người/tháng, sticker từ gói quà khóa 7 ngày), gói quà 3 sticker 2 đợt cho người đăng ký qua link, thưởng người mời (tối đa 10 lượt/tháng), thưởng đủ bộ (200 anyPoint, một lần), mã thiết bị + điểm rủi ro cơ bản, hàng chờ duyệt, trang admin "Sticker" (bộ sticker, thành viên, giao dịch, chờ duyệt và rủi ro, cấu hình).
 - Quyết định khi làm: "đủ điều kiện" = tài khoản từ 3 ngày và điểm danh đủ 3 ngày (chưa tính câu quiz vì quiz chưa có); đợt 2 mở khi điểm danh ngày thứ 2, còn thưởng người mời chờ tới khi người mới đủ điều kiện; mọi người đăng ký qua link giới thiệu đều có gói quà (không chỉ link `game=sticker`).
-- Chưa chạy migration V52 và API với MySQL thật; test chỉ phủ luật thuần (`StickerRulesTest`, 9 ca). Trang FE album và đổi mới viết, chưa xem trên trình duyệt.
+- Chưa chạy migration V52 và API với MySQL thật; test chỉ phủ luật thuần (`StickerRulesTest`, 9 ca). FE: trang `/today/fun/sticker` (album, đổi, lời mời, mời bạn, thưởng đủ bộ) và hiện sticker vừa rơi trên cảnh điểm danh; đã xem bằng trình duyệt với dữ liệu giả, chưa chạy với backend thật. Chưa làm: banner chia sẻ sticker (giai đoạn 6), tính câu quiz vào điều kiện (chờ quiz), ảnh sticker thật (admin tải lên).

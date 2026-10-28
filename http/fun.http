@@ -15,3 +15,34 @@ Authorization: Bearer {{jwtToken}}
 Content-Type: application/json
 
 { "reason": "wrong_answer", "note": "Đáp án đúng phải là B" }
+
+
+### Send the browser id (risk score of the sticker game)
+POST {{baseUrl}}/fun/device
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{ "deviceId": "7f3c1e2a-9b4d-4e0f-8a1c-2d3b4c5d6e7f" }
+
+### Sticker album, welcome pack and offers
+GET {{baseUrl}}/stickers
+Authorization: Bearer {{jwtToken}}
+
+### Offer a trade: give a duplicate (giveId) for a sticker of the same rarity you lack (wantId)
+POST {{baseUrl}}/stickers/offers
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{ "toPhone": "0912345678", "giveId": 1, "wantId": 2 }
+
+### Answer an offer
+POST {{baseUrl}}/stickers/offers/1/accept
+Authorization: Bearer {{jwtToken}}
+
+###
+POST {{baseUrl}}/stickers/offers/1/decline
+Authorization: Bearer {{jwtToken}}
+
+### Full-set reward (once)
+POST {{baseUrl}}/stickers/set-reward
+Authorization: Bearer {{jwtToken}}

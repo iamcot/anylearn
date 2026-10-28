@@ -53,7 +53,7 @@ export default function TradePanel({ token, items, eligible, onSent }: { token: 
             {give && (
               options.length === 0
                 ? <p className="m-0 text-sm text-muted">Bạn đã có đủ sticker cùng độ hiếm này rồi.</p>
-                : <div className="grid grid-cols-4 gap-2 sm:grid-cols-5">{options.map(item => <StickerTile key={item.id} item={item} selected={want?.id === item.id} onClick={() => setWant(item)} />)}</div>
+                : <div className="grid grid-cols-4 gap-2 sm:grid-cols-5">{options.map(item => <StickerTile key={item.id} item={item} reveal selected={want?.id === item.id} onClick={() => setWant(item)} />)}</div>
             )}
             {give && want && (
               <div className="flex flex-wrap items-center gap-2">

@@ -1,7 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { claimCheckin, type CheckinStatus } from '@/lib/api/fun'
+import type { StickerView } from '@/lib/api/stickers'
+import StickerArt from '@/components/fun/sticker/StickerArt'
 import { afterClaim } from '@/lib/fun/checkin'
 import { aliLines, type AliContext } from '@/lib/fun/ali'
 import { Ali, AliBubble, useAliWalk } from './Ali'
@@ -18,11 +21,11 @@ function AliSpeech({ lines }: { lines: string[] }) {
   return <AliBubble text={lines[tick % lines.length]} />
 }
 
-type Phase = { kind: 'idle' } | { kind: 'opening' } | { kind: 'claimed'; points: number; capped: boolean; streak: number } | { kind: 'error'; message: string }
+type Phase = { kind: 'idle' } | { kind: 'opening' } | { kind: 'claimed'; points: number; capped: boolean; streak: number; sticker?: StickerView | null } | { kind: 'error'; message: string }
 
 function contextOf(status: CheckinStatus, phase: Phase): AliContext {
   if (phase.kind === 'opening') return { kind: 'opening' }
-  if (phase.kind === 'claimed') return { kind: 'claimed', points: phase.points, capped: phase.capped, streak: phase.streak }
+  if (phase.kind === 'claimed') return { kind: 'claimed', points: phase.points, capped: phase.capped, streak: phase.streak, sticker: phase.sticker?.name }
   if (phase.kind === 'error') return { kind: 'error', message: phase.message }
   if (!status.enabled) return { kind: 'closed' }
   if (status.claimedToday) return { kind: 'done', daysToWeekGift: 7 - status.dayInCycle }
@@ -46,7 +49,7 @@ export default function FunScene({ token, initial, reminder, onClaimed }: { toke
     const [{ data, error }] = await Promise.all([claimCheckin(token), new Promise(resolve => setTimeout(resolve, 600))])
     if (error || !data) { setPhase({ kind: 'error', message: error ?? 'Không mở được quà, thử lại sau nhé!' }); return }
     if (data.alreadyClaimed) setPhase({ kind: 'idle' })
-    else setPhase({ kind: 'claimed', points: data.points, capped: !!data.capped, streak: data.streak ?? 0 })
+    else setPhase({ kind: 'claimed', points: data.points, capped: !!data.capped, streak: data.streak ?? 0, sticker: data.sticker })
     if (data.points > 0) setReward(data.points)
     setStatus(prev => afterClaim(prev, data))
     onClaimed?.()
@@ -79,6 +82,11 @@ export default function FunScene({ token, initial, reminder, onClaimed }: { toke
         <span className={`inline-block text-5xl leading-none drop-shadow-[0_3px_3px_rgba(0,0,0,.25)] ${busy ? 'gift-shake' : canOpen ? 'gift-wobble' : 'opacity-60'}`} aria-hidden>🎁</span>
         <span className="mt-1 text-xs font-extrabold text-white [text-shadow:0_1px_3px_rgba(0,0,0,.45)]">{canOpen ? 'Mở quà' : 'Đã nhận'}</span>
       </button>
+      {phase.kind === 'claimed' && phase.sticker && (
+        <Link href="/today/fun/sticker" className="absolute right-3 top-12 flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-xs font-extrabold text-ink no-underline shadow">
+          <span className="size-6"><StickerArt sticker={phase.sticker} className="size-full text-xl" /></span> Sticker mới: {phase.sticker.name}
+        </Link>
+      )}
       {reward > 0 && (
         <div className="gift-fly pointer-events-none absolute bottom-[96px] right-4 text-xl font-black text-[#b45309] [text-shadow:0_1px_2px_#fff]" aria-hidden>+{reward} anyPoint</div>
       )}

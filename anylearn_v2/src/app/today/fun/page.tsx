@@ -1,15 +1,17 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { getCheckin, type CheckinStatus } from '@/lib/api/fun'
 import FunScene from '@/components/fun/FunScene'
 import { ALI_NAME, reminderFor } from '@/lib/fun/ali'
 import { getLearners, getToday } from '@/lib/today/api'
+import { sendDevice } from '@/lib/api/stickers'
+import { deviceId } from '@/lib/stickers/device'
 
 const COMING = [
   { icon: '🧩', title: 'Đố vui leo rank', text: 'Trả lời câu hỏi, lên hạng và so tài trên bảng xếp hạng' },
-  { icon: '🦊', title: 'Sticker', text: 'Sưu tầm bộ sticker và đổi với bạn bè' },
   { icon: '📖', title: 'Khám phá', text: 'Mẹo nuôi dạy con, clip và hình ảnh vui' },
 ]
 
@@ -19,6 +21,11 @@ export default function FunPage() {
   const [error, setError] = useState('')
   const [reminder, setReminder] = useState<string | null>(null)
 
+
+  useEffect(() => {
+    const id = deviceId()
+    if (token && id) sendDevice(token, id)
+  }, [token])
 
   useEffect(() => {
     if (!token) return
@@ -48,6 +55,12 @@ export default function FunPage() {
       {error && <p className="mt-4 text-warn-text">{error}</p>}
       {!error && !status && <div className="mt-4 h-[250px] animate-pulse rounded-[22px] bg-slate-200" />}
       {status && token && <div className="mt-4"><FunScene token={token} initial={status} reminder={reminder} /></div>}
+
+      <Link href="/today/fun/sticker" className="mt-4 flex items-center gap-3 rounded-2xl border border-line bg-white p-3 text-ink no-underline">
+        <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-green-soft text-2xl" aria-hidden>🦊</span>
+        <div className="min-w-0 flex-1"><div className="font-bold">Sticker</div><div className="text-sm text-muted">Sưu tầm bộ sticker, đổi với bạn bè và mời bạn nhận quà</div></div>
+        <span aria-hidden className="text-muted">›</span>
+      </Link>
 
       <h2 className="mb-2 mt-6 text-base font-extrabold">Sắp ra mắt</h2>
       <ul className="m-0 grid list-none gap-2 p-0">

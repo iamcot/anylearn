@@ -507,7 +507,7 @@ Không có trang riêng trong admin. Phụ huynh bấm "So sánh" trên khóa h�
 
 ### Vui học: Sự kiện game và Điểm danh & quà
 
-Menu "Vui học" có trang "Sự kiện game"; "Điểm danh & quà" và "Kho câu hỏi" mở bằng hai nút ở góc phải trên của trang đó.
+Menu "Vui học" có trang "Sự kiện game"; "Điểm danh & quà", "Sticker" và "Kho câu hỏi" mở bằng các nút ở góc phải trên của trang đó. Menu "Sự kiện game" hiện số đỏ khi có gói quà sticker đang chờ bạn duyệt.
 
 - **Sự kiện game**: danh sách mọi việc xảy ra trong các game (mở quà điểm danh, đăng ký qua link giới thiệu, và các game sau này), mới nhất ở trên, lọc theo game. Phía trên là số người chơi, số sự kiện, anyPoint đã phát và số lượt đăng ký từ link giới thiệu trong ngày. Trang tự làm mới mỗi 30 giây.
 - **Điểm danh & quà**: mỗi thành viên mở một quà mỗi ngày trên trang Vui học. Nhập anyPoint cho từng ngày 1 đến 7 của chuỗi (ngày 7 là quà lớn; sau ngày 7 quay lại ngày 1). Bỏ một ngày thì chuỗi bắt đầu lại từ ngày 1. **Mọi anyPoint ở đây là chi phí thật**, nên có "Trần anyPoint phát ra mỗi ngày" (0 = không giới hạn): khi chạm trần, người mở quà sau đó vẫn giữ chuỗi nhưng hôm đó không nhận anyPoint. Trang hiện chi phí ước tính mỗi ngày để so với trần. Công tắc ở đầu trang tắt hẳn quà điểm danh. Thay đổi có hiệu lực ngay với lượt mở tiếp theo.
@@ -524,3 +524,14 @@ Menu "Vui học" > "Sự kiện game" > nút "Kho câu hỏi" ở góc phải tr
 - **Duyệt và quản lý**: mặc định hiện câu "Chờ duyệt". Đọc câu và đáp án (đáp án đúng màu xanh), bấm "Duyệt" hoặc tick nhiều câu rồi duyệt hàng loạt, "Ẩn" câu sai hoặc dở, "Sửa" để chỉnh chữ hay đổi đáp án đúng (câu sau khi sửa cần duyệt lại). Lọc theo trạng thái, chủ đề, độ khó, từ khóa hoặc "Chỉ câu bị báo lỗi".
 - **Báo lỗi**: người chơi sẽ có nút báo câu sai; câu bị 3 người báo tự ẩn cho tới khi bạn xem lại (duyệt lại sẽ xóa các báo lỗi).
 - Cần khóa `ANTHROPIC_API_KEY` và công tắc "Gợi ý AI" bật (dùng chung với gợi ý khóa học); thiếu thì trang báo màu vàng và không tạo được câu mới.
+
+### Vui học: Sticker
+
+Menu "Vui học" > "Sự kiện game" > nút "Sticker". Người chơi sưu tầm sticker trên trang Vui học > Sticker: nhận khi điểm danh, nhận gói quà khi được bạn mời, và đổi với bạn bè.
+
+- **Bộ sticker**: mỗi sticker có tên, nội dung ngắn, hình (PNG vuông nền trong, tải lên) hoặc emoji khi chưa có hình, độ hiếm (Thường, Hiếm, Siêu hiếm), tỉ lệ rơi (trọng số, cột "Tỉ lệ rơi" cho thấy phần trăm thật trong các sticker đang dùng) và công tắc "Đang dùng". Có sẵn 12 sticker mẫu dùng emoji; hãy thay bằng hình thật. Tắt một sticker thì không rơi nữa nhưng ai đã có vẫn giữ. Thêm sticker mới làm bộ dài ra, người đã đủ bộ phải sưu tầm thêm.
+- **Cách sticker rơi**: quà điểm danh ngày 7 của chuỗi luôn có 1 sticker (tắt được trong Cấu hình); ngày thường có sticker theo tỉ lệ phần trăm bạn đặt. Gói quà cho người được mời không bao giờ có sticker Siêu hiếm.
+- **Luật đổi** (người chơi thấy trên trang Sticker): chỉ đổi 1 lấy 1, **cùng độ hiếm**, sticker mình trùng lấy sticker mình thiếu. Hai người chỉ đổi với nhau 1 lần trong 30 ngày, mỗi người tối đa 3 lần mỗi tuần và 10 người khác nhau mỗi tháng. Bên nhận phải bấm đồng ý. Sticker nhận từ gói quà bị khóa đổi 7 ngày. Mọi con số sửa được ở tab Cấu hình.
+- **Gói quà 3 sticker**: người đăng ký qua link giới thiệu nhận 1 sticker thường ngay, và 2 sticker nữa (tối đa 1 hiếm, tỉ lệ đặt ở Cấu hình) sau khi điểm danh ngày thứ 2. Người mời nhận 1 sticker khi người mới đủ điều kiện (tài khoản từ 3 ngày và điểm danh đủ 3 ngày, sửa được), tối đa 10 lượt mỗi tháng. Thưởng đủ bộ sticker (mặc định 200 anyPoint, 0 = tắt) trao một lần cho mỗi người đủ điều kiện, và sticker còn đang bị khóa không tính vào đủ bộ.
+- **Chống nhiều tài khoản**: ứng dụng gửi một mã ngẫu nhiên của trình duyệt. Hệ thống cộng điểm rủi ro khi nhiều tài khoản chung thiết bị, chung IP trong 24 giờ, cùng người mời đăng ký sát nhau, hoặc chỉ đổi với đúng một người rồi bỏ đi. **Hệ thống không tự khóa ai.** Điểm từ ngưỡng (mặc định 50) thì gói quà đợt 2 vào tab "Chờ duyệt & rủi ro": bạn xem rồi bấm Duyệt hoặc Hủy. Ở tab Thành viên bạn có thể Khóa (người đó không đổi được và quà luôn phải duyệt), Bỏ qua cảnh báo, hoặc Về tự động.
+- **Thành viên**: tìm theo tên hoặc số điện thoại để xem album, tặng thêm hoặc thu hồi một bản. **Giao dịch đổi** liệt kê mọi lượt đổi và nút Hủy trả lại sticker cho hai bên (không hủy được nếu một người đã không còn sticker vừa nhận); phía trên cảnh báo các cặp đổi nhiều lần. Mọi việc ghi vào "Sự kiện game" (game Sticker).

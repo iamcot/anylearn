@@ -17,6 +17,10 @@ describe('aliLines', () => {
     ])
   })
   it('says the gift is used up when capped with no points', () => {
+    expect(aliLines({ kind: 'claimed', points: 5, sticker: 'Ali tên lửa' })).toEqual([
+      'Chúc mừng bạn đã nhận được 5 anyPoint!',
+      'Wow, bạn còn nhận thêm sticker Ali tên lửa nữa nè!',
+    ])
     expect(aliLines({ kind: 'claimed', points: 0, capped: true })).toEqual(['Hôm nay quà hết phần rồi, mai quay lại nhé!'])
   })
   it('adds the reminder after the gift is taken, not while opening', () => {

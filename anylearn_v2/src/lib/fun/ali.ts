@@ -7,7 +7,7 @@ export const ALI_NAME = 'Ali'
 export type AliContext =
   | { kind: 'waiting' }
   | { kind: 'opening' }
-  | { kind: 'claimed'; points: number; capped?: boolean; streak?: number }
+  | { kind: 'claimed'; points: number; capped?: boolean; streak?: number; sticker?: string }
   | { kind: 'done'; daysToWeekGift: number }
   | { kind: 'closed' }
   | { kind: 'error'; message: string }
@@ -23,6 +23,7 @@ export function aliLines(ctx: AliContext, reminder?: string | null): string[] {
     case 'claimed': {
       const lines: string[] = []
       if (ctx.points > 0) lines.push(`Chúc mừng bạn đã nhận được ${ctx.points} anyPoint!`)
+      if (ctx.sticker) lines.push(`Wow, bạn còn nhận thêm sticker ${ctx.sticker} nữa nè!`)
       if (ctx.capped) lines.push('Hôm nay quà hết phần rồi, mai quay lại nhé!')
       if (ctx.streak && ctx.streak > 1) lines.push(`Chuỗi ${ctx.streak} ngày liên tiếp rồi, giỏi quá!`)
       if (lines.length === 0) lines.push('Đã điểm danh hôm nay rồi nhé!')

@@ -1,7 +1,7 @@
 # Quiz leo rank (Vui học, Plan 14: Vui học, nội dung giải trí lúc chờ con)
 
 Mockup bấm thử: https://claude.ai/artifact/T9UANV9XQxwBmuZrHiCqux (bấm "Leo rank" ở cảnh chính).
-Trạng thái: thiết kế, chưa code vào repo.
+Trạng thái: giai đoạn 0 đến 3 đã code (xem `plans/PROGRESS.md`); từ giai đoạn 4 là thiết kế.
 
 ## 1. Vòng chơi một câu
 
