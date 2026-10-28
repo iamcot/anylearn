@@ -16,6 +16,11 @@ import java.util.Map;
 @Component
 public class AnthropicClient {
 
+    /** Models that answer 400 to `tool_choice` type tool or any. */
+    static final java.util.Set<String> NO_FORCED_TOOL_CHOICE = java.util.Set.of("claude-opus-5-5", "claude-sonnet-5-5", "claude-fable-5-1");
+    /** Extra output tokens for the thinking of those models, so a small max_tokens is not used up before the tool call. */
+    static final int THINKING_ROOM = 4000;
+
     public record Answer(String text, int inputTokens, int outputTokens) {}
 
     private final RestTemplate http;
@@ -76,9 +81,17 @@ public class AnthropicClient {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("x-api-key", apiKey);
         headers.set("anthropic-version", "2023-06-01");
-        Map<String, Object> body = Map.of("model", model, "max_tokens", maxTokens, "system", system,
-                "messages", List.of(Map.of("role", "user", "content", user)),
-                "tools", List.of(tool), "tool_choice", Map.of("type", "tool", "name", tool.get("name")));
+        // These models refuse a forced tool_choice (400) and think before answering, which uses part of max_tokens:
+        // ask for the tool in words, let the model choose it, and leave room for the thinking.
+        boolean noForcedTool = NO_FORCED_TOOL_CHOICE.contains(model);
+        String toolName = String.valueOf(tool.get("name"));
+        Map<String, Object> body = new java.util.LinkedHashMap<>();
+        body.put("model", model);
+        body.put("max_tokens", noForcedTool ? maxTokens + THINKING_ROOM : maxTokens);
+        body.put("system", noForcedTool ? system + "\n\nTrả lời bằng cách gọi công cụ `" + toolName + "` đúng một lần, không viết gì ngoài lệnh gọi đó." : system);
+        body.put("messages", List.of(Map.of("role", "user", "content", user)));
+        body.put("tools", List.of(tool));
+        body.put("tool_choice", noForcedTool ? Map.of("type", "auto") : Map.of("type", "tool", "name", toolName));
         long started = System.currentTimeMillis();
         JsonNode answer;
         try {
