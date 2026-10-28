@@ -29,11 +29,11 @@ describe('referral store', () => {
 
   it('goes to the intro page with a code only, nowhere without a referral', () => {
     expect(afterRegisterPath(null)).toBeNull()
-    expect(afterRegisterPath(parseReferral(stored(), now))).toBe('/info/why-anylearn')
+    expect(afterRegisterPath(parseReferral(stored(), now))).toBe('/info')
   })
 
   it('a known game id opens the Vui học page, an unknown one falls back to the intro page', () => {
     expect(afterRegisterPath(parseReferral(stored({ game: 'quiz' }), now))).toBe('/today/fun')
-    expect(afterRegisterPath(parseReferral(stored({ game: 'nope' }), now))).toBe('/info/why-anylearn')
+    expect(afterRegisterPath(parseReferral(stored({ game: 'nope' }), now))).toBe('/info')
   })
 })

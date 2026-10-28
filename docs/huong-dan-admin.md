@@ -503,7 +503,7 @@ Không có trang riêng trong admin. Phụ huynh bấm "So sánh" trên khóa h�
 ### Link giới thiệu (/ref)
 
 - Mỗi thành viên có link `https://anylearn.vn/ref/{số điện thoại}` (xem ở "Ưu đãi của tôi"). Người đăng ký qua link được ghi nhận người giới thiệu (cột người giới thiệu của thành viên), nên hoa hồng giới thiệu hiện có áp dụng cho các đơn của họ. Mã sai thì vẫn đăng ký bình thường, chỉ không có người giới thiệu.
-- Nếu link có thêm `?game=...` (dùng cho Vui học) thì sau khi đăng ký người mới được đưa tới trò chơi đó; link không có thì tới trang giới thiệu anyLEARN.
+- Nếu link có thêm `?game=...` (dùng cho Vui học) thì sau khi đăng ký người mới được đưa tới trò chơi đó; link không có thì tới trang giới thiệu anyLEARN (`/info`).
 
 ### Vui học: Sự kiện game và Điểm danh & quà
 
