@@ -42,7 +42,7 @@ export default function FunScene({ token, initial, onClaimed }: { token: string;
         <span aria-hidden>🎁</span>
       </div>
 
-      <div className="relative h-[190px]">
+      <div className="relative h-[210px]">
         <svg viewBox="0 0 360 170" preserveAspectRatio="xMidYMax meet" className="absolute inset-x-0 bottom-0 h-auto w-full" aria-hidden>
           <circle cx="300" cy="40" r="18" fill="#ffd166" />
           <path d="M0 120 Q90 80 190 115 T360 105 V170 H0Z" fill="#9bd77f" />
@@ -51,8 +51,8 @@ export default function FunScene({ token, initial, onClaimed }: { token: string;
           <g transform="translate(70 92)"><ellipse cx="0" cy="26" rx="22" ry="26" fill="#a0785a" /><ellipse cx="0" cy="34" rx="14" ry="16" fill="#f3dfc1" /><circle cx="-9" cy="14" r="9" fill="#fff" /><circle cx="9" cy="14" r="9" fill="#fff" /><circle cx="-8" cy="15" r="4" fill="#2b2b2b" /><circle cx="10" cy="15" r="4" fill="#2b2b2b" /><path d="M-3 22 L3 22 L0 27Z" fill="#f4a261" /><path d="M-20 2 L-14 -8 L-8 4Z M20 2 L14 -8 L8 4Z" fill="#a0785a" /></g>
         </svg>
         <button type="button" onClick={open} disabled={!canOpen || busy}
-          className="absolute left-3 top-3 flex min-h-11 min-w-11 cursor-pointer flex-col items-center rounded-2xl border-0 bg-white/85 px-2 py-1.5 text-[10px] font-bold text-ink disabled:cursor-default">
-          <span className={`inline-block text-3xl ${opening ? 'gift-shake' : canOpen ? 'gift-wobble' : 'opacity-60'}`} aria-hidden>🎁</span>
+          className="absolute left-3 top-3 flex min-h-11 min-w-11 cursor-pointer flex-col items-center rounded-2xl border-0 bg-white/85 px-3 py-2 text-xs font-bold text-ink disabled:cursor-default">
+          <span className={`inline-block text-6xl leading-none ${opening ? 'gift-shake' : canOpen ? 'gift-wobble' : 'opacity-60'}`} aria-hidden>🎁</span>
           {canOpen ? 'Mở quà' : 'Đã nhận'}
         </button>
         {reward > 0 && (
