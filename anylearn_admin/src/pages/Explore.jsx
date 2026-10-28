@@ -1,5 +1,6 @@
-import { Alert, Button, Card, Drawer, Form, Input, InputNumber, Popconfirm, Radio, Select, Space, Statistic, Switch, Table, Tabs, Tag, Typography, Upload, message } from 'antd'
-import { UploadOutlined } from '@ant-design/icons'
+import { Alert, Button, Card, Drawer, Form, Input, InputNumber, Popconfirm, Progress, Radio, Select, Space, Statistic, Switch, Table, Tabs, Tag, Typography, Upload, message } from 'antd'
+import { UploadOutlined, VideoCameraAddOutlined } from '@ant-design/icons'
+import * as tus from 'tus-js-client'
 import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import client from '../api/client'
@@ -26,9 +27,54 @@ function UploadButton({ onDone }) {
   )
 }
 
+// Video straight from the browser to Bunny Stream (TUS): the server only creates the video and signs the upload.
+function VideoUploadButton({ title, onDone }) {
+  const [percent, setPercent] = useState(null)
+  const start = async file => {
+    setPercent(0)
+    try {
+      const res = await client.post('/admin/explore/video-upload', { title: title || file.name }).then(r => r.data)
+      if (res.resultCode !== 1) throw new Error(res.message)
+      const info = res.data
+      const upload = new tus.Upload(file, {
+        endpoint: info.endpoint,
+        retryDelays: [0, 3000, 5000, 10000, 20000],
+        headers: {
+          AuthorizationSignature: info.authorizationSignature,
+          AuthorizationExpire: String(info.authorizationExpire),
+          VideoId: info.videoId,
+          LibraryId: String(info.libraryId),
+        },
+        metadata: { filetype: file.type, title: title || file.name },
+        onError: err => { message.error('Tải video thất bại: ' + (err?.message || err)); setPercent(null) },
+        onProgress: (sent, total) => setPercent(Math.round((sent / total) * 100)),
+        onSuccess: () => {
+          setPercent(null)
+          onDone({ mediaUrl: info.mediaUrl, posterUrl: info.posterUrl })
+          message.success('Đã tải video lên. Bunny cần vài phút để xử lý trước khi phát được.')
+        },
+      })
+      upload.start()
+    } catch (e) {
+      message.error(e.message || 'Không bắt đầu được việc tải video')
+      setPercent(null)
+    }
+  }
+  return (
+    <Space direction="vertical" style={{ width: '100%' }}>
+      <Upload showUploadList={false} accept="video/*" disabled={percent !== null} beforeUpload={file => { start(file); return false }}>
+        <Button icon={<VideoCameraAddOutlined />} disabled={percent !== null}>Tải video lên</Button>
+      </Upload>
+      {percent !== null && <Progress percent={percent} size="small" />}
+    </Space>
+  )
+}
+
 function PostDrawer({ post, open, onClose, onSaved }) {
   const [form] = Form.useForm()
   const kind = Form.useWatch('kind', form)
+  const title = Form.useWatch('title', form)
+  const { data: bunny } = useQuery({ queryKey: ['admin-explore-video-status'], queryFn: () => client.get('/admin/explore/video-upload/status').then(r => r.data?.data ?? { enabled: false }) })
   useEffect(() => {
     if (open) form.setFieldsValue(post ?? { kind: 'article', status: 'draft', pinned: false, title: '', body: '', mediaUrl: '', posterUrl: '', itemId: null })
   }, [open, post, form])
@@ -50,10 +96,11 @@ function PostDrawer({ post, open, onClose, onSaved }) {
         <Form.Item name="title" label="Tiêu đề" rules={[{ required: true, message: 'Nhập tiêu đề' }]}><Input maxLength={160} /></Form.Item>
         <Form.Item name="body" label={kind === 'article' ? 'Nội dung' : 'Mô tả ngắn'}><Input.TextArea rows={kind === 'article' ? 8 : 3} maxLength={8000} /></Form.Item>
         {kind !== 'article' && (
-          <Form.Item label={kind === 'video' ? 'Đường dẫn clip (YouTube hoặc file mp4, bắt đầu bằng https://)' : 'Hình ảnh'} required>
+          <Form.Item label={kind === 'video' ? 'Đường dẫn clip (tải lên ở dưới, hoặc dán link YouTube, mp4, m3u8 bắt đầu bằng https://)' : 'Hình ảnh'} required>
             <Space direction="vertical" style={{ width: '100%' }}>
               <Form.Item name="mediaUrl" noStyle><Input placeholder="https://..." /></Form.Item>
               {kind === 'image' && <UploadButton onDone={url => form.setFieldValue('mediaUrl', url)} />}
+              {kind === 'video' && bunny?.enabled && <VideoUploadButton title={title} onDone={({ mediaUrl, posterUrl }) => form.setFieldsValue({ mediaUrl, posterUrl })} />}
             </Space>
           </Form.Item>
         )}

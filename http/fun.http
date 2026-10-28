@@ -91,3 +91,27 @@ Authorization: Bearer {{jwtToken}}
 Content-Type: application/json
 
 {"reason": "Quảng cáo"}
+
+### Weekly missions (plan 15): progress of the current ISO week
+GET {{baseUrl}}/fun/missions
+Authorization: Bearer {{jwtToken}}
+
+###
+# Claim one mission (keys: checkin_days, quiz_correct, practice, explore_view, sticker_swap, share)
+POST {{baseUrl}}/fun/missions/checkin_days/claim
+Authorization: Bearer {{jwtToken}}
+
+###
+# Free sticker once enough missions are done ("bonus")
+POST {{baseUrl}}/fun/missions/bonus/claim
+Authorization: Bearer {{jwtToken}}
+
+###
+# Share press of an achievement banner: first share of each banner pays coins (response: counted, coins)
+POST {{baseUrl}}/achievements/TOKEN12CHARS/share
+Authorization: Bearer {{jwtToken}}
+
+###
+# The check-in claim response has "item" {key,label} on the days of fun/checkin_item_days
+POST {{baseUrl}}/fun/checkin/claim
+Authorization: Bearer {{jwtToken}}

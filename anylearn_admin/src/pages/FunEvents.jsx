@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import client from '../api/client'
 import FunRollout from '../components/FunRollout'
+import FunMissions from '../components/FunMissions'
 import { fmtDateTime } from '../utils/format'
 
 const GAMES = {
@@ -17,7 +18,7 @@ const GAMES = {
 }
 const GAME_OPTIONS = Object.entries(GAMES).map(([value, [label]]) => ({ value, label }))
 
-const TYPE_LABELS = { claim: 'Mở quà điểm danh', register: 'Đăng ký qua link' }
+const TYPE_LABELS = { claim: 'Mở quà điểm danh', register: 'Đăng ký qua link', item: 'Vật phẩm điểm danh', mission: 'Nhận thưởng nhiệm vụ', mission_bonus: 'Nhận sticker thưởng tuần', share: 'Chia sẻ banner', view: 'Xem bài Khám phá' }
 
 export default function FunEvents() {
   const navigate = useNavigate()
@@ -77,6 +78,7 @@ export default function FunEvents() {
           pagination={{ current: page, pageSize, total: data?.total ?? 0, showSizeChanger: false, onChange: setPage }}
         />
       </Card>
+      <FunMissions />
       <FunRollout />
     </div>
   )

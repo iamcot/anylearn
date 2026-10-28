@@ -439,3 +439,34 @@ Content-Type: application/json
 ###
 GET {{baseUrl}}/../admin/explore/comments?filter=reported
 Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+### Weekly missions config (plan 15): numbers keyed "{mission}/target|reward|enabled" and "bonus_needed"
+GET {{baseUrl}}/admin/fun/missions-config
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+###
+PUT {{baseUrl}}/admin/fun/missions-config
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+Content-Type: application/json
+
+{"numbers": {"checkin_days/target": 5, "checkin_days/reward": 30, "bonus_needed": 5}}
+
+###
+# Check-in config now has "itemDays" ("3,5", "0" = off)
+PUT {{baseUrl}}/admin/fun/checkin-config
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+Content-Type: application/json
+
+{"enabled": true, "dayPoints": [5,5,10,10,15,15,20], "dailyCap": 0, "itemDays": "3,5"}
+
+###
+# Bunny Stream video upload for Khám phá: status, then the signed TUS info (the browser uploads to endpoint with tus)
+GET {{baseUrl}}/admin/explore/video-upload/status
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+###
+POST {{baseUrl}}/admin/explore/video-upload
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+Content-Type: application/json
+
+{"title": "Mẹo học tiếng Anh"}

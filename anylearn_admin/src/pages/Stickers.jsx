@@ -20,6 +20,7 @@ const SETTING_FIELDS = [
   ['eligible_checkins', 'Tài khoản đủ điều kiện: số ngày điểm danh tối thiểu', null],
   ['hold_score', 'Điểm rủi ro từ đó gói quà chờ duyệt', 'Điểm cao khi nhiều tài khoản dùng chung thiết bị hoặc IP hoặc cùng người mời.'],
   ['invite_month_cap', 'Người mời nhận thưởng tối đa mỗi tháng (lượt)', null],
+  ['invite_coins', 'Leo Xu người mời nhận thêm cùng lúc với sticker (0 = không)', null],
   ['set_reward_points', 'Thưởng đủ bộ mặc định (Leo Xu, 0 = tắt)', 'Dùng cho bộ sưu tập không đặt thưởng riêng. Trao một lần cho mỗi người và mỗi bộ, chỉ tài khoản đủ điều kiện.'],
 ]
 
