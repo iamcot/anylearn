@@ -1,5 +1,7 @@
 package com.anylearn.backend.service.quiz;
 
+import com.anylearn.backend.service.achievement.AchievementRules;
+import com.anylearn.backend.service.achievement.AchievementService;
 import com.anylearn.backend.service.fun.CoinService;
 import com.anylearn.backend.service.fun.FunSettings;
 import com.anylearn.backend.service.fun.GameEventService;
@@ -39,6 +41,7 @@ public class QuizGameService {
     private final StickerService stickers;
     private final GameEventService events;
     private final QuizBoardService board;
+    private final AchievementService achievements;
 
     private final Random random = new Random();
 
@@ -553,6 +556,9 @@ public class QuizGameService {
             reward.put("shield", shieldAdded);
             if (sticker != null) reward.put("sticker", sticker);
             events.record(userId, GameEventService.GAME_QUIZ, "rankup", QuizRules.RANKS.get(after.rank()).label(), coinReward);
+            String rankLabel = QuizRules.RANKS.get(after.rank()).label();
+            out.put("achievement", achievements.grant(userId, AchievementRules.RANKUP, "rankup:" + QuizRules.RANKS.get(after.rank()).key(),
+                    "Lên hạng " + rankLabel + " trong Leo rank", "Đã leo đến hạng " + rankLabel, QuizRules.RANKS.get(after.rank()).key()));
         }
         out.put("reward", reward);
 

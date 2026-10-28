@@ -54,3 +54,7 @@ Content-Type: application/json
 ### Balance and last movements of the game currency (Leo Xu)
 GET {{baseUrl}}/fun/coins
 Authorization: Bearer {{jwtToken}}
+
+### Leo Xu ledger, paged (the page /today/fun/coins)
+GET {{host}}/v2/api/fun/coins/history?page=1&size=20
+Authorization: Bearer {{$dotenv JWT_TOKEN}}

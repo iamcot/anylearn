@@ -1,0 +1,16 @@
+/** Labels of the sources written in `fun_coin_ledger`; an unknown source shows as it is. */
+export const COIN_SOURCE_LABEL: Record<string, string> = {
+  checkin: 'Quà điểm danh',
+  sticker_set: 'Thưởng đủ bộ sticker',
+  admin: 'Điều chỉnh',
+  quiz_rank: 'Thưởng lên hạng Leo rank',
+  quiz_item: 'Mua vật phẩm Leo rank',
+}
+
+export function coinSourceLabel(source: string): string {
+  return COIN_SOURCE_LABEL[source] ?? source
+}
+
+export function pageCount(total: number, size: number): number {
+  return Math.max(1, Math.ceil(total / Math.max(1, size)))
+}

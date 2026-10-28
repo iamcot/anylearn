@@ -1,5 +1,7 @@
 package com.anylearn.backend.service.quiz;
 
+import com.anylearn.backend.service.achievement.AchievementRules;
+import com.anylearn.backend.service.achievement.AchievementService;
 import com.anylearn.backend.service.NotificationService;
 import com.anylearn.backend.service.fun.GameEventService;
 import com.anylearn.backend.service.sticker.StickerService;
@@ -30,6 +32,7 @@ public class QuizSettlementService {
     private final QuizGameSettings settings;
     private final StickerService stickers;
     private final NotificationService notifications;
+    private final AchievementService achievements;
     private final GameEventService events;
     private final Clock clock;
 
@@ -71,6 +74,8 @@ public class QuizSettlementService {
             } catch (Exception e) {
                 log.warn("[quiz] board notification for user {} failed: {}", userId, e.getMessage());
             }
+            achievements.grant(userId, AchievementRules.BOARD, "board:" + period, "Top " + (i + 1) + " bảng xếp hạng " + label(period),
+                    "Leo rank · " + netStars + " sao ròng", "place" + (i + 1));
             Map<String, Object> w = new LinkedHashMap<>();
             w.put("place", i + 1);
             w.put("userId", userId);

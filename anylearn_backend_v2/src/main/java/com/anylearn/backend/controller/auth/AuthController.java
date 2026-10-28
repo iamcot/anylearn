@@ -26,7 +26,7 @@ public class AuthController {
     public ApiResponse<LoginResponse> register(@RequestBody Map<String, String> body) {
         return ApiResponse.ok(authService.register(
                 body.get("name"), body.get("phone"), body.get("email"), body.get("password"),
-                body.get("ref"), body.get("game")));
+                body.get("ref"), body.get("game"), body.get("ach")));
     }
 
     @PostMapping("/simple-register")

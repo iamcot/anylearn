@@ -31,6 +31,12 @@ export interface CheckinClaim {
 export interface CoinHistoryRow { id: number; delta: number; balanceAfter: number; source: string; detail: string | null; createdAt: string }
 export interface CoinWallet { coinName: string; balance: number; history: CoinHistoryRow[] }
 
+export interface CoinHistoryPage { coinName: string; balance: number; items: CoinHistoryRow[]; total: number; page: number; size: number }
+
+export function getCoinHistory(token: string, page: number, size = 20) {
+  return authFetch<CoinHistoryPage>(`/fun/coins/history?page=${page}&size=${size}`, token)
+}
+
 export function getCoins(token: string) {
   return authFetch<CoinWallet>('/fun/coins', token)
 }

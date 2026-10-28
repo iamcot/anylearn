@@ -58,4 +58,18 @@ public class CoinService {
     public List<Map<String, Object>> history(long userId, int limit) {
         return jdbc.queryForList("SELECT id, delta, balance_after AS balanceAfter, source, detail, created_at AS createdAt FROM fun_coin_ledger WHERE user_id = ? ORDER BY id DESC LIMIT ?", userId, limit);
     }
+
+    /** One page of the ledger, newest first, with the total number of rows. */
+    public Map<String, Object> historyPage(long userId, int page, int size) {
+        int safeSize = Math.max(1, Math.min(size, 50));
+        int safePage = Math.max(1, page);
+        Long total = jdbc.queryForObject("SELECT COUNT(*) FROM fun_coin_ledger WHERE user_id = ?", Long.class, userId);
+        Map<String, Object> out = new java.util.LinkedHashMap<>();
+        out.put("items", jdbc.queryForList("SELECT id, delta, balance_after AS balanceAfter, source, detail, created_at AS createdAt FROM fun_coin_ledger WHERE user_id = ? ORDER BY id DESC LIMIT ? OFFSET ?",
+                userId, safeSize, (safePage - 1) * safeSize));
+        out.put("total", total == null ? 0 : total);
+        out.put("page", safePage);
+        out.put("size", safeSize);
+        return out;
+    }
 }

@@ -1,5 +1,7 @@
 package com.anylearn.backend.service.sticker;
 
+import com.anylearn.backend.service.achievement.AchievementRules;
+import com.anylearn.backend.service.achievement.AchievementService;
 import com.anylearn.backend.service.fun.CoinService;
 import com.anylearn.backend.service.fun.GameEventService;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +25,7 @@ public class StickerService {
     private final GameEventService gameEvents;
     private final CoinService coinService;
     private final Clock clock;
+    private final AchievementService achievements;
 
     private final Random random = new Random();
 
@@ -245,6 +248,8 @@ public class StickerService {
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("points", points);
         out.put("collection", name);
+        out.put("achievement", achievements.grant(userId, AchievementRules.STICKER_SET, "set:" + collectionId, "Đủ bộ sticker " + name,
+                "Đã sưu tầm đủ bộ cùng Leo", "sticker"));
         return out;
     }
 }
