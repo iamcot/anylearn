@@ -52,13 +52,44 @@ echo "✓ Copied .env.production"
 sudo chown -R anylearn-app:anylearn-deploy "${RELEASE_PATH}"
 echo "✓ Fixed ownership"
 
-# Atomic symlink switch (zero downtime)
+# Remember the release that is running now, so a failed start can go back to it
+PREVIOUS_RELEASE=$(readlink "${DEPLOY_PATH}/current" 2>/dev/null || echo "")
+
+wait_healthy() {
+    local retries=$1
+    for i in $(seq 1 "$retries"); do
+        STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000 2>/dev/null || echo "000")
+        if [ "$STATUS" = "200" ]; then
+            return 0
+        fi
+        sleep 2
+    done
+    return 1
+}
+
+# Switch to the new release (the old process kept serving until this point)
 ln -sfn "${RELEASE_PATH}" "${DEPLOY_PATH}/current"
 echo "✓ Switched symlink to release ${RELEASE_ID}"
 
-# Restart service
 sudo systemctl reload-or-restart anylearn-frontend.service
 echo "✓ Service restarted"
+
+echo "Waiting for frontend to start..."
+if wait_healthy 45; then
+    echo "✓ Frontend is healthy"
+else
+    echo "✗ New frontend did not become healthy — keeping the old one"
+    sudo journalctl -u anylearn-frontend.service -n 40 --no-pager 2>/dev/null || true
+    if [ -n "${PREVIOUS_RELEASE}" ] && [ -d "${PREVIOUS_RELEASE}" ]; then
+        ln -sfn "${PREVIOUS_RELEASE}" "${DEPLOY_PATH}/current"
+        sudo systemctl reset-failed anylearn-frontend.service 2>/dev/null || true
+        sudo systemctl restart anylearn-frontend.service || true
+        echo "✓ Switched back to ${PREVIOUS_RELEASE}"
+        wait_healthy 30 || echo "⚠ Old release is not healthy either — check the server"
+    fi
+    sudo rm -rf "${RELEASE_PATH}"
+    exit 1
+fi
 
 echo "✓ Frontend deployed successfully (release ${RELEASE_ID})"
 

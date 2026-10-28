@@ -351,8 +351,14 @@ jobs:
     needs: [deploy-backend, deploy-frontend, deploy-admin]
     if: ${{ !cancelled() && (needs.deploy-backend.result == 'success' || needs.deploy-frontend.result == 'success' || needs.deploy-admin.result == 'success') }}
     steps:
+      - name: Checkout deploy scripts
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: deployment/
+          sparse-checkout-cone-mode: false
+
       - name: Run health check
-        run: bash ${{ env.DEPLOY_PATH }}/scripts/health-check.sh
+        run: bash deployment/scripts/health-check.sh
 
       - name: Report success
         run: |
@@ -365,20 +371,27 @@ jobs:
     needs: [deploy-backend, deploy-frontend, deploy-admin, health-check]
     if: failure()
     steps:
+      - name: Checkout deploy scripts
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: deployment/
+          sparse-checkout-cone-mode: false
+
       # deploy-backend.sh goes back to the old release by itself when the new one is unhealthy
       - name: Rollback backend
         if: needs.health-check.result == 'failure'
-        run: bash ${{ env.DEPLOY_PATH }}/scripts/rollback.sh backend
+        run: bash deployment/scripts/rollback.sh backend
         continue-on-error: true
 
+      # deploy-frontend.sh goes back by itself too
       - name: Rollback frontend
-        if: needs.deploy-frontend.result == 'failure' || needs.health-check.result == 'failure'
-        run: bash ${{ env.DEPLOY_PATH }}/scripts/rollback.sh frontend
+        if: needs.health-check.result == 'failure'
+        run: bash deployment/scripts/rollback.sh frontend
         continue-on-error: true
 
       - name: Rollback admin
         if: needs.deploy-admin.result == 'failure' || needs.health-check.result == 'failure'
-        run: bash ${{ env.DEPLOY_PATH }}/scripts/rollback.sh admin
+        run: bash deployment/scripts/rollback.sh admin
         continue-on-error: true
 
       - name: Report failure
