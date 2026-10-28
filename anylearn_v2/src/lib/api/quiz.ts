@@ -22,8 +22,36 @@ export interface QuizProfile {
   ranks: { key: string; name: string; needed: number }[]
 }
 
+/** The energy bar of the ranked game (plan 15): one point comes back every `regenMinutes`. */
+export interface Energy { value: number; max: number; nextInSeconds: number; regenMinutes: number; cost: number }
+
+export type PackType = 'level' | 'topic' | 'topic_level'
+
+/** A training pack bought in the shop: `remaining` of `total` questions left, topics chosen when it is set up. */
+export interface QuizPack {
+  id: number
+  type: PackType
+  typeLabel: string
+  difficulty: number | null
+  difficultyLabel: string | null
+  topic: string | null
+  /** null = every topic (a level pack that was never set up or has every topic). */
+  topics: string[] | null
+  topicLabels: string[]
+  total: number
+  remaining: number
+  /** A topic pack is usable only after its topic is chosen. */
+  configured: boolean
+  status: string
+}
+
 export interface QuizMe {
   enabled: boolean
+  energy: Energy
+  packs: QuizPack[]
+  packSize: number
+  /** The pack in use: the ready button says "Tập luyện" and questions come from it. */
+  activePackId: number | null
   coinName: string
   coins: number
   profile: QuizProfile
@@ -51,6 +79,9 @@ export interface QuizQuestion {
   serverNow: number
   used: ItemKey[]
   items: Partial<Record<ItemKey, number>>
+  mode?: 'rank' | 'practice'
+  pack?: QuizPack
+  energy?: Energy
 }
 
 export interface QuizResult {
@@ -75,6 +106,9 @@ export interface QuizResult {
   profile: QuizProfile
   items: Partial<Record<ItemKey, number>>
   coins: number
+  /** A practice question: nothing changed for the rank; `pack` shows what is left of the pack. */
+  practice?: boolean
+  pack?: QuizPack
 }
 
 export const getQuizMe = (token: string) => authFetch<QuizMe>('/quiz/me', token)
@@ -93,6 +127,13 @@ export const openQuizBox = (token: string) =>
 
 export const buyQuizItem = (token: string, item: ItemKey) =>
   authFetch<{ items: Partial<Record<ItemKey, number>>; coins: number; buyLeft: number }>('/quiz/items/buy', token, { method: 'POST', body: JSON.stringify({ item }) })
+
+/** Saves the topics of a pack and switches it on; answers like `/quiz/me`. A level pack: none = every topic; the others: exactly one. */
+export const saveQuizPack = (token: string, packId: number, topics: string[]) =>
+  authFetch<QuizMe>(`/quiz/packs/${packId}`, token, { method: 'PUT', body: JSON.stringify({ topics }) })
+
+/** Leaves practice mode; answers like `/quiz/me`. */
+export const deactivateQuizPack = (token: string) => authFetch<QuizMe>('/quiz/packs/deactivate', token, { method: 'POST' })
 
 export type BoardType = 'rank' | 'week' | 'month' | 'all'
 

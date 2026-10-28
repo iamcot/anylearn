@@ -25,6 +25,11 @@ public class CoinService {
     public static final String SOURCE_MISSION = "mission";
     public static final String SOURCE_SHARE = "share";
     public static final String SOURCE_INVITE = "invite";
+    /** Leo Xu shop (plan 15): training packs, energy refills, sticker chests and the money Leo pays for what is sold back. */
+    public static final String SOURCE_SHOP_PACK = "shop_pack";
+    public static final String SOURCE_SHOP_ENERGY = "shop_energy";
+    public static final String SOURCE_SHOP_CHEST = "shop_chest";
+    public static final String SOURCE_SHOP_SELL = "shop_sell";
 
     private final JdbcTemplate jdbc;
     private final FunSettings funSettings;

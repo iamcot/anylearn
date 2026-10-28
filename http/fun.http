@@ -137,3 +137,61 @@ Authorization: Bearer {{jwtToken}}
 # The check-in claim response has "item" {key,label} on the days of fun/checkin_item_days
 POST {{baseUrl}}/fun/checkin/claim
 Authorization: Bearer {{jwtToken}}
+
+
+### Plan 15: the Leo Xu shop (catalog with prices and today's limits, what can be sold, balance, energy)
+GET {{baseUrl}}/shop
+Authorization: Bearer {{jwtToken}}
+
+### Buy a quiz item (mult2, mult3, shield, topic, fifty, community, time, swap)
+POST {{baseUrl}}/shop/buy
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{ "key": "fifty" }
+
+### Buy a training pack: pack_level and pack_topic_level need difficulty 1..5, pack_topic does not
+POST {{baseUrl}}/shop/buy
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{ "key": "pack_level", "difficulty": 4 }
+
+### Refill energy (max 3 a day, never above the max)
+POST {{baseUrl}}/shop/buy
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{ "key": "energy" }
+
+### Sticker chests: chest_normal (30 xu) and chest_rare (90 xu, rare or epic for sure)
+POST {{baseUrl}}/shop/buy
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{ "key": "chest_rare" }
+
+### Sell a duplicate sticker to Leo (id = sticker id)
+POST {{baseUrl}}/shop/sell
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{ "kind": "sticker", "id": "3" }
+
+### Sell a quiz item back (id = item key)
+POST {{baseUrl}}/shop/sell
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{ "kind": "item", "id": "fifty" }
+
+### Admin: every shop price, limit and switch (+ quiz item prices, energy, pack size)
+GET {{$dotenv BE_BASE_URL}}/admin/fun/shop-config
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+###
+PUT {{$dotenv BE_BASE_URL}}/admin/fun/shop-config
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+Content-Type: application/json
+
+{ "enabled": true, "numbers": { "energy_price": 12, "chest_normal_price": 30 }, "quizNumbers": { "energy_max": 30, "pack_size": 10 } }
