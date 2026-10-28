@@ -12,10 +12,47 @@ export interface StickerItem {
   rarityLabel: string
   collectionId: number
   qty: number
+  /** Copies that may be traded now (beyond the first, not locked, not listed on the market). */
   tradable: number
+  /** Copies promised in open market listings ("Đang rao"). */
+  listed: number
 }
 
-export type StickerView = Omit<StickerItem, 'qty' | 'tradable' | 'collectionId'> & { collectionId?: number }
+export type StickerView = Omit<StickerItem, 'qty' | 'tradable' | 'listed' | 'collectionId'> & { collectionId?: number }
+
+export type ListingStatus = 'open' | 'done' | 'cancelled' | 'expired'
+export type MarketTab = 'match' | 'all' | 'mine'
+
+export interface MarketOffer extends StickerView {
+  /** The viewer does not own this sticker yet. */
+  lacking: boolean
+}
+
+/** One market post: "Mình có a, b, c, cần x". */
+export interface MarketListing {
+  id: number
+  mine: boolean
+  status: ListingStatus
+  userName: string
+  want: StickerView
+  offers: MarketOffer[]
+  /** The viewer holds a spare copy of the wanted sticker. */
+  canGive: boolean
+  /** The viewer lacks an offered sticker and can give the wanted one. */
+  canTake: boolean
+  expiresAt: string
+  createdAt: string
+}
+
+export interface MarketPage {
+  tab: MarketTab
+  items: MarketListing[]
+  total: number
+  pageSize: number
+  openCount: number
+  maxListings: number
+  listingDays: number
+}
 
 /** A collection ("bộ sưu tập") of stickers with the player's progress and the state of its full-set reward. */
 export interface StickerCollection {
@@ -72,5 +109,15 @@ export const cancelOffer = (token: string, id: number) => authFetch<{ ok: boolea
 export const claimSetReward = (token: string, collectionId: number) =>
   authFetch<{ points: number; collection: string }>('/stickers/set-reward', token, { method: 'POST', body: JSON.stringify({ collectionId }) })
 
-export const sendDevice = (token: string, deviceId: string) =>
+export const getMarket = (token: string, tab: MarketTab, page = 1) => authFetch<MarketPage>(`/stickers/market?tab=${tab}&page=${page}`, token)
+
+export const createListing = (token: string, body: { give: number[]; want: number }) =>
+  authFetch<{ id: number; expiresAt: string }>('/stickers/market', token, { method: 'POST', body: JSON.stringify(body) })
+
+export const takeListing = (token: string, id: number, stickerId: number) =>
+  authFetch<{ tradeId: number; received: StickerView }>(`/stickers/market/${id}/take`, token, { method: 'POST', body: JSON.stringify({ stickerId }) })
+
+export const removeListing = (token: string, id: number) => authFetch<{ ok: boolean }>(`/stickers/market/${id}`, token, { method: 'DELETE' })
+
+export const sendDevice =(token: string, deviceId: string) =>
   authFetch<{ ok: boolean }>('/fun/device', token, { method: 'POST', body: JSON.stringify({ deviceId }) })

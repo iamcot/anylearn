@@ -21,6 +21,8 @@ const SETTING_FIELDS = [
   ['hold_score', 'Điểm rủi ro từ đó gói quà chờ duyệt', 'Điểm cao khi nhiều tài khoản dùng chung thiết bị hoặc IP hoặc cùng người mời.'],
   ['invite_month_cap', 'Người mời nhận thưởng tối đa mỗi tháng (lượt)', null],
   ['invite_coins', 'Leo Xu người mời nhận thêm cùng lúc với sticker (0 = không)', null],
+  ['market_max_listings', 'Chợ đổi: số tin mở tối đa mỗi người', 'Mỗi tin khóa các sticker đưa ra cho tới khi gỡ, hết hạn hoặc đổi xong.'],
+  ['market_listing_days', 'Chợ đổi: tin hết hạn sau (ngày)', null],
   ['set_reward_points', 'Thưởng đủ bộ mặc định (Leo Xu, 0 = tắt)', 'Dùng cho bộ sưu tập không đặt thưởng riêng. Trao một lần cho mỗi người và mỗi bộ, chỉ tài khoản đủ điều kiện.'],
 ]
 
@@ -288,6 +290,51 @@ function TradesTab() {
   )
 }
 
+const MARKET_STATUS = { open: ['Đang rao', 'green'], done: ['Đã đổi', 'blue'], cancelled: ['Đã gỡ', 'default'], expired: ['Hết hạn', 'default'] }
+
+function MarketTab() {
+  const qc = useQueryClient()
+  const [page, setPage] = useState(1)
+  const [status, setStatus] = useState('open')
+  const { data, isLoading } = useQuery({
+    queryKey: ['admin-sticker-market', page, status],
+    queryFn: () => client.get('/admin/stickers/market', { params: { page, status } }).then(r => r.data?.data ?? null),
+  })
+  const cancel = useMutation({
+    mutationFn: id => client.post(`/admin/stickers/market/${id}/cancel`).then(r => r.data),
+    onSuccess: res => {
+      if (res.resultCode !== 1) return message.error(res.message)
+      message.success('Đã gỡ tin, sticker được mở khóa')
+      qc.invalidateQueries({ queryKey: ['admin-sticker-market'] })
+    },
+  })
+  return (
+    <>
+      <Space style={{ marginBottom: 12 }}>
+        <Select value={status} style={{ width: 160 }} onChange={v => { setStatus(v); setPage(1) }}
+          options={[{ value: 'all', label: 'Mọi trạng thái' }, ...Object.entries(MARKET_STATUS).map(([value, [label]]) => ({ value, label }))]} />
+        <Typography.Text type="secondary">Đang rao: {data?.open ?? 0}</Typography.Text>
+      </Space>
+      <Table rowKey="id" loading={isLoading} dataSource={data?.items ?? []}
+        pagination={{ current: page, pageSize: 30, total: data?.total ?? 0, onChange: setPage, showSizeChanger: false }}
+        columns={[
+          { title: 'Đăng lúc', dataIndex: 'createdAt', width: 150, render: v => v?.replace('T', ' ').slice(0, 16) },
+          { title: 'Người đăng', render: (_, l) => `${l.userName ?? l.userId} ${l.userPhone ?? ''}` },
+          { title: 'Đưa ra', dataIndex: 'offers' },
+          { title: 'Cần', dataIndex: 'wantName' },
+          { title: 'Hết hạn', dataIndex: 'expiresAt', width: 150, render: v => v?.replace('T', ' ').slice(0, 16) },
+          { title: 'Trạng thái', width: 130, render: (_, l) => {
+            const [label, color] = MARKET_STATUS[l.status] ?? [l.status, 'default']
+            return <Tag color={color}>{label}{l.status === 'done' && l.doneName ? `: ${l.doneName}` : ''}</Tag>
+          } },
+          { title: '', width: 90, render: (_, l) => (l.status === 'open'
+            ? <Popconfirm title="Gỡ tin này khỏi chợ?" onConfirm={() => cancel.mutate(l.id)}><Button size="small" danger>Gỡ</Button></Popconfirm>
+            : null) },
+        ]} />
+    </>
+  )
+}
+
 function ReviewTab() {
   const qc = useQueryClient()
   const { data, isLoading } = useQuery({
@@ -378,6 +425,7 @@ export default function Stickers() {
         { key: 'set', label: 'Bộ sticker', children: <SetTab /> },
         { key: 'members', label: 'Thành viên', children: <MembersTab /> },
         { key: 'trades', label: 'Giao dịch đổi', children: <TradesTab /> },
+        { key: 'market', label: 'Chợ đổi', children: <MarketTab /> },
         { key: 'review', label: 'Chờ duyệt & rủi ro', children: <ReviewTab /> },
         { key: 'settings', label: 'Cấu hình', children: <SettingsTab /> },
       ]} />

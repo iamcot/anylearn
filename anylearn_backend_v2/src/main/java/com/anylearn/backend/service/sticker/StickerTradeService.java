@@ -41,18 +41,19 @@ public class StickerTradeService {
         return n == null ? 0 : n;
     }
 
-    private String rarityOf(long stickerId) {
+    String rarityOf(long stickerId) {
         List<String> rows = jdbc.query("SELECT rarity FROM sticker_defs WHERE id = ?", (rs, i) -> rs.getString("rarity"), stickerId);
         return rows.isEmpty() ? null : rows.get(0);
     }
 
-    private String nameOf(long userId) {
+    String nameOf(long userId) {
         List<String> rows = jdbc.query("SELECT name FROM users WHERE id = ?", (rs, i) -> rs.getString("name"), userId);
         return rows.isEmpty() || rows.get(0) == null ? "Một người bạn" : rows.get(0);
     }
 
     /** Everything about who may trade with whom, checked again when the other side accepts. */
-    private void checkPerson(long userId, boolean self) {
+    /** Not blocked and played enough (account age and check-in days). */
+    void checkEligible(long userId, boolean self) {
         String who = self ? "Bạn" : "Người nhận";
         if (risk.blocked(userId)) throw new IllegalStateException(who + " đang bị tạm khóa quyền đổi sticker");
         if (!stickers.eligible(userId)) {
@@ -60,6 +61,11 @@ public class StickerTradeService {
                     ? "Bạn cần dùng anyLEARN thêm vài ngày (và điểm danh đủ " + settings.number("eligible_checkins") + " ngày) mới đổi được sticker"
                     : "Người nhận chưa đủ điều kiện đổi sticker");
         }
+    }
+
+    private void checkPerson(long userId, boolean self) {
+        String who = self ? "Bạn" : "Người nhận";
+        checkEligible(userId, self);
         LocalDateTime since = stickers.now().minusDays(7);
         int week = count("SELECT COUNT(*) FROM sticker_trades WHERE status = 'done' AND (a_user = ? OR b_user = ?) AND created_at > ?", userId, userId, Timestamp.valueOf(since));
         if (week >= settings.number("trade_week_limit")) throw new IllegalStateException(who + " đã đổi tối đa " + settings.number("trade_week_limit") + " lần trong tuần này");
@@ -92,6 +98,39 @@ public class StickerTradeService {
         if (stickers.ownedCount(fromUser, want) > 0) throw new IllegalStateException("Bạn đã có sticker muốn nhận rồi");
         if (stickers.tradable(toUser, want) < 1) throw new IllegalStateException("Người nhận không còn sticker trùng đó để đổi");
         if (stickers.ownedCount(toUser, give) > 0) throw new IllegalStateException("Người nhận đã có sticker bạn định đưa");
+    }
+
+    /**
+     * Every rule of a trade between two people, checked again at the moment it happens (offer accepted, market "Đổi"):
+     * eligibility, blocks, weekly limit, the pair window, the monthly partners and the stickers themselves.
+     * {@code fromIsSelf} says whose side is "you" in the messages (the person pressing the button).
+     */
+    void checkTrade(long from, long to, long give, long want, boolean fromIsSelf) {
+        checkPerson(from, fromIsSelf);
+        checkPerson(to, !fromIsSelf);
+        checkPair(from, to);
+        checkSides(from, to, give, want);
+    }
+
+    /** Moves the two stickers, writes the trade row and the game events of both sides. Returns the trade id. */
+    long transfer(long from, long to, long give, long want) {
+        if (!stickers.takeOne(from, give, 1) || !stickers.takeOne(to, want, 1)) throw new IllegalStateException("Một trong hai sticker không còn để đổi");
+        KeyHolder keys = new GeneratedKeyHolder();
+        jdbc.update(con -> {
+            PreparedStatement ps = con.prepareStatement("INSERT INTO sticker_trades (a_user, b_user, pair_key, a_sticker, b_sticker) VALUES (?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
+            ps.setLong(1, from);
+            ps.setLong(2, to);
+            ps.setString(3, StickerRules.pairKey(from, to));
+            ps.setLong(4, give);
+            ps.setLong(5, want);
+            return ps;
+        }, keys);
+        long tradeId = keys.getKey().longValue();
+        stickers.grant(from, want, "trade", "t" + tradeId, null);
+        stickers.grant(to, give, "trade", "t" + tradeId, null);
+        gameEvents.record(from, GameEventService.GAME_STICKER, "trade", "Đổi với #" + to + " (giao dịch " + tradeId + ")", 0);
+        gameEvents.record(to, GameEventService.GAME_STICKER, "trade", "Đổi với #" + from + " (giao dịch " + tradeId + ")", 0);
+        return tradeId;
     }
 
     /** Sends an offer to the person with this phone. */
@@ -157,29 +196,11 @@ public class StickerTradeService {
             jdbc.update("UPDATE sticker_offers SET status = 'expired', decided_at = NOW() WHERE id = ?", offerId);
             throw new IllegalStateException("Lời mời đã hết hạn");
         }
-        checkPerson(from, false);
-        checkPerson(userId, true);
-        checkPair(from, userId);
-        checkSides(from, userId, give, want);
-        if (!stickers.takeOne(from, give, 1) || !stickers.takeOne(userId, want, 1)) throw new IllegalStateException("Một trong hai sticker không còn để đổi");
-        KeyHolder keys = new GeneratedKeyHolder();
-        jdbc.update(con -> {
-            PreparedStatement ps = con.prepareStatement("INSERT INTO sticker_trades (a_user, b_user, pair_key, a_sticker, b_sticker) VALUES (?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
-            ps.setLong(1, from);
-            ps.setLong(2, userId);
-            ps.setString(3, StickerRules.pairKey(from, userId));
-            ps.setLong(4, give);
-            ps.setLong(5, want);
-            return ps;
-        }, keys);
-        long tradeId = keys.getKey().longValue();
-        stickers.grant(from, want, "trade", "t" + tradeId, null);
-        stickers.grant(userId, give, "trade", "t" + tradeId, null);
+        checkTrade(from, userId, give, want, false);
+        long tradeId = transfer(from, userId, give, want);
         jdbc.update("UPDATE sticker_offers SET status = 'accepted', decided_at = NOW() WHERE id = ?", offerId);
         // the same stickers cannot be promised twice
         jdbc.update("UPDATE sticker_offers SET status = 'cancelled', decided_at = NOW() WHERE status = 'pending' AND ((from_user = ? AND give_sticker = ?) OR (from_user = ? AND give_sticker = ?))", from, give, userId, want);
-        gameEvents.record(from, GameEventService.GAME_STICKER, "trade", "Đổi với #" + userId + " (giao dịch " + tradeId + ")", 0);
-        gameEvents.record(userId, GameEventService.GAME_STICKER, "trade", "Đổi với #" + from + " (giao dịch " + tradeId + ")", 0);
         Map<String, Object> giveDef = stickers.view(give);
         Map<String, Object> wantDef = stickers.view(want);
         notificationService.createNotification(from, "sticker_trade", "Đổi sticker thành công",
