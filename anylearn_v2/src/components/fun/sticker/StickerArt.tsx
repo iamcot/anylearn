@@ -20,10 +20,7 @@ function hueOf(name: string): number {
  * and the rarity sets the effect: common = pastel, rare = glossy blue with a sweeping shine, epic = holographic with glitter and a glow.
  */
 export default function StickerArt({ sticker, className = 'size-full' }: { sticker: Art; className?: string }) {
-  if (sticker.image) {
-    // eslint-disable-next-line @next/next/no-img-element
-    return <img src={sticker.image} alt={sticker.name} className={`${className} object-contain`} />
-  }
+  if (sticker.image) return <PhotoArt sticker={sticker} className={className} />
   const rarity = sticker.rarity ?? 'common'
   const hue = hueOf(sticker.name)
   const style = { containerType: 'inline-size', '--stk-hue': hue } as CSSProperties
@@ -38,6 +35,32 @@ export default function StickerArt({ sticker, className = 'size-full' }: { stick
           <span key={i} className="stk-spark" style={{ left: `${p.x}%`, top: `${p.y}%`, width: `${p.s}cqw`, height: `${p.s}cqw`, animationDelay: `${p.d}s` }} />
         ))}
       </span>
+    </span>
+  )
+}
+
+/**
+ * An uploaded picture with the rarity effect drawn around its outline: the glow follows the shape of the artwork (drop-shadow),
+ * a halo sits behind it, a white copy of the shape flashes in a moving band (the shine) and sparkles float around.
+ * Common stickers stay plain, with a soft shadow.
+ */
+function PhotoArt({ sticker, className }: { sticker: Art; className: string }) {
+  const rarity = sticker.rarity ?? 'common'
+  if (rarity === 'common') {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={sticker.image!} alt={sticker.name} className={`${className} object-contain`} />
+  }
+  return (
+    <span className={`${className} relative block aspect-square`} role="img" aria-label={sticker.name} style={{ containerType: 'inline-size' } as CSSProperties}>
+      <span className={`stp-halo stp-halo-${rarity}`} />
+      {rarity === 'epic' && <span className="stp-rays" />}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={sticker.image!} alt="" className={`stp-img stp-img-${rarity}`} />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={sticker.image!} alt="" aria-hidden className={`stp-img stp-flash stp-flash-${rarity}`} />
+      {SPARKLES[rarity].map((p, i) => (
+        <span key={i} className={`stk-spark stp-spark-${rarity}`} style={{ left: `${p.x}%`, top: `${p.y}%`, width: `${p.s}cqw`, height: `${p.s}cqw`, animationDelay: `${p.d}s` }} />
+      ))}
     </span>
   )
 }

@@ -486,3 +486,22 @@ body {
 @keyframes stk-spin { to { transform: rotate(360deg); } }
 @keyframes stk-glow { 0%, 100% { filter: drop-shadow(0 0 1.5cqw rgba(192, 132, 252, 0.7)); } 50% { filter: drop-shadow(0 0 4cqw rgba(232, 121, 249, 1)); } }
 @media (prefers-reduced-motion: reduce) { .stk-holo, .stk-sweep, .stk-spark, .stk-epic { animation: none; } .stk-spark { opacity: 0.9; } }
+
+/* Rarity effects around an uploaded sticker picture (StickerArt > PhotoArt) */
+.stp-img { position: absolute; inset: 8%; width: 84%; height: 84%; object-fit: contain; }
+.stp-halo { position: absolute; inset: 0; border-radius: 50%; }
+.stp-halo-rare { background: radial-gradient(circle, rgba(96, 165, 250, 0.55) 0, rgba(96, 165, 250, 0.25) 45%, transparent 70%); animation: stp-pulse 2.4s ease-in-out infinite; }
+.stp-halo-epic { background: radial-gradient(circle, rgba(232, 121, 249, 0.8) 0, rgba(168, 85, 247, 0.45) 48%, transparent 74%); animation: stp-pulse 2s ease-in-out infinite; }
+.stp-rays { position: absolute; inset: -6%; border-radius: 50%; opacity: 0.8; animation: stk-spin 9s linear infinite;
+  background: repeating-conic-gradient(from 0deg, rgba(217, 70, 239, 0.55) 0 6deg, transparent 6deg 14deg, rgba(250, 204, 21, 0.55) 14deg 20deg, transparent 20deg 28deg);
+  -webkit-mask-image: radial-gradient(circle, transparent 28%, #000 48%, transparent 72%); mask-image: radial-gradient(circle, transparent 28%, #000 48%, transparent 72%); }
+.stp-img-rare { filter: drop-shadow(0 0 0.8cqw #fff) drop-shadow(0 0 2cqw #3b82f6) drop-shadow(0 0 4cqw rgba(59, 130, 246, 0.8)); }
+.stp-img-epic { filter: drop-shadow(0 0 0.8cqw #fff) drop-shadow(0 0 2.2cqw #d946ef) drop-shadow(0 0 5cqw rgba(168, 85, 247, 0.9)); animation: stp-outline 2.6s linear infinite; }
+.stp-flash { filter: brightness(0) invert(1); opacity: 0.8; clip-path: polygon(-40% 0, -20% 0, -45% 100%, -65% 100%); animation: stp-flash 3.4s ease-in-out infinite; }
+.stp-flash-epic { animation-duration: 2.6s; }
+.stp-spark-rare { filter: drop-shadow(0 0 1.5cqw #60a5fa); }
+.stp-spark-epic { background: #fdf4ff; filter: drop-shadow(0 0 2cqw #e879f9); }
+@keyframes stp-pulse { 0%, 100% { opacity: 0.65; transform: scale(0.94); } 50% { opacity: 1; transform: scale(1.04); } }
+@keyframes stp-flash { 0%, 55% { clip-path: polygon(-40% 0, -20% 0, -45% 100%, -65% 100%); } 100% { clip-path: polygon(120% 0, 140% 0, 115% 100%, 95% 100%); } }
+@keyframes stp-outline { 0%, 100% { filter: drop-shadow(0 0 0.8cqw #fff) drop-shadow(0 0 2.2cqw #d946ef) drop-shadow(0 0 5cqw rgba(168, 85, 247, 0.9)); } 33% { filter: drop-shadow(0 0 0.8cqw #fff) drop-shadow(0 0 2.2cqw #c026d3) drop-shadow(0 0 5cqw rgba(236, 72, 153, 0.85)); } 66% { filter: drop-shadow(0 0 0.8cqw #fff) drop-shadow(0 0 2.2cqw #f59e0b) drop-shadow(0 0 5cqw rgba(251, 191, 36, 0.85)); } }
+@media (prefers-reduced-motion: reduce) { .stp-halo, .stp-rays, .stp-flash, .stp-img-epic { animation: none; } .stp-flash { display: none; } }
