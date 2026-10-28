@@ -9,6 +9,7 @@ import { afterClaim } from '@/lib/fun/checkin'
 import { aliLines, type AliContext } from '@/lib/fun/ali'
 import { Ali, AliBubble, useAliWalk } from './Ali'
 import SceneBackground from './SceneBackground'
+import CoinIcon from './CoinIcon'
 
 // Ali says one line after another; the key remounts this when the context changes so the first line shows at once.
 function AliSpeech({ lines }: { lines: string[] }) {
@@ -62,7 +63,7 @@ export default function FunScene({ token, initial, reminder, onClaimed }: { toke
 
       <div className="absolute inset-x-0 top-0 flex items-center gap-2 px-3 pt-3 text-xs font-bold text-[#7c2d12]">
         <span className="rounded-full bg-white/75 px-3 py-1.5">🔥 {status.streak} ngày</span>
-        <span className="rounded-full bg-white/75 px-3 py-1.5" title={coinName} aria-label={`${status.coins} ${coinName}`}>🪙 {status.coins}</span>
+        <span className="inline-flex items-center gap-1 rounded-full bg-white/75 px-3 py-1.5" title={coinName} aria-label={`${status.coins} ${coinName}`}><CoinIcon className="size-4" /> {status.coins}</span>
         <div className="flex flex-1 items-center gap-1.5 rounded-full bg-white/75 px-3 py-2" aria-label={`Ngày ${status.dayInCycle} trong tuần`}>
           {status.days.map(d => (
             <span key={d.day} title={`Ngày ${d.day}: ${d.points} ${coinName}`}
