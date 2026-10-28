@@ -72,19 +72,24 @@ export default function QuizBoardPage() {
       <Link href="/today/fun/quiz" className="mb-3 inline-flex items-center gap-1 text-sm font-bold text-muted no-underline"><ChevronLeftIcon className="size-4" /> Leo rank</Link>
       <h1 className="m-0 text-2xl font-black">Bảng xếp hạng</h1>
 
-      <div className="mt-3 flex gap-2 overflow-x-auto pb-1" role="tablist">
+      <div className="mt-3 grid grid-cols-4 gap-1.5" role="tablist">
         {BOARD_TABS.map(t => (
           <button key={t.type} type="button" role="tab" aria-selected={type === t.type} onClick={() => setType(t.type)}
-            className={`min-h-10 shrink-0 cursor-pointer rounded-full border px-4 text-sm font-bold ${type === t.type ? 'border-green bg-green text-white' : 'border-line bg-white text-ink'}`}>{t.label}</button>
+            className={`min-h-10 min-w-0 cursor-pointer truncate rounded-full border px-1 text-xs font-bold sm:text-sm ${type === t.type ? 'border-green bg-green text-white' : 'border-line bg-white text-ink'}`}>{t.label}</button>
         ))}
       </div>
 
       {type === 'rank' && ranks.length > 0 && (
-        <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
-          {ranks.map((r, i) => (
-            <button key={r.key} type="button" onClick={() => setRank(i)}
-              className={`min-h-9 shrink-0 cursor-pointer rounded-full border px-3 text-xs font-bold ${rank === i ? 'border-green bg-green-soft text-green-dark' : 'border-line bg-white text-muted'}`}>{r.name}</button>
-          ))}
+        <div className="mt-2">
+          <div className="grid grid-cols-8 gap-1">
+            {ranks.map((r, i) => (
+              <button key={r.key} type="button" onClick={() => setRank(i)} aria-label={r.name} aria-pressed={rank === i} title={r.name}
+                className={`grid cursor-pointer place-items-center rounded-xl border py-1.5 ${rank === i ? 'border-green bg-green-soft ring-2 ring-green' : 'border-line bg-white opacity-70'}`}>
+                <RankBadge rankKey={r.key} className="size-7" />
+              </button>
+            ))}
+          </div>
+          {rank !== null && ranks[rank] && <div className="mt-1 text-center text-xs font-bold text-green-dark">Hạng {ranks[rank].name}</div>}
         </div>
       )}
 

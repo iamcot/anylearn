@@ -15,19 +15,21 @@ public final class NotificationTopics {
     public static final String ZALO = "zalo";
     public static final List<String> CHANNELS = List.of(APP, EMAIL, ZALO);
 
-    public static final List<String> TOPICS = List.of("schedule", "payment", "renewal", "review", "promo", "points");
+    public static final List<String> TOPICS = List.of("schedule", "payment", "renewal", "review", "promo", "points", "fun");
 
-    private static final Map<String, String> TOPIC_OF_TYPE = Map.of(
-            "schedule_reminder", "schedule",
-            "schedule_pending", "schedule",
-            "order_reminder", "payment",
-            "schedule_renewal", "renewal",
-            "review_reminder", "review",
-            "new_course", "promo",
-            "lifecycle_start", "schedule",
-            "lifecycle_absent", "schedule",
-            "lifecycle_survey", "review",
-            "points_expiring", "points");
+    private static final Map<String, String> TOPIC_OF_TYPE = Map.ofEntries(
+            Map.entry("schedule_reminder", "schedule"),
+            Map.entry("schedule_pending", "schedule"),
+            Map.entry("order_reminder", "payment"),
+            Map.entry("schedule_renewal", "renewal"),
+            Map.entry("review_reminder", "review"),
+            Map.entry("new_course", "promo"),
+            Map.entry("lifecycle_start", "schedule"),
+            Map.entry("lifecycle_absent", "schedule"),
+            Map.entry("lifecycle_survey", "review"),
+            Map.entry("points_expiring", "points"),
+            Map.entry("achievement", "fun"),
+            Map.entry("quiz_board_reward", "fun"));
 
     private NotificationTopics() {}
 
