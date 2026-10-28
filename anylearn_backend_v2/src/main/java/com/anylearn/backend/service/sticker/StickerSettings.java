@@ -28,6 +28,7 @@ public class StickerSettings {
         NUMBERS.put("hold_score", new int[]{50, 1, 100});          // risk score from which rewards wait for approval
         NUMBERS.put("invite_month_cap", new int[]{10, 1, 200});
         NUMBERS.put("set_reward_points", new int[]{200, 0, 5000});
+        NUMBERS.put("invite_coins", new int[]{50, 0, 5000});        // Leo Xu the inviter gets with the sticker, same moment and monthly cap
     }
 
     private final ConfigurationRepository configurationRepository;

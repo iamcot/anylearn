@@ -64,4 +64,17 @@ class FunRulesTest {
         assertThat(FunRules.grantable(20, 1000, 1000)).isZero();
         assertThat(FunRules.grantable(20, 2000, 1000)).isZero();
     }
+
+    @Test
+    void itemDaysParseWithFallbackAndOff() {
+        assertThat(FunRules.parseItemDays(null)).containsExactly(3, 5);
+        assertThat(FunRules.parseItemDays("5, 3,3")).containsExactly(3, 5);
+        assertThat(FunRules.parseItemDays("0")).isEmpty();
+        assertThat(FunRules.parseItemDays("8")).containsExactly(3, 5);
+        assertThat(FunRules.parseItemDays("a")).containsExactly(3, 5);
+        assertThat(FunRules.itemOn(List.of(3, 5), 5)).isTrue();
+        assertThat(FunRules.itemOn(List.of(3, 5), 4)).isFalse();
+        assertThat(FunRules.itemDaysText(List.of())).isEqualTo("0");
+        assertThat(FunRules.itemDaysText(List.of(3, 5))).isEqualTo("3,5");
+    }
 }

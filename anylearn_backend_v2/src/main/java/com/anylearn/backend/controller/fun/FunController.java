@@ -6,7 +6,11 @@ import com.anylearn.backend.service.fun.CheckinService;
 import com.anylearn.backend.service.fun.CoinService;
 import com.anylearn.backend.service.fun.FunSettings;
 import com.anylearn.backend.service.fun.FunRules;
+import com.anylearn.backend.service.fun.GameEventService;
+import com.anylearn.backend.service.quiz.QuizGameService;
+import com.anylearn.backend.service.quiz.QuizItems;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import com.anylearn.backend.service.NotificationService;
 import com.anylearn.backend.service.sticker.RiskService;
@@ -42,6 +46,8 @@ public class FunController {
     private final AchievementService achievementService;
     private final AchievementSettings achievementSettings;
     private final com.anylearn.backend.service.fun.FunAccessSettings accessSettings;
+    private final QuizGameService quizGame;
+    private final GameEventService gameEvents;
 
     @GetMapping("/checkin")
     public ApiResponse<?> checkin(@AuthenticationPrincipal User user) {
@@ -84,11 +90,28 @@ public class FunController {
             Map<String, Object> result = new LinkedHashMap<>(checkinService.claim(user.getId()));
             if (Boolean.FALSE.equals(result.get("alreadyClaimed"))) {
                 result.put("sticker", stickerAfterClaim(user.getId(), result));
+                result.put("item", itemAfterClaim(user.getId(), result));
                 result.put("achievement", streakAchievement(user.getId(), result));
             }
             return ApiResponse.ok(result);
         } catch (IllegalStateException e) {
             return ApiResponse.fail(e.getMessage());
+        }
+    }
+
+    /** On the streak days of `fun/checkin_item_days` the check-in also gives one random quiz item, outside the claim's transaction. */
+    private Map<String, Object> itemAfterClaim(Long userId, Map<String, Object> result) {
+        try {
+            int day = result.get("dayInCycle") instanceof Number n ? n.intValue() : 0;
+            if (!FunRules.itemOn(funSettings.checkinItemDays(), day)) return null;
+            List<String> given = quizGame.grantRandomItems(userId, 1, "checkin", "day" + day);
+            if (given.isEmpty()) return null;
+            String key = given.get(0);
+            gameEvents.record(userId, GameEventService.GAME_CHECKIN, "item", key, 0);
+            return Map.of("key", key, "label", QuizItems.LABELS.getOrDefault(key, key));
+        } catch (Exception e) {
+            log.warn("[checkin] item part failed for user {}: {}", userId, e.getMessage());
+            return null;
         }
     }
 

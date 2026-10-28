@@ -136,6 +136,9 @@ Vào **Settings → Secrets and variables → Actions → New repository secret*
 | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` | `npx web-push generate-vapid-keys`, generate once and never rotate |
 | `VAPID_SUBJECT` | `mailto:info@anylearn.vn` (must not be empty) |
 | `GOOGLE_MAPS_API_KEY` | Places API (New) key, restricted to the server IP |
+| `BUNNY_STREAM_LIBRARY_ID` | Bunny Stream video library id (a number); empty = video upload off |
+| `BUNNY_STREAM_API_KEY` | API key of that video library (not the account key) |
+| `BUNNY_STREAM_CDN_HOST` | Pull zone host of the library, e.g. `vz-xxxx.b-cdn.net` |
 | `ANTHROPIC_API_KEY` | Anthropic API key for the AI course suggestions (Claude Haiku); empty = AI off |
 | `ADMIN_EMAIL_RECIPIENTS` | comma separated, may be empty |
 

@@ -35,6 +35,24 @@ public class AchievementSettings {
         return AchievementRules.parseMilestones(read("achievement/streak_days").orElse(null), DEFAULT_STREAK_DAYS);
     }
 
+    /** Leo Xu for the first share of each banner (0 = off). */
+    public int shareCoins() {
+        return number("achievement/share_coins", 10, 0, 1000);
+    }
+
+    /** Paid shares per person per day. */
+    public int shareDailyMax() {
+        return number("achievement/share_daily_max", 2, 0, 20);
+    }
+
+    private int number(String key, int def, int min, int max) {
+        try {
+            return Math.min(Math.max(Integer.parseInt(read(key).orElse(String.valueOf(def)).trim()), min), max);
+        } catch (NumberFormatException e) {
+            return def;
+        }
+    }
+
     public Map<String, Object> asMap() {
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("enabled", enabled());
@@ -42,6 +60,8 @@ public class AchievementSettings {
         for (String t : AchievementRules.TYPES) types.put(t, typeEnabled(t));
         out.put("types", types);
         out.put("streakDays", String.join(",", streakDays().stream().map(String::valueOf).toList()));
+        out.put("shareCoins", shareCoins());
+        out.put("shareDailyMax", shareDailyMax());
         return out;
     }
 
@@ -50,6 +70,10 @@ public class AchievementSettings {
         if (body.get("streakDays") instanceof String s && !s.isBlank() && AchievementRules.parseMilestones(s, null) == null) {
             return "Các mốc chuỗi ngày cần là số từ 2 đến 3650, cách nhau bằng dấu phẩy";
         }
+        if (body.get("shareCoins") instanceof Number n && (n.intValue() < 0 || n.intValue() > 1000)) return "Xu thưởng chia sẻ phải từ 0 đến 1000";
+        if (body.get("shareDailyMax") instanceof Number n && (n.intValue() < 0 || n.intValue() > 20)) return "Số lần thưởng chia sẻ mỗi ngày phải từ 0 đến 20";
+        if (body.get("shareCoins") instanceof Number n) write("achievement/share_coins", String.valueOf(n.intValue()));
+        if (body.get("shareDailyMax") instanceof Number n) write("achievement/share_daily_max", String.valueOf(n.intValue()));
         if (body.get("enabled") instanceof Boolean b) write("achievement/enabled", b ? "1" : "0");
         if (body.get("types") instanceof Map<?, ?> types) {
             for (String t : AchievementRules.TYPES) {

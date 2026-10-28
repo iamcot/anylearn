@@ -56,8 +56,11 @@ public class ExploreService {
         return count("SELECT COUNT(*) FROM explore_posts WHERE id = ? AND status = 'published'", postId) > 0;
     }
 
-    public void countView(long postId) {
-        jdbc.update("UPDATE explore_posts SET views = views + 1 WHERE id = ? AND status = 'published'", postId);
+    /** Counts one opening of a post by a person; the game event feeds the weekly mission "xem bài ở Khám phá". */
+    public void countView(long userId, long postId) {
+        if (jdbc.update("UPDATE explore_posts SET views = views + 1 WHERE id = ? AND status = 'published'", postId) > 0) {
+            events.record(userId, GameEventService.GAME_EXPLORE, "view", "Bài #" + postId, 0);
+        }
     }
 
     public void countShare(long postId) {

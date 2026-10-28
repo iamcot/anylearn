@@ -26,7 +26,7 @@ public class ExploreController {
     @PostMapping("/{id}/view")
     public ApiResponse<?> view(@AuthenticationPrincipal User user, @PathVariable long id) {
         if (user == null) return ApiResponse.fail("Unauthorized");
-        explore.countView(id);
+        explore.countView(user.getId(), id);
         return ApiResponse.ok(Map.of("ok", true));
     }
 
