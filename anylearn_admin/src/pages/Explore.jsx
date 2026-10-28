@@ -1,4 +1,4 @@
-import { Alert, Button, Card, Drawer, Form, Input, InputNumber, Popconfirm, Progress, Radio, Select, Space, Statistic, Switch, Table, Tabs, Tag, Typography, Upload, message } from 'antd'
+import { Alert, Button, Card, Col, Drawer, Form, Input, InputNumber, Popconfirm, Progress, Radio, Row, Select, Space, Statistic, Switch, Table, Tabs, Tag, Typography, Upload, message } from 'antd'
 import { UploadOutlined, VideoCameraAddOutlined } from '@ant-design/icons'
 import * as tus from 'tus-js-client'
 import { useEffect, useState } from 'react'
@@ -122,42 +122,22 @@ function PostDrawer({ post, open, onClose, onSaved }) {
   )
 }
 
-function Posts() {
-  const qc = useQueryClient()
-  const [editing, setEditing] = useState(null)
-  const [open, setOpen] = useState(false)
-  const { data } = useQuery({ queryKey: ['admin-explore-posts'], queryFn: () => client.get('/admin/explore/posts').then(r => r.data?.data ?? null) })
-  const refresh = () => qc.invalidateQueries({ queryKey: ['admin-explore-posts'] })
+function Posts({ data, refresh, onEdit }) {
   const del = useMutation({ mutationFn: id => client.delete(`/admin/explore/posts/${id}`).then(r => r.data), onSuccess: () => { message.success('Đã xóa'); refresh() } })
-  const stats = data?.stats
   return (
-    <>
-      {stats && (
-        <Space size="large" wrap style={{ marginBottom: 16 }}>
-          <Statistic title="Đang hiện" value={stats.published} /><Statistic title="Lượt xem" value={stats.views} /><Statistic title="Lượt thích" value={stats.likes} />
-          <Statistic title="Chia sẻ" value={stats.shares} /><Statistic title="Bình luận" value={stats.comments} /><Statistic title="Báo cáo chờ xử lý" value={stats.openReports} />
+    <Table rowKey="id" dataSource={data?.items ?? []} pagination={{ pageSize: 20 }} columns={[
+      { title: 'Tiêu đề', dataIndex: 'title', render: (t, r) => <span>{r.pinned ? '📌 ' : ''}{t}</span> },
+      { title: 'Loại', dataIndex: 'kind', render: k => KINDS[k] },
+      { title: 'Trạng thái', dataIndex: 'status', render: s => <Tag color={STATUS[s]?.[1]}>{STATUS[s]?.[0]}</Tag> },
+      { title: 'Xem', dataIndex: 'views' }, { title: 'Thích', dataIndex: 'likes' }, { title: 'Chia sẻ', dataIndex: 'shares' }, { title: 'Bình luận', dataIndex: 'comments' },
+      { title: 'Ngày đăng', dataIndex: 'publishedAt', render: v => (v ? fmtDateTime(v) : '') },
+      { title: '', key: 'a', render: (_, r) => (
+        <Space>
+          <a onClick={() => onEdit(r)}>Sửa</a>
+          <Popconfirm title="Xóa bài này cùng bình luận của nó?" onConfirm={() => del.mutate(r.id)}><a>Xóa</a></Popconfirm>
         </Space>
-      )}
-      <Space style={{ marginBottom: 12 }}>
-        {[['article', '+ Viết bài'], ['image', '+ Đăng hình ảnh'], ['video', '+ Đăng clip']].map(([kind, label]) => (
-          <Button key={kind} type="primary" onClick={() => { setEditing({ kind, status: 'draft', pinned: false, title: '', body: '', mediaUrl: '', posterUrl: '', itemId: null }); setOpen(true) }}>{label}</Button>
-        ))}
-      </Space>
-      <Table rowKey="id" dataSource={data?.items ?? []} pagination={{ pageSize: 20 }} columns={[
-        { title: 'Tiêu đề', dataIndex: 'title', render: (t, r) => <span>{r.pinned ? '📌 ' : ''}{t}</span> },
-        { title: 'Loại', dataIndex: 'kind', render: k => KINDS[k] },
-        { title: 'Trạng thái', dataIndex: 'status', render: s => <Tag color={STATUS[s]?.[1]}>{STATUS[s]?.[0]}</Tag> },
-        { title: 'Xem', dataIndex: 'views' }, { title: 'Thích', dataIndex: 'likes' }, { title: 'Chia sẻ', dataIndex: 'shares' }, { title: 'Bình luận', dataIndex: 'comments' },
-        { title: 'Ngày đăng', dataIndex: 'publishedAt', render: v => (v ? fmtDateTime(v) : '') },
-        { title: '', key: 'a', render: (_, r) => (
-          <Space>
-            <a onClick={() => { setEditing(r); setOpen(true) }}>Sửa</a>
-            <Popconfirm title="Xóa bài này cùng bình luận của nó?" onConfirm={() => del.mutate(r.id)}><a>Xóa</a></Popconfirm>
-          </Space>
-        ) },
-      ]} />
-      <PostDrawer post={editing} open={open} onClose={() => setOpen(false)} onSaved={refresh} />
-    </>
+      ) },
+    ]} />
   )
 }
 
@@ -215,18 +195,45 @@ function Settings() {
   )
 }
 
+const NEW_POST = { status: 'draft', pinned: false, title: '', body: '', mediaUrl: '', posterUrl: '', itemId: null }
+const NEW_BUTTONS = [['article', '+ Viết bài'], ['image', '+ Đăng hình ảnh'], ['video', '+ Đăng clip']]
+
 export default function Explore() {
+  const qc = useQueryClient()
+  const [tab, setTab] = useState('posts')
+  const [editing, setEditing] = useState(null)
+  const [open, setOpen] = useState(false)
+  const { data } = useQuery({ queryKey: ['admin-explore-posts'], queryFn: () => client.get('/admin/explore/posts').then(r => r.data?.data ?? null) })
+  const refresh = () => qc.invalidateQueries({ queryKey: ['admin-explore-posts'] })
+  const stats = data?.stats
+  const edit = post => { setEditing(post); setOpen(true) }
+  const cards = stats ? [
+    ['Đang hiện', stats.published], ['Lượt xem', stats.views], ['Lượt thích', stats.likes],
+    ['Chia sẻ', stats.shares], ['Bình luận', stats.comments], ['Báo cáo chờ xử lý', stats.openReports],
+  ] : []
   return (
     <div style={{ padding: 24 }}>
       <Typography.Title level={4}>Khám phá</Typography.Title>
       <Alert type="info" showIcon style={{ marginBottom: 16 }} message="Người chơi lướt từng bài toàn màn hình ở Vui học > Khám phá. Bài mới ở trạng thái Nháp cho đến khi bạn chọn Đang hiện." />
+      {stats && (
+        <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+          {cards.map(([title, value]) => <Col key={title} xs={12} md={8} xl={4}><Card><Statistic title={title} value={value} /></Card></Col>)}
+        </Row>
+      )}
       <Card>
-        <Tabs items={[
-          { key: 'posts', label: 'Bài viết', children: <Posts /> },
-          { key: 'comments', label: 'Bình luận', children: <Comments /> },
-          { key: 'settings', label: 'Cấu hình', children: <Settings /> },
-        ]} />
+        <Tabs activeKey={tab} onChange={setTab}
+          tabBarExtraContent={tab === 'posts' ? (
+            <Space wrap>
+              {NEW_BUTTONS.map(([kind, label]) => <Button key={kind} type="primary" onClick={() => edit({ ...NEW_POST, kind })}>{label}</Button>)}
+            </Space>
+          ) : null}
+          items={[
+            { key: 'posts', label: 'Bài viết', children: <Posts data={data} refresh={refresh} onEdit={edit} /> },
+            { key: 'comments', label: 'Bình luận', children: <Comments /> },
+            { key: 'settings', label: 'Cấu hình', children: <Settings /> },
+          ]} />
       </Card>
+      <PostDrawer post={editing} open={open} onClose={() => setOpen(false)} onSaved={refresh} />
     </div>
   )
 }
