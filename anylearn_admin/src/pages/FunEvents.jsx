@@ -49,6 +49,7 @@ export default function FunEvents() {
         <Typography.Title level={4} style={{ marginTop: 0 }}>Sự kiện game</Typography.Title>
         <Flex gap={8}>
           <Button onClick={() => navigate('/fun-checkin')}>Điểm danh & quà</Button>
+          <Button onClick={() => navigate('/stickers')}>Sticker</Button>
           <Button onClick={() => navigate('/quiz-bank')}>Kho câu hỏi</Button>
         </Flex>
       </Flex>

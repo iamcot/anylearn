@@ -41,7 +41,7 @@ const NAV_GROUPS = [
   ] },
 ]
 // Opened from buttons on the "Sự kiện game" page, not from the menu.
-const FUN_SUBPAGES = ['/fun-checkin', '/quiz-bank']
+const FUN_SUBPAGES = ['/fun-checkin', '/quiz-bank', '/stickers']
 const NAV_ITEMS = NAV_GROUPS.flatMap(group => group.children)
 
 // Things people ask the team for sit in the top bar, left of the bell, with the red number of what waits.
@@ -63,6 +63,7 @@ const BADGE_FIELDS = {
   '/course-requests': 'courseRequests',
   '/price-reports': 'priceReports',
   '/chat': 'chatReports',
+  '/fun-events': 'stickerReview',
 }
 
 function withBadges(groups, counts) {
