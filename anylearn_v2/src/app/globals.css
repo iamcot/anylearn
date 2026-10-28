@@ -371,3 +371,28 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .gift-fly { animation: none; opacity: 1 }
 }
+
+/* Vui học mascot "Any": walks along the hill, bobs, swings arms, blinks */
+@keyframes mascot-walk {
+  0% { transform: translateX(0) scaleX(1) }
+  45% { transform: translateX(120px) scaleX(1) }
+  50% { transform: translateX(120px) scaleX(-1) }
+  95% { transform: translateX(0) scaleX(-1) }
+  100% { transform: translateX(0) scaleX(1) }
+}
+@keyframes mascot-bob { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-3px) } }
+@keyframes mascot-step-a { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-4px) } }
+@keyframes mascot-step-b { 0%, 100% { transform: translateY(-4px) } 50% { transform: translateY(0) } }
+@keyframes mascot-swing-a { 0%, 100% { transform: rotate(14deg) } 50% { transform: rotate(-14deg) } }
+@keyframes mascot-swing-b { 0%, 100% { transform: rotate(-14deg) } 50% { transform: rotate(14deg) } }
+@keyframes mascot-blink { 0%, 92%, 100% { transform: scaleY(1) } 96% { transform: scaleY(.1) } }
+.mascot-walk { animation: mascot-walk 14s linear infinite; transform-origin: 0 0 }
+.mascot-bob { animation: mascot-bob .55s ease-in-out infinite }
+.mascot-leg-a { animation: mascot-step-a .55s ease-in-out infinite }
+.mascot-leg-b { animation: mascot-step-b .55s ease-in-out infinite }
+.mascot-arm-a { animation: mascot-swing-a .55s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 0 }
+.mascot-arm-b { animation: mascot-swing-b .55s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 0 }
+.mascot-eyes { animation: mascot-blink 4s infinite; transform-box: fill-box; transform-origin: 50% 50% }
+@media (prefers-reduced-motion: reduce) {
+  .mascot-walk, .mascot-bob, .mascot-leg-a, .mascot-leg-b, .mascot-arm-a, .mascot-arm-b, .mascot-eyes { animation: none }
+}
