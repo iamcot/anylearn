@@ -1,7 +1,7 @@
 import { Avatar, Badge, Dropdown, Flex, Layout, List, Menu, Popover, Spin, Typography } from 'antd'
 import {
   RobotOutlined, AuditOutlined, BankOutlined, CreditCardOutlined, BellOutlined, BookOutlined, CalendarOutlined, DashboardOutlined, DollarOutlined, FileTextOutlined,
-  CustomerServiceOutlined, FundOutlined, LineChartOutlined, SearchOutlined, LogoutOutlined, MailOutlined, ApiOutlined, OrderedListOutlined, SettingOutlined, SolutionOutlined, SwapOutlined,
+  CustomerServiceOutlined, QuestionCircleOutlined, FundOutlined, LineChartOutlined, SearchOutlined, LogoutOutlined, MailOutlined, ApiOutlined, OrderedListOutlined, SettingOutlined, SolutionOutlined, SwapOutlined,
   TeamOutlined, UserOutlined, MessageOutlined, CrownOutlined, GiftOutlined, TrophyOutlined,
 } from '@ant-design/icons'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -39,6 +39,7 @@ const NAV_GROUPS = [
   { key: 'g-fun', type: 'group', label: 'Vui học', children: [
     { key: '/fun-events',       icon: <TrophyOutlined />,      label: 'Sự kiện game' },
     { key: '/fun-checkin',      icon: <GiftOutlined />,        label: 'Điểm danh & quà' },
+    { key: '/quiz-bank',        icon: <QuestionCircleOutlined />, label: 'Kho câu hỏi' },
   ] },
 ]
 const NAV_ITEMS = NAV_GROUPS.flatMap(group => group.children)

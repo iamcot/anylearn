@@ -11,6 +11,7 @@ import CourseRequests from './pages/CourseRequests'
 import PriceReports from './pages/PriceReports'
 import FunEvents from './pages/FunEvents'
 import FunCheckin from './pages/FunCheckin'
+import QuizBank from './pages/QuizBank'
 import ChatModeration from './pages/ChatModeration'
 import Membership from './pages/Membership'
 import Tags from './pages/Tags'
@@ -103,6 +104,7 @@ export default function App() {
                   <Route path="price-reports" element={<PriceReports />} />
                   <Route path="fun-events" element={<FunEvents />} />
                   <Route path="fun-checkin" element={<FunCheckin />} />
+                  <Route path="quiz-bank" element={<QuizBank />} />
                   <Route path="chat" element={<ChatModeration />} />
                   <Route path="membership" element={<Membership />} />
                   <Route path="tags" element={<Tags />} />

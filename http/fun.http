@@ -8,3 +8,10 @@ Authorization: Bearer {{jwtToken}}
 ### Open today's gift (once per day)
 POST {{baseUrl}}/fun/checkin/claim
 Authorization: Bearer {{jwtToken}}
+
+### Report a wrong question (3 reports hide it)
+POST {{baseUrl}}/quiz/questions/1/report
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{ "reason": "wrong_answer", "note": "Đáp án đúng phải là B" }

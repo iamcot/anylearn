@@ -511,3 +511,14 @@ Menu "Vui học" có hai trang.
 
 - **Sự kiện game**: danh sách mọi việc xảy ra trong các game (mở quà điểm danh, đăng ký qua link giới thiệu, và các game sau này), mới nhất ở trên, lọc theo game. Phía trên là số người chơi, số sự kiện, anyPoint đã phát và số lượt đăng ký từ link giới thiệu trong ngày. Trang tự làm mới mỗi 30 giây.
 - **Điểm danh & quà**: mỗi thành viên mở một quà mỗi ngày trên trang Vui học. Nhập anyPoint cho từng ngày 1 đến 7 của chuỗi (ngày 7 là quà lớn; sau ngày 7 quay lại ngày 1). Bỏ một ngày thì chuỗi bắt đầu lại từ ngày 1. **Mọi anyPoint ở đây là chi phí thật**, nên có "Trần anyPoint phát ra mỗi ngày" (0 = không giới hạn): khi chạm trần, người mở quà sau đó vẫn giữ chuỗi nhưng hôm đó không nhận anyPoint. Trang hiện chi phí ước tính mỗi ngày để so với trần. Công tắc ở đầu trang tắt hẳn quà điểm danh. Thay đổi có hiệu lực ngay với lượt mở tiếp theo.
+
+### Vui học: Kho câu hỏi (quiz leo rank)
+
+Menu "Vui học" > "Kho câu hỏi". Đây là kho câu hỏi cho quiz leo rank (trò chơi chưa mở cho thành viên, kho cần có sẵn trước).
+
+- **Bảng số câu**: 5 chủ đề (Nuôi dạy con, Tiếng Anh, Âm nhạc, Mỹ thuật, Khoa học) × 3 độ khó (Dễ, Vừa, Khó). Mỗi ô cho biết số câu đang dùng so với mục tiêu, số chờ duyệt, số đã ẩn, số lượt đã phát, tỉ lệ trả lời đúng và tỉ lệ AI viết trùng trong 30 ngày. Rank Đồng và Bạc lấy câu Dễ, Vàng và Bạch kim lấy câu Vừa, từ Kim cương trở lên lấy câu Khó, nên **ô nào cũng cần đủ câu** (nên giữ ít nhất 300 câu mỗi ô để một người không gặp lại câu cũ trong 30 ngày).
+- **Tạo thêm**: nút ở cuối mỗi dòng nhờ AI viết một lượt cho ô đó; nút "Đề xuất AI tạo thêm" ở trên cùng tạo cho các ô đang thiếu nhiều nhất. Mỗi lượt tốn tiền gọi AI. AI tự loại câu trùng với kho, rồi tự trả lời lại từng câu: câu AI chọn **khớp** đáp án đã viết có nhãn "AI chấm khớp", câu **lệch** bị ẩn sẵn, câu AI không chắc chờ bạn xem.
+- **Cấu hình**: "Tự tạo mỗi đêm" (mặc định tắt vì tốn tiền; bật thì 2h20 sáng hệ thống tự bù cho ô thiếu nhất, tối đa số lần gọi đã đặt), mục tiêu mỗi ô, số câu mỗi lần gọi, và "Tự bật câu AI chấm đúng" (bật thì câu khớp vào dùng ngay, không qua duyệt; nên để tắt cho tới khi bạn thấy chất lượng ổn).
+- **Duyệt và quản lý**: mặc định hiện câu "Chờ duyệt". Đọc câu và đáp án (đáp án đúng màu xanh), bấm "Duyệt" hoặc tick nhiều câu rồi duyệt hàng loạt, "Ẩn" câu sai hoặc dở, "Sửa" để chỉnh chữ hay đổi đáp án đúng (câu sau khi sửa cần duyệt lại). Lọc theo trạng thái, chủ đề, độ khó, từ khóa hoặc "Chỉ câu bị báo lỗi".
+- **Báo lỗi**: người chơi sẽ có nút báo câu sai; câu bị 3 người báo tự ẩn cho tới khi bạn xem lại (duyệt lại sẽ xóa các báo lỗi).
+- Cần khóa `ANTHROPIC_API_KEY` và công tắc "Gợi ý AI" bật (dùng chung với gợi ý khóa học); thiếu thì trang báo màu vàng và không tạo được câu mới.

@@ -546,3 +546,8 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 - Dùng route có sẵn `/today/fun` (tab "Vui học") thay vì `/vui-hoc` như bản thiết kế; `GAME_ROUTES` của link giới thiệu giờ trỏ `quiz` và `sticker` về trang này.
 - Làm xong: quà điểm danh hằng ngày (chuỗi, anyPoint theo ngày 1-7, trần ngân sách mỗi ngày, công tắc), bảng `game_events` và `GameEventService`, trang `/today/fun`, admin "Sự kiện game" và "Điểm danh & quà". Quà mốc 7 ngày chưa kèm sticker (chờ giai đoạn sticker); hiện chỉ là anyPoint.
 - Chưa chạy migration V49 và API với MySQL thật; test mới chỉ phủ phần luật (`FunRulesTest`) và hàm hiển thị FE. Chưa xem trang admin trên trình duyệt (build qua).
+
+### 28/10/2026 – Vui học, giai đoạn 2 (kho câu hỏi AI)
+- Làm xong: bảng `quiz_questions` (V50) theo chủ đề × độ khó, AI viết theo lô bằng tool `write_questions`, loại trùng (hash + độ giống từ >= 0.8), xáo thứ tự đáp án, AI chấm mù lần hai để kiểm đáp án, hàng đợi duyệt, báo lỗi (3 báo thì ẩn), job đêm 2h20 bù ô thiếu (tắt sẵn), trang admin "Kho câu hỏi" (bảng số câu, tạo thêm, duyệt/ẩn/sửa hàng loạt, cấu hình).
+- Chưa chạy với MySQL thật và chưa gọi AI thật, nên chất lượng câu và tỉ lệ trùng thực tế chưa biết; nên chạy thử một lô mỗi ô trước khi bật job đêm. `times_served/times_correct` chờ giai đoạn quiz lõi cập nhật. Chưa có trang tra cứu (`searchable` mới là cờ).
+
