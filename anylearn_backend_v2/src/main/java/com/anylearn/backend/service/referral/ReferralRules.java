@@ -4,16 +4,23 @@ import com.anylearn.backend.entity.User;
 
 import java.util.regex.Pattern;
 
-/** Pure rules for referral codes (the code of an account is its phone number). */
+/** Pure rules for referral codes (the code of an account is its phone number or a hand-made word). */
 public final class ReferralRules {
 
     private static final Pattern GAME_ID = Pattern.compile("^[a-z0-9_-]{1,30}$");
 
     private ReferralRules() {}
 
-    /** Digits only; +84 / 84 become a leading 0. Returns null when nothing usable is left. */
+    private static final Pattern WORD_CODE = Pattern.compile("^[A-Za-z0-9_-]{4,30}$");
+
+    /**
+     * A phone: digits only, +84 / 84 become a leading 0. A code with letters (demo or hand-made refcodes) is kept as typed.
+     * Returns null when nothing usable is left.
+     */
     public static String cleanCode(String raw) {
         if (raw == null) return null;
+        String trimmed = raw.trim();
+        if (trimmed.matches(".*\\p{L}.*")) return WORD_CODE.matcher(trimmed).matches() ? trimmed : null;
         String digits = raw.replaceAll("[^0-9]", "");
         if (digits.startsWith("84") && digits.length() == 11) digits = "0" + digits.substring(2);
         return digits.length() >= 8 && digits.length() <= 15 ? digits : null;

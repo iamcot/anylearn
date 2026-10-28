@@ -9,6 +9,7 @@ describe('referral store', () => {
     expect(cleanCode('0901 234 567')).toBe('0901234567')
     expect(cleanCode('+84901234567')).toBe('0901234567')
     expect(cleanCode('abc')).toBeNull()
+    expect(cleanCode('DEMOPARENT')).toBe('DEMOPARENT')
     expect(cleanCode('123')).toBeNull()
   })
 

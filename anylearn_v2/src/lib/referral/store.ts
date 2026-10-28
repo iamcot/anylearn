@@ -10,9 +10,11 @@ export interface Referral {
 const STORAGE_KEY = 'referral:v1'
 const DAY_MS = 24 * 60 * 60 * 1000
 
-/** Digits only, +84 and 84 become a leading 0 (same rule as the backend). Null when the code is unusable. */
+/** A phone: digits only, +84 and 84 become a leading 0. A code with letters is kept as typed (same rule as the backend). Null when unusable. */
 export function cleanCode(raw: string | null | undefined): string | null {
   if (!raw) return null
+  const trimmed = raw.trim()
+  if (/\p{L}/u.test(trimmed)) return /^[A-Za-z0-9_-]{4,30}$/.test(trimmed) ? trimmed : null
   let digits = raw.replace(/[^0-9]/g, '')
   if (digits.startsWith('84') && digits.length === 11) digits = '0' + digits.slice(2)
   return digits.length >= 8 && digits.length <= 15 ? digits : null

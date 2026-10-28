@@ -21,6 +21,7 @@ class ReferralRulesTest {
         assertThat(ReferralRules.cleanCode("0901 234 567")).isEqualTo("0901234567");
         assertThat(ReferralRules.cleanCode("+84901234567")).isEqualTo("0901234567");
         assertThat(ReferralRules.cleanCode("0901.234.567")).isEqualTo("0901234567");
+        assertThat(ReferralRules.cleanCode("DEMOPARENT")).isEqualTo("DEMOPARENT");
     }
 
     @Test
