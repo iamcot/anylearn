@@ -8,7 +8,7 @@ import { useIsClient } from '@/components/useIsClient'
 import { formatPrice } from '@/lib/format/price'
 import GuestLearnerPicker from '@/components/guest/GuestLearnerPicker'
 
-export default function RegisterButton({ itemId, price, owned = false }: { itemId: number; price?: number | null; owned?: boolean }) {
+export default function RegisterButton({ itemId, price }: { itemId: number; price?: number | null }) {
   const { user, openAuthModal } = useAuth()
   const router = useRouter()
   const [sticky, setSticky] = useState(false)
@@ -46,7 +46,7 @@ export default function RegisterButton({ itemId, price, owned = false }: { itemI
     ? 'bottom-[calc(var(--app-tabs-h)+var(--compare-bar-h,0px)+0.5rem)] lg:bottom-[calc(var(--compare-bar-h,0px)+1rem)]'
     : 'bottom-[calc(var(--compare-bar-h,0px)+1rem)]'
 
-  const stickyBar = sticky && !owned ? (
+  const stickyBar = sticky ? (
     <div className={`fixed left-1/2 z-[45] flex w-[min(calc(100vw-32px),1180px)] -translate-x-1/2 items-center justify-between gap-3 rounded-[18px] bg-white px-4 py-3 shadow-raised ${bottomClass}`}>
       <div className="min-w-0">
         <div className="text-[11px] font-bold text-muted">Giá mua</div>
@@ -62,9 +62,9 @@ export default function RegisterButton({ itemId, price, owned = false }: { itemI
     <>
       <GuestLearnerPicker />
       <div ref={sentinelRef} />
-      {owned
-        ? <button type="button" onClick={handleRegister} className="btn btn--outline w-full px-6 py-3 text-[15px]">Đăng ký thêm cho bé khác</button>
-        : <button type="button" onClick={handleRegister} className="btn btn--green w-full px-6 py-4 text-[17px]">Đăng ký ngay</button>}
+      <button type="button" onClick={handleRegister} className="btn btn--green w-full px-6 py-4 text-[17px]">
+        Đăng ký ngay
+      </button>
       {mounted && createPortal(stickyBar, document.body)}
     </>
   )

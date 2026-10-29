@@ -32,10 +32,11 @@ function useOutline(itemId: number) {
   return outline
 }
 
-/** The register button of a video course: a person who already has it is offered "register another learner" instead of buying again. */
+/** The register button of a video course: one purchase covers the account and all its children, so an owner sees none. */
 export function VideoRegisterButton({ itemId, price }: { itemId: number; price?: number | null }) {
   const outline = useOutline(itemId)
-  return <RegisterButton itemId={itemId} price={price} owned={!!outline?.access} />
+  if (outline?.access) return null
+  return <RegisterButton itemId={itemId} price={price} />
 }
 
 /**
