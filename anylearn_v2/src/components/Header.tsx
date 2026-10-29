@@ -70,7 +70,7 @@ export default function Header() {
           </a>
           <Link href="/checkout" aria-label="Giỏ hàng" className={ICON_BUTTON_CLASS}>
             <CartIcon />
-            <CountBadge count={cartCount} />
+            <CountBadge count={cartCount} className="right-0.5 top-0.5" />
           </Link>
 
           {bell}
@@ -92,7 +92,7 @@ export default function Header() {
           </a>
           <Link href="/checkout" aria-label="Giỏ hàng" className={ICON_BUTTON_CLASS}>
             <CartIcon />
-            <CountBadge count={cartCount} />
+            <CountBadge count={cartCount} className="right-0.5 top-0.5" />
           </Link>
           {bell}
           {!compactMobile && (

@@ -23,4 +23,4 @@ export const ACCOUNT_MENU = [
   { href: '/account/change-password', label: 'Đổi mật khẩu' },
 ]
 
-export const ICON_BUTTON_CLASS = 'relative grid size-11 shrink-0 cursor-pointer place-items-center rounded-full border border-line bg-white text-ink no-underline lg:size-[38px]'
+export const ICON_BUTTON_CLASS = 'relative grid size-11 shrink-0 cursor-pointer place-items-center text-ink no-underline lg:size-[38px]'
