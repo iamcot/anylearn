@@ -18,6 +18,7 @@ public class GameEventService {
     public static final String GAME_QUIZ = "quiz";
     public static final String GAME_STICKER = "sticker";
     public static final String GAME_EXPLORE = "explore";
+    public static final String GAME_ARENA = "arena";
     public static final String GAME_BANNER = "banner";
     public static final String GAME_REF = "ref";
     public static final String GAME_COIN = "coin";

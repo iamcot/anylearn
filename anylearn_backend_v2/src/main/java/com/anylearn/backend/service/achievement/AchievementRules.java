@@ -13,7 +13,8 @@ public final class AchievementRules {
     public static final String STREAK = "streak";
     public static final String BOARD = "board";
     public static final String STICKER_SET = "sticker_set";
-    public static final List<String> TYPES = List.of(RANKUP, STREAK, BOARD, STICKER_SET);
+    public static final String ARENA = "arena";
+    public static final List<String> TYPES = List.of(RANKUP, STREAK, BOARD, STICKER_SET, ARENA);
 
     private static final String ALPHABET = "abcdefghjkmnpqrstuvwxyz23456789";
     private static final SecureRandom RANDOM = new SecureRandom();

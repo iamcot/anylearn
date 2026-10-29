@@ -13,7 +13,7 @@ public final class FunAccessRules {
     public static final String OFF = "off";
     public static final List<String> MODES = List.of(ALL, TESTERS, OFF);
     /** The games that can be switched one by one. */
-    public static final List<String> GAMES = List.of("checkin", "quiz", "sticker", "explore");
+    public static final List<String> GAMES = List.of("checkin", "quiz", "sticker", "explore", "arena");
 
     public static String cleanMode(String raw) {
         String mode = raw == null ? ALL : raw.trim().toLowerCase();

@@ -30,6 +30,11 @@ public class EmailTemplates {
             "schedule_reminder.html",
             List.of("userName", "itemTitle", "date", "scheduleInfo")
         ));
+        put("email-arena_reminder", new TemplateInfo(
+            "Nhắc Đấu trường Leo",
+            "arena_reminder.html",
+            List.of("userName", "time", "link")
+        ));
         put("email-user_register", new TemplateInfo(
             "Chào mừng đăng ký",
             "user_register.html",

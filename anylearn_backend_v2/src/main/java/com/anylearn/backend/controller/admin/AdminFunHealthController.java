@@ -81,7 +81,7 @@ public class AdminFunHealthController {
         out.put("cappedToday", funSettings.dailyEarnCap() > 0
                 ? count("SELECT COUNT(*) FROM (SELECT user_id FROM fun_coin_ledger WHERE delta > 0 AND source <> 'admin' AND created_at >= CURDATE() GROUP BY user_id HAVING SUM(delta) >= ?) t", funSettings.dailyEarnCap())
                 : 0);
-        out.put("games", List.of("checkin", "quiz", "sticker", "explore"));
+        out.put("games", List.of("checkin", "quiz", "sticker", "explore", "arena"));
         return ApiResponse.ok(out);
     }
 }

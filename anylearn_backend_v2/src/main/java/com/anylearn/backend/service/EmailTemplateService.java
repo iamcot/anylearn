@@ -105,6 +105,7 @@ public class EmailTemplateService {
             Map.entry("surveyUrl", "https://anylearn.vn/today?survey=1"),
             Map.entry("message", "Bé An còn 2 buổi Piano cơ bản. Gia hạn để học tiếp →"),
             Map.entry("ctaUrl", "https://anylearn.vn/today"),
+            Map.entry("time", "20:00"), Map.entry("link", "https://anylearn.vn/fun/arena"),
             Map.entry("title", "Đơn hàng mới cần duyệt"), Map.entry("content", "Đơn #1234 · Nguyễn Văn A · Piano cơ bản"));
 
     /** Sends the saved (or default) template with sample values, so the team can see how it looks. Returns the problem, or null. */
