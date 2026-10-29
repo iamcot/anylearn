@@ -193,4 +193,18 @@ public final class VideoCourseRules {
         if (m > 0) return m + " phút";
         return seconds + " giây";
     }
+
+    /** Longest note and most notes one learner keeps on one lesson. */
+    public static final int NOTE_MAX_LENGTH = 500;
+    public static final int NOTES_PER_LESSON = 100;
+
+    /** Why a note cannot be saved, or null: text between 1 and {@link #NOTE_MAX_LENGTH} characters, a position inside the lesson. */
+    public static String noteProblem(String body, int positionSeconds, Integer lessonSeconds, int existing) {
+        String text = body == null ? "" : body.trim();
+        if (text.isEmpty()) return "Hãy nhập nội dung ghi chú";
+        if (text.length() > NOTE_MAX_LENGTH) return "Ghi chú tối đa " + NOTE_MAX_LENGTH + " ký tự";
+        if (positionSeconds < 0 || (lessonSeconds != null && positionSeconds > lessonSeconds + 2)) return "Thời điểm ghi chú không hợp lệ";
+        if (existing >= NOTES_PER_LESSON) return "Bài này đã có " + NOTES_PER_LESSON + " ghi chú, hãy xóa bớt";
+        return null;
+    }
 }

@@ -4,6 +4,7 @@ import com.anylearn.backend.dto.response.ApiResponse;
 import com.anylearn.backend.entity.User;
 import com.anylearn.backend.service.video.VideoLearnService;
 import com.anylearn.backend.service.video.VideoMilestoneService;
+import com.anylearn.backend.service.video.VideoNoteService;
 import com.anylearn.backend.service.video.VideoStudyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -25,6 +26,7 @@ public class LearnController {
     private final VideoLearnService learn;
     private final VideoStudyService study;
     private final VideoMilestoneService milestones;
+    private final VideoNoteService notes;
 
     private static ApiResponse<?> run(Supplier<Object> action) {
         try {
@@ -67,6 +69,25 @@ public class LearnController {
     @GetMapping("/api/learn/today")
     public ApiResponse<?> today(@AuthenticationPrincipal User user, @RequestParam(required = false) Long learnerId) {
         return run(() -> study.today(user, learnerId));
+    }
+
+    /** The learner's notes on a lesson, each at a second of the video. */
+    @GetMapping("/api/learn/lessons/{lessonId}/notes")
+    public ApiResponse<?> notes(@AuthenticationPrincipal User user, @PathVariable long lessonId, @RequestParam(required = false) Long learnerId) {
+        return run(() -> notes.list(user, learnerId, lessonId));
+    }
+
+    /** Body `{learnerId?, positionSeconds, body}`; answers all notes of the lesson. */
+    @PostMapping("/api/learn/lessons/{lessonId}/notes")
+    public ApiResponse<?> addNote(@AuthenticationPrincipal User user, @PathVariable long lessonId, @RequestBody Map<String, Object> body) {
+        Long pos = num(body, "positionSeconds");
+        return run(() -> notes.add(user, num(body, "learnerId"), lessonId, pos == null ? 0 : pos.intValue(),
+                body.get("body") instanceof String text ? text : null));
+    }
+
+    @DeleteMapping("/api/learn/notes/{noteId}")
+    public ApiResponse<?> deleteNote(@AuthenticationPrincipal User user, @PathVariable long noteId, @RequestParam(required = false) Long learnerId) {
+        return run(() -> { notes.delete(user, learnerId, noteId); return Map.of(); });
     }
 
     @GetMapping("/api/learn/plan")

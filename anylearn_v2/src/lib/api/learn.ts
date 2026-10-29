@@ -150,3 +150,18 @@ export function deleteStudyPlan(token: string, learnerId: number, itemId: number
 export function getVideoSuggestions(token: string, itemId: number, learnerId: number, limit = 3): Result<Recommendation[]> {
   return authFetch<Recommendation[]>(`/learn/suggestions?itemId=${itemId}&learnerId=${learnerId}&limit=${limit}`, token)
 }
+
+export interface LessonNote { id: number; positionSeconds: number; body: string; createdAt: string }
+
+/** The learner's notes on a lesson, in video order (login needed). */
+export function getLessonNotes(token: string, lessonId: number, learnerId?: number | null): Result<LessonNote[]> {
+  return authFetch<LessonNote[]>(`/learn/lessons/${lessonId}/notes${learnerId ? `?learnerId=${learnerId}` : ''}`, token)
+}
+
+export function addLessonNote(token: string, lessonId: number, body: { learnerId?: number | null; positionSeconds: number; body: string }): Result<{ notes: LessonNote[] }> {
+  return authFetch<{ notes: LessonNote[] }>(`/learn/lessons/${lessonId}/notes`, token, { method: 'POST', body: JSON.stringify(body) })
+}
+
+export function deleteLessonNote(token: string, noteId: number, learnerId?: number | null): Result<unknown> {
+  return authFetch(`/learn/notes/${noteId}${learnerId ? `?learnerId=${learnerId}` : ''}`, token, { method: 'DELETE' })
+}

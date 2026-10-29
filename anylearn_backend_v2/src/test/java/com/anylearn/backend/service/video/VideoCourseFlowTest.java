@@ -24,6 +24,7 @@ class VideoCourseFlowTest {
     @Autowired VideoCourseAdminService admin;
     @Autowired VideoLearnService learn;
     @Autowired VideoStudyService study;
+    @Autowired VideoNoteService noteService;
 
     private long insertUser(String role, Long parentId) {
         String phone = "09" + (long) (Math.random() * 100000000L);
@@ -67,6 +68,35 @@ class VideoCourseFlowTest {
         admin.saveLesson(item, l, new VideoCourseAdminService.LessonDraft(ch, "Bài link (sửa)", null, "link", "https://youtu.be/abcdefghijk", true, null, null, null, null));
         assertEquals("Bài link (sửa)", jdbc.queryForObject("SELECT title FROM item_video_lessons WHERE id = ?", String.class, l));
         assertNull(jdbc.queryForObject("SELECT duration_seconds FROM item_video_lessons WHERE id = ?", Integer.class, v));
+    }
+
+    @Test
+    void notesBelongToTheLearnerAndNeedAccess() {
+        long item = course();
+        long[] l = build(item);
+        long parent = insertUser("member", null);
+        long bin = insertUser("member", parent);
+        long mi = insertUser("member", parent);
+        enroll(bin, item);
+        User account = user(parent);
+
+        noteService.add(account, bin, l[0], 95, " Quy tắc một phần ba ");
+        noteService.add(account, bin, l[0], 20, "Đoạn mở đầu");
+        List<Map<String, Object>> binNotes = noteService.list(account, bin, l[0]);
+        assertEquals(2, binNotes.size());
+        assertEquals(20, ((Number) binNotes.get(0).get("positionSeconds")).intValue(), "in video order");
+        assertEquals("Quy tắc một phần ba", binNotes.get(1).get("body"));
+        assertEquals(0, noteService.list(account, mi, l[0]).size(), "each child keeps their own");
+
+        assertThrows(IllegalArgumentException.class, () -> noteService.add(account, bin, l[0], 5, "   "));
+        assertThrows(IllegalArgumentException.class, () -> noteService.add(account, bin, l[0], 9999, "ngoài bài"));
+        // a paid lesson needs the course; a stranger cannot read or delete someone else's notes
+        long stranger = insertUser("member", null);
+        assertThrows(VideoLearnService.LockedException.class, () -> noteService.add(user(stranger), null, l[1], 1, "x"));
+        long noteId = ((Number) binNotes.get(0).get("id")).longValue();
+        assertThrows(RuntimeException.class, () -> noteService.delete(user(stranger), null, noteId));
+        noteService.delete(account, bin, noteId);
+        assertEquals(1, noteService.list(account, bin, l[0]).size());
     }
 
     @Test

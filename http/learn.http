@@ -112,3 +112,18 @@ Authorization: Bearer {{jwt}}
 ### Courses to take after this one
 GET {{baseUrl}}/api/learn/suggestions?itemId={{itemId}}&learnerId={{learnerId}}&limit=3
 Authorization: Bearer {{jwt}}
+
+### Notes of a learner on a lesson, each at a second of the video
+GET {{baseUrl}}/api/learn/lessons/{{lessonId}}/notes?learnerId={{learnerId}}
+Authorization: Bearer {{jwt}}
+
+###
+POST {{baseUrl}}/api/learn/lessons/{{lessonId}}/notes
+Authorization: Bearer {{jwt}}
+Content-Type: application/json
+
+{ "learnerId": {{learnerId}}, "positionSeconds": 65, "body": "Quy tắc một phần ba, xem lại khi làm bài tập" }
+
+###
+DELETE {{baseUrl}}/api/learn/notes/{{noteId}}?learnerId={{learnerId}}
+Authorization: Bearer {{jwt}}
