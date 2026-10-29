@@ -7,6 +7,7 @@ import FunScene from '@/components/fun/FunScene'
 import BrandText from '@/components/fun/BrandText'
 import FunShortcuts from '@/components/fun/FunShortcuts'
 import MissionsCard from '@/components/fun/MissionsCard'
+import ArenaBanner from '@/components/fun/arena/ArenaBanner'
 import MyAchievements from '@/components/fun/share/MyAchievements'
 import ExploreBrowser from '@/components/fun/explore/ExploreBrowser'
 import { LEO_NAME, reminderFor } from '@/lib/fun/leo'
@@ -33,7 +34,7 @@ export default function FunPage() {
     if (!token) return
     getFunAccess(token).then(({ data: a }) => {
       // an old server without the call leaves everything open
-      const open = a ?? { checkin: true, quiz: true, sticker: true, explore: true }
+      const open = a ?? { checkin: true, quiz: true, sticker: true, explore: true, arena: true }
       setAccess(open)
       if (!open.checkin) return
       getCheckin(token).then(({ data, error: err }) => {
@@ -66,10 +67,11 @@ export default function FunPage() {
       {status && token && <div className="mt-4"><FunScene token={token} initial={status} reminder={reminder} childName={childName} onClaimed={() => setClaims(n => n + 1)} /></div>}
 
       {token && access && <FunShortcuts access={access} />}
+      {token && access?.arena && <ArenaBanner token={token} />}
       {token && status && access?.checkin !== false && <MissionsCard token={token} refreshKey={claims} onClaimed={() => setClaims(n => n + 1)} />}
       {token && status && <MyAchievements key={claims} token={token} />}
 
-      {access && !access.checkin && !access.quiz && !access.sticker && !access.explore && <p className="mt-4 rounded-2xl bg-white p-4 text-center text-sm text-muted ring-1 ring-line">Vui học đang thử nghiệm với một nhóm nhỏ, bạn sẽ được chơi sớm thôi!</p>}
+      {access && !access.checkin && !access.quiz && !access.sticker && !access.explore && !access.arena && <p className="mt-4 rounded-2xl bg-white p-4 text-center text-sm text-muted ring-1 ring-line">Vui học đang thử nghiệm với một nhóm nhỏ, bạn sẽ được chơi sớm thôi!</p>}
 
       {token && access && access.explore !== false && <ExploreBrowser token={token} />}
     </div>

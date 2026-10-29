@@ -690,3 +690,22 @@ Trang Khám phá > tab **Bài viết**: phía trên bảng có ô tìm theo tiê
 3. Lấy Library ID, API Key, CDN Hostname như hướng dẫn Khám phá ở trên.
 4. GitHub > Settings > Secrets > Actions, tạo 4 secret: `BUNNY_COURSE_LIBRARY_ID`, `BUNNY_COURSE_API_KEY`, `BUNNY_COURSE_CDN_HOST`, `BUNNY_COURSE_TOKEN_KEY` (Security Key ở bước 2), rồi deploy lại.
 Chưa tạo thì khóa video dùng tạm thư viện Khám phá **không khóa link**; tab Nội dung video báo cảnh báo vàng cho tới khi cấu hình xong.
+
+### Đấu trường Leo: trận đố vui mỗi tối (plan 18)
+
+**Đây là gì.** Mỗi ngày đến giờ đã đặt (mặc định 20:00), mọi người chơi cùng trả lời **cùng một bộ 20 câu, cùng thứ tự**, rút từ Kho câu hỏi chia đều theo cấp độ và chủ đề. Đúng được 1 điểm; bằng điểm thì ai có tổng thời gian trả lời đúng ít hơn xếp trên. Hệ thống tự chạy hoàn toàn: tự tạo trận, tự gửi nhắc, tự chuyển màn, tự trao thưởng sau khi kết thúc, không cần ai canh. Người chơi thấy banner ngay dưới hàng lối tắt ở trang **Vui học**.
+
+**Menu Giải trí > Đấu trường Leo** có 5 tab:
+- **Theo dõi hôm nay**: trận hôm nay (giờ, trạng thái), số người bấm "Nhắc tôi", số người đang trong phòng, số người đã trả lời, bảng xếp hạng tạm thời.
+- **Cấu hình**: mọi con số, đổi xong bấm Lưu (áp dụng cho trận chưa bắt đầu; trận hôm nay đã chốt câu hỏi thì giữ nguyên nhịp). Gồm: bật/tắt, giờ bắt đầu và các ngày chạy, mở phòng trước bao nhiêu phút, số câu, thời gian đếm ngược / trả lời / xem đáp án, khoảng cách giữa hai câu, chủ đề và cấp độ được dùng, kênh nhắc (chuông + push, email, ZNS) và nội dung nhắc, quà, ngưỡng gắn cờ. Hệ thống từ chối cấu hình khi khoảng cách giữa hai câu ngắn hơn tổng đếm ngược + trả lời + xem đáp án + 10 giây.
+- **Câu hỏi hôm nay**: xem 20 câu đã chọn, **đổi một câu** (nhập mã câu khác) hoặc **bốc lại** cả bộ khi trận chưa bắt đầu. Có thể **Hủy trận** hôm nay.
+- **Lịch sử**: các trận trước, số người chơi, người thắng, nút **Trao thưởng** nếu có trận chưa được trả quà (bình thường tự chạy).
+- **Gắn cờ**: người trả lời đúng nhanh bất thường hoặc rời trang lúc đang trả lời. Bấm **Bỏ cờ** nếu thấy bình thường, hoặc **Loại** để người đó không nhận quà. Số cờ chưa xử lý hiện đỏ trên menu.
+
+**Bật/tắt và mở dần.** Công tắc **Bật Đấu trường Leo** ở đầu trang. Tắt thì banner biến mất và không có trận mới. Có thể mở thử cho nhóm nhỏ ở "Vui học > Mở dần từng game" (game mới tên **arena**).
+
+**Nhắc tôi.** Chỉ người đã bấm "Nhắc tôi" mới nhận nhắc, vào đúng số phút đã cấu hình trước giờ bắt đầu, mỗi trận một lần. Chọn kênh: chuông + thông báo đẩy (mặc định), email, ZNS. ZNS chỉ chạy khi đã có **mã mẫu ZNS** được Zalo duyệt (mẫu "Nhắc Đấu trường Leo" trong `docs/zns-templates.md`); chưa có thì để trống. Nút **Gửi thử** gửi nhắc mẫu cho chính bạn. Người đã tắt chủ đề "Vui học" trong Tài khoản > Thông báo sẽ không nhận nhắc.
+
+**Quà (Leo Xu, không phải anyPoint).** Top 1, 2, 3 nhận 300 / 200 / 100 Leo Xu và 1 sticker ngẫu nhiên, nếu đạt tối thiểu 3 điểm; top 3 còn nhận banner thành tích để chia sẻ. Mọi người khác trả lời được ít nhất 1 câu nhận **20 Leo Xu thưởng tham gia** (đặt 0 để tắt). Người bị gắn cờ không nhận quà top 3 (trừ khi bật "Vẫn trao quà cho người bị gắn cờ"). Mỗi người chỉ nhận một lần cho mỗi trận. Muốn trận có thêm kinh phí hãy xem **Vui học > Tiền game** để theo dõi lượng Leo Xu phát ra (nguồn "Đấu trường").
+
+**Cần nhớ.** Kho câu hỏi cần đủ câu ở các cấp độ và chủ đề đang bật; thiếu thì hệ thống lấy cấp độ gần nhất rồi mới lặp lại câu cũ. Câu đã ra không dùng lại trong 90 ngày (cấu hình được). Người vào muộn vẫn chơi các câu còn lại nhưng điểm các câu đã qua là 0.

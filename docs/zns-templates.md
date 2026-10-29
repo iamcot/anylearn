@@ -186,3 +186,11 @@ Mẫu 6 và 8 chỉ cần khi thấy tỷ lệ mở push/email thấp. Mẫu 13 
 1. Gửi cho dev: tên mẫu + `template_id` + danh sách tham số đúng như Zalo đã duyệt (tên tham số có thể bị Zalo đổi).
 2. Dev thêm mã mẫu vào bảng cấu hình (`configurations`, khóa `zns/template/<tên>`), nối vào điểm gửi trong bảng trên, kiểm tra khung 8h–21h và công tắc "Zalo" của người dùng.
 3. Kiểm tra bằng `zalo.zns.testMode=true` (chế độ development của Zalo) trước khi tắt.
+
+## 15. Nhắc Đấu trường Leo — Chăm sóc (plan 18)
+
+- Điểm gửi: nhắc trước giờ bắt đầu cho người đã bấm "Nhắc tôi" (Cấu hình Đấu trường Leo, bật "Nhắc qua ZNS" và nhập mã mẫu).
+- Tham số: `name`, `time`.
+
+> **Đấu trường Leo sắp bắt đầu**
+> Chào <name>, Đấu trường Leo bắt đầu lúc <time> hôm nay. Bạn vào phòng sớm để không bỏ lỡ câu nào nhé.

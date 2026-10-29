@@ -535,3 +535,28 @@ body {
 .glow-gold { --glow-c: #f59e0b; }
 @keyframes glow-run { to { --glow-a: 360deg; } }
 @media (prefers-reduced-motion: reduce) { .glow-ring::before { animation: none; } }
+
+/* Đấu trường Leo (plan 18): the title with an outline and a moving light, the ticket banner and the live animations */
+.arena-title { position: relative; display: inline-block; font-weight: 900; line-height: 1.02; letter-spacing: -.01em; white-space: nowrap }
+.arena-title__stroke { position: absolute; inset: 0; color: transparent; -webkit-text-stroke: 6px #052a17; paint-order: stroke; z-index: 0 }
+.arena-title__fill {
+  position: relative; z-index: 1; color: transparent; -webkit-text-stroke: 1.2px #7a4b00;
+  background: linear-gradient(100deg, #ffe066 0%, #ffc700 30%, #fff9d6 45%, #ffc700 52%, #ff9f00 100%); background-size: 250% 100%;
+  -webkit-background-clip: text; background-clip: text; animation: arena-sweep 2.6s linear infinite;
+}
+@keyframes arena-sweep { from { background-position: 130% 0 } to { background-position: -120% 0 } }
+@keyframes arena-pulse { 0% { box-shadow: 0 0 0 0 rgba(57, 255, 136, .6) } 70% { box-shadow: 0 0 0 10px rgba(57, 255, 136, 0) } 100% { box-shadow: 0 0 0 0 rgba(57, 255, 136, 0) } }
+@keyframes arena-blink { 50% { opacity: .25 } }
+@keyframes arena-wave { 0%, 100% { transform: rotate(0) } 50% { transform: rotate(-22deg) } }
+@keyframes arena-bob { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-1.5px) } }
+@keyframes arena-pop { from { transform: scale(1.5); opacity: .2 } to { transform: scale(1); opacity: 1 } }
+.arena-go { animation: arena-pulse 1.6s infinite }
+.arena-wave { transform-origin: 22px 20px; animation: arena-wave 1.1s ease-in-out infinite }
+.arena-bob { animation: arena-bob 2.4s ease-in-out infinite }
+.arena-blink { animation: arena-blink 1s infinite }
+.arena-count { animation: arena-pop .9s ease-out }
+.arena-in { color: #00c853; text-shadow: 0 0 8px rgba(0, 230, 118, .75) }
+.arena-in::before { content: ""; display: inline-block; width: 7px; height: 7px; margin-right: 5px; border-radius: 50%; background: #00e676; box-shadow: 0 0 8px #00e676; animation: arena-blink 1.4s infinite }
+@media (prefers-reduced-motion: reduce) {
+  .arena-title__fill, .arena-go, .arena-wave, .arena-bob, .arena-blink, .arena-count, .arena-in::before { animation: none }
+}

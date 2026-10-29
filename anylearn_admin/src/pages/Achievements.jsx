@@ -6,7 +6,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import client from '../api/client'
 import { fmtDateTime } from '../utils/format'
 
-const TYPES = { rankup: 'Lên hạng Leo rank', streak: 'Chuỗi điểm danh', board: 'Top bảng xếp hạng', sticker_set: 'Đủ bộ sticker' }
+const TYPES = { rankup: 'Lên hạng Leo rank', streak: 'Chuỗi điểm danh', board: 'Top bảng xếp hạng', sticker_set: 'Đủ bộ sticker', arena: 'Top Đấu trường Leo' }
 
 export default function Achievements() {
   const navigate = useNavigate()

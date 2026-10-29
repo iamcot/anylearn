@@ -40,6 +40,7 @@ const NAV_GROUPS = [
   ] },
   { key: 'g-fun', type: 'group', label: 'Giải trí', children: [
     { key: '/fun-events',       icon: <TrophyOutlined />,      label: 'Vui học' },
+    { key: '/fun-arena',        icon: <TrophyOutlined />,      label: 'Đấu trường Leo' },
     { key: '/explore',          icon: <CompassOutlined />,     label: 'Khám phá' },
   ] },
 ]
@@ -66,7 +67,8 @@ const BADGE_FIELDS = {
   '/course-requests': 'courseRequests',
   '/price-reports': 'priceReports',
   '/chat': 'chatReports',
-  '/fun-events': ['stickerReview', 'quizFlagged'],
+  '/fun-events': ['stickerReview', 'quizFlagged', 'arenaFlagged'],
+  '/fun-arena': 'arenaFlagged',
   '/explore': ['exploreReports', 'explorePending'],
 }
 

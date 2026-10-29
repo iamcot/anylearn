@@ -42,6 +42,7 @@ public class ArenaService {
     private final ArenaSettings settings;
     private final ArenaQuestionPicker picker;
     private final GameEventService events;
+    private final com.anylearn.backend.service.fun.FunSettings funSettings;
 
     private final Map<Long, CachedBoard> boardCache = new ConcurrentHashMap<>();
     private volatile long lastEnsure = 0;
@@ -247,6 +248,7 @@ public class ArenaService {
         out.put("status", s.status());
         out.put("phase", phaseMap(s));
         out.put("registeredCount", registered(s.id()));
+        out.put("inRoomCount", inRoom(s.id()));
         List<Map<String, Object>> mine = jdbc.queryForList("SELECT registered_at, last_seen_at, entered_at FROM arena_entries WHERE session_id = ? AND user_id = ?", s.id(), userId);
         out.put("registered", !mine.isEmpty() && mine.get(0).get("registered_at") != null);
         out.put("inRoom", !mine.isEmpty() && mine.get(0).get("last_seen_at") != null
@@ -266,6 +268,7 @@ public class ArenaService {
         r.put("rewardSticker", settings.flag("reward_sticker"));
         r.put("rewardMinScore", settings.num("reward_min_score"));
         r.put("rewardParticipation", settings.num("reward_participation"));
+        r.put("coinName", funSettings.coinName());
         return r;
     }
 

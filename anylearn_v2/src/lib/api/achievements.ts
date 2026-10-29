@@ -3,7 +3,7 @@ import { authFetch } from './client'
 
 export interface Achievement {
   token: string
-  type: 'rankup' | 'streak' | 'board' | 'sticker_set'
+  type: 'rankup' | 'streak' | 'board' | 'sticker_set' | 'arena'
   title: string
   subtitle: string
   icon: string

@@ -492,3 +492,31 @@ Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
 Content-Type: application/json
 
 {"title": "Mẹo học tiếng Anh"}
+
+### ---- Đấu trường Leo (plan 18) ----
+### Today's monitor
+GET {{baseUrl}}/admin/arena/overview
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+###
+GET {{baseUrl}}/admin/arena/settings
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+###
+PUT {{baseUrl}}/admin/arena/settings
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+Content-Type: application/json
+
+{ "enabled": true, "start_time": "20:00" }
+
+###
+POST {{baseUrl}}/admin/arena/settings/test-notification
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+###
+GET {{baseUrl}}/admin/arena/sessions
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+###
+GET {{baseUrl}}/admin/arena/flags
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
