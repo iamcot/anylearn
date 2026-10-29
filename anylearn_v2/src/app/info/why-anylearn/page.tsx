@@ -3,11 +3,9 @@ import Link from 'next/link'
 import ReportPriceButton from '@/components/promise/ReportPriceButton'
 import { CheckIcon } from '@/components/icons'
 import { PROMISES, RETURN_POLICY_HREF, WHY_FAQ, ZALO_SUPPORT_URL } from '@/config/promise'
+import { shareMeta } from '@/lib/seo/shareMeta'
 
-export const metadata: Metadata = {
-  title: 'Vì sao đặt qua anyLEARN?',
-  description: 'Giá bằng hoặc rẻ hơn tại trường, nhận anyPoint, hoàn tiền nếu lớp không mở, mọi lịch học một nơi và hỗ trợ qua Zalo.',
-}
+export const metadata: Metadata = shareMeta('why')
 
 export default function WhyAnyLearnPage() {
   return (

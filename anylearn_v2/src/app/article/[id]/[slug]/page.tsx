@@ -6,6 +6,7 @@ import { formatDate } from '@/lib/format/date'
 import BackLink from '@/components/BackLink'
 import ArticleTypeLabel from '@/components/article/ArticleTypeLabel'
 import { ChevronRightIcon } from '@/components/icons'
+import { detailMeta } from '@/lib/seo/shareMeta'
 
 interface Props {
   params: Promise<{ id: string; slug: string }>
@@ -15,15 +16,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params
   const article = await getArticle(Number(id))
   if (!article) return { title: 'Bài viết | anyLEARN' }
-  return {
-    title: `${article.title} | anyLEARN`,
-    description: article.short_content ?? 'Bài viết từ anyLEARN',
-    openGraph: {
-      title: article.title,
-      description: article.short_content ?? '',
-      images: article.image ? [{ url: article.image }] : [],
-    },
-  }
+  return detailMeta({ title: `${article.title} | anyLEARN`, ogTitle: article.title, description: article.short_content ?? 'Bài viết từ anyLEARN', image: article.image })
 }
 
 function getVideoEmbedUrl(url: string): string {

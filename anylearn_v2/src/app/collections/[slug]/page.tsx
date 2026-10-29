@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { getCollection } from '@/lib/api'
 import HistoryBackButton from '@/components/HistoryBackButton'
 import CourseCard from '@/components/CourseCard'
+import { detailMeta } from '@/lib/seo/shareMeta'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -12,10 +13,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   const collection = await getCollection(slug)
   if (!collection) return { title: 'Bộ sưu tập | anyLEARN' }
-  return {
+  return detailMeta({
     title: `${collection.title} | anyLEARN`,
     description: collection.subtitle ?? `Các khóa học trong bộ sưu tập ${collection.title}.`,
-  }
+    image: collection.cover,
+  })
 }
 
 export default async function CollectionPage({ params }: Props) {

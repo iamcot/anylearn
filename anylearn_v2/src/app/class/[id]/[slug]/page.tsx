@@ -23,6 +23,7 @@ import { formatSchedule } from '@/lib/format/schedule'
 import CompareToggle from '@/components/compare/CompareToggle'
 import CompareWhenActive from '@/components/compare/CompareWhenActive'
 import VideoOutline, { VideoHeroCta, VideoRegisterButton } from '@/components/learn/VideoOutline'
+import { detailMeta } from '@/lib/seo/shareMeta'
 
 function formatAge(min?: number, max?: number) {
   if (!min && !max) return null
@@ -55,11 +56,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const data = await getPdpData(Number(id))
   if (!data) return {}
   const item = data.item
-  return {
-    title: item.seoTitle || item.title,
-    description: item.seoDesc || item.shortContent || '',
-    openGraph: { images: item.image ? [item.image] : [] },
-  }
+  return detailMeta({ title: item.seoTitle || item.title, ogTitle: item.title, description: item.seoDesc || item.shortContent || '', image: item.image })
 }
 
 export default async function PdpPage({ params }: Props) {

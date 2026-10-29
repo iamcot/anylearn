@@ -11,6 +11,8 @@ import NavigationProgress from '@/components/NavigationProgress'
 import ToastProvider from '@/components/ToastProvider'
 import ServiceWorkerRegister from '@/components/pwa/ServiceWorkerRegister'
 import GuestLearnerHost from '@/components/guest/GuestLearnerHost'
+import { shareMeta } from '@/lib/seo/shareMeta'
+import { siteOrigin } from '@/lib/achievements/share'
 
 const beVietnamPro = Be_Vietnam_Pro({
   subsets: ['vietnamese', 'latin'],
@@ -18,9 +20,11 @@ const beVietnamPro = Be_Vietnam_Pro({
   variable: '--font-be-vietnam-pro',
 })
 
+// Every page inherits the home card for its shared link; top-level pages set their own with `shareMeta` (config/shareCards.ts).
+// `metadataBase` turns the card picture paths into the absolute links Zalo and Facebook need.
 export const metadata: Metadata = {
-  title: 'anyLEARN - Học không giới hạn',
-  description: 'Nền tảng giúp phụ huynh tìm kiếm, so sánh và đăng ký trường học, khóa học, chuyên gia phù hợp cho con.',
+  metadataBase: new URL(siteOrigin()),
+  ...shareMeta('home'),
   icons: {
     icon: '/favicon-16x16.png',
     apple: '/icons/apple-touch-icon.png',

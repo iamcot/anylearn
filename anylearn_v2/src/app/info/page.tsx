@@ -1,8 +1,12 @@
+import type { Metadata } from 'next'
 import SearchCard from '@/components/SearchCard'
 import Link from 'next/link'
 import {
   BookIcon, CalendarIcon, ChevronRightIcon, ClockIcon, LightbulbIcon, ListIcon, PhoneIcon, SchoolIcon, UsersIcon,
 } from '@/components/icons'
+import { shareMeta } from '@/lib/seo/shareMeta'
+
+export const metadata: Metadata = shareMeta('info')
 
 const PROBLEMS = [
   { Icon: ClockIcon, title: 'Mất thời gian tìm kiếm', desc: 'Thông tin trường học, khóa học và chuyên gia thường nằm rải rác trên nhiều kênh khác nhau' },

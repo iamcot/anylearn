@@ -1,10 +1,8 @@
 import type { Metadata } from 'next'
 import DiscoverList from '@/components/home/DiscoverList'
+import { shareMeta } from '@/lib/seo/shareMeta'
 
-export const metadata: Metadata = {
-  title: 'Thử điều mới cho con | anyLEARN',
-  description: 'Mỗi ngày một danh sách khóa học mới, hợp tuổi và gần nhà.',
-}
+export const metadata: Metadata = shareMeta('discover')
 
 export default function DiscoverPage() {
   return <DiscoverList />
