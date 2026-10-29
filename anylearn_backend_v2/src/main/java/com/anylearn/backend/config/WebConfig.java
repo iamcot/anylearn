@@ -9,14 +9,17 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebConfig implements WebMvcConfigurer {
 
     private final FunAccessInterceptor funAccessInterceptor;
+    private final AdminAccessInterceptor adminAccessInterceptor;
 
-    public WebConfig(FunAccessInterceptor funAccessInterceptor) {
+    public WebConfig(FunAccessInterceptor funAccessInterceptor, AdminAccessInterceptor adminAccessInterceptor) {
         this.funAccessInterceptor = funAccessInterceptor;
+        this.adminAccessInterceptor = adminAccessInterceptor;
     }
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(funAccessInterceptor).addPathPatterns("/api/quiz/**", "/api/stickers/**", "/api/explore/**", "/api/fun/checkin/**", "/api/fun/missions/**", "/api/arena/**");
+        registry.addInterceptor(adminAccessInterceptor).addPathPatterns("/admin/**").excludePathPatterns("/admin/login", "/admin/zns/callback");
     }
 
     @Override

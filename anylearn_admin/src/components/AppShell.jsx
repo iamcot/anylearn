@@ -7,7 +7,7 @@ import {
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import UploadTray from './UploadTray'
-import { Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import client from '../api/client'
 import logo from '/LogoanyLEARN.svg'
@@ -49,6 +49,10 @@ const NAV_GROUPS = [
 const FUN_SUBPAGES = ['/fun-checkin', '/quiz-bank', '/quiz-game', '/stickers', '/fun-coins', '/fun-shop', '/achievements']
 const NAV_ITEMS = NAV_GROUPS.flatMap(group => group.children)
 
+// A member with "Duyệt nội dung" (plan 19.A5) only sees Khám phá (posts, comments, social queue); the server refuses the rest.
+const REVIEWER_PAGES = ['/explore']
+const isReviewerPage = path => REVIEWER_PAGES.some(page => path === page || path.startsWith(`${page}/`))
+
 // Things people ask the team for sit in the top bar, left of the bell, with the red number of what waits.
 const HEADER_LINKS = [
   { key: '/course-requests', icon: <SearchOutlined />, label: 'Nhờ tìm' },
@@ -70,7 +74,7 @@ const BADGE_FIELDS = {
   '/chat': 'chatReports',
   '/fun-events': ['stickerReview', 'quizFlagged', 'arenaFlagged'],
   '/fun-arena': 'arenaFlagged',
-  '/explore': ['exploreReports', 'explorePending'],
+  '/explore': ['exploreReports', 'explorePending', 'socialQueue'],
 }
 
 function withBadges(groups, counts) {
@@ -108,6 +112,7 @@ const SETTINGS_MENU = [
 
 export default function AppShell() {
   const { user, logout } = useAuth()
+  const isAdmin = user?.role === 'admin'
   const navigate = useNavigate()
   const location = useLocation()
   const [collapsed, setCollapsed] = useState(false)
@@ -192,6 +197,7 @@ export default function AppShell() {
     { key: 'g-ops', type: 'group', label: 'Vận hành', children: [
       { key: 'operations', icon: <SettingOutlined />, label: 'Cấu hình tìm kiếm & đơn hàng', onClick: () => navigate('/operations') },
       { key: 'membership', icon: <CrownOutlined />, label: 'Hạng & ưu đãi gia đình', onClick: () => navigate('/membership') },
+      { key: 'content-reviewers', icon: <TeamOutlined />, label: 'Người duyệt nội dung', onClick: () => navigate('/content-reviewers') },
     ] },
     { key: 'g-money', type: 'group', label: 'Thanh toán', children: [
       { key: 'bank-account', icon: <BankOutlined />, label: 'Tài khoản ngân hàng', onClick: () => navigate('/bank-account') },
@@ -215,7 +221,12 @@ export default function AppShell() {
     enabled: Boolean(user),
   })
   useEffect(() => { if (user) refetchBadges() }, [location.pathname]) // eslint-disable-line react-hooks/exhaustive-deps
-  const navGroups = useMemo(() => withBadges(NAV_GROUPS, badgeCounts), [badgeCounts])
+  const navGroups = useMemo(() => {
+    const groups = isAdmin ? NAV_GROUPS : NAV_GROUPS
+      .map(group => ({ ...group, children: group.children.filter(item => isReviewerPage(item.key)) }))
+      .filter(group => group.children.length > 0)
+    return withBadges(groups, badgeCounts)
+  }, [badgeCounts, isAdmin])
 
   const userMenu = [
     { key: 'info', label: <Typography.Text type="secondary">{user?.name || user?.phone}</Typography.Text>, disabled: true },
@@ -236,7 +247,7 @@ export default function AppShell() {
           </Flex>
 
           <Flex align="center" gap={20}>
-            {HEADER_LINKS.map(link => {
+            {isAdmin && HEADER_LINKS.map(link => {
               const active = location.pathname.startsWith(link.key)
               return (
                 <Badge key={link.key} count={badgeCounts?.[BADGE_FIELDS[link.key]] ?? 0} overflowCount={99} size="small" offset={[4, 2]}>
@@ -342,7 +353,7 @@ export default function AppShell() {
           </div>
 
           {/* Settings — always at bottom, never overlaps nav items */}
-          <Popover
+          {isAdmin && <Popover
             content={<Menu items={settingsMenu} style={{ border: 'none' }} onClick={() => setSettingsOpen(false)} />}
             trigger="click"
             placement="rightBottom"
@@ -366,12 +377,12 @@ export default function AppShell() {
               <SettingOutlined style={{ fontSize: 16 }} />
               {!collapsed && <span style={{ fontSize: 14 }}>Cài đặt</span>}
             </Flex>
-          </Popover>
+          </Popover>}
         </Layout.Sider>
 
         {/* bg-mesh-blue-purple — swap class name to switch theme */}
         <Layout.Content className="bg-mesh-blue-purple" style={{ overflowX: 'hidden', overflowY: 'auto', minHeight: 'calc(100vh - 48px)' }}>
-          <Outlet />
+          {isAdmin || isReviewerPage(location.pathname) ? <Outlet /> : <Navigate to={REVIEWER_PAGES[0]} replace />}
         </Layout.Content>
       </Layout>
       <UploadTray />

@@ -16,13 +16,16 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AdminTagController {
 
+    private final com.anylearn.backend.service.adminaccess.AdminAccessService access;
+
     private final TagService tagService;
 
     @GetMapping
     public ApiResponse<?> list(@AuthenticationPrincipal User user,
                                @RequestParam(required = false) String group,
                                @RequestParam(required = false) String q) {
-        if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
+        // content reviewers pick tags for Khám phá posts (plan 19.A5)
+        if (!access.canReviewContent(user)) return ApiResponse.fail("Forbidden");
         return ApiResponse.ok(Map.of("tags", tagService.listForAdmin(group, q), "groups", TagGroups.LABELS));
     }
 

@@ -23,11 +23,20 @@ public class AdminBadgeController {
     private final ReviewService reviewService;
     private final com.anylearn.backend.service.explore.ExploreService exploreService;
     private final com.anylearn.backend.service.arena.ArenaAdminService arenaAdmin;
+    private final com.anylearn.backend.service.adminaccess.AdminAccessService access;
 
     @GetMapping
     public ApiResponse<?> counts(@AuthenticationPrincipal User user) {
-        if (user == null || !"admin".equals(user.getRole())) return ApiResponse.fail("Forbidden");
+        if (user == null) return ApiResponse.fail("Forbidden");
         Map<String, Object> counts = new LinkedHashMap<>();
+        if (!"admin".equals(user.getRole())) {
+            // a content reviewer (plan 19.A5) sees only what waits in Khám phá and the social queue
+            if (!access.canReviewContent(user)) return ApiResponse.fail("Forbidden");
+            counts.put("exploreReports", exploreService.openReports());
+            counts.put("explorePending", exploreService.pendingPosts());
+            counts.put("socialQueue", count("SELECT COUNT(*) FROM social_queue WHERE status = 'waiting' AND (scheduled_at IS NULL OR scheduled_at <= NOW())"));
+            return ApiResponse.ok(counts);
+        }
         counts.put("orders", count("SELECT COUNT(*) FROM orders WHERE status = 'pay_pending'"));
         counts.put("transactions", count("SELECT COUNT(*) FROM transactions WHERE status = 0 AND type IN ('withdraw', 'deposit')"));
         counts.put("activities", count("SELECT COUNT(*) FROM item_activities WHERE status IS NULL OR status = 0"));
@@ -40,6 +49,7 @@ public class AdminBadgeController {
         counts.put("arenaFlagged", arenaAdmin.flaggedWaiting());
         counts.put("exploreReports", exploreService.openReports());
         counts.put("explorePending", exploreService.pendingPosts());
+        counts.put("socialQueue", count("SELECT COUNT(*) FROM social_queue WHERE status = 'waiting' AND (scheduled_at IS NULL OR scheduled_at <= NOW())"));
         counts.put("reviewsResubmitted", reviewService.resubmittedCount());
         counts.put("reviewsReported", reviewService.reportedCount());
         return ApiResponse.ok(counts);

@@ -1,5 +1,6 @@
 package com.anylearn.backend.config;
 
+import com.anylearn.backend.security.ApiKeyFilter;
 import com.anylearn.backend.security.ApiTokenFilter;
 import com.anylearn.backend.security.JwtFilter;
 import jakarta.servlet.http.HttpServletResponse;
@@ -23,6 +24,7 @@ public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
     private final ApiTokenFilter apiTokenFilter;
+    private final ApiKeyFilter apiKeyFilter;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -81,7 +83,9 @@ public class SecurityConfig {
                 response.getWriter().write("{\"resultCode\":0,\"message\":\"Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại\",\"data\":null,\"code\":\"UNAUTHORIZED\"}");
             }))
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
-            .addFilterAfter(apiTokenFilter, JwtFilter.class);
+            .addFilterAfter(apiTokenFilter, JwtFilter.class)
+            // machine key of t2m (plan 19.A6), only on the creator and studio routes
+            .addFilterAfter(apiKeyFilter, ApiTokenFilter.class);
 
         return http.build();
     }
