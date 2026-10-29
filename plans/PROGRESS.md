@@ -23,6 +23,8 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 25/10/2026 | App cũ trên store đã bị xoá, lượt tải không đáng kể → **chỉ làm PWA**, làm trước (plan 13). Push dùng Web Push thuần, không FCM. |
 | 25/10/2026 | 04.7 làm ở **giai đoạn 1**. Lúc đầu chỉ cần năm sinh; checkout bắt buộc nhập ngày sinh đầy đủ của người học trước khi thanh toán (FE khoá nút + backend chặn tạo đơn). |
 | 28/10/2026 | Khóa học video (plan 17): dùng lại 3 bảng `item_video_*`; video trả phí ở thư viện Bunny riêng có ký link; xem trọn đời; tiến độ tính riêng từng người học (cả phụ huynh); chỉ admin tải video. |
+| 29/10/2026 | Marketing + tool video t2m (plan 19): link Khám phá chia sẻ xem được không cần đăng nhập, ở `/fun/explore/{id}/{slug}`; t2m chạy trên Mac của chủ sản phẩm, AI qua Claude Code hoặc API; người duyệt là admin hoặc người được phân quyền; ưu tiên gói tiết kiệm; giọng đọc đổi theo video; làm trước TP.HCM; làm song song anyLEARN và t2m; UTM lưu vào DB. |
+| 29/10/2026 | Hoàn tiền: đăng ký mà lớp không mở thì được hoàn tiền (plan 10.1). Nội dung marketing chỉ nói đúng câu này. |
 
 
 ## Câu hỏi đang chờ chủ sản phẩm
@@ -31,7 +33,7 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 
 - [ ] VNPay: luật "giảm 1%" và "trên 100 triệu" là gì? Backend không áp dụng cả hai, nên chữ đã bỏ khỏi checkout (plan 12.5).
 - [ ] Điểm từ đơn dùng được ngay hay sau khi lớp bắt đầu (plan 02).
-- [ ] Câu chữ chính sách hoàn tiền trong "Lời hứa anyLEARN" (plan 10.1).
+- [x] Câu chữ chính sách hoàn tiền trong "Lời hứa anyLEARN" (plan 10.1): đăng ký mà lớp không mở thì hoàn tiền (29/10/2026), giữ câu đang có trên site.
 - [ ] Hệ số điểm theo hạng thành viên có chấp nhận chi phí không (plan 10.2).
 - [ ] Trả góp: cách đối tác nhận tiền theo kỳ (plan 10.4).
 - [x] Chat lớp (plan 11): giáo viên vào nhóm để trả lời, admin chủ động thêm người hỗ trợ; nội quy chỉ chủ đề học, không đả kích, không tôn giáo/chính trị, tôn trọng nhau (27/10/2026). Còn cần chủ sản phẩm duyệt câu chữ điều khoản sử dụng.
@@ -129,6 +131,30 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 10.4 | Trả góp / đóng theo kỳ | todo | Chờ chủ sản phẩm |
 | 11.5 | Chat mở rộng | todo | |
 | 13.8 | Thay app cũ trên store bằng bản bọc web (TWA / Capacitor), cùng package/bundle id | todo | Theo kết quả 13.0; có thể kéo lên sớm |
+
+### Giai đoạn 5 – marketing và nội dung (plan 19)
+
+| Task | Mô tả | Trạng thái | Ghi chú |
+|---|---|---|---|
+| 19.A1 | `sitemap.ts` + `robots.ts` + endpoint danh sách link, nộp Search Console / Bing | todo | Cần trước chiến dịch |
+| 19.A2 | JSON-LD (Course, rating, đối tác, VideoObject, Breadcrumb, FAQ) | todo | |
+| 19.A3 | Trang công khai `/fun/explore/{id}/{slug}` + thẻ đăng nhập để xem tiếp, 301 từ `?p=` | todo | Cần trước video đầu tiên ra social |
+| 19.A4 | Ghi UTM: `user_acquisition`, `landing_visits`, trang admin "Nguồn khách" | todo | |
+| 19.A5 | Quyền "Duyệt nội dung" trong back office | todo | |
+| 19.A6 | Creator "anyLEARN Studio", khóa API cho máy, `explore_posts.source`, hàng đợi đăng social | todo | Env mới: thêm đủ 3 chỗ |
+| 19.A7 | Trang đích "môn × tuổi × quận" TP.HCM | todo | Chỉ khi có ít nhất 3 khóa |
+| 19.A8 | `CLAUDE.md`, `docs/huong-dan-admin.md`, `http/` | todo | Làm cùng từng task |
+| 19.B1 | t2m: khung CLI, schema kịch bản, `--ai api` hoặc `claude-code`, kiểm tra tự động | todo | Repo `iamcot/t2m` |
+| 19.B2 | t2m: dựng video HTML → PNG → ffmpeg (videotoolbox), phụ đề, nhạc | todo | |
+| 19.B3 | t2m: `TtsProvider`, nghe thử và chọn nhà TTS, hồ sơ giọng | todo | Thử TTS tại máy trước |
+| 19.B4 | t2m: template "Giới thiệu tính năng" (quay site bằng tài khoản demo) | todo | Làm đầu tiên |
+| 19.B5 | t2m: template đố vui, khoa học, lịch sử, STEM, dân gian, theo tuổi, bộ sưu tập, mẹo, đối tác, Đấu trường | todo | |
+| 19.B6 | t2m: ảnh chế / truyện nhiều khung, bộ nhân vật vẽ sẵn | todo | Cần vẽ bộ nhân vật |
+| 19.B7 | t2m: trang sửa, gửi Khám phá, xuất file social, sau đó YouTube / Facebook API | todo | |
+| 19.B8 | t2m: `stats` hằng ngày, kế hoạch tuần đọc số liệu | todo | Cần 19.A4 |
+| 19.C1 | Tạo YouTube, TikTok; Search Console, Google Business Profile, Meta Pixel | todo | Chủ sản phẩm làm |
+| 19.C2 | Chiến dịch ra mắt 28 ngày (02/11 đến 29/11/2026) | todo | Lịch trong plan 19 mục 4 |
+| 19.C3 | Nhịp đăng thường xuyên + quảng cáo thử | todo | Sau 19.C2 |
 
 ## Nhật ký
 
@@ -629,3 +655,6 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 - Test: `ArenaRulesTest`, `ArenaFlowTest` (MariaDB), `lib/arena/*.test.ts`.
 - Chưa làm: câu thoại của Leo cho đấu trường, mẫu ZNS được duyệt (xem `docs/zns-templates.md` mục 15), thử tải nhiều người cùng lúc, kiểm tra trên điện thoại thật (đã chụp thử bằng Chromium với API giả).
 
+### 29/10/2026 – Plan 19: marketing và tool video t2m
+- Đã làm: viết `plans/19-marketing-t2m.md` từ bản phác thảo đã duyệt với chủ sản phẩm (https://claude.ai/artifact/BHN5TKNSfbUupXumdfE9r9), thêm Giai đoạn 5 vào bảng task, chốt câu hoàn tiền (10.1).
+- Chưa làm: toàn bộ task 19.*; repo t2m mới có README.
