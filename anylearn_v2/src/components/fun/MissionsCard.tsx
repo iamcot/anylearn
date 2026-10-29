@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import BrandText from './BrandText'
 import CoinIcon from './CoinIcon'
 import StickerArt from './sticker/StickerArt'
+import { QuestBookIcon } from './TitleIcons'
 import { claimMission, getMissions, type MissionsView } from '@/lib/api/fun'
 import type { StickerView } from '@/lib/api/stickers'
 import { bonusState, bonusText, countdownText, missionState, percent } from '@/lib/fun/missions'
@@ -48,8 +49,8 @@ export default function MissionsCard({ token, refreshKey, onClaimed }: { token: 
 
   return (
     <section className="mt-4 rounded-2xl border border-line bg-white p-4" aria-label="Nhiệm vụ tuần">
-      <div className="flex items-baseline justify-between gap-2">
-        <h2 className="m-0 text-base font-extrabold">Nhiệm vụ tuần</h2>
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="m-0 flex items-center gap-1.5 text-base font-extrabold"><QuestBookIcon /> Nhiệm vụ tuần</h2>
         <span className="text-xs text-muted">Làm mới sau {countdownText(view.endsAt, now)}</span>
       </div>
       <ul className="m-0 mt-3 grid list-none gap-3 p-0">
@@ -82,7 +83,7 @@ export default function MissionsCard({ token, refreshKey, onClaimed }: { token: 
       <div className={`mt-4 flex items-center gap-3 rounded-xl p-3 ${bonus === 'ready' ? 'bg-green-soft' : 'bg-slate-50'}`}>
         <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-white text-2xl" aria-hidden>{bonus === 'claimed' ? '✅' : '🎁'}</span>
         <div className="min-w-0 flex-1">
-          <div className="text-sm font-extrabold">Sticker thưởng của tuần ({view.bonus.done}/{view.bonus.needed} nhiệm vụ)</div>
+          <div className="text-sm font-extrabold">Sticker thưởng của tuần ({view.bonus.done}/{view.bonus.needed})</div>
           <div className="text-xs text-muted">{bonusText(view.bonus)}</div>
         </div>
         {bonus === 'ready' && (

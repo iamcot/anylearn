@@ -105,7 +105,8 @@ export default function QuizPage() {
 
   const inGame = view.kind !== 'lobby'
   return (
-    <div className="mx-auto max-w-[720px] px-4 pb-28 pt-5 lg:px-0 lg:pb-12 lg:pt-8">
+    // the bottom padding grows with the fixed "Chơi tiếp" bar (FixedBar publishes its height), so it never covers the last row
+    <div className="mx-auto max-w-[720px] px-4 pb-[calc(7rem+var(--fixed-bar-h,0px))] pt-5 lg:px-0 lg:pb-[calc(3rem+var(--fixed-bar-h,0px))] lg:pt-8">
       {view.kind === 'lobby'
         ? <Link href="/fun" className="inline-flex min-h-11 items-center gap-1 text-sm font-bold text-text no-underline"><ChevronLeftIcon className="size-4" /> Vui học</Link>
         : view.kind === 'result'

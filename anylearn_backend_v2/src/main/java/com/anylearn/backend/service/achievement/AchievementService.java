@@ -82,7 +82,7 @@ public class AchievementService {
 
     /** The newest banners of a person, for the Vui học page. */
     public List<Map<String, Object>> mine(long userId, int limit) {
-        return jdbc.queryForList("SELECT token, type, title, subtitle, icon, created_at AS createdAt, shares FROM achievements WHERE user_id = ? ORDER BY id DESC LIMIT " + Math.max(1, Math.min(limit, 50)), userId);
+        return jdbc.queryForList("SELECT token, type, title, subtitle, icon, created_at AS createdAt, shares FROM achievements WHERE user_id = ? ORDER BY id DESC LIMIT " + Math.max(1, Math.min(limit, 200)), userId);
     }
 
     public void countOpen(String token) {

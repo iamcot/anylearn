@@ -1,12 +1,11 @@
 'use client'
 
-import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { getFunAccess, getCheckin, type CheckinStatus, type FunAccess } from '@/lib/api/fun'
 import FunScene from '@/components/fun/FunScene'
 import BrandText from '@/components/fun/BrandText'
-import CoinWalletCard from '@/components/fun/CoinWalletCard'
+import FunShortcuts from '@/components/fun/FunShortcuts'
 import MissionsCard from '@/components/fun/MissionsCard'
 import MyAchievements from '@/components/fun/share/MyAchievements'
 import ExploreBrowser from '@/components/fun/explore/ExploreBrowser'
@@ -66,29 +65,11 @@ export default function FunPage() {
       {!error && access?.checkin !== false && !status && <div className="mt-4 h-[250px] animate-pulse rounded-[22px] bg-slate-200" />}
       {status && token && <div className="mt-4"><FunScene token={token} initial={status} reminder={reminder} childName={childName} onClaimed={() => setClaims(n => n + 1)} /></div>}
 
-      {token && status && <CoinWalletCard token={token} refreshKey={claims} />}
+      {token && access && <FunShortcuts access={access} />}
       {token && status && access?.checkin !== false && <MissionsCard token={token} refreshKey={claims} onClaimed={() => setClaims(n => n + 1)} />}
       {token && status && <MyAchievements key={claims} token={token} />}
 
       {access && !access.checkin && !access.quiz && !access.sticker && !access.explore && <p className="mt-4 rounded-2xl bg-white p-4 text-center text-sm text-muted ring-1 ring-line">Vui học đang thử nghiệm với một nhóm nhỏ, bạn sẽ được chơi sớm thôi!</p>}
-
-      {access?.quiz !== false && <Link href="/fun/quiz" className="mt-4 flex items-center gap-3 rounded-2xl border border-line bg-white p-3 text-ink no-underline">
-        <img src="/fun/leo_rank.png" alt="" className="size-16 shrink-0 rounded-xl object-contain" />
-        <div className="min-w-0 flex-1"><div className="font-bold"><BrandText text="Leo rank" /></div><div className="text-sm text-muted">Trả lời câu hỏi, lên hạng và nhận quà</div></div>
-        <span aria-hidden className="text-muted">›</span>
-      </Link>}
-
-      {access?.sticker !== false && <Link href="/fun/sticker" className="mt-4 flex items-center gap-3 rounded-2xl border border-line bg-white p-3 text-ink no-underline">
-        <img src="/fun/leo_sticker.png" alt="" className="size-16 shrink-0 rounded-xl object-contain" />
-        <div className="min-w-0 flex-1"><div className="font-bold">Sticker</div><div className="text-sm text-muted">Sưu tầm bộ sticker, đổi với bạn bè và mời bạn nhận quà</div></div>
-        <span aria-hidden className="text-muted">›</span>
-      </Link>}
-
-      {access?.explore !== false && <Link href="/fun/explore" className="mt-4 flex items-center gap-3 rounded-2xl border border-line bg-white p-3 text-ink no-underline">
-        <img src="/fun/leo_discovery.png" alt="" className="size-16 shrink-0 rounded-xl object-contain" />
-        <div className="min-w-0 flex-1"><div className="font-bold">Khám phá</div><div className="text-sm text-muted">Mẹo nuôi dạy con, clip và hình ảnh vui</div></div>
-        <span aria-hidden className="text-muted">›</span>
-      </Link>}
 
       {token && access && access.explore !== false && <ExploreBrowser token={token} />}
     </div>
