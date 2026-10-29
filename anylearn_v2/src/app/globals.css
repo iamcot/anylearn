@@ -549,6 +549,15 @@ body {
 @keyframes arena-wave { 0%, 100% { transform: rotate(0) } 50% { transform: rotate(-22deg) } }
 @keyframes arena-bob { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-1.5px) } }
 @keyframes arena-pop { from { transform: scale(1.5); opacity: .2 } to { transform: scale(1); opacity: 1 } }
+.arena-row-up, .arena-row-down { position: relative; animation: arena-slide 1s cubic-bezier(.22,.9,.3,1) .15s both }
+.arena-row-up:not(.bg-blue-soft), .arena-row-down:not(.bg-blue-soft) { background-color: #fff }
+.arena-row-up { z-index: 1; animation-name: arena-slide, arena-flash-up }
+.arena-row-down { animation-name: arena-slide, arena-flash-down }
+.arena-row-new { animation: arena-fadein .7s ease-out .15s both }
+@keyframes arena-slide { from { transform: translateY(calc(var(--dy) * 100%)) } to { transform: none } }
+@keyframes arena-flash-up { 0%, 60% { box-shadow: inset 4px 0 0 #00c853, 0 0 14px rgba(0,200,83,.45) } 100% { box-shadow: inset 0 0 0 transparent, 0 0 0 transparent } }
+@keyframes arena-flash-down { 0%, 60% { box-shadow: inset 4px 0 0 #ff6b6b } 100% { box-shadow: inset 0 0 0 transparent } }
+@keyframes arena-fadein { from { opacity: 0; transform: translateY(-8px) } to { opacity: 1; transform: none } }
 .arena-go { animation: arena-pulse 1.6s infinite }
 .arena-wave { transform-origin: 22px 20px; animation: arena-wave 1.1s ease-in-out infinite }
 .arena-bob { animation: arena-bob 2.4s ease-in-out infinite }
@@ -557,5 +566,6 @@ body {
 .arena-in { color: #00c853; text-shadow: 0 0 8px rgba(0, 230, 118, .75) }
 .arena-in::before { content: ""; display: inline-block; width: 7px; height: 7px; margin-right: 5px; border-radius: 50%; background: #00e676; box-shadow: 0 0 8px #00e676; animation: arena-blink 1.4s infinite }
 @media (prefers-reduced-motion: reduce) {
+  .arena-row-up, .arena-row-down, .arena-row-new { animation: none }
   .arena-title__fill, .arena-go, .arena-wave, .arena-bob, .arena-blink, .arena-count, .arena-in::before { animation: none }
 }

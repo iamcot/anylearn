@@ -10,6 +10,7 @@ import ArenaRulesSheet from './ArenaRulesSheet'
 import ArenaTitle from './ArenaTitle'
 import LeoArena from './LeoArena'
 import { useMyRankKey } from './useMyRankKey'
+import { useRankMotion } from './useRankMotion'
 
 function Avatar({ name, size = 30 }: { name: string; size?: number }) {
   return <span className="grid shrink-0 place-items-center rounded-full font-extrabold text-white" style={{ width: size, height: size, background: avatarColor(name), fontSize: size * 0.4 }}>{initial(name)}</span>
@@ -28,9 +29,10 @@ function PreRow({ row }: { row: ArenaBoardRow }) {
   )
 }
 
-function LiveRow({ row, me }: { row: { rank: number | null; name: string; score?: number; correctMs?: number; lastCorrect?: boolean }; me: boolean }) {
+function LiveRow({ row, me, move }: { row: { rank: number | null; name: string; score?: number; correctMs?: number; lastCorrect?: boolean }; me: boolean; move?: number | null }) {
+  const motion = move === undefined ? '' : move === null ? 'arena-row-new' : move > 0 ? 'arena-row-up' : 'arena-row-down'
   return (
-    <li className={`grid grid-cols-[30px_30px_minmax(0,1fr)_auto] items-center gap-2 border-b border-[#f0f4f8] px-3 py-2 last:border-0 ${me ? 'bg-blue-soft' : ''}`}>
+    <li style={typeof move === 'number' ? ({ '--dy': move } as React.CSSProperties) : undefined} className={`${motion} grid grid-cols-[30px_30px_minmax(0,1fr)_auto] items-center gap-2 border-b border-[#f0f4f8] px-3 py-2 last:border-0 ${me ? 'bg-blue-soft' : ''}`}>
       <span className="text-center font-extrabold tabular-nums text-muted">{row.rank ?? '–'}</span>
       <Avatar name={row.name} />
       <span className="min-w-0 truncate font-bold text-ink">{row.name}{me ? ' (bạn)' : ''}
@@ -68,6 +70,7 @@ export default function ArenaLobby({ token, lobby, phase, now, onRegistered }: {
   const rankKey = useMyRankKey(token)
   const [sheet, setSheet] = useState(false)
   const rows = lobby.board ?? []
+  const { keys, moves } = useRankMotion(lobby.sessionId ?? null, lobby.lastFinished ?? 0, rows, !!lobby.started)
   const startsAt = lobby.startsAt ?? 0
   const total = lobby.questionCount ?? 0
   const dayPast = lobby.endedSessionId != null && phase.kind === 'before'
@@ -123,7 +126,7 @@ export default function ArenaLobby({ token, lobby, phase, now, onRegistered }: {
             </div>
             {rows.length === 0
               ? <p className="m-0 px-3 py-6 text-center text-sm text-muted">{pre ? 'Chưa có ai trong danh sách. Hãy là người đầu tiên!' : 'Chưa có ai ghi điểm.'}</p>
-              : <ul className="m-0 list-none p-0">{rows.map((r, i) => (pre ? <PreRow key={i} row={r} /> : <LiveRow key={i} row={r} me={r.me} />))}</ul>}
+              : <ul className="m-0 list-none p-0">{rows.map((r, i) => (pre ? <PreRow key={keys[i]} row={r} /> : <LiveRow key={keys[i]} row={r} me={r.me} move={moves[keys[i]]} />))}</ul>}
           </div>
           {pinned && <ul className="sticky bottom-[calc(var(--app-tabs-h,0px)+0.5rem)] m-0 mt-2 list-none overflow-hidden rounded-[14px] border border-[#bcd9f5] bg-white p-0 shadow-[0_6px_16px_-10px_rgba(0,83,155,.5)]"><LiveRow row={pinned} me /></ul>}
         </>
