@@ -157,6 +157,29 @@ public class ExploreService {
         return rows.isEmpty() || !settings.enabled() ? null : decorate(rows, false).get(0);
     }
 
+    /**
+     * A published post for a visitor without an account (a shared link, plan 19.A3): the post, its slug and the newest
+     * visible comments, read only and with the short name only. Null when the post is not published or Khám phá is off.
+     */
+    public Map<String, Object> publicPost(long postId, int commentCount) {
+        if (!settings.enabled()) return null;
+        List<Map<String, Object>> rows = jdbc.queryForList("SELECT " + POST_COLUMNS + ", 0 AS likedByMe" + POST_FROM + "WHERE p.id = ? AND p.status = 'published'", postId);
+        if (rows.isEmpty()) return null;
+        Map<String, Object> post = decorate(rows, false).get(0);
+        for (String key : List.of("approved", "hiddenBy", "reviewNote", "afterUpload", "status")) post.remove(key);
+        post.put("slug", com.anylearn.backend.service.seo.SeoRules.slug((String) post.get("title")));
+        List<Map<String, Object>> comments = settings.commentsEnabled() ? comments(postId, 0, 0, commentCount) : List.of();
+        comments.forEach(c -> c.remove("mine"));
+        post.put("previewComments", comments);
+        post.put("commentsEnabled", settings.commentsEnabled());
+        return post;
+    }
+
+    /** A visitor without an account opened a post: only the counter (nothing to remember them by). */
+    public void countPublicView(long postId) {
+        jdbc.update("UPDATE explore_posts SET views = views + 1 WHERE id = ? AND status = 'published'", postId);
+    }
+
     /** Published posts matching words in the title, the description or a tag name: Meilisearch, or SQL when it is down. */
     public Map<String, Object> search(long userId, String rawQ, int page, int size) {
         String q = rawQ == null ? "" : rawQ.trim();

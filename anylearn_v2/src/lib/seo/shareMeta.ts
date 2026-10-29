@@ -30,7 +30,7 @@ export function shareMeta(key: ShareCardKey, override: { title?: string; descrip
  * Metadata of a detail page (course, article, partner, collection): its own text and picture, the home card picture when it has
  * none. Without it the page would show the og:title of the home page that the root layout sets.
  */
-export function detailMeta({ title, description, ogTitle, image }: { title: string; description?: string; ogTitle?: string; image?: string | null }): Metadata {
+export function detailMeta({ title, description, ogTitle, image, path }: { title: string; description?: string; ogTitle?: string; image?: string | null; path?: string }): Metadata {
   const shareTitle = ogTitle ?? title
   const images: OgImages = image ? [{ url: image }] : shareImages('home')
   return {
@@ -38,5 +38,7 @@ export function detailMeta({ title, description, ogTitle, image }: { title: stri
     description,
     openGraph: { type: 'website', siteName: 'anyLEARN', locale: 'vi_VN', title: shareTitle, description, images },
     twitter: { card: 'summary_large_image', title: shareTitle, description, images: image ? [image] : [shareImagePath('home')] },
+    // one address per page for search engines (plan 19.A2), so tracking parameters and old slugs count as the same page
+    ...(path ? { alternates: { canonical: path } } : {}),
   }
 }

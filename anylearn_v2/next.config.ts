@@ -36,6 +36,15 @@ const nextConfig: NextConfig = {
       { source: "/today/fun/:path*", destination: "/fun/:path*", permanent: true },
       { source: "/today/community", destination: "/community", permanent: true },
       { source: "/today/community/:path*", destination: "/community/:path*", permanent: true },
+      // Old shared links of a Khám phá post (plan 19.A3): /fun/explore?p=ID → /fun/explore/ID, which adds the slug.
+      // Links inside the app carry `from` (list, mine) and stay on the viewer.
+      {
+        source: "/fun/explore",
+        has: [{ type: "query", key: "p", value: "(?<post>\\d+)" }],
+        missing: [{ type: "query", key: "from" }],
+        destination: "/fun/explore/:post",
+        statusCode: 301,
+      },
     ];
   },
 

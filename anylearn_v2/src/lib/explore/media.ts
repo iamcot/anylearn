@@ -1,3 +1,5 @@
+import { slugify } from '@/lib/seo/slug'
+
 export type VideoSource = { kind: 'file'; src: string } | { kind: 'youtube'; src: string } | { kind: 'hls'; src: string }
 
 /** How a clip link is played: a YouTube link becomes an embed, anything else is a video file. */
@@ -20,9 +22,14 @@ export function countText(n: number): string {
   return `${Math.round(n / 1000)}K`
 }
 
-/** The link a post is shared with; it opens the viewer on that post. */
-export function postLink(origin: string, id: number): string {
-  return `${origin.replace(/\/+$/, '')}/fun/explore?p=${id}`
+/** The public address of a post (plan 19.A3): anyone can watch it there without an account. */
+export function postPath(id: number, title?: string | null): string {
+  return `/fun/explore/${id}/${slugify(title)}`
+}
+
+/** The link a post is shared with. */
+export function postLink(origin: string, id: number, title?: string | null): string {
+  return `${origin.replace(/\/+$/, '')}${postPath(id, title)}`
 }
 
 /** A picture for a grid tile: the photo, the clip's poster, a YouTube thumbnail, the Bunny thumbnail, or null (article). */
