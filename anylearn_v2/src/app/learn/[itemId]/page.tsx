@@ -28,6 +28,8 @@ function LearnPage() {
   const [lesson, setLesson] = useState<PlayInfo | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [countdown, setCountdown] = useState<number | null>(null)
+  // chapters the learner opened or closed by hand (a flip of the automatic state)
+  const [flipped, setFlipped] = useState<Set<number>>(new Set())
 
   const learnerId = learnerParam ?? outline?.learnerId ?? null
 
@@ -87,6 +89,7 @@ function LearnPage() {
   const percent = outline?.percent ?? 0
   const locked = error && lesson == null && lessonId != null && outline && !outline.access
   let no = 0
+  const doneCount = outline?.chapters.reduce((n, c) => n + c.lessons.filter(l => l.completed).length, 0) ?? 0
 
   return (
     <div className="min-h-screen bg-bg pb-24">
@@ -100,15 +103,15 @@ function LearnPage() {
             {outline?.access && user && (
               <div className="flex items-center gap-2">
                 <div className="h-1.5 max-w-[200px] flex-1 overflow-hidden rounded-full bg-bg"><div className="h-full rounded-full bg-green" style={{ width: `${percent}%` }} /></div>
-                <span className="text-xs font-bold text-green-dark">{percent}%</span>
+                <span className="text-xs font-bold text-green-dark">{percent >= 100 ? '✓ Hoàn thành' : `${percent}%`}</span>
               </div>
             )}
           </div>
         </div>
       </div>
 
-      <div className="container grid gap-6 pt-4 lg:grid-cols-[1fr_360px]">
-        <div className="min-w-0">
+      <div className="container grid gap-5 pt-4 lg:grid-cols-[1fr_360px]">
+        <div className="min-w-0 lg:col-start-1 lg:row-start-1">
           {outline?.learners && outline.learners.length > 1 && (
             <div className="mb-3 flex flex-wrap items-center gap-2 text-sm">
               <span className="text-muted">Người học:</span>
@@ -127,6 +130,14 @@ function LearnPage() {
                 mark={user?.phone ? `anyLEARN · ${user.phone.slice(-4)}` : null}
                 onProgress={onProgress}
                 onEnded={() => { if (lesson.nextLessonId && !lesson.nextLocked) setCountdown(5) }} />
+              {(lesson.prevLessonId || (lesson.nextLessonId && !lesson.nextLocked)) && (
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <button type="button" disabled={!lesson.prevLessonId} onClick={() => lesson.prevLessonId && goTo(lesson.prevLessonId)}
+                    className="btn btn--outline min-h-11 py-2 text-sm disabled:opacity-40">‹ Bài trước</button>
+                  <button type="button" disabled={!lesson.nextLessonId || lesson.nextLocked} onClick={() => lesson.nextLessonId && goTo(lesson.nextLessonId)}
+                    className="btn btn--green min-h-11 py-2 text-sm disabled:opacity-40">Bài tiếp ›</button>
+                </div>
+              )}
               {countdown != null && lesson.nextLessonId && (
                 <div className="mt-3 flex items-center justify-between gap-3 rounded-card bg-navy p-3 text-white">
                   <span className="min-w-0 truncate text-sm">Bài tiếp theo sau {countdown} giây: <b>{lesson.nextTitle}</b></span>
@@ -147,10 +158,6 @@ function LearnPage() {
                   </ul>
                 </div>
               )}
-              <div className="mt-4 flex flex-wrap gap-2">
-                {lesson.prevLessonId && <button type="button" onClick={() => goTo(lesson.prevLessonId!)} className="btn btn--outline py-2 text-sm">‹ Bài trước</button>}
-                {lesson.nextLessonId && !lesson.nextLocked && <button type="button" onClick={() => goTo(lesson.nextLessonId!)} className="btn btn--green py-2 text-sm">Bài tiếp ›</button>}
-              </div>
               {!lesson.access && (
                 <div className="mt-5 rounded-card border border-green bg-green-soft p-4">
                   <div className="mb-1 font-extrabold text-green-dark">Bạn đang học thử miễn phí</div>
@@ -174,51 +181,68 @@ function LearnPage() {
             <div className="aspect-video animate-pulse rounded-card bg-line" />
           )}
 
-          {token && outline?.access && learnerId && (
-            <div className="mt-5"><StudyPlanForm token={token} learnerId={learnerId} itemId={itemId} /></div>
-          )}
+        </div>
+
+        <aside className="lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:sticky lg:top-20 lg:max-h-[calc(100vh-100px)] lg:self-start lg:overflow-y-auto">
+          <div className="mb-2 flex items-baseline justify-between gap-2">
+            <span className="text-sm font-extrabold text-ink">Nội dung khóa học</span>
+            {outline && <span className="text-xs text-muted">{outline.access && user ? `${doneCount}/${outline.totalLessons} bài đã học` : `${outline.totalLessons} bài`}</span>}
+          </div>
+          <div className="flex flex-col gap-3">
+            {outline?.chapters.map((ch, ci) => {
+              const holdsCurrent = ch.lessons.some(l => l.id === lesson?.id)
+              const auto = outline.chapters.length <= 3 || holdsCurrent
+              const open = flipped.has(ch.id) ? !auto : auto
+              const done = ch.lessons.filter(l => l.completed).length
+              return (
+                <div key={ch.id} className="overflow-hidden rounded-card border border-line bg-white">
+                  <button type="button" aria-expanded={open} onClick={() => setFlipped(f => { const n = new Set(f); if (n.has(ch.id)) n.delete(ch.id); else n.add(ch.id); return n })}
+                    className="flex w-full items-center justify-between gap-2 bg-bg px-3 py-2.5 text-left">
+                    <span className="min-w-0 truncate text-xs font-extrabold text-ink">Chương {ci + 1}: {ch.title}</span>
+                    <span className="flex shrink-0 items-center gap-2 text-[11px] text-muted">
+                      {outline.access && user ? `${done}/${ch.lessons.length}` : `${ch.lessons.length} bài`}
+                      <span aria-hidden className={`inline-block transition-transform ${open ? 'rotate-180' : ''}`}>▾</span>
+                    </span>
+                  </button>
+                  {open && (
+                    <ul className="m-0 list-none p-0">
+                      {ch.lessons.map(l => {
+                        no += 1
+                        const current = l.id === lesson?.id
+                        const playable = !l.locked && l.playable
+                        return (
+                          <li key={l.id}>
+                            <button type="button" disabled={!playable} onClick={() => goTo(l.id)}
+                              className={`flex min-h-12 w-full items-center gap-2.5 border-t border-line px-3 py-2.5 text-left ${current ? 'bg-green-soft' : ''} ${playable ? '' : 'opacity-60'}`}>
+                              <span className={`grid size-6 shrink-0 place-items-center rounded-full text-[11px] font-bold ${l.completed ? 'bg-green text-white' : current ? 'bg-white text-green-dark' : 'bg-bg text-muted'}`}>
+                                {l.completed ? <CheckIcon className="size-3.5" /> : current ? <PlayIcon className="size-3" /> : no}
+                              </span>
+                              <span className="min-w-0 flex-1">
+                                <span className={`block text-sm leading-snug ${current ? 'font-extrabold text-green-dark' : 'font-semibold text-ink'}`}>{l.title}</span>
+                                <span className="text-[11px] text-muted">
+                                  {current ? 'Đang học · ' : ''}{l.durationSeconds ? clock(l.durationSeconds) : l.type === 'text' ? 'Bài đọc' : ''}
+                                  {l.free && !outline.access ? ' · Học thử' : ''}{!l.playable ? ' · sắp có' : ''}
+                                </span>
+                              </span>
+                              {l.locked && <LockIcon className="size-4 shrink-0 text-subtle" />}
+                            </button>
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </aside>
+
+        <div className="min-w-0 lg:col-start-1 lg:row-start-2">
+          {token && outline?.access && learnerId && <StudyPlanForm token={token} learnerId={learnerId} itemId={itemId} />}
           {token && outline?.access && learnerId && percent >= SUGGEST_FROM_PERCENT && (
             <VideoSuggestions token={token} itemId={itemId} learnerId={learnerId} done={percent >= 100} />
           )}
         </div>
-
-        <aside className="lg:sticky lg:top-20 lg:max-h-[calc(100vh-100px)] lg:overflow-y-auto">
-          <div className="mb-2 text-sm font-extrabold text-ink">
-            Nội dung khóa học{outline ? ` · ${outline.totalLessons} bài` : ''}
-          </div>
-          <div className="flex flex-col gap-3">
-            {outline?.chapters.map((ch, ci) => (
-              <div key={ch.id} className="overflow-hidden rounded-card border border-line bg-white">
-                <div className="bg-bg px-3 py-2 text-xs font-extrabold text-ink">Chương {ci + 1}: {ch.title}</div>
-                <ul className="m-0 list-none p-0">
-                  {ch.lessons.map(l => {
-                    no += 1
-                    const current = l.id === lesson?.id
-                    const open = !l.locked && l.playable
-                    return (
-                      <li key={l.id}>
-                        <button type="button" disabled={!open} onClick={() => goTo(l.id)}
-                          className={`flex w-full items-center gap-2.5 border-t border-line px-3 py-2.5 text-left ${current ? 'bg-green-soft' : ''} ${open ? '' : 'opacity-60'}`}>
-                          <span className={`grid size-6 shrink-0 place-items-center rounded-full text-[11px] font-bold ${l.completed ? 'bg-green text-white' : current ? 'bg-white text-green-dark' : 'bg-bg text-muted'}`}>
-                            {l.completed ? <CheckIcon className="size-3.5" /> : current ? <PlayIcon className="size-3" /> : no}
-                          </span>
-                          <span className="min-w-0 flex-1">
-                            <span className={`block truncate text-sm ${current ? 'font-extrabold text-green-dark' : 'font-semibold text-ink'}`}>{l.title}</span>
-                            <span className="text-[11px] text-muted">
-                              {l.durationSeconds ? clock(l.durationSeconds) : l.type === 'text' ? 'Bài đọc' : ''}
-                              {l.free && !outline.access ? ' · Học thử' : ''}{!l.playable ? ' · sắp có' : ''}
-                            </span>
-                          </span>
-                          {l.locked && <LockIcon className="size-4 shrink-0 text-subtle" />}
-                        </button>
-                      </li>
-                    )
-                  })}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </aside>
       </div>
     </div>
   )
