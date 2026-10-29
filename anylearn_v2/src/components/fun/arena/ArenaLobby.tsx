@@ -19,7 +19,7 @@ function Avatar({ name, size = 30 }: { name: string; size?: number }) {
 
 function PreRow({ row }: { row: ArenaBoardRow }) {
   return (
-    <li className={`grid grid-cols-[30px_30px_minmax(0,1fr)_auto] items-center gap-2 border-b border-[#f0f4f8] px-3 py-2 last:border-0 ${row.me ? 'bg-blue-soft' : ''}`}>
+    <li className={`grid grid-cols-[30px_30px_minmax(0,1fr)_auto] items-center gap-2 border-b border-[#f0f4f8] px-3 py-2 first:rounded-t-[inherit] last:rounded-b-[inherit] last:border-0 ${row.me ? 'bg-blue-soft' : ''}`}>
       <span className="text-center font-extrabold tabular-nums text-muted">{row.rank}</span>
       <Avatar name={row.name} />
       <span className="truncate font-bold text-ink">{row.name}{row.me ? ' (bạn)' : ''}</span>
@@ -35,7 +35,7 @@ function PreRow({ row }: { row: ArenaBoardRow }) {
 function LiveRow({ row, me, move }: { row: { rank: number | null; name: string; score?: number; correctMs?: number; lastCorrect?: boolean }; me: boolean; move?: number | null }) {
   const motion = move === undefined ? '' : move === null ? 'arena-row-new' : move > 0 ? 'arena-row-up' : 'arena-row-down'
   return (
-    <li style={typeof move === 'number' ? ({ '--dy': move } as React.CSSProperties) : undefined} className={`${motion} grid grid-cols-[30px_30px_minmax(0,1fr)_auto] items-center gap-2 border-b border-[#f0f4f8] px-3 py-2 last:border-0 ${me ? 'bg-blue-soft' : ''}`}>
+    <li style={typeof move === 'number' ? ({ '--dy': move } as React.CSSProperties) : undefined} className={`${motion} grid grid-cols-[30px_30px_minmax(0,1fr)_auto] items-center gap-2 border-b border-[#f0f4f8] px-3 py-2 first:rounded-t-[inherit] last:rounded-b-[inherit] last:border-0 ${me ? 'bg-blue-soft' : ''}`}>
       <span className="text-center font-extrabold tabular-nums text-muted">{row.rank ?? '–'}</span>
       <Avatar name={row.name} />
       <span className="min-w-0 truncate font-bold text-ink">{row.name}{me ? ' (bạn)' : ''}

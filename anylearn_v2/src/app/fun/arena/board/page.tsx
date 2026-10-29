@@ -31,7 +31,7 @@ const TOP_TINT = ['from-[#fff7d6]', 'from-[#f1f4f8]', 'from-[#fbeee4]']
 function TopRow({ row, coin }: { row: ArenaResultRow; coin: string }) {
   const place = row.rank as 1 | 2 | 3
   return (
-    <li className={`grid grid-cols-[44px_40px_minmax(0,1fr)_auto] items-center gap-2.5 border-b border-[#f0f4f8] bg-gradient-to-r ${TOP_TINT[place - 1]} to-white p-3 ${row.me ? 'ring-2 ring-inset ring-green' : ''}`}>
+    <li className={`grid grid-cols-[44px_40px_minmax(0,1fr)_auto] items-center gap-2.5 border-b border-[#f0f4f8] bg-gradient-to-r ${TOP_TINT[place - 1]} to-white p-3 first:rounded-t-[inherit] ${row.me ? 'ring-2 ring-inset ring-green first:rounded-t-[inherit] last:rounded-b-[inherit]' : ''}`}>
       <span className="flex items-center gap-0.5 text-lg font-black text-ink"><ArenaMedal place={place} />{row.rank}</span>
       <Avatar name={row.name} size={40} />
       <span className="min-w-0">
@@ -45,7 +45,7 @@ function TopRow({ row, coin }: { row: ArenaResultRow; coin: string }) {
 
 function Row({ row, coin }: { row: ArenaResultRow; coin: string }) {
   return (
-    <li className={`grid grid-cols-[30px_30px_minmax(0,1fr)_auto] items-center gap-2 border-b border-[#f0f4f8] px-3 py-2 last:border-0 ${row.me ? 'bg-blue-soft' : ''}`}>
+    <li className={`grid grid-cols-[30px_30px_minmax(0,1fr)_auto] items-center gap-2 border-b border-[#f0f4f8] px-3 py-2 first:rounded-t-[inherit] last:rounded-b-[inherit] last:border-0 ${row.me ? 'bg-blue-soft' : ''}`}>
       <span className="text-center font-extrabold tabular-nums text-muted">{row.rank}</span>
       <Avatar name={row.name} size={30} />
       <span className="min-w-0 truncate font-bold text-ink">{row.name}{row.me ? ' (bạn)' : ''}
