@@ -26,6 +26,7 @@ import Collections from './pages/Collections'
 import Pathways from './pages/Pathways'
 import AiSuggestions from './pages/AiSuggestions'
 import AiUsage from './pages/AiUsage'
+import Acquisition from './pages/Acquisition'
 import OperationSettings from './pages/OperationSettings'
 import ItemGaps from './pages/ItemGaps'
 import AllReviews from './pages/AllReviews'
@@ -127,6 +128,7 @@ export default function App() {
                   <Route path="pathways" element={<Pathways />} />
                   <Route path="ai-suggestions" element={<AiSuggestions />} />
                   <Route path="ai-usage" element={<AiUsage />} />
+                  <Route path="acquisition" element={<Acquisition />} />
                   <Route path="operations" element={<OperationSettings />} />
                   <Route path="item-gaps" element={<ItemGaps />} />
                   <Route path="reviews" element={<AllReviews />} />

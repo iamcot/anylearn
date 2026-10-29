@@ -35,6 +35,7 @@ const NAV_GROUPS = [
   { key: 'g-content', type: 'group', label: 'Nội dung & phân tích', children: [
     { key: '/articles',         icon: <FileTextOutlined />,    label: 'Bài viết'   },
     { key: '/search-insights',  icon: <LineChartOutlined />,   label: 'Xu hướng nhu cầu' },
+    { key: '/acquisition',      icon: <FundOutlined />,        label: 'Nguồn khách' },
     { key: '/ai-suggestions',   icon: <RobotOutlined />,       label: 'Gợi ý AI' },
     { key: '/ai-usage',         icon: <RobotOutlined />,       label: 'Dùng AI (token)' },
   ] },
