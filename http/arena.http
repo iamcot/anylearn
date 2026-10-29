@@ -31,3 +31,11 @@ Content-Type: application/json
 ### Leaderboard of a day (no sessionId = the latest finished one)
 GET {{baseUrl}}/arena/board
 Authorization: Bearer {{jwtToken}}
+
+### Lobby of a custom arena
+POST {{baseUrl}}/arena/lobby?sessionId=1
+Authorization: Bearer {{jwtToken}}
+
+### Is the custom arena closed?
+GET {{baseUrl}}/arena/custom-state?sessionId=1
+Authorization: Bearer {{jwtToken}}

@@ -1,4 +1,4 @@
-import { Alert, Button, Card, Checkbox, Col, Flex, Form, Input, InputNumber, Popconfirm, Row, Select, Space, Statistic, Switch, Table, Tabs, Tag, Typography, message } from 'antd'
+import { Alert, Button, Card, Checkbox, Col, DatePicker, Flex, Form, Input, InputNumber, Popconfirm, Row, Select, Space, Statistic, Switch, Table, Tabs, Tag, Typography, message } from 'antd'
 import { ArrowLeftOutlined } from '@ant-design/icons'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -7,7 +7,7 @@ import client from '../api/client'
 import { fmtDateTime } from '../utils/format'
 
 const STATUS = {
-  scheduled: ['Chờ mở phòng', 'blue'], live: ['Đang chạy', 'green'], done: ['Đã xong', 'default'], cancelled: ['Đã hủy', 'red'],
+  waiting: ['Chưa bắt đầu', 'orange'], scheduled: ['Chờ mở phòng', 'blue'], live: ['Đang chạy', 'green'], done: ['Đã xong', 'default'], cancelled: ['Đã hủy', 'red'],
 }
 const PHASE_TEXT = {
   before: 'Chưa mở phòng', open: 'Phòng đã mở, chờ câu 1', countdown: 'Đang đếm ngược', question: 'Đang có câu hỏi', reveal: 'Đang xem đáp án', lobby: 'Giữa hai câu', ended: 'Đã kết thúc',
@@ -172,9 +172,15 @@ function Config() {
 }
 
 function Questions() {
-  const qc = useQueryClient()
   const { data: overview } = useAdminGet(['admin-arena-overview'], '/admin/arena/overview')
-  const id = overview?.session?.id
+  const rooms = overview?.session
+  if (!rooms?.id) return <Alert type="warning" showIcon message="Chưa có trận nào." />
+  return <QuestionsPanel id={rooms.id} intro={<>Trận ngày <b>{rooms.day}</b>. Mỗi câu khóa lại khi bắt đầu đếm ngược của câu đó.</>} canRepick={rooms.status === 'scheduled' && rooms.phase === 'before'} />
+}
+
+/** The question table of one session: swap a question for another of the same level and topic, or by id; pick the whole set again when allowed. */
+function QuestionsPanel({ id, intro, canRepick }) {
+  const qc = useQueryClient()
   const { data, isLoading } = useAdminGet(['admin-arena-session', id], `/admin/arena/sessions/${id}`, { enabled: !!id, refetchInterval: 10000 })
   const [pick, setPick] = useState({})
   const refresh = () => qc.invalidateQueries({ queryKey: ['admin-arena-session', id] })
@@ -186,7 +192,6 @@ function Questions() {
     mutationFn: () => client.post(`/admin/arena/sessions/${id}/repick`).then(r => r.data),
     onSuccess: res => (res.resultCode === 1 ? (message.success('Đã chọn lại cả trận'), refresh()) : message.error(res.message)),
   })
-  const rooms = overview?.session
   const columns = [
     { title: 'Câu', dataIndex: 'qNo', width: 56 },
     { title: 'Giờ', dataIndex: 'at', width: 80, render: v => new Date(v).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) },
@@ -206,17 +211,110 @@ function Questions() {
       </Space>
     ) },
   ]
-  if (!id) return <Alert type="warning" showIcon message="Chưa có trận nào." />
-  const canRepick = rooms && rooms.status === 'scheduled' && rooms.phase === 'before'
   return (
     <div>
       <Flex justify="space-between" align="center" style={{ marginBottom: 8 }} wrap gap={8}>
-        <Typography.Text>Trận ngày <b>{rooms?.day}</b>. Mỗi câu khóa lại khi bắt đầu đếm ngược của câu đó.</Typography.Text>
+        <Typography.Text>{intro}</Typography.Text>
         <Popconfirm title="Chọn lại toàn bộ câu hỏi của trận?" okText="Chọn lại" cancelText="Không" onConfirm={() => repick.mutate()} disabled={!canRepick}>
           <Button disabled={!canRepick} loading={repick.isPending}>Chọn lại cả trận</Button>
         </Popconfirm>
       </Flex>
       <Table size="small" rowKey="qNo" columns={columns} dataSource={data?.questions ?? []} pagination={false} loading={isLoading} scroll={{ x: 900 }} />
+    </div>
+  )
+}
+
+const CUSTOM_PHASE = { ...PHASE_TEXT, before: 'Phòng đang mở, chờ bắt đầu', open: 'Đếm ngược 1 phút trước câu 1' }
+
+/** "Đấu trường riêng": the arena the back office creates, starts and closes by hand. */
+function Custom() {
+  const qc = useQueryClient()
+  const { data, isLoading } = useAdminGet(['admin-arena-custom'], '/admin/arena/custom', { refetchInterval: 5000 })
+  const [form] = Form.useForm()
+  const s = data?.session
+  const refresh = () => qc.invalidateQueries({ queryKey: ['admin-arena-custom'] })
+  const call = useMutation({
+    mutationFn: ({ method = 'post', url, body }) => client[method](url, body).then(r => r.data),
+    onSuccess: (res, v) => {
+      if (res.resultCode !== 1) return message.error(res.message)
+      message.success(v.done ?? 'Đã xong')
+      if (v.reset) form.resetFields()
+      refresh()
+    },
+  })
+
+  const create = values => call.mutate({
+    url: '/admin/arena/custom', done: 'Đã tạo đấu trường riêng, banner cam đã hiện ở trang Vui học', reset: true,
+    body: { title: values.title, expectedAt: values.expectedAt ? values.expectedAt.valueOf() : null, questionCount: values.questionCount, answerSeconds: values.answerSeconds },
+  })
+
+  if (!isLoading && !s) {
+    return (
+      <div>
+        <Alert type="info" showIcon style={{ marginBottom: 16 }}
+          message="Tạo một trận riêng (cho một lớp, một sự kiện…). Banner màu cam hiện ngay ở trang Vui học, phía trên banner tự động; người chơi vào phòng chờ được liền. Bạn bấm Bắt đầu khi sẵn sàng, sau đó có 1 phút đếm ngược rồi vào câu 1. Bảng xếp hạng chỉ có người chơi trận này, không tự trao quà." />
+        <Form form={form} layout="vertical" onFinish={create} initialValues={{ questionCount: 20, answerSeconds: 15 }} style={{ maxWidth: 520 }}>
+          <Form.Item name="title" label="Tên đấu trường (hiện trên banner)" rules={[{ required: true, message: 'Nhập tên' }]}><Input maxLength={80} placeholder="Ví dụ: Thi đấu lớp Sao Mai" showCount /></Form.Item>
+          <Form.Item name="expectedAt" label="Thời gian dự kiến bắt đầu (chỉ để thông báo, không tự chạy)"><DatePicker showTime={{ format: 'HH:mm' }} format="DD/MM/YYYY HH:mm" style={{ width: '100%' }} /></Form.Item>
+          <Flex gap={12}>
+            <Form.Item name="questionCount" label="Số câu hỏi" rules={[{ required: true }]}><InputNumber min={3} max={50} /></Form.Item>
+            <Form.Item name="answerSeconds" label="Giây trả lời mỗi câu" rules={[{ required: true }]}><InputNumber min={5} max={120} /></Form.Item>
+          </Flex>
+          <Button type="primary" htmlType="submit" loading={call.isPending}>Tạo đấu trường riêng</Button>
+        </Form>
+        {(data?.history ?? []).length > 0 && (
+          <Card size="small" title="Các đấu trường riêng gần đây" style={{ marginTop: 20 }}>
+            <Table size="small" rowKey="id" pagination={false} dataSource={data.history}
+              columns={[{ title: 'Tên', dataIndex: 'title' }, { title: 'Ngày', dataIndex: 'day', width: 110 }, { title: 'Người chơi', dataIndex: 'players', width: 100, align: 'right' }, { title: 'Trạng thái', dataIndex: 'status', width: 120, render: v => <Tag>{v === 'cancelled' ? 'Đã đóng' : (STATUS[v] ?? [v])[0]}</Tag> }]} />
+          </Card>
+        )}
+      </div>
+    )
+  }
+  if (!s) return null
+  const [statusText, color] = s.waiting ? STATUS.waiting : (STATUS[s.status] ?? [s.status, 'default'])
+  const phaseText = s.waiting ? 'Chờ bạn bấm Bắt đầu' : s.phase === 'question' ? `Câu ${s.qNo}/${s.questionCount} đang mở, còn ${s.secondsLeft ?? 0} giây` : s.phase === 'countdown' ? `Đếm ngược câu ${s.qNo}` : CUSTOM_PHASE[s.phase]
+  const tCols = [
+    { title: '#', dataIndex: 'rank', width: 50 },
+    { title: 'Người chơi', render: (_, r) => <span>{r.name} <span style={{ color: '#999' }}>{r.phone}</span> {r.flagged && <Tag color="red">cờ</Tag>}</span> },
+    { title: 'Điểm', dataIndex: 'score', align: 'right', width: 70 },
+    { title: 'Giây', dataIndex: 'correctMs', align: 'right', width: 80, render: v => (v / 1000).toFixed(1).replace('.', ',') },
+  ]
+  return (
+    <div>
+      <Flex align="center" gap={12} wrap style={{ background: '#fff7e6', border: '1px solid #ffd591', borderRadius: 10, padding: '10px 12px', marginBottom: 14 }}>
+        <Tag color={color}>{statusText}</Tag>
+        <b>{s.title}</b>
+        {s.expectedAt && <span>Dự kiến {fmtDateTime(s.expectedAt)}</span>}
+        <span>{phaseText}</span>
+        {!s.waiting && <span>Câu 1 lúc {new Date(s.startsAt).toLocaleTimeString('vi-VN')}</span>}
+        <span style={{ flex: 1 }} />
+        <Button onClick={() => window.open(`/fun/arena?custom=${s.id}`, '_blank')}>Xem như người chơi</Button>
+        {s.waiting && (
+          <Popconfirm title="Bắt đầu ngay? Có 1 phút đếm ngược rồi vào câu 1, không đổi câu hỏi được nữa." okText="Bắt đầu" cancelText="Không" onConfirm={() => call.mutate({ url: `/admin/arena/custom/${s.id}/start`, done: 'Đã bắt đầu, còn 1 phút' })}>
+            <Button type="primary" loading={call.isPending}>Bắt đầu (đếm ngược 1 phút)</Button>
+          </Popconfirm>
+        )}
+        <Popconfirm title="Đóng đấu trường? Banner biến mất và những người đang trong phòng bị đưa về trang Vui học." okText="Đóng" cancelText="Không" okButtonProps={{ danger: true }} onConfirm={() => call.mutate({ url: `/admin/arena/custom/${s.id}/close`, done: 'Đã đóng đấu trường riêng' })}>
+          <Button danger>Đóng đấu trường</Button>
+        </Popconfirm>
+      </Flex>
+      <Row gutter={[12, 12]} style={{ marginBottom: 16 }}>
+        <Col xs={12} md={6}><Card size="small"><Statistic title="Đang trong phòng" value={s.inRoom ?? 0} /></Card></Col>
+        <Col xs={12} md={6}><Card size="small"><Statistic title="Đã trả lời" value={s.players ?? 0} /></Card></Col>
+        <Col xs={12} md={6}><Card size="small"><Statistic title={s.qNo ? `Trả lời câu ${s.qNo}` : 'Trả lời câu hiện tại'} value={s.answeredCurrent ?? 0} /></Card></Col>
+        <Col xs={12} md={6}><Card size="small"><Statistic title="Đúng ở câu hiện tại" value={s.correctRate ?? 0} suffix="%" /></Card></Col>
+      </Row>
+      <Row gutter={16}>
+        <Col xs={24} lg={15}>
+          <Typography.Title level={5}>Câu hỏi</Typography.Title>
+          <QuestionsPanel id={s.id} intro={s.waiting ? 'Đổi câu hoặc chọn lại cả bộ trước khi bắt đầu.' : 'Mỗi câu khóa lại khi bắt đầu đếm ngược của câu đó.'} canRepick={s.waiting} />
+        </Col>
+        <Col xs={24} lg={9}>
+          <Typography.Title level={5}>Bảng xếp hạng (chỉ trận này)</Typography.Title>
+          <Table size="small" rowKey="userId" columns={tCols} dataSource={data?.top ?? []} pagination={false} scroll={{ x: 320 }} />
+        </Col>
+      </Row>
     </div>
   )
 }
@@ -228,6 +326,7 @@ function History() {
   const { data: detail } = useAdminGet(['admin-arena-session', open], `/admin/arena/sessions/${open}`, { enabled: !!open })
   const columns = [
     { title: 'Ngày', dataIndex: 'day', width: 110 },
+    { title: 'Loại', width: 150, render: (_, r) => (r.kind === 'custom' ? <Tag color="orange">Riêng: {r.title}</Tag> : <Tag color="green">Tự động</Tag>) },
     { title: 'Trạng thái', dataIndex: 'status', width: 120, render: v => <Tag color={(STATUS[v] ?? [])[1]}>{(STATUS[v] ?? [v])[0]}</Tag> },
     { title: 'Nhắc tôi', dataIndex: 'registered', align: 'right', width: 90 },
     { title: 'Người chơi', dataIndex: 'players', align: 'right', width: 100 },
@@ -311,6 +410,7 @@ export default function ArenaAdmin() {
   })
   const flagged = badges?.arenaFlagged ?? 0
   const items = [
+    { key: 'custom', label: 'Đấu trường riêng', children: <Custom /> },
     { key: 'live', label: 'Theo dõi hôm nay', children: <Live onGoQuestions={() => setTab('questions')} /> },
     { key: 'config', label: 'Cấu hình', children: <Config /> },
     { key: 'questions', label: 'Câu hỏi hôm nay', children: <Questions /> },

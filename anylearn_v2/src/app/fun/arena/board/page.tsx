@@ -84,8 +84,8 @@ function Board() {
     <div className="mx-auto max-w-[720px] px-4 pb-28 pt-5 lg:px-0 lg:pb-12 lg:pt-8">
       <Link href="/fun" className="mb-3 inline-flex items-center gap-1 text-sm font-bold text-muted no-underline"><ChevronLeftIcon className="size-4" /> Vui học</Link>
       <div className="mb-3 text-center">
-        <ArenaTitle className="text-2xl [font-family:var(--font-be-vietnam-pro),system-ui,sans-serif]" />
-        {info && <p className="m-0 mt-1 text-[12.5px] text-muted">{dateText(info.day)} · {info.questionCount} câu · {info.players} người chơi</p>}
+        <ArenaTitle text={info?.custom ? info.title : undefined} tone={info?.custom ? 'orange' : 'green'} className="text-2xl [font-family:var(--font-be-vietnam-pro),system-ui,sans-serif]" />
+        {info && <p className="m-0 mt-1 text-[12.5px] text-muted">{info.custom ? 'Đấu trường riêng' : dateText(info.day)} · {info.questionCount} câu · {info.players} người chơi</p>}
         {info && (prizes.length > 0 || (board?.rules?.rewardParticipation ?? 0) > 0) && (
           <p className="m-0 mt-1 text-[12.5px] font-bold text-green-dark">
             {prizes.length > 0 && <>Top 3: <BrandText text={`${prizes.join(' / ')} ${coin}`} coinName={coin} />{board?.rules?.rewardSticker ? ' + 1 sticker' : ''}</>}
@@ -96,7 +96,7 @@ function Board() {
       </div>
       {error && <p className="text-center text-warn-text" role="alert">{error}</p>}
       {!board && !error && <div className="h-[260px] animate-pulse rounded-[22px] bg-slate-200" />}
-      {board && board.days.length > 0 && (
+      {board && !info?.custom && board.days.length > 0 && (
         <div className="mb-2.5 flex gap-1.5 overflow-x-auto pb-1" role="tablist" aria-label="Các ngày gần nhất">
           {board.days.map(d => {
             const on = d.id === info?.id

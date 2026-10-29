@@ -25,6 +25,20 @@ export interface ArenaTimingFields {
   gapSeconds: number
 }
 
+/** The "đấu trường riêng" the back office runs by hand. `startsAt` is null until it is started (then it is a minute away). */
+export interface ArenaCustomBanner extends Partial<Omit<ArenaTimingFields, 'sessionId' | 'startsAt'>> {
+  sessionId: number
+  title: string
+  status: string
+  waiting: boolean
+  startsAt: number | null
+  /** The time the back office announced, or null. */
+  expectedAt: number | null
+  phase?: ArenaPhaseDto
+  inRoomCount?: number
+  rules?: { title: string; questionCount: number; answerSeconds: number; expectedAt: number | null }
+}
+
 export interface ArenaPhaseDto { kind: string; qNo: number; nextQNo: number; millisToNext: number }
 
 export interface ArenaBanner extends Partial<Omit<ArenaTimingFields, 'sessionId'>> {
@@ -40,7 +54,11 @@ export interface ArenaBanner extends Partial<Omit<ArenaTimingFields, 'sessionId'
   /** The session that ended today (the banner offers its result), or null. */
   endedSessionId?: number | null
   rules?: ArenaRules
+  /** The custom arena, or null / absent when there is none. */
+  custom?: ArenaCustomBanner | null
 }
+
+export type ArenaCustomRules = NonNullable<ArenaCustomBanner['rules']>
 
 export interface ArenaBoardRow {
   rank: number
@@ -49,18 +67,25 @@ export interface ArenaBoardRow {
   correctMs?: number
   lastCorrect?: boolean
   inRoom: boolean
-  status?: 'in_room' | 'registered'
+  status?: 'in_room' | 'registered' | 'away'
   me: boolean
 }
 
 export interface ArenaMe { name: string; rank: number | null; score: number; correctMs: number; lastCorrect?: boolean }
 
-export interface ArenaLobby extends Partial<Omit<ArenaTimingFields, 'sessionId'>> {
+export interface ArenaLobby extends Partial<Omit<ArenaTimingFields, 'sessionId' | 'startsAt'>> {
   serverNow: number
+  startsAt?: number | null
+  /** The custom arena was closed by the back office: leave. */
+  closed?: boolean
+  custom?: boolean
+  title?: string
+  waiting?: boolean
+  expectedAt?: number | null
   endedSessionId?: number | null
   sessionId?: number | null
   phase?: ArenaPhaseDto
-  rules?: ArenaRules
+  rules?: ArenaRules | ArenaCustomRules
   /** False before the first question is over: the board then lists who is in the room or registered. */
   started?: boolean
   lastFinished?: number
@@ -94,7 +119,7 @@ export interface ArenaResultRow { rank: number; name: string; score: number; cor
 export interface ArenaResultBoard {
   serverNow: number
   days: { id: number; day: string }[]
-  session: { id: number; day: string; questionCount: number; players: number } | null
+  session: { id: number; day: string; questionCount: number; players: number; custom?: boolean; title?: string } | null
   rules?: ArenaRules
   rows?: ArenaResultRow[]
   me?: { name: string; rank: number; score: number; correctMs: number; rewardCoins: number }
@@ -112,8 +137,12 @@ export function unregisterArena(token: string, sessionId: number) {
   return authFetch<{ registered: boolean; registeredCount: number }>(`/arena/register?sessionId=${sessionId}`, token, { method: 'DELETE' })
 }
 
-export function getArenaLobby(token: string) {
-  return authFetch<ArenaLobby>('/arena/lobby', token, { method: 'POST' })
+export function getArenaLobby(token: string, customId?: number) {
+  return authFetch<ArenaLobby>(`/arena/lobby${customId ? `?sessionId=${customId}` : ''}`, token, { method: 'POST' })
+}
+
+export function getArenaCustomState(token: string, sessionId: number) {
+  return authFetch<{ serverNow: number; closed: boolean }>(`/arena/custom-state?sessionId=${sessionId}`, token)
 }
 
 export function getArenaQuestion(token: string, sessionId: number, qNo: number) {

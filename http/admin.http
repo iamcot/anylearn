@@ -520,3 +520,22 @@ Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
 ###
 GET {{baseUrl}}/admin/arena/flags
 Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+### Custom arena: current
+GET {{baseUrl}}/admin/arena/custom
+Authorization: Bearer {{adminToken}}
+
+### Custom arena: create
+POST {{baseUrl}}/admin/arena/custom
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{"title": "Đấu trường 1/6", "expectedAt": 1798790400000, "questionCount": 10, "answerSeconds": 15}
+
+### Custom arena: start (1 minute countdown)
+POST {{baseUrl}}/admin/arena/custom/1/start
+Authorization: Bearer {{adminToken}}
+
+### Custom arena: close
+POST {{baseUrl}}/admin/arena/custom/1/close
+Authorization: Bearer {{adminToken}}

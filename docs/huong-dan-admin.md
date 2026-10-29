@@ -709,3 +709,7 @@ Chưa tạo thì khóa video dùng tạm thư viện Khám phá **không khóa l
 **Quà (Leo Xu, không phải anyPoint).** Top 1, 2, 3 nhận 300 / 200 / 100 Leo Xu và 1 sticker ngẫu nhiên, nếu đạt tối thiểu 3 điểm; top 3 còn nhận banner thành tích để chia sẻ. Mọi người khác trả lời được ít nhất 1 câu nhận **20 Leo Xu thưởng tham gia** (đặt 0 để tắt). Người bị gắn cờ không nhận quà top 3 (trừ khi bật "Vẫn trao quà cho người bị gắn cờ"). Mỗi người chỉ nhận một lần cho mỗi trận. Muốn trận có thêm kinh phí hãy xem **Vui học > Tiền game** để theo dõi lượng Leo Xu phát ra (nguồn "Đấu trường").
 
 **Cần nhớ.** Kho câu hỏi cần đủ câu ở các cấp độ và chủ đề đang bật; thiếu thì hệ thống lấy cấp độ gần nhất rồi mới lặp lại câu cũ. Câu đã ra không dùng lại trong 90 ngày (cấu hình được). Người vào muộn vẫn chơi các câu còn lại nhưng điểm các câu đã qua là 0.
+
+### Đấu trường riêng
+
+Tab "Đấu trường riêng" trong trang Đấu trường Leo. Tạo với tên và giờ dự kiến (chỉ để hiển thị), có thể chỉnh số câu (3 đến 50) và số giây mỗi câu. Quản lý câu hỏi như đấu trường tự động. Khi tạo, banner **màu cam** hiện ngay phía trên banner xanh và người chơi vào phòng chờ được. Bấm "Bắt đầu" bất cứ lúc nào: đồng hồ đếm ngược 1 phút rồi đấu như bình thường. Bảng xếp hạng chỉ có người chơi của đấu trường này, và **không tự trao quà**. Bấm "Đóng đấu trường" thì banner biến mất và mọi người trong phòng bị đưa về trang Vui học. Cùng lúc chỉ có một đấu trường riêng. Cuối mỗi đấu trường (tự động hay riêng) người chơi thấy popup chúc mừng top 3 kèm pháo hoa.

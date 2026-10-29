@@ -225,6 +225,10 @@ class ArenaFlowTest {
         assertEquals(1, jdbc.queryForObject("SELECT final_rank FROM arena_entries WHERE session_id = ? AND user_id = ?", Integer.class, id, a));
         assertEquals(0, jdbc.queryForObject("SELECT reward_coins FROM arena_entries WHERE session_id = ? AND user_id = ?", Integer.class, id, a));
         assertNull(jdbc.queryForObject("SELECT rewarded_at FROM arena_entries WHERE session_id = ? AND user_id = ?", java.sql.Timestamp.class, id, a));
+        // the result board of the custom arena
+        Map<String, Object> board = arena.board(a, id);
+        assertEquals(1, map(((List<?>) board.get("rows")).get(0)).get("rank"));
+        assertEquals(1, map(board.get("me")).get("rank"));
     }
 
     @Test

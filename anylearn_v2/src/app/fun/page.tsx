@@ -7,6 +7,7 @@ import FunScene from '@/components/fun/FunScene'
 import BrandText from '@/components/fun/BrandText'
 import FunShortcuts from '@/components/fun/FunShortcuts'
 import MissionsCard from '@/components/fun/MissionsCard'
+import ArenaCustomBanner from '@/components/fun/arena/ArenaCustomBanner'
 import ArenaBanner from '@/components/fun/arena/ArenaBanner'
 import MyAchievements from '@/components/fun/share/MyAchievements'
 import ExploreBrowser from '@/components/fun/explore/ExploreBrowser'
@@ -67,6 +68,7 @@ export default function FunPage() {
       {status && token && <div className="mt-4"><FunScene token={token} initial={status} reminder={reminder} childName={childName} onClaimed={() => setClaims(n => n + 1)} /></div>}
 
       {token && access && <FunShortcuts access={access} />}
+      {token && access?.arena && <ArenaCustomBanner token={token} />}
       {token && access?.arena && <ArenaBanner token={token} />}
       {token && status && access?.checkin !== false && <MissionsCard token={token} refreshKey={claims} onClaimed={() => setClaims(n => n + 1)} />}
       {token && status && <MyAchievements key={claims} token={token} />}

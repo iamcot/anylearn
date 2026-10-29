@@ -715,14 +715,14 @@ public class ArenaService {
         out.put("session", info);
         out.put("rules", s.custom() ? customRules(s) : rules());
         List<Map<String, Object>> rows = jdbc.queryForList(
-                "SELECT e.user_id AS userId, u.name AS name, e.final_rank AS rank, e.score AS score, e.correct_ms AS correctMs, e.reward_coins AS rewardCoins FROM arena_entries e " +
+                "SELECT e.user_id AS userId, u.name AS name, e.final_rank AS place, e.score AS score, e.correct_ms AS correctMs, e.reward_coins AS rewardCoins FROM arena_entries e " +
                         "JOIN users u ON u.id = e.user_id LEFT JOIN quiz_profiles p ON p.user_id = e.user_id " +
                         "WHERE e.session_id = ? AND e.final_rank IS NOT NULL AND e.disqualified = 0 AND e.answered > 0 " +
                         "AND (e.user_id = ? OR (COALESCE(p.hide_board, 0) = 0 AND COALESCE(p.board_blocked, 0) = 0)) ORDER BY e.final_rank ASC LIMIT 100", s.id(), userId);
         List<Map<String, Object>> shown = new ArrayList<>();
         for (Map<String, Object> r : rows) {
             Map<String, Object> m = new LinkedHashMap<>();
-            m.put("rank", r.get("rank"));
+            m.put("rank", r.get("place"));
             m.put("name", nameOf(r.get("name")));
             m.put("score", r.get("score"));
             m.put("correctMs", r.get("correctMs"));
@@ -731,10 +731,12 @@ public class ArenaService {
             shown.add(m);
         }
         out.put("rows", shown);
-        List<Map<String, Object>> mine = jdbc.queryForList("SELECT final_rank AS rank, score, correct_ms AS correctMs, reward_coins AS rewardCoins, answered FROM arena_entries WHERE session_id = ? AND user_id = ? AND final_rank IS NOT NULL", s.id(), userId);
+        List<Map<String, Object>> mine = jdbc.queryForList("SELECT final_rank AS place, score, correct_ms AS correctMs, reward_coins AS rewardCoins, answered FROM arena_entries WHERE session_id = ? AND user_id = ? AND final_rank IS NOT NULL", s.id(), userId);
         if (!mine.isEmpty() && ((Number) mine.get(0).get("answered")).intValue() > 0) {
             Map<String, Object> m = new LinkedHashMap<>(mine.get(0));
             m.remove("answered");
+            // `rank` is a reserved word in MySQL 8, so the column is read as `place`
+            m.put("rank", m.remove("place"));
             m.put("name", nameOf(jdbc.queryForObject("SELECT name FROM users WHERE id = ?", String.class, userId)));
             out.put("me", m);
         }
