@@ -60,7 +60,7 @@ export default function ArenaPodiumPopup({ token, sessionId, title, onClose }: {
                 <li key={r.rank} className={`grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl px-3 py-2.5 text-left ${r.me ? 'bg-[#e6f6ec] ring-2 ring-green' : 'bg-white ring-1 ring-line'}`}>
                   <span className="flex items-center gap-1"><ArenaMedal place={r.rank as 1 | 2 | 3} className={`${MEDAL[i]} shrink-0`} /></span>
                   <span className="min-w-0">
-                    <span className={`block truncate font-black text-ink ${SIZE[i]}`}>{r.name}{r.me ? ' (bạn)' : ''}</span>
+                    <span className={`block truncate font-black text-ink ${SIZE[i]}`}>{r.name}</span>
                     <span className="block truncate text-xs text-muted">{secondsText(r.correctMs)}{r.rewardCoins > 0 && <> · +{r.rewardCoins} <BrandText text={coin} coinName={coin} /></>}</span>
                   </span>
                   <span className={`font-black tabular-nums text-ink ${SCORE[i]}`}>{r.score}<small className="block text-[10px] font-semibold text-muted">điểm</small></span>

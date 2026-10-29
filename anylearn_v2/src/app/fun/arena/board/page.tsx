@@ -35,7 +35,7 @@ function TopRow({ row, coin }: { row: ArenaResultRow; coin: string }) {
       <span className="flex items-center gap-0.5 text-lg font-black text-ink"><ArenaMedal place={place} />{row.rank}</span>
       <Avatar name={row.name} size={40} />
       <span className="min-w-0">
-        <span className="block truncate text-[17px] font-black text-ink">{row.name}{row.me ? ' (bạn)' : ''}</span>
+        <span className="block truncate text-[17px] font-black text-ink">{row.name}</span>
         <span className="block truncate text-xs text-muted">{secondsText(row.correctMs)}{row.rewardCoins > 0 ? ` · +${row.rewardCoins} ` : ''}{row.rewardCoins > 0 && <BrandText text={coin} coinName={coin} />}</span>
       </span>
       <span className="text-right text-xl font-black tabular-nums text-ink">{row.score}<small className="block text-[10px] font-semibold text-muted">điểm</small></span>
@@ -48,7 +48,7 @@ function Row({ row, coin }: { row: ArenaResultRow; coin: string }) {
     <li className={`grid grid-cols-[30px_30px_minmax(0,1fr)_auto] items-center gap-2 border-b border-[#f0f4f8] px-3 py-2 first:rounded-t-[inherit] last:rounded-b-[inherit] last:border-0 ${row.me ? 'bg-blue-soft' : ''}`}>
       <span className="text-center font-extrabold tabular-nums text-muted">{row.rank}</span>
       <Avatar name={row.name} size={30} />
-      <span className="min-w-0 truncate font-bold text-ink">{row.name}{row.me ? ' (bạn)' : ''}
+      <span className="min-w-0 truncate font-bold text-ink">{row.name}
         <span className="text-[11px] font-medium text-muted"> · {secondsText(row.correctMs)}{row.me && row.rewardCoins > 0 ? ` · +${row.rewardCoins} ${coin}` : ''}</span></span>
       <span className="text-right font-black tabular-nums text-ink">{row.score}<small className="block text-[10px] font-semibold text-muted">điểm</small></span>
     </li>
