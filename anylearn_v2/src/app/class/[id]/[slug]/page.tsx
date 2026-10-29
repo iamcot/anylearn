@@ -22,7 +22,7 @@ import { CYCLE_LABELS, SUBTYPE_LABELS } from '@/config/itemLabels'
 import { formatSchedule } from '@/lib/format/schedule'
 import CompareToggle from '@/components/compare/CompareToggle'
 import CompareWhenActive from '@/components/compare/CompareWhenActive'
-import VideoOutline, { VideoHeroCta } from '@/components/learn/VideoOutline'
+import VideoOutline, { VideoHeroCta, VideoRegisterButton } from '@/components/learn/VideoOutline'
 
 function formatAge(min?: number, max?: number) {
   if (!min && !max) return null
@@ -198,7 +198,9 @@ export default async function PdpPage({ params }: Props) {
               )}
 
               {item.subtype === 'video' && <VideoHeroCta itemId={item.id} />}
-              <RegisterButton itemId={item.id} price={item.price} />
+              {item.subtype === 'video'
+                ? <VideoRegisterButton itemId={item.id} price={item.price} />
+                : <RegisterButton itemId={item.id} price={item.price} />}
               <ActivityButton itemId={item.id}
                 activiyTrial={item.activiyTrial} activiyTest={item.activiyTest} activiyVisit={item.activiyVisit} />
               <PromiseStrip />
