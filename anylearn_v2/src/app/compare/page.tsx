@@ -1,8 +1,9 @@
 import { Suspense } from 'react'
 import type { Metadata } from 'next'
 import CompareView from '@/components/compare/CompareView'
+import { shareMeta } from '@/lib/seo/shareMeta'
 
-export const metadata: Metadata = { title: 'So sánh khóa học | anyLEARN', robots: { index: false } }
+export const metadata: Metadata = { ...shareMeta('compare'), robots: { index: false } }
 
 export default function ComparePage() {
   return (

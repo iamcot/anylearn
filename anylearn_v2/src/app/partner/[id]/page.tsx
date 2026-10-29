@@ -8,6 +8,7 @@ import FollowButton from '@/components/partner/FollowButton'
 import ReviewItem from '@/components/reviews/ReviewItem'
 import ReviewSummaryCard from '@/components/reviews/ReviewSummaryCard'
 import { PinIcon, SchoolIcon, UserIcon } from '@/components/icons'
+import { detailMeta } from '@/lib/seo/shareMeta'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -23,7 +24,11 @@ function mapLink(place: { lat?: number | null; lng?: number | null; address?: st
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const profile = await getUserProfile(Number((await params).id))
   if (!profile) return { title: 'Đối tác | anyLEARN' }
-  return { title: `${profile.name} | anyLEARN`, description: profile.introduce ?? `Các khóa học của ${profile.name} trên anyLEARN.` }
+  return detailMeta({
+    title: `${profile.name} | anyLEARN`,
+    description: profile.introduce ?? `Các khóa học của ${profile.name} trên anyLEARN.`,
+    image: profile.banner || profile.image,
+  })
 }
 
 export default async function PartnerPage({ params }: Props) {

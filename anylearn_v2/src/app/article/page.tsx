@@ -5,11 +5,9 @@ import ChevronLabel from '@/components/ChevronLabel'
 import ArticleTypeLabel from '@/components/article/ArticleTypeLabel'
 import { BookIcon, ChevronLeftIcon, ChevronRightIcon } from '@/components/icons'
 import { ARTICLE_TYPE_FILTERS } from '@/config/articleTypes'
+import { shareMeta } from '@/lib/seo/shareMeta'
 
-export const metadata: Metadata = {
-  title: 'Bài viết & Kiến thức giáo dục | anyLEARN',
-  description: 'Khám phá các bài viết hữu ích về giáo dục, kỹ năng và hành trình học tập của con.',
-}
+export const metadata: Metadata = shareMeta('article')
 
 const PAGE_SIZE = 12
 

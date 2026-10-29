@@ -15,6 +15,7 @@ import { leoLines, type LeoContext } from '@/lib/fun/leo'
 import { Leo, LeoBubble, useLeoWalk } from './Leo'
 import SceneBackground from './SceneBackground'
 import CoinIcon from './CoinIcon'
+import InviteFunButton from './InviteFunButton'
 
 // Leo says one line after another; the key remounts this when the context changes so the first line shows at once.
 function LeoSpeech({ lines }: { lines: string[] }) {
@@ -110,6 +111,8 @@ export default function FunScene({ token, initial, reminder, childName, onClaime
           <span className="mt-1 text-xs font-extrabold [text-shadow:0_1px_3px_rgba(0,0,0,.45)]">Leo rank</span>
         </Link>
       )}
+      {/* The claim chips use the same corner, so the invite button steps aside while they show. */}
+      {!(phase.kind === 'claimed' && (phase.sticker || phase.item)) && <InviteFunButton token={token} className="absolute right-3 top-14" />}
       {phase.kind === 'claimed' && (phase.sticker || phase.item) && (
         <div className="absolute right-3 top-12 flex flex-col items-end gap-1.5">
           {phase.sticker && (

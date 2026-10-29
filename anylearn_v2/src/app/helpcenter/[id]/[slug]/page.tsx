@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { API_BASE } from '@/lib/apiBase'
 import BackLink from '@/components/BackLink'
 import { formatDate } from '@/lib/format/date'
+import { detailMeta } from '@/lib/seo/shareMeta'
 
 interface ArticleData {
   id: number; title: string; url: string; content: string; updatedAt?: string
@@ -22,7 +23,7 @@ async function fetchArticle(id: string): Promise<ArticleData | null> {
 export async function generateMetadata({ params }: { params: Promise<{ id: string; slug: string }> }): Promise<Metadata> {
   const { id } = await params
   const article = await fetchArticle(id)
-  return { title: article ? `${article.title} - anyLEARN` : 'Bài viết - anyLEARN' }
+  return detailMeta({ title: article ? `${article.title} - anyLEARN` : 'Bài viết - anyLEARN' })
 }
 
 export default async function KnowledgeArticlePage({ params }: { params: Promise<{ id: string; slug: string }> }) {

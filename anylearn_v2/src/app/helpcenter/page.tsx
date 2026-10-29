@@ -2,6 +2,7 @@ import { Metadata } from 'next'
 import Link from 'next/link'
 import { API_BASE } from '@/lib/apiBase'
 import { ChevronRightIcon } from '@/components/icons'
+import { shareMeta } from '@/lib/seo/shareMeta'
 
 interface KnowledgeItem { id: number; title: string; url: string }
 interface HelpcenterData {
@@ -9,7 +10,7 @@ interface HelpcenterData {
   topics: { id: number; title: string; url: string; image?: string; description?: string }[]
 }
 
-export const metadata: Metadata = { title: 'Trung tâm hỗ trợ - anyLEARN' }
+export const metadata: Metadata = shareMeta('helpcenter', { title: 'Trung tâm hỗ trợ - anyLEARN' })
 
 async function fetchHelpcenter(): Promise<HelpcenterData | null> {
   try {
