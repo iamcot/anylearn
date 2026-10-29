@@ -520,3 +520,18 @@ body {
   0% { transform: translateX(0) skewX(-20deg); }
   55%, 100% { transform: translateX(90px) skewX(-20deg); }
 }
+
+/* A band of light running round the edge of a box (rare stickers, achievement cards). The box needs `position: relative`
+   and a border radius; `--glow-c` is the colour of the band. Without @property support the band stays still. */
+@property --glow-a { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+.glow-ring { --glow-c: #22c55e; --glow-w: 3px; }
+.glow-ring::before { content: ''; position: absolute; inset: calc(var(--glow-w) * -1); border-radius: inherit; padding: var(--glow-w); pointer-events: none; z-index: 1;
+  background: conic-gradient(from var(--glow-a), transparent 0 62%, var(--glow-c) 78%, #fff 84%, var(--glow-c) 90%, transparent 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  animation: glow-run 2.8s linear infinite; }
+.glow-rare { --glow-c: #3b82f6; }
+.glow-epic { --glow-c: #d946ef; }
+.glow-gold { --glow-c: #f59e0b; }
+@keyframes glow-run { to { --glow-a: 360deg; } }
+@media (prefers-reduced-motion: reduce) { .glow-ring::before { animation: none; } }

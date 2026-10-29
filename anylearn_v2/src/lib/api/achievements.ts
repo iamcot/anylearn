@@ -29,8 +29,8 @@ export async function getPublicAchievement(token: string): Promise<PublicAchieve
   }
 }
 
-export function getMyAchievements(token: string) {
-  return authFetch<Achievement[]>('/achievements?limit=20', token)
+export function getMyAchievements(token: string, limit = 20) {
+  return authFetch<Achievement[]>(`/achievements?limit=${limit}`, token)
 }
 
 export function countAchievementOpen(token: string) {
