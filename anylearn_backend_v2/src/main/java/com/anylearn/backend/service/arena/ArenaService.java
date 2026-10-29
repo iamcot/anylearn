@@ -248,9 +248,10 @@ public class ArenaService {
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("serverNow", clock.millis());
         out.put("enabled", settings.enabled());
+        if (!settings.featureEnabled()) return out;
+        out.put("custom", customBanner(userId));
         if (!settings.enabled()) return out;
         lazyEnsure();
-        out.put("custom", customBanner(userId));
         Session s = current();
         out.put("endedSessionId", endedToday());
         if (s == null) {
@@ -404,8 +405,8 @@ public class ArenaService {
     }
 
     private Session open(long sessionId) {
-        if (!settings.enabled()) throw new IllegalStateException("Đấu trường Leo đang tạm đóng");
         Session s = session(sessionId);
+        if (!settings.featureEnabled() || (s != null && !s.custom() && !settings.enabled())) throw new IllegalStateException("Đấu trường Leo đang tạm đóng");
         if (s == null || "cancelled".equals(s.status())) throw new IllegalStateException("Không tìm thấy trận này");
         return s;
     }
@@ -432,7 +433,7 @@ public class ArenaService {
 
     /** The lobby of the automatic arena, or of the custom one when {@code sessionId} is sent. A closed custom arena answers {@code closed: true}. */
     public Map<String, Object> lobby(long userId, Long sessionId) {
-        if (!settings.enabled()) throw new IllegalStateException("Đấu trường Leo đang tạm đóng");
+        if (!settings.featureEnabled() || (sessionId == null && !settings.enabled())) throw new IllegalStateException("Đấu trường Leo đang tạm đóng");
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("serverNow", clock.millis());
         Session s;
@@ -681,7 +682,7 @@ public class ArenaService {
 
     /** The board of a finished session (the newest one when no id). */
     public Map<String, Object> board(long userId, Long sessionId) {
-        if (!settings.enabled()) throw new IllegalStateException("Đấu trường Leo đang tạm đóng");
+        if (!settings.featureEnabled()) throw new IllegalStateException("Đấu trường Leo đang tạm đóng");
         Session s;
         if (sessionId == null) {
             List<Session> rows = jdbc.query("SELECT " + SESSION_COLS + " FROM arena_sessions WHERE kind = 'auto' AND status = 'done' ORDER BY day DESC LIMIT 1", (rs, i) -> mapSession(rs));

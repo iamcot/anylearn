@@ -36,7 +36,8 @@ public class ArenaSettings {
 
     static {
         String g1 = "Bật tắt & lịch";
-        f("enabled", "Bật Đấu trường Leo", g1, BOOL, "1", 0, 1);
+        f("feature_enabled", "Bật chức năng Đấu trường Leo (cả tự động và riêng)", g1, BOOL, "1", 0, 1);
+        f("enabled", "Bật đấu trường tự động (tắt thì đấu trường riêng vẫn chạy)", g1, BOOL, "1", 0, 1);
         f("days", "Các ngày chạy (1 = thứ Hai … 7 = Chủ nhật)", g1, CSV, "1,2,3,4,5,6,7", 1, 7);
         f("start_time", "Giờ bắt đầu câu 1 (HH:mm)", g1, TIME, "20:00", 0, 0);
         f("open_minutes", "Mở phòng trước giờ bắt đầu (phút)", g1, INT, "10", 1, 60);
@@ -100,7 +101,11 @@ public class ArenaSettings {
         return "1".equals(raw(key).trim());
     }
 
-    public boolean enabled() { return flag("enabled"); }
+    /** The automatic daily arena (its own switch, inside the feature switch). */
+    public boolean enabled() { return featureEnabled() && flag("enabled"); }
+
+    /** The whole feature: the automatic and the custom arena. */
+    public boolean featureEnabled() { return flag("feature_enabled"); }
 
     public Set<DayOfWeek> days() {
         Set<DayOfWeek> days = ArenaRules.parseDays(raw("days"));

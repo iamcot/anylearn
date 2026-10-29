@@ -113,7 +113,7 @@ function Config() {
 
   const groups = useMemo(() => {
     const out = []
-    for (const f of data?.fields ?? []) {
+    for (const f of (data?.fields ?? []).filter(x => x.key !== 'feature_enabled')) {
       let g = out.find(x => x.name === f.group)
       if (!g) { g = { name: f.group, fields: [] }; out.push(g) }
       g.fields.push(f)
@@ -392,7 +392,7 @@ export default function ArenaAdmin() {
   const { data: settings } = useAdminGet(['admin-arena-settings'], '/admin/arena/settings')
   const { data: badges } = useQuery({ queryKey: ['admin-badges'], queryFn: () => client.get('/admin/badges').then(r => r.data?.data ?? {}), refetchInterval: 60000 })
   const toggle = useMutation({
-    mutationFn: enabled => client.put('/admin/arena/settings', { enabled }).then(r => r.data),
+    mutationFn: enabled => client.put('/admin/arena/settings', { feature_enabled: enabled }).then(r => r.data),
     onSuccess: res => {
       if (res.resultCode !== 1) return message.error(res.message)
       qc.invalidateQueries({ queryKey: ['admin-arena-settings'] })
@@ -425,8 +425,8 @@ export default function ArenaAdmin() {
       <Flex justify="space-between" align="center" wrap gap={8}>
         <Typography.Title level={4} style={{ marginTop: 0 }}>Đấu trường Leo</Typography.Title>
         <Flex align="center" gap={8}>
-          <span>Bật chức năng</span>
-          <Switch checked={settings?.values?.enabled ?? false} loading={toggle.isPending} onChange={v => toggle.mutate(v)} />
+          <span>Bật chức năng (cả tự động và riêng)</span>
+          <Switch checked={settings?.values?.feature_enabled ?? false} loading={toggle.isPending} onChange={v => toggle.mutate(v)} />
           <Select style={{ width: 230 }} value={access?.modes?.arena ?? 'all'} onChange={v => setMode.mutate(v)} loading={setMode.isPending}
             options={[{ value: 'all', label: 'Mở cho mọi người' }, { value: 'testers', label: 'Chỉ nhóm thử' }, { value: 'off', label: 'Đóng (admin vẫn vào được)' }]} />
         </Flex>

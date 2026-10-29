@@ -332,7 +332,7 @@ public class ArenaAdminService {
     /** The "Đấu trường riêng" tab: the live custom arena with its questions and ranking, or null, plus the last ones. */
     public Map<String, Object> custom() {
         Map<String, Object> out = new LinkedHashMap<>();
-        out.put("enabled", settings.enabled());
+        out.put("enabled", settings.featureEnabled());
         out.put("serverNow", clock.millis());
         Session s = arena.customCurrent();
         if (s == null) {

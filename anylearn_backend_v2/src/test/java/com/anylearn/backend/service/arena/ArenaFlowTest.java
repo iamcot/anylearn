@@ -232,6 +232,21 @@ class ArenaFlowTest {
     }
 
     @Test
+    void automaticSwitchLeavesTheCustomArenaAliveAndFeatureSwitchClosesBoth() {
+        long a = user();
+        clock.at("2026-10-29T19:00:00");
+        long id = arena.createCustom("Riêng", null, 3, 15).id();
+        assertNull(settings.save(Map.of("enabled", false)));
+        assertEquals(false, arena.banner(a).get("enabled"));
+        assertNotNull(arena.banner(a).get("custom"));
+        assertEquals(true, arena.lobby(a, id).get("custom"));
+        assertThrows(IllegalStateException.class, () -> arena.lobby(a));
+        assertNull(settings.save(Map.of("feature_enabled", false)));
+        assertNull(arena.banner(a).get("custom"));
+        assertThrows(IllegalStateException.class, () -> arena.lobby(a, id));
+    }
+
+    @Test
     void remindersGoOnceToThoseWhoRegistered() {
         long a = user();
         long b = user();
