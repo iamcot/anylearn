@@ -120,6 +120,10 @@ export interface ArenaResultBoard {
   serverNow: number
   days: { id: number; day: string }[]
   session: { id: number; day: string; questionCount: number; players: number; custom?: boolean; title?: string } | null
+  /** The session is known but its final ranking is not ready yet. */
+  pending?: boolean
+  custom?: boolean
+  title?: string
   rules?: ArenaRules
   rows?: ArenaResultRow[]
   me?: { name: string; rank: number; score: number; correctMs: number; rewardCoins: number }

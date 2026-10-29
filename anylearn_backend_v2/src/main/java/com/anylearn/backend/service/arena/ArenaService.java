@@ -687,15 +687,25 @@ public class ArenaService {
     public Map<String, Object> board(long userId, Long sessionId) {
         if (!settings.featureEnabled()) throw new IllegalStateException("Đấu trường Leo đang tạm đóng");
         Session s;
+        Session pending = null;
         if (sessionId == null) {
             List<Session> rows = jdbc.query("SELECT " + SESSION_COLS + " FROM arena_sessions WHERE kind = 'auto' AND status = 'done' ORDER BY day DESC LIMIT 1", (rs, i) -> mapSession(rs));
             s = rows.isEmpty() ? null : rows.get(0);
         } else {
             s = session(sessionId);
-            if (s != null && !"done".equals(s.status())) s = null;
+            if (s != null && !"done".equals(s.status())) {
+                // a known session whose ranking is not final yet: the page waits and still knows whose result it is
+                pending = s;
+                s = null;
+            }
         }
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("serverNow", clock.millis());
+        if (pending != null && !"cancelled".equals(pending.status())) {
+            out.put("pending", true);
+            out.put("custom", pending.custom());
+            out.put("title", pending.title());
+        }
         List<Map<String, Object>> days = jdbc.queryForList("SELECT id, day FROM arena_sessions WHERE kind = 'auto' AND status = 'done' ORDER BY day DESC LIMIT 14");
         out.put("days", days.stream().map(d -> {
             Map<String, Object> m = new LinkedHashMap<>();

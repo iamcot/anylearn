@@ -75,7 +75,7 @@ function Board() {
   useEffect(() => { load() }, [load])
 
   // a result opened a moment after the end is still being counted: ask again until the ranking is final
-  const counting = wanted != null && board != null && !board.session
+  const counting = wanted != null && board != null && !board.session && board.pending === true
   useEffect(() => {
     if (!counting) return
     const t = setInterval(load, 2500)
@@ -85,6 +85,8 @@ function Board() {
   const rows = board?.rows ?? []
   const coin = board?.rules?.coinName ?? 'Leo Xu'
   const info = board?.session
+  const isCustom = info ? info.custom === true : board?.custom === true
+  const customTitle = info ? info.title : board?.title
   const apart = ownApart(rows, board?.me ? { me: true, rank: board.me.rank, name: board.me.name, score: board.me.score, correctMs: board.me.correctMs, rewardCoins: board.me.rewardCoins } : null)
   const prizes = (board?.rules?.rewardCoins ?? []).filter(c => c > 0)
 
@@ -92,7 +94,9 @@ function Board() {
     <div className="mx-auto max-w-[720px] px-4 pb-28 pt-5 lg:px-0 lg:pb-12 lg:pt-8">
       <Link href="/fun" className="mb-3 inline-flex items-center gap-1 text-sm font-bold text-muted no-underline"><ChevronLeftIcon className="size-4" /> Vui học</Link>
       <div className="mb-3 text-center">
-        <ArenaTitle text={info?.custom ? info.title : undefined} tone={info?.custom ? 'orange' : 'green'} className="text-2xl [font-family:var(--font-be-vietnam-pro),system-ui,sans-serif]" />
+        {(board || wanted == null) && (
+          <ArenaTitle text={isCustom ? customTitle : undefined} tone={isCustom ? 'orange' : 'green'} className="text-2xl [font-family:var(--font-be-vietnam-pro),system-ui,sans-serif]" />
+        )}
         {info && <p className="m-0 mt-1 text-[12.5px] text-muted">{info.custom ? 'Đấu trường riêng' : dateText(info.day)} · {info.questionCount} câu · {info.players} người chơi</p>}
         {info && (prizes.length > 0 || (board?.rules?.rewardParticipation ?? 0) > 0) && (
           <p className="m-0 mt-1 text-[12.5px] font-bold text-green-dark">
@@ -104,7 +108,7 @@ function Board() {
       </div>
       {error && <p className="text-center text-warn-text" role="alert">{error}</p>}
       {!board && !error && <div className="h-[260px] animate-pulse rounded-[22px] bg-slate-200" />}
-      {board && !info?.custom && board.days.length > 0 && (
+      {board && !isCustom && board.days.length > 0 && (
         <div className="mb-2.5 flex gap-1.5 overflow-x-auto pb-1" role="tablist" aria-label="Các ngày gần nhất">
           {board.days.map(d => {
             const on = d.id === info?.id
@@ -113,7 +117,7 @@ function Board() {
           })}
         </div>
       )}
-      {board && !info && <p className="rounded-2xl bg-white p-6 text-center text-sm text-muted ring-1 ring-line">{counting ? 'Đang tổng hợp kết quả…' : 'Chưa có trận nào kết thúc.'}</p>}
+      {board && !info && <p className="rounded-2xl bg-white p-6 text-center text-sm text-muted ring-1 ring-line">{counting ? 'Kết quả chung cuộc sắp được công bố, xin đợi trong giây lát.' : 'Chưa có trận nào kết thúc.'}</p>}
       {info && (
         <>
           <ul className="m-0 list-none overflow-hidden rounded-2xl border border-line bg-white p-0">
