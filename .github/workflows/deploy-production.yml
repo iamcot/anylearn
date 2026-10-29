@@ -289,7 +289,8 @@ jobs:
     name: Deploy Frontend
     runs-on: [self-hosted, production]
     needs: [build-frontend, deploy-backend]
-    if: ${{ !cancelled() && needs.build-frontend.result == 'success' && needs.deploy-backend.result == 'success' }}
+    # deploy-backend is in needs only so a new API goes live first; a frontend-only run skips it, which must not block this job
+    if: ${{ !cancelled() && needs.build-frontend.result == 'success' && (needs.deploy-backend.result == 'success' || needs.deploy-backend.result == 'skipped') }}
     steps:
       - name: Checkout deploy scripts
         uses: actions/checkout@v4
