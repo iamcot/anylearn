@@ -543,8 +543,8 @@ body {
   position: relative; z-index: 1; color: transparent;   background: linear-gradient(100deg, #ffe066 0%, #ffc700 30%, #fff9d6 45%, #ffc700 52%, #ff9f00 100%); background-size: 250% 100%;
   -webkit-background-clip: text; background-clip: text; animation: arena-sweep 2.6s linear infinite;
 }
-.arena-title--orange { --arena-edge: #4a1a00 }
-.arena-title--orange .arena-title__fill { background-image: linear-gradient(100deg, #fff1b8 0%, #ffd84d 30%, #ffffff 45%, #ffd84d 52%, #ff9f1c 100%); background-size: 250% 100% }
+.arena-title--orange { --arena-edge: #2e0b5e }
+.arena-title--orange .arena-title__fill { background-image: linear-gradient(100deg, #ffe066 0%, #ffc700 30%, #fff9d6 45%, #ffc700 52%, #ff9f00 100%); background-size: 250% 100% }
 @keyframes arena-sweep { from { background-position: 130% 0 } to { background-position: -120% 0 } }
 @keyframes arena-pulse { 0% { box-shadow: 0 0 0 0 rgba(57, 255, 136, .6) } 70% { box-shadow: 0 0 0 10px rgba(57, 255, 136, 0) } 100% { box-shadow: 0 0 0 0 rgba(57, 255, 136, 0) } }
 @keyframes arena-blink { 50% { opacity: .25 } }

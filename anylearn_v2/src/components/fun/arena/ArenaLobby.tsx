@@ -90,7 +90,7 @@ export default function ArenaLobby({ token, lobby, phase, now, onRegistered }: {
   return (
     <div className="mx-auto max-w-[720px] px-4 pb-28 pt-5 lg:px-0 lg:pb-12 lg:pt-8">
       <Link href="/fun" className="mb-3 inline-flex items-center gap-1 text-sm font-bold text-muted no-underline"><ChevronLeftIcon className="size-4" /> Vui học</Link>
-      <div className="relative overflow-hidden rounded-[20px] p-3.5 text-[#dfe9f8]" style={{ background: custom ? 'linear-gradient(160deg, #ff8a1f, #d9480f 80%)' : 'linear-gradient(160deg, #0d2a4d, #071b33)' }}>
+      <div className="relative overflow-hidden rounded-[20px] p-3.5 text-[#dfe9f8]" style={{ background: custom ? 'linear-gradient(160deg, #8b5cf6, #4c1d95 80%)' : 'linear-gradient(160deg, #0d2a4d, #071b33)' }}>
         <div className="max-w-[calc(100%-80px)] overflow-x-clip"><ArenaTitle text={custom ? lobby.title : undefined} tone={custom ? 'orange' : 'green'} className={`${custom && (lobby.title?.length ?? 0) > 16 ? 'text-[22px]' : 'text-[28px]'} [font-family:var(--font-be-vietnam-pro),system-ui,sans-serif]`} /></div>
         <div className="mt-1.5">
           <button type="button" onClick={() => setSheet(true)} className="cursor-pointer border-0 border-b border-dotted border-[#cfe0ff]/60 bg-transparent p-0 text-[13px] font-semibold text-[#cfe0ff]">{custom ? 'Đấu trường riêng là gì?' : 'Đấu trường Leo là gì?'}</button>

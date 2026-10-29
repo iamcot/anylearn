@@ -27,7 +27,7 @@ export default function CustomRulesSheet({ rules, onClose }: { rules: ArenaCusto
           <li>Bằng điểm thì ai có tổng thời gian trả lời đúng ít hơn xếp trên.</li>
           <li>Bảng xếp hạng chỉ có những người chơi trận này. Phần thưởng (nếu có) do ban tổ chức thông báo.</li>
         </ol>
-        <button type="button" onClick={onClose} className="min-h-11 w-full cursor-pointer rounded-2xl border-0 bg-[#e8590c] px-4 text-base font-extrabold text-white">Đã hiểu</button>
+        <button type="button" onClick={onClose} className="min-h-11 w-full cursor-pointer rounded-2xl border-0 bg-[#6d28d9] px-4 text-base font-extrabold text-white">Đã hiểu</button>
       </div>
     </div>
   )

@@ -22,7 +22,7 @@ function timingOf(c: Custom): ArenaTiming | null {
 }
 
 const SMALL = 'text-[10px] font-bold uppercase tracking-[.08em] text-[#ffe3c2]'
-const BUTTON = 'whitespace-nowrap rounded-full bg-[#ffe066] px-2.5 py-1.5 text-[13px] font-extrabold text-[#4a1a00] no-underline'
+const BUTTON = 'whitespace-nowrap rounded-full bg-[#ffe066] px-2.5 py-1.5 text-[13px] font-extrabold text-[#2e0b5e] no-underline'
 
 /**
  * The orange banner of an arena the back office runs by hand ("đấu trường riêng"), above the automatic one. The title is the name the
@@ -77,8 +77,8 @@ export default function ArenaCustomBanner({ token }: { token: string }) {
 
   return (
     <>
-      <section aria-label={custom.title} className={`${tight.className} relative mt-4 grid grid-cols-[minmax(0,1fr)_84px] overflow-hidden rounded-[20px] text-white shadow-[0_12px_26px_-14px_rgba(120,40,0,.8)]`}
-        style={{ background: 'radial-gradient(120px 160px at 82% 10%, rgba(255,235,150,.35), transparent 70%), conic-gradient(from 200deg at 78% -10%, transparent 0 12deg, rgba(255,255,255,.1) 14deg 20deg, transparent 22deg 40deg, rgba(255,255,255,.08) 42deg 47deg, transparent 49deg), linear-gradient(160deg, #ff8a1f, #d9480f 75%)' }}>
+      <section aria-label={custom.title} className={`${tight.className} relative mt-4 grid grid-cols-[minmax(0,1fr)_84px] overflow-hidden rounded-[20px] text-white shadow-[0_12px_26px_-14px_rgba(60,20,120,.8)]`}
+        style={{ background: 'radial-gradient(120px 160px at 82% 10%, rgba(255,235,150,.35), transparent 70%), conic-gradient(from 200deg at 78% -10%, transparent 0 12deg, rgba(255,255,255,.1) 14deg 20deg, transparent 22deg 40deg, rgba(255,255,255,.08) 42deg 47deg, transparent 49deg), linear-gradient(160deg, #8b5cf6, #4c1d95 75%)' }}>
         <div className="relative flex min-w-0 flex-col justify-center gap-1 py-[10px] pl-[60px] pr-2">
           <div className="max-w-full overflow-x-clip"><ArenaTitle text={custom.title} tone="orange" className="[font-family:var(--font-be-vietnam-pro),system-ui,sans-serif]" style={{ fontSize: titleSize }} /></div>
           <div className="flex whitespace-nowrap text-[13px] leading-[1.5]">
