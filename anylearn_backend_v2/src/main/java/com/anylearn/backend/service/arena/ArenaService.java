@@ -671,6 +671,9 @@ public class ArenaService {
                         "ON DUPLICATE KEY UPDATE score = score + VALUES(score), correct_ms = correct_ms + VALUES(correct_ms), answered = answered + 1, last_seen_at = VALUES(last_seen_at), " +
                         "entered_at = COALESCE(entered_at, VALUES(entered_at)), flagged = GREATEST(flagged, VALUES(flagged)), flag_reason = COALESCE(flag_reason, VALUES(flag_reason))",
                 sessionId, userId, stamp, stamp, correct ? 1 : 0, correct ? ms : 0, reason == null ? 0 : 1, reason);
+        Integer answered = jdbc.queryForObject("SELECT answered FROM arena_entries WHERE session_id = ? AND user_id = ?", Integer.class, sessionId, userId);
+        // "taking part" = answering at least one question of an arena (the weekly mission counts these)
+        if (answered != null && answered == 1) events.record(userId, GameEventService.GAME_ARENA, "play", s.day().toString(), 0);
         events.record(userId, GameEventService.GAME_ARENA, "answer", (correct ? "correct" : "wrong") + " q" + qNo + " " + ms + "ms", 0);
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("accepted", true);

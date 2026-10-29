@@ -264,6 +264,20 @@ class ArenaFlowTest {
     }
 
     @Test
+    void takingPartCountsOncePerArenaForTheWeeklyMission() {
+        long a = user();
+        clock.at("2026-10-29T19:00:00");
+        long id = arena.createCustom("Nhiệm vụ", null, 3, 15).id();
+        arena.startCustom(id);
+        clock.at("2026-10-29T19:01:03");
+        arena.answer(a, id, 1, 1, false);
+        clock.at(ArenaRules.questionAt(arena.session(id).timing(), 2).plusSeconds(2).toString());
+        arena.answer(a, id, 2, 1, false);
+        assertEquals(1, jdbc.queryForObject("SELECT COUNT(*) FROM game_events WHERE user_id = ? AND game = 'arena' AND type = 'play'", Integer.class, a));
+        assertEquals(2, jdbc.queryForObject("SELECT COUNT(*) FROM game_events WHERE user_id = ? AND game = 'arena' AND type = 'answer'", Integer.class, a));
+    }
+
+    @Test
     void remindersGoOnceToThoseWhoRegistered() {
         long a = user();
         long b = user();
