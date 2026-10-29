@@ -27,6 +27,7 @@ import Pathways from './pages/Pathways'
 import AiSuggestions from './pages/AiSuggestions'
 import AiUsage from './pages/AiUsage'
 import Acquisition from './pages/Acquisition'
+import LandingPages from './pages/LandingPages'
 import ContentReviewers from './pages/ContentReviewers'
 import OperationSettings from './pages/OperationSettings'
 import ItemGaps from './pages/ItemGaps'
@@ -130,6 +131,7 @@ export default function App() {
                   <Route path="ai-suggestions" element={<AiSuggestions />} />
                   <Route path="ai-usage" element={<AiUsage />} />
                   <Route path="acquisition" element={<Acquisition />} />
+                  <Route path="landing-pages" element={<LandingPages />} />
                   <Route path="content-reviewers" element={<ContentReviewers />} />
                   <Route path="operations" element={<OperationSettings />} />
                   <Route path="item-gaps" element={<ItemGaps />} />

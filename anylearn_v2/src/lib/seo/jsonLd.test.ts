@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { breadcrumbLd, courseLd, faqLd, isoVn, jsonLdText, organizationLd, ratingLd, videoLd } from './jsonLd'
+import { breadcrumbLd, courseLd, faqLd, isoVn, itemListLd, jsonLdText, organizationLd, ratingLd, videoLd } from './jsonLd'
 
 describe('jsonLd', () => {
   it('escapes text that could close the script tag', () => {
@@ -42,5 +42,13 @@ describe('jsonLd', () => {
     expect(isoVn('2026-10-29 10:20:00.0')).toBe('2026-10-29T10:20:00+07:00')
     expect(isoVn('2026-10-29T03:20:00Z')).toBe('2026-10-29T03:20:00Z')
     expect(isoVn(null)).toBeNull()
+  })
+
+  it('lists pages in order', () => {
+    const ld = itemListLd('Bơi', ['https://a/1', 'https://a/2'])
+    expect(ld.itemListElement).toEqual([
+      { '@type': 'ListItem', position: 1, url: 'https://a/1' },
+      { '@type': 'ListItem', position: 2, url: 'https://a/2' },
+    ])
   })
 })

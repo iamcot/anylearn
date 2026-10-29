@@ -136,14 +136,14 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 
 | Task | Mô tả | Trạng thái | Ghi chú |
 |---|---|---|---|
-| 19.A1 | `sitemap.ts` + `robots.ts` + endpoint danh sách link, nộp Search Console / Bing | todo | Cần trước chiến dịch |
-| 19.A2 | JSON-LD (Course, rating, đối tác, VideoObject, Breadcrumb, FAQ) | todo | |
-| 19.A3 | Trang công khai `/fun/explore/{id}/{slug}` + thẻ đăng nhập để xem tiếp, 301 từ `?p=` | todo | Cần trước video đầu tiên ra social |
-| 19.A4 | Ghi UTM: `user_acquisition`, `landing_visits`, trang admin "Nguồn khách" | todo | |
-| 19.A5 | Quyền "Duyệt nội dung" trong back office | todo | |
-| 19.A6 | Creator "anyLEARN Studio", khóa API cho máy, `explore_posts.source`, hàng đợi đăng social | todo | Env mới: thêm đủ 3 chỗ |
-| 19.A7 | Trang đích "môn × tuổi × quận" TP.HCM | todo | Chỉ khi có ít nhất 3 khóa |
-| 19.A8 | `CLAUDE.md`, `docs/huong-dan-admin.md`, `http/` | todo | Làm cùng từng task |
+| 19.A1 | `sitemap.ts` + `robots.ts` + endpoint danh sách link, nộp Search Console / Bing | done | Nộp sitemap: chủ sản phẩm làm (19.C1) |
+| 19.A2 | JSON-LD (Course, rating, đối tác, VideoObject, Breadcrumb, FAQ) | done | |
+| 19.A3 | Trang công khai `/fun/explore/{id}/{slug}` + thẻ đăng nhập để xem tiếp, 301 từ `?p=` | done | Chỉ khi Khám phá mở cho tất cả |
+| 19.A4 | Ghi UTM: `user_acquisition`, `landing_visits`, trang admin "Nguồn khách" | done | |
+| 19.A5 | Quyền "Duyệt nội dung" trong back office | done | |
+| 19.A6 | Creator "anyLEARN Studio", khóa API cho máy, `explore_posts.source`, hàng đợi đăng social | done | Không thêm env; tạo tài khoản + khóa trong admin |
+| 19.A7 | Trang đích "môn × tuổi × quận" TP.HCM | done | Trang mới tắt sẵn, admin bật |
+| 19.A8 | `CLAUDE.md`, `docs/huong-dan-admin.md`, `http/` | done | `http/seo.http` |
 | 19.B1 | t2m: khung CLI, schema kịch bản, `--ai api` hoặc `claude-code`, kiểm tra tự động | todo | Repo `iamcot/t2m` |
 | 19.B2 | t2m: dựng video HTML → PNG → ffmpeg (videotoolbox), phụ đề, nhạc | todo | |
 | 19.B3 | t2m: `TtsProvider`, nghe thử và chọn nhà TTS, hồ sơ giọng | todo | Thử TTS tại máy trước |
@@ -658,3 +658,9 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 ### 29/10/2026 – Plan 19: marketing và tool video t2m
 - Đã làm: viết `plans/19-marketing-t2m.md` từ bản phác thảo đã duyệt với chủ sản phẩm (https://claude.ai/artifact/BHN5TKNSfbUupXumdfE9r9), thêm Giai đoạn 5 vào bảng task, chốt câu hoàn tiền (10.1).
 - Chưa làm: toàn bộ task 19.*; repo t2m mới có README.
+
+### 29/10/2026 – Plan 19 phần A: nền SEO, link Khám phá công khai, nguồn khách, người duyệt, t2m, trang đích
+- Đã làm: sitemap.xml (chia file theo loại, cache 1 giờ) + robots.txt; JSON-LD cho khóa học, đối tác, bài viết, bài Khám phá, FAQ, trang đích, link canonical; trang công khai `/fun/explore/{id}/{slug}` (xem một bài không cần đăng nhập, bài tiếp theo hiện thẻ đăng nhập, 301 từ `?p=`); V70 `user_acquisition` + `landing_visits`, lưu UTM lần chạm đầu khi đăng ký, trang admin "Nguồn khách"; V71 quyền "Duyệt nội dung" (`admin_permissions`, `AdminAccessInterceptor`), khóa API cho máy (`api_keys`, header `X-Api-Key`, chỉ đường creator Khám phá và `/api/studio/*`), `explore_posts.source`, hàng đợi social; V72 trang đích `/hoc/{môn}/{tuổi}-tuoi/{quận}` TP.HCM (tìm tổ hợp mỗi đêm từ Meilisearch, tối thiểu 3 khóa, admin bật và duyệt giới thiệu, AI viết nháp); tài liệu.
+- Test: `SeoRulesTest`, `AcquisitionRulesTest`, `AcquisitionFlowTest`, `AdminPermissionsTest`, `StudioRulesTest`, `StudioFlowTest`, `LandingRulesTest`, `ExploreFlowTest` (MariaDB), `lib/seo/*.test.ts`, `lib/explore/publicPath.test.ts`, `lib/acquisition/store.test.ts`, `lib/landing/landing.test.ts`.
+- Chủ sản phẩm cần làm: nộp sitemap vào Search Console và Bing; tạo tài khoản "anyLEARN Studio" (cấp creator) và khóa API cho t2m; bật các trang đích sau khi xem lại.
+- Chưa làm: IndexNow, tự đăng lên mạng xã hội, trang đích ngoài TP.HCM, bản đồ trên trang đích, kiểm tra trên điện thoại thật và với Meilisearch có dữ liệu thật (luồng tìm tổ hợp trang đích chưa chạy với dữ liệu thật).

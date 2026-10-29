@@ -21,7 +21,9 @@ public class AiUsageService {
     public static final String COMPARE = "compare";
     public static final String QUIZ_WRITE = "quiz_write";
     public static final String QUIZ_VERIFY = "quiz_verify";
+    public static final String LANDING_INTRO = "landing_intro";
     public static final Map<String, String> LABELS = Map.of(
+            LANDING_INTRO, "Trang đích: AI viết giới thiệu",
             SUGGEST, "Gợi ý khóa học AI",
             COMPARE, "So sánh khóa học (đọc mô tả)",
             QUIZ_WRITE, "Quiz: AI viết câu hỏi",

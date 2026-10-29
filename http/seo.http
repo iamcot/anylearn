@@ -1,0 +1,110 @@
+### Plan 19.A: SEO, public Khám phá post, UTM, studio keys (t2m), landing pages
+@baseUrl = {{$dotenv BE_BASE_URL}}/api
+@adminUrl = {{$dotenv BE_BASE_URL}}/admin
+@adminToken = {{$dotenv ADMIN_TOKEN}}
+@studioKey = {{$dotenv STUDIO_KEY}}
+
+### Sitemap: counts per type
+GET {{baseUrl}}/seo/sitemap
+
+### Sitemap: one file of rows (type course | partner | article | collection | pathway | explore | landing)
+GET {{baseUrl}}/seo/sitemap?type=course&page=1
+
+### Public Khám phá post (no login; only while the explore access mode is "all")
+GET {{baseUrl}}/explore/public/1
+
+### Count a visitor's view of it
+POST {{baseUrl}}/explore/public/1/view
+
+### An arrival with UTM parameters (the site sends this once per tab session)
+POST {{baseUrl}}/track/landing
+Content-Type: application/json
+
+{"utm_source": "facebook", "utm_medium": "social", "utm_campaign": "ra-mat-v2", "utm_content": "explore-12"}
+
+### Register with the first touch kept by the browser
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{"name": "Phụ huynh thử", "phone": "0900000999", "password": "123456", "utm_source": "facebook", "utm_medium": "social", "utm_campaign": "ra-mat-v2", "utm_content": "explore-12", "landing_path": "/fun/explore/12/cau-vong", "first_seen_at": "2026-10-29T03:20:00.000Z"}
+
+### Report "Nguồn khách" (admin)
+GET {{adminUrl}}/acquisition?days=30
+Authorization: Bearer {{adminToken}}
+
+### Landing page (public): fails when unknown, switched off or under 3 courses
+GET {{baseUrl}}/landing?path=boi/5-tuoi/quan-7
+
+### Admin: landing pages (filter on | off | draft | few)
+GET {{adminUrl}}/landing-pages?filter=off
+Authorization: Bearer {{adminToken}}
+
+### Admin: look for combinations now (also runs every night at 5:40)
+POST {{adminUrl}}/landing-pages/refresh
+Authorization: Bearer {{adminToken}}
+
+### Admin: switch one page on
+PUT {{adminUrl}}/landing-pages/1/enabled
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{"enabled": true}
+
+### Admin: switch on every page with enough courses
+POST {{adminUrl}}/landing-pages/enable-ready
+Authorization: Bearer {{adminToken}}
+
+### Admin: AI draft of the introduction (needs ANTHROPIC_API_KEY)
+POST {{adminUrl}}/landing-pages/1/intro/ai
+Authorization: Bearer {{adminToken}}
+
+### Admin: save and approve the introduction (status none | draft | approved)
+PUT {{adminUrl}}/landing-pages/1/intro
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{"intro": "Đoạn giới thiệu đã đọc lại.", "status": "approved"}
+
+### Admin: content reviewers
+GET {{adminUrl}}/permissions
+Authorization: Bearer {{adminToken}}
+
+### Admin: give a member the "Duyệt nội dung" permission (empty list takes it away)
+PUT {{adminUrl}}/permissions/123
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{"permissions": ["content_review"]}
+
+### Admin: create a machine key for the "anyLEARN Studio" creator account (the key is shown once)
+POST {{adminUrl}}/api-keys
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{"name": "t2m trên máy CoT", "userId": 123}
+
+### Admin: social queue
+GET {{adminUrl}}/social-queue
+Authorization: Bearer {{adminToken}}
+
+### Admin: mark a queued social post as posted
+PUT {{adminUrl}}/social-queue/1/status
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{"status": "posted", "postedUrl": "https://facebook.com/anylearn/posts/1"}
+
+### Studio (t2m with its key): who am I
+GET {{baseUrl}}/studio/me
+X-Api-Key: {{studioKey}}
+
+### Studio: numbers of my posts
+GET {{baseUrl}}/studio/stats?days=30
+X-Api-Key: {{studioKey}}
+
+### Studio: propose a social post of a Khám phá post
+POST {{baseUrl}}/studio/social-queue
+X-Api-Key: {{studioKey}}
+Content-Type: application/json
+
+{"postId": 12, "channel": "facebook", "caption": "Vì sao cầu vồng có 7 màu?", "scheduledAt": "2026-11-02T12:00", "campaign": "ra-mat-v2"}

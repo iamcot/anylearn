@@ -717,3 +717,27 @@ Tab "Đấu trường riêng" trong trang Đấu trường Leo. Tạo với tên
 Công tắc ở đầu trang Đấu trường Leo ("Bật chức năng") tắt hoặc bật cả đấu trường tự động lẫn đấu trường riêng. Công tắc trong tab Cấu hình chỉ áp dụng cho đấu trường tự động; tắt nó thì đấu trường riêng vẫn chạy bình thường.
 
 Nhiệm vụ tuần có thêm "Tham gia Đấu trường Leo" (mặc định 3 trận, thưởng 30 Leo Xu). Tính là tham gia khi người chơi trả lời ít nhất một câu của trận, cả đấu trường tự động lẫn đấu trường riêng. Số trận và thưởng chỉnh ở trang Vui học, mục nhiệm vụ tuần.
+
+### Marketing: Google, link chia sẻ, nguồn khách, người duyệt, t2m, trang đích (plan 19)
+
+**Google đọc trang thế nào.** Trang `https://anylearn.vn/sitemap.xml` tự liệt kê mọi khóa đang hiện, đối tác đang hoạt động, bài viết, bộ sưu tập, lộ trình, bài Khám phá đã đăng và trang đích đang bật; cập nhật mỗi giờ, không cần làm gì. Việc làm một lần: thêm trang web vào **Google Search Console** và **Bing Webmaster Tools**, rồi nộp địa chỉ sitemap trên. Các trang cá nhân (tài khoản, giỏ hàng, đơn hàng, Hôm nay, học video...) đã được chặn để Google không đọc.
+
+**Link Khám phá chia sẻ ra ngoài.** Mỗi bài có link công khai dạng `/fun/explore/{số}/{tên-bài}`: người chưa đăng nhập xem được đúng bài đó, muốn xem tiếp, thích hoặc bình luận thì phải đăng nhập / đăng ký. Chỉ chạy khi Khám phá đang mở cho **tất cả** ở "Vui học > Mở dần từng game"; đang mở cho nhóm thử thì link báo không tồn tại. Link cũ dạng `?p=` tự chuyển sang link mới.
+
+**Nguồn khách** (menu Nội dung & phân tích). Mỗi link đăng ra ngoài nên gắn tham số UTM, ví dụ `?utm_source=facebook&utm_medium=social&utm_campaign=ra-mat-v2&utm_content=explore-12`. Trang này đếm: lượt vào có UTM, tài khoản mới, số tài khoản đã mua và doanh thu, theo kênh, chiến dịch, nội dung và từng ngày (7 / 30 / 90 ngày). Một tài khoản giữ **link UTM đầu tiên** của trình duyệt trong 30 ngày trước khi đăng ký. Không có UTM là "trực tiếp"; chỉ có mã giới thiệu là "giới thiệu". Đặt tên chiến dịch không dấu, gạch nối, dùng giống nhau cho cả đợt.
+
+**Người duyệt nội dung** (Cài đặt > "Người duyệt nội dung"). Chọn một thành viên và cho quyền "Duyệt nội dung": người đó đăng nhập trang admin bằng tài khoản của mình nhưng chỉ thấy **Khám phá** (duyệt / ẩn bài, bình luận, chặn bình luận, hàng đợi social). Họ không thấy đơn hàng, thành viên, cài đặt, khóa API hay danh sách creator. Bỏ quyền thì họ không vào trang admin được nữa.
+
+**t2m (tool làm video) và tài khoản "anyLEARN Studio".** Làm một lần:
+1. Tạo một tài khoản thành viên tên "anyLEARN Studio".
+2. Khám phá > tab **Creator**: thêm tài khoản này ở cấp **creator** (không phải S-creator) để mọi bài nó gửi đều chờ duyệt.
+3. Khám phá > tab **Khóa API (t2m)**: "+ Tạo khóa", chọn tài khoản trên. Khóa chỉ hiện **một lần**: chép ngay vào cấu hình t2m trên máy (không gửi qua chat, không dán vào tài liệu). Mất hoặc lộ khóa thì bấm **Thu hồi** và tạo khóa mới.
+Bài do t2m gửi có nhãn **t2m** ở cột "Người đăng"; bộ lọc người đăng có mục "Tool t2m". Khóa này chỉ gửi được bài Khám phá và đề xuất bài social, không làm được việc gì khác.
+
+**Hàng đợi social** (Khám phá > tab "Hàng đợi social"). Danh sách bài sẽ đăng lên Facebook, Zalo, TikTok, YouTube, Instagram: chọn bài Khám phá, kênh, nội dung chữ, giờ dự kiến; hệ thống tự tạo link có UTM. Hệ thống **chưa tự đăng**: người phụ trách đăng tay rồi bấm "Đã đăng" (dán link bài đã đăng) hoặc "Bỏ qua". t2m cũng có thể đề xuất vào hàng đợi. Số bài đang chờ hiện trên menu.
+
+**Trang đích** (menu Nội dung & phân tích). Trang dạng "Bơi cho trẻ 5 tuổi tại Quận 7, TP.HCM" (địa chỉ `/hoc/boi/5-tuoi/quan-7`) để người tìm trên Google vào thẳng danh sách khóa phù hợp. Mỗi đêm (5:40) hệ thống tìm mọi tổ hợp **tag × tuổi (3 đến 15) × quận ở TP.HCM** có ít nhất **3 khóa đang hiện**; trang mới thêm vào ở trạng thái **tắt**. Việc của admin:
+- Bấm công tắc "Hiện" từng trang, hoặc "Bật tất cả trang đủ khóa". Trang thiếu khóa không bật được, trang đang bật mà tụt dưới 3 khóa thì tự ẩn khỏi khách và Google.
+- Cột "Lượt tìm môn" là số lượt tìm có tên tag trong 90 ngày: ưu tiên bật và viết giới thiệu cho trang có số này cao.
+- Nút "Giới thiệu": viết đoạn giới thiệu, hoặc "AI viết bản nháp" rồi **đọc lại** (số liệu, lời hứa) và bấm "Lưu và duyệt". Chưa duyệt thì trang dùng đoạn mặc định có số khóa. AI chỉ được nói "giá bằng hoặc rẻ hơn tại trường" và "đăng ký mà lớp không mở thì được hoàn tiền".
+- Trang đích dựa vào **tag** và **địa chỉ** của khóa: khóa thiếu tag, thiếu tuổi hoặc thiếu địa chỉ (xem "Thiếu thuộc tính") sẽ không vào trang nào. "Kiểm tra lại ngay" chạy lại việc tìm tổ hợp sau khi sửa dữ liệu (cần tìm kiếm đã cập nhật).

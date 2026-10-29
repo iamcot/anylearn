@@ -104,6 +104,16 @@ export function breadcrumbLd(origin: string, items: { name: string; path: string
   }
 }
 
+/** A list of pages (the courses of a landing page), in the order shown. */
+export function itemListLd(name: string, urls: string[]): Ld {
+  return {
+    '@context': CONTEXT,
+    '@type': 'ItemList',
+    name,
+    itemListElement: urls.map((url, i) => ({ '@type': 'ListItem', position: i + 1, url })),
+  }
+}
+
 export function faqLd(items: { question: string; answer: string }[]): Ld {
   return {
     '@context': CONTEXT,
