@@ -17,6 +17,7 @@ import java.util.function.Supplier;
 public class ArenaController {
 
     private final ArenaService arena;
+    private final com.anylearn.backend.service.arena.ArenaSettlementService settlement;
 
     private ApiResponse<?> run(User user, Supplier<Object> body) {
         if (user == null) return ApiResponse.fail("Unauthorized");
@@ -67,6 +68,9 @@ public class ArenaController {
 
     @GetMapping("/board")
     public ApiResponse<?> board(@AuthenticationPrincipal User user, @RequestParam(required = false) Long sessionId) {
-        return run(user, () -> arena.board(user.getId(), sessionId));
+        return run(user, () -> {
+            settlement.settleIfDue(sessionId);
+            return arena.board(user.getId(), sessionId);
+        });
     }
 }

@@ -74,6 +74,14 @@ function Board() {
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { load() }, [load])
 
+  // a result opened a moment after the end is still being counted: ask again until the ranking is final
+  const counting = wanted != null && board != null && !board.session
+  useEffect(() => {
+    if (!counting) return
+    const t = setInterval(load, 2500)
+    return () => clearInterval(t)
+  }, [counting, load])
+
   const rows = board?.rows ?? []
   const coin = board?.rules?.coinName ?? 'Leo Xu'
   const info = board?.session
@@ -105,7 +113,7 @@ function Board() {
           })}
         </div>
       )}
-      {board && !info && <p className="rounded-2xl bg-white p-6 text-center text-sm text-muted ring-1 ring-line">Chưa có trận nào kết thúc.</p>}
+      {board && !info && <p className="rounded-2xl bg-white p-6 text-center text-sm text-muted ring-1 ring-line">{counting ? 'Đang tổng hợp kết quả…' : 'Chưa có trận nào kết thúc.'}</p>}
       {info && (
         <>
           <ul className="m-0 list-none overflow-hidden rounded-2xl border border-line bg-white p-0">

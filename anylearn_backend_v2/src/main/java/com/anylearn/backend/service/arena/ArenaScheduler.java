@@ -69,7 +69,7 @@ public class ArenaScheduler {
             if ("scheduled".equals(s.status()) && !now.isBefore(s.timing().openAt())) {
                 jdbc.update("UPDATE arena_sessions SET status = 'live' WHERE id = ? AND status = 'scheduled'", id);
             }
-            if (s.settledAt() == null && !now.isBefore(ArenaRules.endsAt(s.timing()).plusSeconds(30))) {
+            if (s.settledAt() == null && !now.isBefore(ArenaRules.endsAt(s.timing()).plusSeconds(ArenaSettlementService.SETTLE_DELAY_SECONDS))) {
                 try {
                     settlement.settle(id);
                 } catch (Exception e) {

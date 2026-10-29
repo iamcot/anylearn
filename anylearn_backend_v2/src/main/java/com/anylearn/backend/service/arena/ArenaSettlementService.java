@@ -43,6 +43,23 @@ public class ArenaSettlementService {
 
     private record Row(long userId, int score, long correctMs, int answered, boolean flagged, long orderAt, boolean rewarded) {}
 
+    /** The last answer is taken up to 2 s after its time is up; a second more and the ranking can be final. */
+    public static final int SETTLE_DELAY_SECONDS = 3;
+
+    /** Settles a session whose last answer window has closed (used when somebody opens its result, so nobody waits for the scheduler). Never throws. */
+    public void settleIfDue(Long sessionId) {
+        if (sessionId == null) return;
+        try {
+            Session s = arena.session(sessionId);
+            if (s != null && s.settledAt() == null && !"cancelled".equals(s.status())
+                    && !LocalDateTime.now(clock).isBefore(ArenaRules.endsAt(s.timing()).plusSeconds(SETTLE_DELAY_SECONDS))) {
+                settle(sessionId);
+            }
+        } catch (Exception e) {
+            // the scheduler will try again
+        }
+    }
+
     /** Closes the session; false when somebody else already did. Throws IllegalStateException for a session that cannot be settled. */
     public boolean settle(long sessionId) {
         Session s = arena.session(sessionId);

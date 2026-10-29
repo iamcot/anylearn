@@ -9,8 +9,8 @@ import ArenaMedal from './ArenaMedal'
 import CelebrationFx from './CelebrationFx'
 
 // the final ranks are written a few seconds after the last question, so the board is asked again until it is there
-const TRIES = 12
-const EVERY_MS = 4000
+const TRIES = 15
+const EVERY_MS = 2000
 
 // each place is smaller than the one before
 const SIZE = ['text-[30px]', 'text-[23px]', 'text-[18px]']

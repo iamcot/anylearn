@@ -247,6 +247,23 @@ class ArenaFlowTest {
     }
 
     @Test
+    void resultIsReadyAboutThreeSecondsAfterTheEnd() {
+        long a = user();
+        clock.at("2026-10-29T19:00:00");
+        long id = arena.createCustom("Nhanh", null, 3, 15).id();
+        arena.startCustom(id);
+        clock.at("2026-10-29T19:01:03");
+        arena.answer(a, id, 1, 1, false);
+        java.time.LocalDateTime end = ArenaRules.endsAt(arena.session(id).timing());
+        clock.at(end.plusSeconds(1).toString());
+        settlement.settleIfDue(id);
+        assertNull(arena.session(id).settledAt());
+        clock.at(end.plusSeconds(4).toString());
+        settlement.settleIfDue(id);
+        assertNotNull(arena.session(id).settledAt());
+    }
+
+    @Test
     void remindersGoOnceToThoseWhoRegistered() {
         long a = user();
         long b = user();
