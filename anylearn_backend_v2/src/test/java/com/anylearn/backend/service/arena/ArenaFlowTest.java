@@ -171,6 +171,63 @@ class ArenaFlowTest {
     }
 
     @Test
+    void customArenaWaitsStartsByHandRanksOnlyItsPlayersAndClosesAnytime() {
+        long a = user();
+        long b = user();
+        clock.at("2026-10-29T19:00:00");
+        long id = arena.createCustom("Thi đấu lớp Sao", LocalDateTime.parse("2026-10-29T21:00:00"), 5, 15).id();
+        // a second one is refused while the first is open
+        assertThrows(IllegalStateException.class, () -> arena.createCustom("Khác", null, 5, 15));
+        // the banner shows it as waiting with the expected time, and the automatic one is untouched
+        Map<String, Object> custom = map(arena.banner(a).get("custom"));
+        assertEquals(Boolean.TRUE, custom.get("waiting"));
+        assertNull(custom.get("startsAt"));
+        assertEquals("Thi đấu lớp Sao", custom.get("title"));
+        assertEquals(sessionId, arena.current().id());
+        // people can walk in at once; nothing is asked before the start
+        Map<String, Object> lobby = arena.lobby(a, id);
+        assertEquals(Boolean.TRUE, lobby.get("custom"));
+        assertEquals(Boolean.TRUE, lobby.get("waiting"));
+        assertEquals(2, ((List<?>) arena.lobby(b, id).get("board")).size());
+        clock.at("2026-10-29T19:30:00");
+        assertThrows(IllegalStateException.class, () -> arena.question(a, id, 1));
+        // start: the first question is a minute away
+        arena.startCustom(id);
+        assertThrows(IllegalStateException.class, () -> arena.startCustom(id));
+        clock.at("2026-10-29T19:30:30");
+        assertThrows(IllegalStateException.class, () -> arena.question(a, id, 1));
+        clock.at("2026-10-29T19:31:03");
+        arena.answer(a, id, 1, 1, false);
+        arena.answer(b, id, 1, 0, false);
+        // the board of the custom arena only has its own players
+        clock.at("2026-10-29T19:32:30");
+        List<?> board = (List<?>) arena.lobby(a, id).get("board");
+        assertEquals(2, board.size());
+        assertEquals(1, map(board.get(0)).get("score"));
+        // closing at any moment: the lobby says closed and the banner has no custom part any more
+        arena.closeCustom(id);
+        assertEquals(Boolean.TRUE, arena.lobby(a, id).get("closed"));
+        assertNull(arena.banner(a).get("custom"));
+        assertEquals(Boolean.TRUE, arena.customState(id).get("closed"));
+        assertThrows(IllegalStateException.class, () -> arena.answer(a, id, 2, 1, false));
+    }
+
+    @Test
+    void customArenaPaysNothingWhenItEnds() {
+        long a = user();
+        clock.at("2026-10-29T19:00:00");
+        long id = arena.createCustom("Không thưởng", null, 3, 15).id();
+        arena.startCustom(id);
+        clock.at("2026-10-29T19:01:03");
+        arena.answer(a, id, 1, 1, false);
+        clock.at("2026-10-29T19:30:00");
+        assertTrue(settlement.settle(id));
+        assertEquals(1, jdbc.queryForObject("SELECT final_rank FROM arena_entries WHERE session_id = ? AND user_id = ?", Integer.class, id, a));
+        assertEquals(0, jdbc.queryForObject("SELECT reward_coins FROM arena_entries WHERE session_id = ? AND user_id = ?", Integer.class, id, a));
+        assertNull(jdbc.queryForObject("SELECT rewarded_at FROM arena_entries WHERE session_id = ? AND user_id = ?", java.sql.Timestamp.class, id, a));
+    }
+
+    @Test
     void remindersGoOnceToThoseWhoRegistered() {
         long a = user();
         long b = user();

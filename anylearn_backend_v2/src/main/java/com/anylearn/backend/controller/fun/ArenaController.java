@@ -44,8 +44,14 @@ public class ArenaController {
 
     /** Presence signal + state + board; the page calls it every 5 seconds in the lobby. */
     @PostMapping("/lobby")
-    public ApiResponse<?> lobby(@AuthenticationPrincipal User user) {
-        return run(user, () -> arena.lobby(user.getId()));
+    public ApiResponse<?> lobby(@AuthenticationPrincipal User user, @RequestParam(required = false) Long sessionId) {
+        return run(user, () -> arena.lobby(user.getId(), sessionId));
+    }
+
+    /** Cheap check for the screens of a custom arena: {closed} turns true when the back office closes it. */
+    @GetMapping("/custom-state")
+    public ApiResponse<?> customState(@AuthenticationPrincipal User user, @RequestParam long sessionId) {
+        return run(user, () -> arena.customState(sessionId));
     }
 
     @GetMapping("/question")

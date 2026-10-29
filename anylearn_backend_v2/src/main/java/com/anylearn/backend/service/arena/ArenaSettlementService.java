@@ -57,6 +57,8 @@ public class ArenaSettlementService {
             jdbc.update("UPDATE arena_entries SET final_rank = ? WHERE session_id = ? AND user_id = ?", rank++, sessionId, r.userId());
         }
         jdbc.update("UPDATE arena_sessions SET players = ? WHERE id = ?", rows.size(), sessionId);
+        // a custom arena only ranks its players: the back office decides about any prize by hand
+        if (s.custom()) return true;
         rank = 1;
         for (Row r : rows) {
             try {
@@ -81,6 +83,7 @@ public class ArenaSettlementService {
 
     /** Pays one player of a settled session. Returns false when nothing was paid (already paid, or a flagged winner waiting). */
     private boolean pay(Session s, Row r, int rank) {
+        if (s.custom()) return false;
         List<Integer> prizes = settings.rewardCoins();
         boolean top = ArenaRules.topPrize(rank, r.score(), settings.num("reward_min_score"), prizes);
         if (top && r.flagged() && !settings.flag("flagged_reward")) {

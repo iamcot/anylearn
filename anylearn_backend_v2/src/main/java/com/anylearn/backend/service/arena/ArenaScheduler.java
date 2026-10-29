@@ -62,7 +62,7 @@ public class ArenaScheduler {
         for (Long id : ids) {
             Session s = arena.session(id);
             if (s == null) continue;
-            if (settings.enabled() && s.remindersSentAt() == null && !now.isBefore(s.timing().startsAt().minusMinutes(settings.num("notify_minutes")))
+            if (settings.enabled() && !s.custom() && s.remindersSentAt() == null && !now.isBefore(s.timing().startsAt().minusMinutes(settings.num("notify_minutes")))
                     && now.isBefore(ArenaRules.endsAt(s.timing()))) {
                 remind(s);
             }

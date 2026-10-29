@@ -35,7 +35,12 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ArenaService {
 
     /** A session row with its pace. */
-    public record Session(long id, LocalDate day, String status, Timing timing, LocalDateTime remindersSentAt, LocalDateTime settledAt, int players) {}
+    public record Session(long id, LocalDate day, String status, Timing timing, LocalDateTime remindersSentAt, LocalDateTime settledAt, int players,
+                          String kind, String title, LocalDateTime expectedAt) {
+        public boolean custom() { return "custom".equals(kind); }
+        /** A custom arena the back office has not started yet: its start is parked far away, so every phase reads "before". */
+        public boolean waiting() { return custom() && "waiting".equals(status); }
+    }
 
     private final JdbcTemplate jdbc;
     private final Clock clock;
@@ -68,11 +73,13 @@ public class ArenaService {
                 rs.getInt("countdown_seconds"), rs.getInt("answer_seconds"), rs.getInt("reveal_seconds"), rs.getInt("gap_seconds"));
         Timestamp rem = rs.getTimestamp("reminders_sent_at");
         Timestamp set = rs.getTimestamp("settled_at");
+        Timestamp exp = rs.getTimestamp("expected_at");
         return new Session(rs.getLong("id"), rs.getDate("day").toLocalDate(), rs.getString("status"), t,
-                rem == null ? null : rem.toLocalDateTime(), set == null ? null : set.toLocalDateTime(), rs.getInt("players"));
+                rem == null ? null : rem.toLocalDateTime(), set == null ? null : set.toLocalDateTime(), rs.getInt("players"),
+                rs.getString("kind"), rs.getString("title"), exp == null ? null : exp.toLocalDateTime());
     }
 
-    private static final String SESSION_COLS = "id, day, starts_at, open_at, question_count, countdown_seconds, answer_seconds, reveal_seconds, gap_seconds, status, reminders_sent_at, settled_at, players";
+    private static final String SESSION_COLS = "id, day, starts_at, open_at, question_count, countdown_seconds, answer_seconds, reveal_seconds, gap_seconds, status, reminders_sent_at, settled_at, players, kind, title, expected_at";
 
     public Session session(long id) {
         List<Session> rows = jdbc.query("SELECT " + SESSION_COLS + " FROM arena_sessions WHERE id = ?", (rs, i) -> mapSession(rs), id);
@@ -82,7 +89,7 @@ public class ArenaService {
     /** The session people should see now: the first one (not cancelled) that has not ended yet. Null when none. */
     public Session current() {
         LocalDateTime now = now();
-        List<Session> rows = jdbc.query("SELECT " + SESSION_COLS + " FROM arena_sessions WHERE status <> 'cancelled' AND day >= ? ORDER BY day LIMIT 3",
+        List<Session> rows = jdbc.query("SELECT " + SESSION_COLS + " FROM arena_sessions WHERE kind = 'auto' AND status <> 'cancelled' AND day >= ? ORDER BY day LIMIT 3",
                 (rs, i) -> mapSession(rs), java.sql.Date.valueOf(now.toLocalDate().minusDays(1)));
         for (Session s : rows) {
             if (now.isBefore(ArenaRules.endsAt(s.timing()))) return s;
@@ -93,7 +100,7 @@ public class ArenaService {
     /** Id of the session that ended today (so the banner can offer the result), or null. */
     public Long endedToday() {
         LocalDateTime now = now();
-        List<Session> rows = jdbc.query("SELECT " + SESSION_COLS + " FROM arena_sessions WHERE status <> 'cancelled' AND day = ?", (rs, i) -> mapSession(rs), java.sql.Date.valueOf(now.toLocalDate()));
+        List<Session> rows = jdbc.query("SELECT " + SESSION_COLS + " FROM arena_sessions WHERE kind = 'auto' AND status <> 'cancelled' AND day = ?", (rs, i) -> mapSession(rs), java.sql.Date.valueOf(now.toLocalDate()));
         for (Session s : rows) {
             if (!now.isBefore(ArenaRules.endsAt(s.timing()))) return s.id();
         }
@@ -132,7 +139,7 @@ public class ArenaService {
     }
 
     private void createFor(LocalDate day) {
-        Integer exists = jdbc.queryForObject("SELECT COUNT(*) FROM arena_sessions WHERE day = ?", Integer.class, java.sql.Date.valueOf(day));
+        Integer exists = jdbc.queryForObject("SELECT COUNT(*) FROM arena_sessions WHERE kind = 'auto' AND day = ?", Integer.class, java.sql.Date.valueOf(day));
         if (exists != null && exists > 0) return;
         Timing t = settings.timing(day);
         List<ArenaQuestionPicker.Pick> picks = pickFor(day, t.questionCount(), null);
@@ -143,7 +150,7 @@ public class ArenaService {
         int inserted = jdbc.update("INSERT IGNORE INTO arena_sessions (day, starts_at, open_at, question_count, countdown_seconds, answer_seconds, reveal_seconds, gap_seconds, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'scheduled')",
                 java.sql.Date.valueOf(day), Timestamp.valueOf(t.startsAt()), Timestamp.valueOf(t.openAt()), picks.size(), t.countdownSeconds(), t.answerSeconds(), t.revealSeconds(), t.gapSeconds());
         if (inserted == 0) return;
-        Long id = jdbc.queryForObject("SELECT id FROM arena_sessions WHERE day = ?", Long.class, java.sql.Date.valueOf(day));
+        Long id = jdbc.queryForObject("SELECT id FROM arena_sessions WHERE kind = 'auto' AND day = ?", Long.class, java.sql.Date.valueOf(day));
         savePicks(id, picks);
         if (picks.size() < t.questionCount()) log.warn("[arena] {}: only {} of {} questions found", day, picks.size(), t.questionCount());
     }
@@ -164,7 +171,7 @@ public class ArenaService {
     @Transactional
     public void refreshScheduled() {
         LocalDateTime now = now();
-        List<Session> rows = jdbc.query("SELECT " + SESSION_COLS + " FROM arena_sessions WHERE status = 'scheduled'", (rs, i) -> mapSession(rs));
+        List<Session> rows = jdbc.query("SELECT " + SESSION_COLS + " FROM arena_sessions WHERE kind = 'auto' AND status = 'scheduled'", (rs, i) -> mapSession(rs));
         for (Session s : rows) {
             if (!now.isBefore(s.timing().openAt())) continue;
             if (!settings.days().contains(s.day().getDayOfWeek())) {
@@ -243,6 +250,7 @@ public class ArenaService {
         out.put("enabled", settings.enabled());
         if (!settings.enabled()) return out;
         lazyEnsure();
+        out.put("custom", customBanner(userId));
         Session s = current();
         out.put("endedSessionId", endedToday());
         if (s == null) {
@@ -260,6 +268,100 @@ public class ArenaService {
                 && toLocal(mine.get(0).get("last_seen_at")).isAfter(now().minusSeconds(settings.num("presence_seconds"))));
         out.put("rules", rules());
         return out;
+    }
+
+    // ---------------------------------------------------------------- custom ("đấu trường riêng")
+
+    /** Where a custom arena waits for its start: far enough that no phase can begin before the back office starts it. */
+    static final LocalDateTime PARKED = LocalDateTime.of(2099, 1, 1, 0, 0);
+
+    /** The custom arena people can see: the newest one that the back office has not closed. Null when none. */
+    public Session customCurrent() {
+        List<Session> rows = jdbc.query("SELECT " + SESSION_COLS + " FROM arena_sessions WHERE kind = 'custom' AND status <> 'cancelled' ORDER BY id DESC LIMIT 1", (rs, i) -> mapSession(rs));
+        return rows.isEmpty() ? null : rows.get(0);
+    }
+
+    /** The orange banner's data, or null when there is no custom arena. */
+    public Map<String, Object> customBanner(long userId) {
+        Session s = customCurrent();
+        if (s == null) return null;
+        Map<String, Object> out = new LinkedHashMap<>(timingMap(s));
+        out.put("title", s.title());
+        out.put("status", s.status());
+        out.put("waiting", s.waiting());
+        out.put("expectedAt", s.expectedAt() == null ? null : millis(s.expectedAt()));
+        if (s.waiting()) out.put("startsAt", null);
+        out.put("phase", phaseMap(s));
+        out.put("inRoomCount", inRoom(s.id()));
+        out.put("rules", customRules(s));
+        return out;
+    }
+
+    /** True when the custom arena is gone (closed by the back office), so a screen can send people back to Vui học. */
+    public Map<String, Object> customState(long sessionId) {
+        Session s = session(sessionId);
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("serverNow", clock.millis());
+        out.put("closed", s == null || !s.custom() || "cancelled".equals(s.status()));
+        return out;
+    }
+
+    /** Numbers for the "Đấu trường riêng là gì?" sheet. */
+    public Map<String, Object> customRules(Session s) {
+        Map<String, Object> r = new LinkedHashMap<>();
+        r.put("title", s.title());
+        r.put("questionCount", s.timing().questionCount());
+        r.put("answerSeconds", s.timing().answerSeconds());
+        r.put("expectedAt", s.expectedAt() == null ? null : millis(s.expectedAt()));
+        return r;
+    }
+
+    /** Creates a custom arena in the waiting state with its own set of questions. One at a time: the back office closes the old one first. */
+    @Transactional
+    public Session createCustom(String title, LocalDateTime expectedAt, Integer questionCount, Integer answerSeconds) {
+        String name = title == null ? "" : title.trim();
+        if (name.isEmpty()) throw new IllegalStateException("Nhập tên đấu trường");
+        if (name.length() > 80) throw new IllegalStateException("Tên đấu trường tối đa 80 ký tự");
+        if (customCurrent() != null) throw new IllegalStateException("Đang có một đấu trường riêng, hãy đóng nó trước khi tạo cái mới");
+        int count = questionCount == null ? settings.num("question_count") : questionCount;
+        if (count < 3 || count > 50) throw new IllegalStateException("Số câu hỏi từ 3 đến 50");
+        int answer = answerSeconds == null ? settings.num("answer_seconds") : answerSeconds;
+        if (answer < 5 || answer > 120) throw new IllegalStateException("Thời gian trả lời từ 5 đến 120 giây");
+        int countdown = settings.num("countdown_seconds");
+        int reveal = settings.num("reveal_seconds");
+        int gap = Math.max(settings.num("gap_seconds"), countdown + answer + reveal + 10);
+        List<ArenaQuestionPicker.Pick> picks = pickFor(now().toLocalDate(), count, null);
+        if (picks.isEmpty()) throw new IllegalStateException("Kho câu hỏi đang trống");
+        LocalDateTime now = now();
+        jdbc.update("INSERT INTO arena_sessions (kind, title, expected_at, day, starts_at, open_at, question_count, countdown_seconds, answer_seconds, reveal_seconds, gap_seconds, status) VALUES ('custom', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'waiting')",
+                name, expectedAt == null ? null : Timestamp.valueOf(expectedAt), java.sql.Date.valueOf(now.toLocalDate()), Timestamp.valueOf(PARKED), Timestamp.valueOf(now),
+                picks.size(), countdown, answer, reveal, gap);
+        Long id = jdbc.queryForObject("SELECT MAX(id) FROM arena_sessions WHERE kind = 'custom'", Long.class);
+        savePicks(id, picks);
+        return session(id);
+    }
+
+    /** Starts the countdown: the first question comes one minute from now. */
+    @Transactional
+    public Session startCustom(long sessionId) {
+        Session s = session(sessionId);
+        if (s == null || !s.custom()) throw new IllegalStateException("Không tìm thấy đấu trường riêng này");
+        if (!s.waiting()) throw new IllegalStateException("Đấu trường này đã bắt đầu hoặc đã đóng");
+        int have = count("SELECT COUNT(*) FROM arena_questions WHERE session_id = ?", sessionId);
+        if (have == 0) throw new IllegalStateException("Đấu trường chưa có câu hỏi");
+        LocalDateTime starts = now().plusSeconds(CUSTOM_START_SECONDS);
+        jdbc.update("UPDATE arena_sessions SET starts_at = ?, question_count = ?, status = 'scheduled' WHERE id = ? AND status = 'waiting'", Timestamp.valueOf(starts), have, sessionId);
+        return session(sessionId);
+    }
+
+    static final int CUSTOM_START_SECONDS = 60;
+
+    /** Closes the custom arena at any moment: its banner disappears and the people inside are sent back to Vui học. */
+    @Transactional
+    public void closeCustom(long sessionId) {
+        Session s = session(sessionId);
+        if (s == null || !s.custom()) throw new IllegalStateException("Không tìm thấy đấu trường riêng này");
+        jdbc.update("UPDATE arena_sessions SET status = 'cancelled', closed_at = ? WHERE id = ? AND status <> 'cancelled'", Timestamp.valueOf(now()), sessionId);
     }
 
     /** Numbers for the "Đấu trường Leo là gì?" sheet. */
@@ -325,22 +427,41 @@ public class ArenaService {
 
     /** Lobby: also the signal that the person is in the room. */
     public Map<String, Object> lobby(long userId) {
+        return lobby(userId, null);
+    }
+
+    /** The lobby of the automatic arena, or of the custom one when {@code sessionId} is sent. A closed custom arena answers {@code closed: true}. */
+    public Map<String, Object> lobby(long userId, Long sessionId) {
         if (!settings.enabled()) throw new IllegalStateException("Đấu trường Leo đang tạm đóng");
-        lazyEnsure();
-        Session s = current();
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("serverNow", clock.millis());
-        out.put("endedSessionId", endedToday());
-        if (s == null) {
-            out.put("sessionId", null);
-            return out;
+        Session s;
+        if (sessionId != null) {
+            s = session(sessionId);
+            if (s == null || !s.custom() || "cancelled".equals(s.status())) {
+                out.put("closed", true);
+                return out;
+            }
+            out.put("custom", true);
+            out.put("title", s.title());
+            out.put("waiting", s.waiting());
+            out.put("expectedAt", s.expectedAt() == null ? null : millis(s.expectedAt()));
+        } else {
+            lazyEnsure();
+            s = current();
+            out.put("endedSessionId", endedToday());
+            if (s == null) {
+                out.put("sessionId", null);
+                return out;
+            }
         }
         LocalDateTime now = now();
         Phase phase = ArenaRules.phaseAt(s.timing(), now);
         if (!now.isBefore(s.timing().openAt())) markPresent(s.id(), userId);
         out.putAll(timingMap(s));
+        if (s.waiting()) out.put("startsAt", null);
         out.put("phase", phaseMap(s));
-        out.put("rules", rules());
+        out.put("rules", s.custom() ? customRules(s) : rules());
         int last = lastFinished(s.timing(), now);
         boolean pre = last == 0 && (phase.kind() == Kind.BEFORE || phase.kind() == Kind.OPEN || (phase.kind() == Kind.COUNTDOWN && phase.qNo() == 1));
         out.put("started", !pre);
@@ -377,7 +498,7 @@ public class ArenaService {
             m.put("name", nameOf(r.get("name")));
             boolean in = r.get("inRoom") != null && ((Number) r.get("inRoom")).intValue() == 1;
             m.put("inRoom", in);
-            m.put("status", in ? "in_room" : "registered");
+            m.put("status", in ? "in_room" : s.custom() ? "away" : "registered");
             m.put("me", ((Number) r.get("userId")).longValue() == viewer);
             out.add(m);
         }
@@ -563,7 +684,7 @@ public class ArenaService {
         if (!settings.enabled()) throw new IllegalStateException("Đấu trường Leo đang tạm đóng");
         Session s;
         if (sessionId == null) {
-            List<Session> rows = jdbc.query("SELECT " + SESSION_COLS + " FROM arena_sessions WHERE status = 'done' ORDER BY day DESC LIMIT 1", (rs, i) -> mapSession(rs));
+            List<Session> rows = jdbc.query("SELECT " + SESSION_COLS + " FROM arena_sessions WHERE kind = 'auto' AND status = 'done' ORDER BY day DESC LIMIT 1", (rs, i) -> mapSession(rs));
             s = rows.isEmpty() ? null : rows.get(0);
         } else {
             s = session(sessionId);
@@ -571,7 +692,7 @@ public class ArenaService {
         }
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("serverNow", clock.millis());
-        List<Map<String, Object>> days = jdbc.queryForList("SELECT id, day FROM arena_sessions WHERE status = 'done' ORDER BY day DESC LIMIT 14");
+        List<Map<String, Object>> days = jdbc.queryForList("SELECT id, day FROM arena_sessions WHERE kind = 'auto' AND status = 'done' ORDER BY day DESC LIMIT 14");
         out.put("days", days.stream().map(d -> {
             Map<String, Object> m = new LinkedHashMap<>();
             m.put("id", d.get("id"));
@@ -587,8 +708,12 @@ public class ArenaService {
         info.put("day", s.day().toString());
         info.put("questionCount", s.timing().questionCount());
         info.put("players", s.players());
+        if (s.custom()) {
+            info.put("custom", true);
+            info.put("title", s.title());
+        }
         out.put("session", info);
-        out.put("rules", rules());
+        out.put("rules", s.custom() ? customRules(s) : rules());
         List<Map<String, Object>> rows = jdbc.queryForList(
                 "SELECT e.user_id AS userId, u.name AS name, e.final_rank AS rank, e.score AS score, e.correct_ms AS correctMs, e.reward_coins AS rewardCoins FROM arena_entries e " +
                         "JOIN users u ON u.id = e.user_id LEFT JOIN quiz_profiles p ON p.user_id = e.user_id " +

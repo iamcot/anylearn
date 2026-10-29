@@ -100,6 +100,30 @@ public class AdminArenaController {
         });
     }
 
+    @GetMapping("/custom")
+    public ApiResponse<?> custom(@AuthenticationPrincipal User user) {
+        return run(user, admin::custom);
+    }
+
+    /** Creates the custom arena: {title, expectedAt (epoch ms, optional), questionCount?, answerSeconds?}. */
+    @PostMapping("/custom")
+    public ApiResponse<?> createCustom(@AuthenticationPrincipal User user, @RequestBody Map<String, Object> body) {
+        return run(user, () -> admin.createCustom(body.get("title") == null ? null : String.valueOf(body.get("title")),
+                body.get("expectedAt") instanceof Number n ? n.longValue() : null,
+                body.get("questionCount") instanceof Number n ? n.intValue() : null,
+                body.get("answerSeconds") instanceof Number n ? n.intValue() : null));
+    }
+
+    @PostMapping("/custom/{id}/start")
+    public ApiResponse<?> startCustom(@AuthenticationPrincipal User user, @PathVariable long id) {
+        return run(user, () -> admin.startCustom(id));
+    }
+
+    @PostMapping("/custom/{id}/close")
+    public ApiResponse<?> closeCustom(@AuthenticationPrincipal User user, @PathVariable long id) {
+        return run(user, () -> admin.closeCustom(id));
+    }
+
     @GetMapping("/flags")
     public ApiResponse<?> flags(@AuthenticationPrincipal User user) {
         return run(user, admin::flags);
