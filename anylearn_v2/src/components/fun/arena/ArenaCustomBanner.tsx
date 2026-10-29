@@ -80,7 +80,7 @@ export default function ArenaCustomBanner({ token }: { token: string }) {
       <section aria-label={custom.title} className={`${tight.className} relative mt-4 grid grid-cols-[minmax(0,1fr)_84px] overflow-hidden rounded-[20px] text-white shadow-[0_12px_26px_-14px_rgba(120,40,0,.8)]`}
         style={{ background: 'radial-gradient(120px 160px at 82% 10%, rgba(255,235,150,.35), transparent 70%), conic-gradient(from 200deg at 78% -10%, transparent 0 12deg, rgba(255,255,255,.1) 14deg 20deg, transparent 22deg 40deg, rgba(255,255,255,.08) 42deg 47deg, transparent 49deg), linear-gradient(160deg, #ff8a1f, #d9480f 75%)' }}>
         <div className="relative flex min-w-0 flex-col justify-center gap-1 py-[10px] pl-[60px] pr-2">
-          <div className="max-w-full overflow-hidden"><ArenaTitle text={custom.title} tone="orange" className="[font-family:var(--font-be-vietnam-pro),system-ui,sans-serif]" style={{ fontSize: titleSize }} /></div>
+          <div className="max-w-full overflow-x-clip"><ArenaTitle text={custom.title} tone="orange" className="[font-family:var(--font-be-vietnam-pro),system-ui,sans-serif]" style={{ fontSize: titleSize }} /></div>
           <div className="flex whitespace-nowrap text-[13px] leading-[1.5]">
             <button type="button" onClick={() => setSheet(true)} className="cursor-pointer border-0 border-b border-dotted border-white/70 bg-transparent p-0 font-semibold text-white [font:inherit] [font-weight:600]">Đấu trường riêng là gì?</button>
           </div>
