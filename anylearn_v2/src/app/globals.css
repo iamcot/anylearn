@@ -538,10 +538,9 @@ body {
 
 /* Đấu trường Leo (plan 18): the title with an outline and a moving light, the ticket banner and the live animations */
 .arena-title { position: relative; display: inline-block; font-weight: 900; line-height: 1.02; letter-spacing: -.01em; white-space: nowrap }
-.arena-title__stroke { position: absolute; inset: 0; color: transparent; -webkit-text-stroke: 6px #052a17; paint-order: stroke; z-index: 0 }
+.arena-title__stroke { position: absolute; inset: 0; color: #052a17; text-shadow: 2.6px 0.0px 0 #052a17,2.4px 0.99px 0 #052a17,1.84px 1.84px 0 #052a17,0.99px 2.4px 0 #052a17,0.0px 2.6px 0 #052a17,-0.99px 2.4px 0 #052a17,-1.84px 1.84px 0 #052a17,-2.4px 0.99px 0 #052a17,-2.6px 0.0px 0 #052a17,-2.4px -0.99px 0 #052a17,-1.84px -1.84px 0 #052a17,-0.99px -2.4px 0 #052a17,-0.0px -2.6px 0 #052a17,0.99px -2.4px 0 #052a17,1.84px -1.84px 0 #052a17,2.4px -0.99px 0 #052a17; z-index: 0 }
 .arena-title__fill {
-  position: relative; z-index: 1; color: transparent; -webkit-text-stroke: 1.2px #7a4b00;
-  background: linear-gradient(100deg, #ffe066 0%, #ffc700 30%, #fff9d6 45%, #ffc700 52%, #ff9f00 100%); background-size: 250% 100%;
+  position: relative; z-index: 1; color: transparent;   background: linear-gradient(100deg, #ffe066 0%, #ffc700 30%, #fff9d6 45%, #ffc700 52%, #ff9f00 100%); background-size: 250% 100%;
   -webkit-background-clip: text; background-clip: text; animation: arena-sweep 2.6s linear infinite;
 }
 @keyframes arena-sweep { from { background-position: 130% 0 } to { background-position: -120% 0 } }

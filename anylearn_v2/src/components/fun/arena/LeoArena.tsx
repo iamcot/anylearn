@@ -1,21 +1,23 @@
 import { useId } from 'react'
 import { SHIELD_OUTLINE } from '@/components/fun/quiz/RankBadge'
+import { RANK_COLORS } from '@/lib/quiz/rules'
 
 const BODY = 'M-22 16A20 20 0 0 1-2-4L2-4A20 20 0 0 1 22 16L22 41Q22 44 19 44L-8 44A14 14 0 0 1-22 30Z'
 const INK = '#0b3d22'
 
 /**
- * Leo of the Arena: the front view of Leo with a gold rank shield in the left hand, the right hand waving and a mortarboard on his head
+ * Leo of the Arena: the front view of Leo with a rank shield in the colour of the player's rank in the left hand, the right hand waving and a mortarboard on his head
  * (the same SVG pieces as `Leo`, so he looks like the one on the rest of Vui học). Motion stops with reduced motion.
  */
-export default function LeoArena({ className = '' }: { className?: string }) {
+export default function LeoArena({ className = '', rankKey = 'dong' }: { className?: string; rankKey?: string }) {
+  const [light, dark] = RANK_COLORS[rankKey] ?? RANK_COLORS.dong
   const id = useId().replace(/:/g, '')
   return (
     <svg viewBox="-42 -24 84 82" className={`overflow-visible ${className}`} role="img" aria-label="Leo cầm khiên rank, đội mũ tú tài">
       <defs>
         <linearGradient id={`${id}b`} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#4fe39a" /><stop offset=".55" stopColor="#00a551" /><stop offset="1" stopColor="#007a3c" /></linearGradient>
         <radialGradient id={`${id}s`} cx=".3" cy=".25" r=".5"><stop offset="0" stopColor="#fff" stopOpacity=".7" /><stop offset="1" stopColor="#fff" stopOpacity="0" /></radialGradient>
-        <linearGradient id={`${id}g`} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#ffe066" /><stop offset="1" stopColor="#c98a00" /></linearGradient>
+        <linearGradient id={`${id}g`} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor={light} /><stop offset="1" stopColor={dark} /></linearGradient>
       </defs>
       <ellipse cx="0" cy="52" rx="24" ry="4.5" fill="#000" opacity=".18" />
       <g className="arena-bob">
@@ -32,7 +34,7 @@ export default function LeoArena({ className = '' }: { className?: string }) {
         <path d="M-5 24Q0 29 5 24" fill="none" stroke="#14342a" strokeWidth="1.8" strokeLinecap="round" />
         <path d="M-9 33L0 36L0 43L-9 40Z" fill="#0099d4" /><path d="M9 33L0 36L0 43L9 40Z" fill="#006fa8" />
         <g transform="translate(-40 13) scale(.46)">
-          <path d={SHIELD_OUTLINE} fill="#8a5a00" />
+          <path d={SHIELD_OUTLINE} fill={dark} />
           <path d="M32 7l18 6.5V29c0 12.5-7.5 22-18 27.5C21.5 51 14 41.5 14 29V13.5z" fill={`url(#${id}g)`} />
           <path d="M32 18l3.6 7.5 8.2 1.1-6 5.8 1.5 8.1L32 36.4l-7.3 4.1 1.5-8.1-6-5.8 8.2-1.1z" fill="#fff" fillOpacity=".95" />
           <path d="M17 14l11-4" stroke="#fff" strokeOpacity=".7" strokeWidth="2" strokeLinecap="round" fill="none" />

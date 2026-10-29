@@ -9,6 +9,7 @@ import { dayLabel, nextLine, timeText, type ArenaPhase } from '@/lib/arena/timel
 import ArenaRulesSheet from './ArenaRulesSheet'
 import ArenaTitle from './ArenaTitle'
 import LeoArena from './LeoArena'
+import { useMyRankKey } from './useMyRankKey'
 
 function Avatar({ name, size = 30 }: { name: string; size?: number }) {
   return <span className="grid shrink-0 place-items-center rounded-full font-extrabold text-white" style={{ width: size, height: size, background: avatarColor(name), fontSize: size * 0.4 }}>{initial(name)}</span>
@@ -64,6 +65,7 @@ export function RemindLine({ token, sessionId, registered, onChange }: { token: 
 
 /** The lobby: title, the line that counts down to the next question, the board and the person's own line pinned below it. */
 export default function ArenaLobby({ token, lobby, phase, now, onRegistered }: { token: string; lobby: Lobby; phase: ArenaPhase; now: number; onRegistered: (registered: boolean) => void }) {
+  const rankKey = useMyRankKey(token)
   const [sheet, setSheet] = useState(false)
   const rows = lobby.board ?? []
   const startsAt = lobby.startsAt ?? 0
@@ -93,7 +95,7 @@ export default function ArenaLobby({ token, lobby, phase, now, onRegistered }: {
         {!ended && pre && lobby.sessionId != null && phase.kind !== 'countdown' && (
           <div className="mt-1"><RemindLine token={token} sessionId={lobby.sessionId} registered={lobby.registered ?? false} onChange={onRegistered} /></div>
         )}
-        <LeoArena className="pointer-events-none absolute right-1 top-1 h-20 w-[70px]" />
+        <LeoArena rankKey={rankKey} className="pointer-events-none absolute right-1 top-1 h-20 w-[70px]" />
       </div>
 
       {ended ? (

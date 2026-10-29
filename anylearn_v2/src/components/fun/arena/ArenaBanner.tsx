@@ -9,6 +9,7 @@ import ArenaRulesSheet from './ArenaRulesSheet'
 import ArenaTitle from './ArenaTitle'
 import LeoArena from './LeoArena'
 import { useArenaClock } from './useArenaClock'
+import { useMyRankKey } from './useMyRankKey'
 
 // narrow letters keep the three lines of the card short; used in this banner only
 const tight = Roboto_Condensed({ subsets: ['vietnamese', 'latin'], weight: ['400', '600', '700', '800'] })
@@ -35,6 +36,7 @@ export default function ArenaBanner({ token }: { token: string }) {
   const [sheet, setSheet] = useState(false)
   const [confirm, setConfirm] = useState(false)
   const [busy, setBusy] = useState(false)
+  const rankKey = useMyRankKey(token)
   const timing = banner ? timingOf(banner) : null
   const { now, phase, sync } = useArenaClock(timing, 1000)
 
@@ -89,14 +91,14 @@ export default function ArenaBanner({ token }: { token: string }) {
       <>
         <small className="text-[10px] font-bold uppercase tracking-[.08em] text-[#9fe8bf]">Đang đấu</small>
         <span className="text-xl font-extrabold leading-[1.1] tabular-nums text-white">{phase.qNo}/{total}</span>
-        <Link href="/fun/arena" className="arena-go mt-1 inline-flex items-center rounded-full bg-[#39ff88] px-2.5 py-1.5 text-[13px] font-extrabold text-[#04261a] no-underline">Vào đấu ›</Link>
+        <Link href="/fun/arena" className="arena-go mt-1 inline-flex items-center whitespace-nowrap rounded-full bg-[#39ff88] px-2.5 py-1.5 text-[13px] font-extrabold text-[#04261a] no-underline">Vào đấu</Link>
       </>
     )
   } else {
     stub = (
       <>
         <small className="text-[10px] font-bold uppercase tracking-[.08em] text-[#9fe8bf]">{phase ? minutesLeft(phase.msToNext) : ''}</small>
-        <Link href="/fun/arena" className="arena-go inline-flex items-center rounded-full bg-[#39ff88] px-2.5 py-1.5 text-[13px] font-extrabold text-[#04261a] no-underline">Vào đấu ›</Link>
+        <Link href="/fun/arena" className="arena-go inline-flex items-center whitespace-nowrap rounded-full bg-[#39ff88] px-2.5 py-1.5 text-[13px] font-extrabold text-[#04261a] no-underline">Vào đấu</Link>
       </>
     )
   }
@@ -127,7 +129,7 @@ export default function ArenaBanner({ token }: { token: string }) {
   } else {
     line2 = (
       <>
-        <span className="min-w-0 truncate"><b className="font-bold text-white">{timeText(timing.startsAt)} {dayLabel(timing.startsAt, now)}</b> · {banner.registeredCount ?? 0} người{canRemind ? ' ·' : ''}</span>
+        <span className="min-w-0 truncate"><b className="font-bold text-white">{timeText(timing.startsAt)}{dayLabel(timing.startsAt, now) === 'hôm nay' ? '' : ` ${dayLabel(timing.startsAt, now)}`}</b> · {banner.registeredCount ?? 0} người{canRemind ? ' ·' : ''}</span>
         {canRemind && (banner.registered
           ? (confirm
             ? <span className="flex-none text-[#9fe8bf]">Bỏ nhắc? <button type="button" onClick={unremind} className="cursor-pointer border-0 bg-transparent p-0 font-extrabold text-[#39ff88] underline [font:inherit]">Có</button> · <button type="button" onClick={() => setConfirm(false)} className="cursor-pointer border-0 bg-transparent p-0 font-bold text-white [font:inherit]">Không</button></span>
@@ -138,23 +140,25 @@ export default function ArenaBanner({ token }: { token: string }) {
   }
 
   return (
+    <>
     <section aria-label="Đấu trường Leo" className={`${tight.className} relative mt-4 grid grid-cols-[minmax(0,1fr)_78px] overflow-hidden rounded-[20px] text-[#e7eefb] shadow-[0_12px_26px_-14px_rgba(7,27,51,.8)]`}
       style={{ background: 'radial-gradient(120px 160px at 82% 10%, rgba(255,214,90,.28), transparent 70%), conic-gradient(from 200deg at 78% -10%, transparent 0 12deg, rgba(255,255,255,.07) 14deg 20deg, transparent 22deg 40deg, rgba(255,255,255,.06) 42deg 47deg, transparent 49deg), linear-gradient(160deg, #0d2a4d, #071b33 70%)' }}>
-      <div className="relative flex min-w-0 flex-col justify-center gap-[3px] py-[9px] pl-[60px] pr-2">
+      <div className="relative flex min-w-0 flex-col justify-center gap-1 py-[10px] pl-[60px] pr-2">
         <ArenaTitle className="text-[clamp(17px,5.4vw,21px)] [font-family:var(--font-be-vietnam-pro),system-ui,sans-serif]" />
-        <div className="flex gap-2.5 whitespace-nowrap text-[13px] leading-[1.3]">
+        <div className="flex gap-2.5 whitespace-nowrap text-[13px] leading-[1.5]">
           <button type="button" onClick={() => setSheet(true)} className="cursor-pointer border-0 border-b border-dotted border-[#cfe0ff]/60 bg-transparent p-0 font-semibold text-[#cfe0ff] [font:inherit] [font-weight:600]">Đấu trường là gì?</button>
           <Link href="/fun/arena/board" className="border-b border-dotted border-[#cfe0ff]/60 font-semibold text-[#cfe0ff] no-underline">Bảng xếp hạng ›</Link>
         </div>
-        <div className="flex items-baseline gap-1 overflow-hidden whitespace-nowrap text-[13px] leading-[1.3]">{line2}</div>
-        <LeoArena className="pointer-events-none absolute -bottom-1 left-0 h-[72px] w-[60px]" />
+        <div className="flex items-baseline gap-1 overflow-hidden whitespace-nowrap text-[13px] leading-[1.5]">{line2}</div>
+        <LeoArena rankKey={rankKey} className="pointer-events-none absolute -bottom-1 left-0 h-[72px] w-[60px]" />
       </div>
       <div className="relative flex flex-col items-center justify-center gap-0.5 border-l-2 border-dashed border-white/25 bg-gradient-to-b from-[#0a3a24] to-[#04261a] px-[5px] py-2 text-center">
         <span aria-hidden className="absolute -left-[9px] -top-2 size-4 rounded-full bg-bg" />
         <span aria-hidden className="absolute -bottom-2 -left-[9px] size-4 rounded-full bg-bg" />
         {stub}
       </div>
-      {sheet && <ArenaRulesSheet rules={banner.rules} onClose={() => setSheet(false)} />}
     </section>
+    {sheet && <ArenaRulesSheet rules={banner.rules} onClose={() => setSheet(false)} />}
+    </>
   )
 }

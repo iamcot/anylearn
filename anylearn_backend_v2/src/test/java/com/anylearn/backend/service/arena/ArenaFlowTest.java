@@ -155,6 +155,22 @@ class ArenaFlowTest {
     }
 
     @Test
+    void bannerStaysAvailableAfterBeingInTheRoomAndAfterTheEnd() {
+        long u = user();
+        clock.at("2026-10-29T19:55:00");
+        arena.lobby(u);
+        Map<String, Object> inRoom = arena.banner(u);
+        assertEquals(sessionId, ((Number) inRoom.get("sessionId")).longValue());
+        assertEquals(Boolean.TRUE, inRoom.get("inRoom"));
+        clock.at("2026-10-29T20:00:03");
+        arena.answer(u, sessionId, 1, 1, false);
+        assertEquals(sessionId, ((Number) arena.banner(u).get("sessionId")).longValue());
+        clock.at("2026-10-29T20:25:00");
+        Map<String, Object> over = arena.banner(u);
+        assertEquals(sessionId, ((Number) over.get("endedSessionId")).longValue());
+    }
+
+    @Test
     void remindersGoOnceToThoseWhoRegistered() {
         long a = user();
         long b = user();

@@ -203,6 +203,11 @@ public class ArenaService {
         return count("SELECT COUNT(*) FROM arena_entries WHERE session_id = ? AND registered_at IS NOT NULL", sessionId);
     }
 
+    /** A timestamp column comes back as `Timestamp` or `LocalDateTime` depending on the driver path. */
+    private static LocalDateTime toLocal(Object value) {
+        return value instanceof Timestamp t ? t.toLocalDateTime() : (LocalDateTime) value;
+    }
+
     private int inRoom(long sessionId) {
         return count("SELECT COUNT(*) FROM arena_entries WHERE session_id = ? AND last_seen_at >= ?", sessionId, Timestamp.valueOf(now().minusSeconds(settings.num("presence_seconds"))));
     }
@@ -252,7 +257,7 @@ public class ArenaService {
         List<Map<String, Object>> mine = jdbc.queryForList("SELECT registered_at, last_seen_at, entered_at FROM arena_entries WHERE session_id = ? AND user_id = ?", s.id(), userId);
         out.put("registered", !mine.isEmpty() && mine.get(0).get("registered_at") != null);
         out.put("inRoom", !mine.isEmpty() && mine.get(0).get("last_seen_at") != null
-                && ((Timestamp) mine.get(0).get("last_seen_at")).toLocalDateTime().isAfter(now().minusSeconds(settings.num("presence_seconds"))));
+                && toLocal(mine.get(0).get("last_seen_at")).isAfter(now().minusSeconds(settings.num("presence_seconds"))));
         out.put("rules", rules());
         return out;
     }
