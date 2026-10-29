@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { getVideoOutline, type VideoOutline as Outline } from '@/lib/api/learn'
 import { clock, firstFreeLesson, learnHref, resumeLabel } from '@/lib/learn/rules'
+import RegisterButton from '@/app/class/[id]/[slug]/RegisterButton'
 import { CheckIcon, ChevronDownIcon, LockIcon, PlayIcon } from '@/components/icons'
 
 // The hero button and the outline section ask at the same time: share one request per course and token for a few seconds.
@@ -29,6 +30,13 @@ function useOutline(itemId: number) {
     return () => { cancelled = true }
   }, [itemId, token, isAuthLoading])
   return outline
+}
+
+/** The register button of a video course: one purchase covers the account and all its children, so an owner sees none. */
+export function VideoRegisterButton({ itemId, price }: { itemId: number; price?: number | null }) {
+  const outline = useOutline(itemId)
+  if (outline?.access) return null
+  return <RegisterButton itemId={itemId} price={price} />
 }
 
 /**

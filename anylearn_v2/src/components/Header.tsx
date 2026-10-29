@@ -32,13 +32,13 @@ export default function Header() {
   return (
     <>
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-line/90 min-h-[76px]">
-      <div className="container flex items-center justify-between gap-6 h-[76px]">
+      <div className="container flex items-center justify-between gap-2 lg:gap-6 h-[76px]">
 
         <div className="flex min-w-0 items-center">
           <HeaderBack />
           <Link href={homeHref} onClick={isToday ? markBrowsing : undefined} className="flex items-center no-underline">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/cdn/anylearn/img/LogoanyLEARN.svg" alt="anyLEARN" className="h-[60px]" />
+            <img src="/cdn/anylearn/img/LogoanyLEARN.svg" alt="anyLEARN" className="h-[48px] min-[400px]:h-[60px]" />
           </Link>
         </div>
 
@@ -70,7 +70,7 @@ export default function Header() {
           </a>
           <Link href="/checkout" aria-label="Giỏ hàng" className={ICON_BUTTON_CLASS}>
             <CartIcon />
-            <CountBadge count={cartCount} />
+            <CountBadge count={cartCount} className="right-0.5 top-0.5" />
           </Link>
 
           {bell}
@@ -81,7 +81,7 @@ export default function Header() {
           }
         </div>
 
-        <div className="flex lg:hidden items-center gap-2">
+        <div className="flex lg:hidden shrink-0 items-center gap-0.5 min-[400px]:gap-2">
           {compactMobile && (
             <Link href="/search" onClick={isToday ? markBrowsing : undefined} aria-label="Tìm khóa học"
               className={ICON_BUTTON_CLASS}><SearchIcon /></Link>
@@ -92,7 +92,7 @@ export default function Header() {
           </a>
           <Link href="/checkout" aria-label="Giỏ hàng" className={ICON_BUTTON_CLASS}>
             <CartIcon />
-            <CountBadge count={cartCount} />
+            <CountBadge count={cartCount} className="right-0.5 top-0.5" />
           </Link>
           {bell}
           {!compactMobile && (

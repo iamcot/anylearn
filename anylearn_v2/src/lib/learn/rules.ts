@@ -55,3 +55,46 @@ export function firstFreeLesson<T extends { free: boolean; playable: boolean }>(
   for (const c of chapters) for (const l of c.lessons) if (l.free && l.playable) return l
   return null
 }
+
+/** Playback speeds of the lesson player. */
+export const SPEEDS = [0.75, 1, 1.25, 1.5, 2]
+
+/** "1x", "1.25x". */
+export function speedLabel(speed: number): string {
+  return `${speed}x`
+}
+
+/** A saved speed that is one of the offered ones, else normal speed. */
+export function validSpeed(value: unknown): number {
+  const n = Number(value)
+  return SPEEDS.includes(n) ? n : 1
+}
+
+export const SEEK_SECONDS = 10
+
+/** Where a double tap or key press lands: `delta` seconds from now, kept inside the video. */
+export function seekTarget(current: number, delta: number, duration: number | null | undefined): number {
+  const target = Math.max(0, current + delta)
+  return duration && duration > 0 ? Math.min(target, Math.max(0, duration - 1)) : target
+}
+
+/** Which third of the video a tap fell in: left and right seek, the middle is left to the native controls. */
+export function tapZone(x: number, width: number): 'left' | 'middle' | 'right' {
+  if (width <= 0) return 'middle'
+  const share = x / width
+  return share < 0.35 ? 'left' : share > 0.65 ? 'right' : 'middle'
+}
+
+/** "1:05" for a note chip. */
+export function noteTime(seconds: number): string {
+  return clock(seconds) || '0:00'
+}
+
+/** The notes tab strip of the learning page. */
+export type LearnTab = 'lessons' | 'about' | 'files' | 'plan'
+export const LEARN_TABS: { key: LearnTab; label: string }[] = [
+  { key: 'lessons', label: 'Bài học' },
+  { key: 'about', label: 'Giới thiệu' },
+  { key: 'files', label: 'Tài liệu' },
+  { key: 'plan', label: 'Lịch học' },
+]

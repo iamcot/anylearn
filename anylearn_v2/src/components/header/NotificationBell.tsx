@@ -23,7 +23,7 @@ export default function NotificationBell({ token, unreadCount, onUnreadChange }:
     <div className="relative" ref={containerRef}>
       <button type="button" aria-label="Thông báo" onClick={() => setOpen(value => !value)} className={ICON_BUTTON_CLASS}>
         <BellIcon />
-        <CountBadge count={unreadCount} />
+        <CountBadge count={unreadCount} className="right-0.5 top-0.5" />
       </button>
       {open && <NotificationDropdown token={token} onClose={close} onUnreadChange={onUnreadChange} />}
     </div>

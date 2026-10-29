@@ -19,7 +19,9 @@ export default function SiteChrome({ header, footer, children }: Props) {
   const isToday = inTodayZone(pathname)
   const isJoin = pathname.startsWith('/join')
   const isMap = pathname.startsWith('/search/map')
-  const showTabs = !NO_TABS_PREFIXES.some(prefix => pathname.startsWith(prefix))
+  // the learning page has its own top bar and bottom bar; the site header stays on a desktop only
+  const isLearn = pathname.startsWith('/learn/')
+  const showTabs = !isLearn && !NO_TABS_PREFIXES.some(prefix => pathname.startsWith(prefix))
   const needsBodySpace = showTabs && !isToday
 
   useEffect(() => {
@@ -29,9 +31,9 @@ export default function SiteChrome({ header, footer, children }: Props) {
 
   return (
     <>
-      {!isJoin && header}
+      {!isJoin && (isLearn ? <div className="max-lg:hidden">{header}</div> : header)}
       <main style={{ flex: 1 }}>{children}</main>
-      {!isToday && !isJoin && !isMap && footer}
+      {!isToday && !isJoin && !isMap && !isLearn && footer}
       <CompareBar />
       {showTabs && <AppTabs />}
     </>

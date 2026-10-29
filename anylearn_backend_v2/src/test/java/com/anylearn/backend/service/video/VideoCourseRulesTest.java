@@ -126,4 +126,15 @@ class VideoCourseRulesTest {
         assertEquals("45 giây", VideoCourseRules.durationText(45));
         assertEquals("", VideoCourseRules.durationText(0));
     }
+
+    @Test
+    void notesNeedTextInsideTheLessonAndRoom() {
+        assertNull(VideoCourseRules.noteProblem("Ghi chú", 30, 600, 0));
+        assertNotNull(VideoCourseRules.noteProblem("  ", 30, 600, 0));
+        assertNotNull(VideoCourseRules.noteProblem("x".repeat(501), 30, 600, 0));
+        assertNotNull(VideoCourseRules.noteProblem("ok", -1, 600, 0));
+        assertNotNull(VideoCourseRules.noteProblem("ok", 700, 600, 0));
+        assertNull(VideoCourseRules.noteProblem("ok", 700, null, 0), "a lesson with no known length accepts any position");
+        assertNotNull(VideoCourseRules.noteProblem("ok", 10, 600, VideoCourseRules.NOTES_PER_LESSON));
+    }
 }
