@@ -89,7 +89,7 @@ export default function ArenaCustomBanner({ token }: { token: string }) {
           </div>
           <LeoArena rankKey={rankKey} className="pointer-events-none absolute -bottom-1 left-0 h-[72px] w-[60px]" />
         </div>
-        <div className="relative flex flex-col items-center justify-center gap-0.5 border-l-2 border-dashed border-white/35 bg-gradient-to-b from-[#a8330a] to-[#6e1f04] px-[5px] py-2 text-center">
+        <div className="relative flex flex-col items-center justify-center gap-0.5 border-l-2 border-dashed border-white/35 bg-gradient-to-b from-[#5b2bb8] to-[#34136b] px-[5px] py-2 text-center">
           <span aria-hidden className="absolute -left-[9px] -top-2 size-4 rounded-full bg-bg" />
           <span aria-hidden className="absolute -bottom-2 -left-[9px] size-4 rounded-full bg-bg" />
           {stub}
