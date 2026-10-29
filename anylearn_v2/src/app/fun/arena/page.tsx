@@ -108,7 +108,7 @@ function Arena() {
   }
 
   if (inQuestion && phase.qNo > 0) {
-    return <ArenaQuestion key={phase.qNo} token={token} sessionId={lobby.sessionId} timing={timing} phase={phase} now={now} sync={sync} />
+    return <ArenaQuestion key={phase.qNo} token={token} sessionId={lobby.sessionId} title={lobby.custom ? lobby.title : undefined} timing={timing} phase={phase} now={now} sync={sync} />
   }
   return (
     <>

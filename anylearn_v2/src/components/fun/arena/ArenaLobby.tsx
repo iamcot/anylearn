@@ -40,7 +40,7 @@ function LiveRow({ row, me, move }: { row: { rank: number | null; name: string; 
       <Avatar name={row.name} />
       <span className="min-w-0 truncate font-bold text-ink">{row.name}{me ? ' (bạn)' : ''}
         {secondsText(row.correctMs ?? 0) && <span className="text-[11px] font-medium text-muted"> · {secondsText(row.correctMs ?? 0)}</span>}</span>
-      <span className="text-right font-black tabular-nums text-ink">{row.score ?? 0}{row.lastCorrect && <span className="ml-1 text-[11px] font-extrabold text-green">+1</span>}<small className="block text-[10px] font-semibold text-muted">điểm</small></span>
+      <span className="text-right font-black tabular-nums text-ink">{row.score ?? 0}{row.lastCorrect ? <small className="block text-[10px] font-extrabold text-green">+1 điểm</small> : <small className="block text-[10px] font-semibold text-muted">điểm</small>}</span>
     </li>
   )
 }

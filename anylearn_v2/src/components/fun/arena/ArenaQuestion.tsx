@@ -12,8 +12,8 @@ const LETTERS = ['A', 'B', 'C', 'D']
  * (`now`), so every phone moves together. The right answer is asked from the server only when the time is up; until then the person
  * only sees that their choice was locked and how many others have answered.
  */
-export default function ArenaQuestion({ token, sessionId, timing, phase, now, sync }: {
-  token: string; sessionId: number; timing: ArenaTiming; phase: ArenaPhase; now: number; sync: (serverNow: number) => void
+export default function ArenaQuestion({ token, sessionId, title, timing, phase, now, sync }: {
+  token: string; title?: string; sessionId: number; timing: ArenaTiming; phase: ArenaPhase; now: number; sync: (serverNow: number) => void
 }) {
   const qNo = phase.qNo
   const [question, setQuestion] = useState<Question | null>(null)
@@ -84,9 +84,9 @@ export default function ArenaQuestion({ token, sessionId, timing, phase, now, sy
 
   const total = timing.questionCount
   const header = (
-    <div className="flex items-center justify-between text-xs font-bold text-[#b9c8dd]">
+    <div className="flex items-center justify-between gap-2 text-xs font-bold text-[#b9c8dd]">
       <Link href="/fun" className="rounded-full bg-white/10 px-2.5 py-1 text-[#b9c8dd] no-underline">‹ Thoát</Link>
-      <span className="rounded-full bg-white/10 px-2.5 py-1">Đấu trường Leo</span>
+      <span className="min-w-0 truncate rounded-full bg-white/10 px-2.5 py-1">{title ?? 'Đấu trường Leo'}</span>
       <span className="rounded-full bg-white/10 px-2.5 py-1">Câu {qNo}/{total}</span>
     </div>
   )
