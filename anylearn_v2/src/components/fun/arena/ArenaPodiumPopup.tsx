@@ -13,9 +13,9 @@ const TRIES = 15
 const EVERY_MS = 2000
 
 // each place is smaller than the one before
-const SIZE = ['text-[30px]', 'text-[23px]', 'text-[18px]']
-const SCORE = ['text-[26px]', 'text-[20px]', 'text-[16px]']
-const MEDAL = ['h-[46px] w-[37px]', 'h-[38px] w-[30px]', 'h-[31px] w-6']
+const SIZE = ['text-[21px]', 'text-[18px]', 'text-[15px]']
+const SCORE = ['text-[21px]', 'text-[18px]', 'text-[15px]']
+const MEDAL = ['h-[40px] w-8', 'h-[34px] w-[27px]', 'h-7 w-[22px]']
 
 /**
  * The congratulation pop-up at the end of an arena, the same for the daily and the custom one: the top 3 of the final board, biggest
