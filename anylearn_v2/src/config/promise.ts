@@ -11,7 +11,6 @@ export interface AnyLearnPromise {
 }
 
 // The "lời hứa anyLEARN": short labels for the course page strip, details for /info/why-anylearn.
-// The refund wording still waits for the owner's confirmation (plans/PROGRESS.md, open questions).
 export const PROMISES: AnyLearnPromise[] = [
   {
     key: 'price',
