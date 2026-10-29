@@ -623,3 +623,9 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 - Đã làm: V62 (`quiz_profiles.energy/energy_at/active_pack_id`, `quiz_attempts.mode/pack_id`, `quiz_packs`, `shop_log`); `ShopService` + `ShopRules` + `ShopSettings` (`shop/*`, một bảng FIELDS), mua vật phẩm / gói tập luyện / năng lượng / rương thường và hiếm, bán lại sticker trùng và vật phẩm; `QuizEnergy` (hồi lười), `QuizPackService`, chế độ tập luyện trong `QuizGameService` (không sao, rơi, BXH, vật phẩm, năng lượng); API `/api/shop`, `/api/quiz/packs`, admin `/admin/fun/shop-config`; FE trang `/fun/shop` (Mua / Bán / Lịch sử), thanh năng lượng, khối "Gói tập luyện của tôi", cửa hàng trong Leo rank, nút mua rương ở trang Sticker; admin trang "Cửa hàng Leo Xu".
 - Test: `ShopRulesTest`, `QuizEnergyTest`, `lib/shop/rules.test.ts`.
 - Chưa làm: test luồng với MySQL (mua / bán / tập luyện chạy thật), kiểm tra giao diện trên điện thoại thật, số liệu cửa hàng riêng trong admin (đang xem ở "Sức khỏe game").
+
+### 29/10/2026 – Plan 18: Đấu trường Leo
+- Đã làm: V67 (`arena_sessions`, `arena_questions`, `arena_entries`, `arena_answers`); `service/arena/*` (`ArenaRules`, `ArenaSettings` một bảng FIELDS, `ArenaQuestionPicker`, `ArenaService`, `ArenaScheduler`, `ArenaSettlementService`, `ArenaAdminService`), `/api/arena/*` và `/admin/arena/*`; quà Leo Xu (`SOURCE_ARENA`) + sticker + banner thành tích; nhắc app / email / ZNS; FE banner dưới lối tắt, sảnh, màn câu hỏi, bảng xếp hạng; trang admin "Đấu trường Leo". Không dùng websocket: màn đổi theo đồng hồ server.
+- Test: `ArenaRulesTest`, `ArenaFlowTest` (MariaDB), `lib/arena/*.test.ts`.
+- Chưa làm: câu thoại của Leo cho đấu trường, mẫu ZNS được duyệt (xem `docs/zns-templates.md` mục 15), thử tải nhiều người cùng lúc, kiểm tra trên điện thoại thật (đã chụp thử bằng Chromium với API giả).
+

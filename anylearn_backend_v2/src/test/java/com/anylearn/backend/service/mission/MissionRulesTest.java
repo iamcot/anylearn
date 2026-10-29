@@ -54,8 +54,8 @@ class MissionRulesTest {
 
     @Test
     void missionListIsFixedAndKeysAreUnique() {
-        assertEquals(6, MissionRules.DEFS.size());
-        assertEquals(6, new HashSet<>(MissionRules.DEFS.stream().map(MissionRules.Def::key).toList()).size());
+        assertEquals(7, MissionRules.DEFS.size());
+        assertEquals(7, new HashSet<>(MissionRules.DEFS.stream().map(MissionRules.Def::key).toList()).size());
         assertEquals(30, MissionRules.find("checkin_days").defReward());
         assertNull(MissionRules.find("nope"));
         assertNotEquals(MissionRules.BONUS, MissionRules.DEFS.get(0).key());

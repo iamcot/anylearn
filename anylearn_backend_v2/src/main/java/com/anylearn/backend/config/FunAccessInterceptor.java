@@ -24,6 +24,7 @@ public class FunAccessInterceptor implements HandlerInterceptor {
         if (path.startsWith("/api/quiz")) return "quiz";
         if (path.startsWith("/api/stickers")) return "sticker";
         if (path.startsWith("/api/explore")) return "explore";
+        if (path.startsWith("/api/arena")) return "arena";
         if (path.startsWith("/api/fun/checkin") || path.startsWith("/api/fun/missions")) return "checkin";
         return null;
     }

@@ -12,13 +12,14 @@ const GAMES = {
   quiz: ['Quiz', 'blue'],
   sticker: ['Sticker', 'purple'],
   explore: ['Khám phá', 'orange'],
+  arena: ['Đấu trường', 'volcano'],
   banner: ['Banner', 'magenta'],
   ref: ['Giới thiệu', 'cyan'],
   coin: ['Tiền game', 'gold'],
 }
 const GAME_OPTIONS = Object.entries(GAMES).map(([value, [label]]) => ({ value, label }))
 
-const TYPE_LABELS = { claim: 'Mở quà điểm danh', register: 'Đăng ký qua link', item: 'Vật phẩm điểm danh', mission: 'Nhận thưởng nhiệm vụ', mission_bonus: 'Nhận sticker thưởng tuần', share: 'Chia sẻ banner', view: 'Xem bài Khám phá' }
+const TYPE_LABELS = { claim: 'Mở quà điểm danh', register: 'Đăng ký qua link', item: 'Vật phẩm điểm danh', mission: 'Nhận thưởng nhiệm vụ', mission_bonus: 'Nhận sticker thưởng tuần', share: 'Chia sẻ banner', view: 'Xem bài Khám phá', answer: 'Trả lời Đấu trường', reward: 'Nhận thưởng Đấu trường', unregister: 'Bỏ nhắc Đấu trường' }
 
 export default function FunEvents() {
   const navigate = useNavigate()
@@ -56,6 +57,7 @@ export default function FunEvents() {
           <Button onClick={() => navigate('/fun-checkin')}>Điểm danh & quà</Button>
           <Button onClick={() => navigate('/stickers')}>Sticker</Button>
           <Button onClick={() => navigate('/quiz-game')}>Quiz Leo rank</Button>
+          <Button onClick={() => navigate('/fun-arena')}>Đấu trường Leo</Button>
           <Button onClick={() => navigate('/achievements')}>Banner thành tích</Button>
           <Button onClick={() => navigate('/quiz-bank')}>Kho câu hỏi</Button>
         </Flex>

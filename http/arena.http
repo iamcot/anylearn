@@ -1,0 +1,41 @@
+@baseUrl = {{$dotenv BE_BASE_URL}}/api
+@jwtToken = {{$dotenv JWT_TOKEN}}
+
+### Banner of /fun: next or live arena, counts, rules, whether I registered
+GET {{baseUrl}}/arena/banner
+Authorization: Bearer {{jwtToken}}
+
+### "Nhắc tôi" (register) and take it back
+POST {{baseUrl}}/arena/register
+Authorization: Bearer {{jwtToken}}
+
+###
+DELETE {{baseUrl}}/arena/register
+Authorization: Bearer {{jwtToken}}
+
+### Lobby (the call also marks me as "in the room" once the room is open)
+POST {{baseUrl}}/arena/lobby
+Authorization: Bearer {{jwtToken}}
+
+### Question N of today's arena (the right answer only after it ends)
+GET {{baseUrl}}/arena/question?sessionId=1&qNo=1
+Authorization: Bearer {{jwtToken}}
+
+### Answer (option = shown position 0-3)
+POST {{baseUrl}}/arena/answer
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{ "sessionId": 1, "qNo": 1, "option": 0 }
+
+### Leaderboard of a day (no sessionId = the latest finished one)
+GET {{baseUrl}}/arena/board
+Authorization: Bearer {{jwtToken}}
+
+### Lobby of a custom arena
+POST {{baseUrl}}/arena/lobby?sessionId=1
+Authorization: Bearer {{jwtToken}}
+
+### Is the custom arena closed?
+GET {{baseUrl}}/arena/custom-state?sessionId=1
+Authorization: Bearer {{jwtToken}}

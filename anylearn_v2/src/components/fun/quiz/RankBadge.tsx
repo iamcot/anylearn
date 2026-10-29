@@ -1,7 +1,9 @@
 import { RANK_COLORS } from '@/lib/quiz/rules'
 
 const ORDER = ['dong', 'bac', 'vang', 'bachkim', 'kimcuong', 'thongthai', 'sieupham', 'huyenthoai']
-const OUTLINE = 'M32 3l22 8v18c0 15-9 26-22 32C19 55 10 44 10 29V11z'
+/** The shield outline of a rank medal, shared with the Arena's Leo. */
+export const SHIELD_OUTLINE = 'M32 3l22 8v18c0 15-9 26-22 32C19 55 10 44 10 29V11z'
+const OUTLINE = SHIELD_OUTLINE
 
 /**
  * A medal in the colour of the rank, drawn as SVG so it looks the same on every phone.

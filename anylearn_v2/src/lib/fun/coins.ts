@@ -12,6 +12,7 @@ export const COIN_SOURCE_LABEL: Record<string, string> = {
   mission: 'Thưởng nhiệm vụ tuần',
   share: 'Thưởng chia sẻ thành tích',
   invite: 'Thưởng mời bạn',
+  arena: 'Thưởng Đấu trường Leo',
 }
 
 export function coinSourceLabel(source: string): string {

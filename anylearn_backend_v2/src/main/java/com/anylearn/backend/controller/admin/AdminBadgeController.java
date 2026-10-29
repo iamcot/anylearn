@@ -22,6 +22,7 @@ public class AdminBadgeController {
     private final JdbcTemplate jdbc;
     private final ReviewService reviewService;
     private final com.anylearn.backend.service.explore.ExploreService exploreService;
+    private final com.anylearn.backend.service.arena.ArenaAdminService arenaAdmin;
 
     @GetMapping
     public ApiResponse<?> counts(@AuthenticationPrincipal User user) {
@@ -36,6 +37,7 @@ public class AdminBadgeController {
         counts.put("chatReports", count("SELECT COUNT(*) FROM chat_reports WHERE status = 'open'"));
         counts.put("stickerReview", count("SELECT COUNT(*) FROM welcome_packs WHERE status = 'review'"));
         counts.put("quizFlagged", count("SELECT COUNT(*) FROM quiz_attempts WHERE flagged = 1 AND issued_at >= DATE_SUB(CURDATE(), INTERVAL 14 DAY)"));
+        counts.put("arenaFlagged", arenaAdmin.flaggedWaiting());
         counts.put("exploreReports", exploreService.openReports());
         counts.put("explorePending", exploreService.pendingPosts());
         counts.put("reviewsResubmitted", reviewService.resubmittedCount());

@@ -30,6 +30,9 @@ public final class NotificationTopics {
             Map.entry("points_expiring", "points"),
             Map.entry("achievement", "fun"),
             Map.entry("quiz_board_reward", "fun"),
+            Map.entry("arena_reminder", "fun"),
+            Map.entry("arena_result", "fun"),
+            Map.entry("arena_reward", "fun"),
             Map.entry("video_study_reminder", "schedule"),
             Map.entry("video_idle", "schedule"),
             Map.entry("video_suggest", "promo"));

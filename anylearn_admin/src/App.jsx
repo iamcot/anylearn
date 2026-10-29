@@ -15,6 +15,7 @@ import QuizBank from './pages/QuizBank'
 import Stickers from './pages/Stickers'
 import FunCoins from './pages/FunCoins'
 import FunShop from './pages/FunShop'
+import ArenaAdmin from './pages/ArenaAdmin'
 import QuizGame from './pages/QuizGame'
 import Achievements from './pages/Achievements'
 import Explore from './pages/Explore'
@@ -115,6 +116,7 @@ export default function App() {
                   <Route path="stickers" element={<Stickers />} />
                   <Route path="fun-coins" element={<FunCoins />} />
                   <Route path="fun-shop" element={<FunShop />} />
+                  <Route path="fun-arena" element={<ArenaAdmin />} />
                   <Route path="quiz-game" element={<QuizGame />} />
                   <Route path="achievements" element={<Achievements />} />
                   <Route path="explore" element={<Explore />} />
