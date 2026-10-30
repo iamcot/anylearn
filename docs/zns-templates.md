@@ -37,8 +37,7 @@ Quy định của Zalo thay đổi theo thời gian, hãy đối chiếu lại v
 | 7 | Bé vắng học liên tiếp | CSKH | Vắng N buổi liền | App + push + email |
 | 8 | Khảo sát giữa khóa | CSKH | Học được 50% số buổi | App + push + email |
 | 9 | Nhắc gia hạn gói buổi | CSKH | Còn 3 buổi hoặc 14 ngày trước khi hết khóa | App + push + email |
-| 10 | Học phí sắp đến hạn | Giao dịch | 7 ngày và 1 ngày trước hạn | App + push + email |
-| 11 | Chưa nhận được học phí | Giao dịch | Quá hạn đóng học phí | App + push + email |
+| 10 | Đăng ký kỳ học tiếp theo (gồm cả mẫu 11 cũ) | Giao dịch | 7 ngày, 1 ngày trước hạn và khi quá hạn | App + push + email |
 | 12 | Đã tìm được khóa cho yêu cầu của bạn | CSKH | Admin chuyển yêu cầu "Tìm giúp tôi" sang "đã tìm được" | App (nếu có tài khoản) |
 | 13 | anyPoint sắp hết hạn | CSKH | 30 và 7 ngày trước hạn (plan 02, chưa làm) | Chưa làm |
 | 14 | Yêu cầu nghỉ / đổi lịch đã xử lý | CSKH | Admin duyệt hoặc từ chối | App |
@@ -58,8 +57,12 @@ Giữ nguyên mẫu đang dùng. Tham số `otp`. Không cần đăng ký lại.
 - Nút: "Xem lịch học" → `https://anylearn.vn/today`.
 
 > **anyLEARN xác nhận đăng ký thành công**
-> Chào <customer_name>, đơn hàng <order_code> đã được thanh toán <amount>. Khóa học: <course_name>. Buổi học đầu tiên: <first_date>.
-> Bạn xem lịch học và đồ cần mang trong trang Hôm nay của anyLEARN.
+> Chào khách hàng <customer_name>, Khóa học <course_name> đã được đăng ký thành công. Bạn xem lịch học trong trang "Hôm nay" của anyLEARN nhé.
+{order_code}
+{phone_number}
+{price}
+{date}
+{learner}
 
 ## 3. Nhắc thanh toán đơn hàng — Giao dịch
 
@@ -70,7 +73,7 @@ Giữ nguyên mẫu đang dùng. Tham số `otp`. Không cần đăng ký lại.
 > **Đơn hàng chờ thanh toán**
 > Chào <customer_name>, đơn hàng <order_code> với số tiền <amount> vẫn đang chờ thanh toán. anyLEARN giữ chỗ cho bạn đến <deadline>.
 > Nếu bạn đã chuyển khoản, bạn không cần làm gì thêm, anyLEARN sẽ xác nhận sau khi kiểm tra.
-
+{bank_transfer_note}
 ## 4. Đơn hàng đã hủy — Giao dịch
 
 - Điểm gửi: `PaymentApprovalService.cancelOrder` (lý do hết hạn).
@@ -87,8 +90,7 @@ Giữ nguyên mẫu đang dùng. Tham số `otp`. Không cần đăng ký lại.
 - Nút: "Xem chi tiết lớp" → `https://anylearn.vn/today`.
 
 > **Sắp khai giảng**
-> Chào <customer_name>, <learner_name> sắp học <course_name>. Buổi đầu tiên: <start_time>. <gather_info>.
-> Bạn xem đồ cần mang và cách đến lớp trong trang Hôm nay của anyLEARN.
+> Chào khách hàng <customer_name>, <learner> sắp học <course_name> buổi đầu tiên: <start_time>. Bạn xem dặn dò trong trang Hôm nay của anyLEARN nhé.
 
 ## 6. Nhắc buổi học ngày mai — CSKH (tùy chọn)
 
@@ -116,8 +118,10 @@ Hiện đã có push + email nên mẫu này chỉ cần khi muốn phủ cả n
 - Tham số: `customer_name`, `learner_name`, `course_name`.
 - Nút: "Chấm điểm" → `https://anylearn.vn/today?survey=1`.
 
-> **Bé học có vui không?**
-> Chào <customer_name>, <learner_name> đã học được nửa khóa <course_name>. Bạn chấm điểm từ 1 đến 5 sao giúp anyLEARN, chỉ mất vài giây.
+> **Học với anyLEARN có vui không??**
+> Xin chào, Học viên <learner_name> đã đi được nửa chặng đường khóa <course_name>. Bạn học có vui, có tiến bộ không? Bạn dành vài giây chấm điểm giúp anyLEARN nhé, ý kiến của bạn giúp lớp học đồng hành tốt hơn.
+{order_code}
+{date}
 
 ## 9. Nhắc gia hạn gói buổi — CSKH
 
@@ -129,34 +133,27 @@ Không chèn ưu đãi anyPoint vào mẫu này (xem lưu ý ở đầu tài li�
 > **Sắp hết khóa học**
 > Chào <customer_name>, <learner_name> <left_text> khóa <course_name>. Bạn gia hạn để bé học tiếp liên tục nhé.
 
-## 10. Học phí sắp đến hạn — Giao dịch
+## 10. Đăng ký kỳ học tiếp theo — Giao dịch (gộp mẫu "sắp đến hạn" và "chưa nhận được")
 
-- Điểm gửi: `ScheduleNotificationService.remindFee` (mốc 7 ngày và 1 ngày).
-- Tham số: `customer_name`, `learner_name`, `course_name`, `due_date`, `next_period`, `amount`.
-- Nút: "Đóng học phí" → `https://anylearn.vn/today`.
+Mục đích: mời phụ huynh mua gói mới trên anyLEARN để bé học tiếp. Một mẫu dùng cho cả trước hạn và sau hạn.
+Không dùng từ "nợ", "trễ hạn", "phạt"; không chèn ưu đãi.
+- Điểm gửi: `ScheduleNotificationService.remindFee` (mốc 7 ngày, 1 ngày trước hạn và trạng thái quá hạn).
+- Tham số: `customer_name`, `learner_name`, `course_name`, `next_period`, `amount`, `due_date`.
+- Nút: "Đăng ký tiếp" → `https://anylearn.vn/today`.
 
-> **Học phí sắp đến hạn**
-> Chào <customer_name>, học phí <course_name> của <learner_name> đến hạn ngày <due_date>. Học phí <next_period>: <amount>.
-> Bạn đóng trước hạn để bé học liên tục.
+> **Đăng ký kỳ học tiếp theo**
+> Chào khách hàng <customer_name>, khóa <course_name> của <learner_name> sẽ hết vào ngày <end_date>. Bạn đăng ký gói tiếp theo ngay trên anyLEARN để không bị gián đoạn. Nếu bạn đã đăng ký, vui lòng bỏ qua tin này.
+{order_code}
+{price}
 
-## 11. Chưa nhận được học phí — Giao dịch
-
-Không dùng từ "nợ", "trễ hạn", "phạt".
-- Điểm gửi: `ScheduleNotificationService.remindFee` (trạng thái quá hạn).
-- Tham số: `customer_name`, `learner_name`, `course_name`, `next_period`, `amount`.
-
-> **anyLEARN chưa nhận được học phí**
-> Chào <customer_name>, anyLEARN chưa nhận được học phí <next_period> khóa <course_name> của <learner_name> (<amount>).
-> Nếu bạn đã đóng, vui lòng bỏ qua tin này. Nếu chưa, bạn đóng giúp để việc học không bị gián đoạn.
-
-## 12. Đã tìm được khóa cho yêu cầu của bạn — CSKH (plan 01.3)
+## 12. Đã tìm được khóa cho yêu cầu của bạn — CSKH (plan 01.3) => KHÔNG ĐƯỢC CSKH phải có mã đơn hàng 
 
 - Điểm gửi: `AdminCourseRequestService` khi trạng thái chuyển `matched` (kể cả người chưa có tài khoản, vì yêu cầu chỉ có số điện thoại).
 - Tham số: `customer_name`, `course_name`, `request_summary` (ví dụ "Piano cho bé 7 tuổi quận 7").
 - Nút: "Xem khóa học" → `https://anylearn.vn/pdp/<id>`.
 
 > **anyLEARN đã tìm được khóa học cho bạn**
-> Chào <customer_name>, theo yêu cầu "<request_summary>" của bạn, anyLEARN gợi ý khóa <course_name>. Bạn xem chi tiết và lịch học theo nút bên dưới.
+> Chào khách hàng <customer_name>, theo yêu cầu <request_summary> của bạn, anyLEARN gợi ý khóa <course_name>. Bạn xem chi tiết và lịch học theo nút bên dưới.
 
 ## 13. anyPoint sắp hết hạn — CSKH (plan 02, chưa làm)
 
@@ -178,7 +175,7 @@ Cần chủ sản phẩm xác nhận chính sách hết hạn anyPoint trước 
 
 ## Gợi ý thứ tự đăng ký
 
-Đăng ký trước các mẫu có giá trị cao và ít rủi ro bị từ chối: **2, 3, 5, 7, 9, 10, 11** (giao dịch / chăm sóc rõ ràng). Sau đó 4, 12, 14.
+Đăng ký trước các mẫu có giá trị cao và ít rủi ro bị từ chối: **2, 3, 5, 7, 9, 10** (giao dịch / chăm sóc rõ ràng). Sau đó 4, 12, 14.
 Mẫu 6 và 8 chỉ cần khi thấy tỷ lệ mở push/email thấp. Mẫu 13 chờ quyết định chính sách hết hạn anyPoint.
 
 ## Khi mẫu được duyệt
