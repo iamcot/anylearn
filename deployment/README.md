@@ -129,6 +129,7 @@ Vào **Settings → Secrets and variables → Actions → New repository secret*
 | `BANK_BIN` | `970422` (MB Bank; 6-digit Napas code, needed for the VietQR) |
 | `BANK_TRANSFER_CONTENT`, `BANK_ZALO_PHONE` | |
 | `SEPAY_API_KEY` | API key of the SePay webhook (`Authorization: Apikey ...`) |
+| `ZNS_PARTNER_API_KEY` | Shared key for partner apps (11 On Field) sending OTP through `POST /v2/api/open/zns/otp`; empty = endpoint off |
 
 **Web Push, maps, admin email:**
 | Secret | |
