@@ -33,6 +33,8 @@ public class AdminController {
     private final ZnsService znsService;
     private final com.anylearn.backend.service.ScheduleNotificationService scheduleNotificationService;
     private final NotificationService notificationService;
+    private final com.anylearn.backend.service.adminaccess.AdminAccessService adminAccess;
+    private final com.fasterxml.jackson.databind.ObjectMapper objectMapper;
     private final UserRepository userRepository;
     private final AuthService authService;
     private final ConfigurationRepository configurationRepository;
@@ -69,14 +71,31 @@ public class AdminController {
         return ApiResponse.ok(result);
     }
 
+    /** Who is signed in to the back office and what they may open (plan 19.A5). */
+    @GetMapping("/me")
+    public ApiResponse<?> me(@AuthenticationPrincipal User user) {
+        if (user == null || !adminAccess.canEnterBackOffice(user)) return ApiResponse.fail("Forbidden");
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("id", user.getId());
+        out.put("name", user.getName());
+        out.put("role", user.getRole());
+        out.put("permissions", "admin".equals(user.getRole()) ? List.of() : adminAccess.permissions(user.getId()).stream().sorted().toList());
+        return ApiResponse.ok(out);
+    }
+
     @PostMapping("/login")
     public ApiResponse<?> login(@RequestBody Map<String, String> body) {
         try {
             var response = authService.login(body.get("phone"), body.get("password"));
-            if (!"admin".equals(response.getRole())) {
+            // admins, and members an admin gave a back-office permission (plan 19.A5: "Duyệt nội dung")
+            var permissions = "admin".equals(response.getRole()) ? java.util.Set.<String>of() : adminAccess.permissions(response.getId());
+            if (!"admin".equals(response.getRole()) && (permissions.isEmpty() || response.getStatus() == null || response.getStatus() != 1)) {
                 return ApiResponse.fail("Forbidden: không có quyền admin");
             }
-            return ApiResponse.ok(response);
+            @SuppressWarnings("unchecked")
+            Map<String, Object> out = objectMapper.convertValue(response, Map.class);
+            out.put("permissions", permissions.stream().sorted().toList());
+            return ApiResponse.ok(out);
         } catch (IllegalArgumentException e) {
             return ApiResponse.fail(e.getMessage());
         }

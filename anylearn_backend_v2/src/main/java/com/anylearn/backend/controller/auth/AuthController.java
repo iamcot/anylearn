@@ -4,6 +4,7 @@ import com.anylearn.backend.dto.response.ApiResponse;
 import com.anylearn.backend.dto.response.LoginResponse;
 import com.anylearn.backend.service.AuthService;
 import com.anylearn.backend.service.PasswordResetService;
+import com.anylearn.backend.service.acquisition.AcquisitionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,6 +17,7 @@ public class AuthController {
 
     private final AuthService authService;
     private final PasswordResetService passwordResetService;
+    private final AcquisitionService acquisitionService;
 
     @GetMapping("/login")
     public ApiResponse<LoginResponse> login(@RequestParam String phone, @RequestParam String password) {
@@ -24,9 +26,12 @@ public class AuthController {
 
     @PostMapping("/register")
     public ApiResponse<LoginResponse> register(@RequestBody Map<String, String> body) {
-        return ApiResponse.ok(authService.register(
+        LoginResponse response = authService.register(
                 body.get("name"), body.get("phone"), body.get("email"), body.get("password"),
-                body.get("ref"), body.get("game"), body.get("ach")));
+                body.get("ref"), body.get("game"), body.get("ach"));
+        // where the new account came from (plan 19.A4): UTM values the browser kept, the landing address, the referral code
+        acquisitionService.recordSignup(response.getId(), body, body.get("ref"));
+        return ApiResponse.ok(response);
     }
 
     @PostMapping("/simple-register")

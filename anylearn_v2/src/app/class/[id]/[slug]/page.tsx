@@ -24,6 +24,9 @@ import CompareToggle from '@/components/compare/CompareToggle'
 import CompareWhenActive from '@/components/compare/CompareWhenActive'
 import VideoOutline, { VideoHeroCta, VideoRegisterButton } from '@/components/learn/VideoOutline'
 import { detailMeta } from '@/lib/seo/shareMeta'
+import JsonLd from '@/components/seo/JsonLd'
+import { breadcrumbLd, courseLd } from '@/lib/seo/jsonLd'
+import { siteOrigin } from '@/lib/achievements/share'
 
 function formatAge(min?: number, max?: number) {
   if (!min && !max) return null
@@ -56,7 +59,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const data = await getPdpData(Number(id))
   if (!data) return {}
   const item = data.item
-  return detailMeta({ title: item.seoTitle || item.title, ogTitle: item.title, description: item.seoDesc || item.shortContent || '', image: item.image })
+  return detailMeta({ title: item.seoTitle || item.title, ogTitle: item.title, description: item.seoDesc || item.shortContent || '', image: item.image, path: getCourseUrl(item) })
 }
 
 export default async function PdpPage({ params }: Props) {
@@ -74,8 +77,25 @@ export default async function PdpPage({ params }: Props) {
   const discountPct = hasDiscount ? Math.round((1 - item.price / item.orgPrice!) * 100) : null
   const features = FEATURE_LABELS.filter(f => item[f.key] === 1)
 
+  const origin = siteOrigin()
+  const coursePath = getCourseUrl(item)
+  const firstCategory = categories[0]
+
   return (
     <>
+      <JsonLd data={[
+        courseLd({
+          url: origin + coursePath, name: item.title, description: item.seoDesc || item.shortContent, image: item.image, price: item.price,
+          provider: author ? { name: author.name, url: `${origin}/partner/${author.id}` } : null,
+          rating: { value: rating, count: reviews.length },
+          online: item.subtype ? ['online', 'video', 'digital'].includes(item.subtype) : undefined,
+        }),
+        breadcrumbLd(origin, [
+          { name: 'Trang chủ', path: '/' },
+          ...(firstCategory ? [{ name: firstCategory.title, path: `/search?category=${firstCategory.url}` }] : [{ name: 'Tìm khóa học', path: '/search' }]),
+          { name: item.title, path: coursePath },
+        ]),
+      ]} />
       {/* ── Hero ── */}
       <section className="section--soft pb-10 pt-6 lg:pt-10">
         <div className="container">

@@ -7,6 +7,9 @@ import { fmtDateTime } from '../utils/format'
 import { cancelVideoUpload, startVideoUpload, useVideoUploads } from '../utils/videoUploads'
 import ExploreCoursePick from '../components/ExploreCoursePick'
 import ExploreTagSelect from '../components/ExploreTagSelect'
+import SocialQueue from '../components/SocialQueue'
+import ApiKeys from '../components/ApiKeys'
+import { useAuth } from '../contexts/AuthContext'
 
 const KINDS = { article: 'Bài viết', image: 'Hình ảnh', video: 'Clip' }
 const STATUS = { draft: ['Nháp', 'default'], pending: ['Chờ duyệt', 'orange'], published: ['Đang hiện', 'green'], hidden: ['Ẩn', 'red'], rejected: ['Từ chối', 'volcano'] }
@@ -190,7 +193,7 @@ function Posts({ data, refresh, onEdit }) {
   })
   const needle = q.trim().toLowerCase()
   const rows = (data?.items ?? []).filter(r => (!kind || r.kind === kind) && (!status || r.status === status) && (!needle || String(r.title ?? '').toLowerCase().includes(needle))
-    && (!author || (author === 'admin' ? !r.authorId : author === 'creators' ? !!r.authorId : String(r.authorId) === author)))
+    && (!author || (author === 'admin' ? !r.authorId : author === 'creators' ? !!r.authorId : author === 't2m' ? r.source === 't2m' : String(r.authorId) === author)))
   const authors = [...new Map((data?.items ?? []).filter(r => r.authorId).map(r => [r.authorId, r.authorFullName])).entries()]
   return (
     <>
@@ -199,7 +202,7 @@ function Posts({ data, refresh, onEdit }) {
         <Select allowClear placeholder="Loại bài" style={{ width: 140 }} value={kind || undefined} onChange={v => setKind(v || '')} options={Object.entries(KINDS).map(([value, label]) => ({ value, label }))} />
         <Select allowClear placeholder="Trạng thái" style={{ width: 150 }} value={status || undefined} onChange={v => setStatus(v || '')} options={Object.entries(STATUS).map(([value, [label]]) => ({ value, label }))} />
         <Select allowClear placeholder="Người đăng" style={{ width: 180 }} value={author || undefined} onChange={v => setAuthor(v || '')}
-          options={[{ value: 'admin', label: 'anyLEARN (admin)' }, { value: 'creators', label: 'Tất cả creator' }, ...authors.map(([id, name]) => ({ value: String(id), label: name }))]} />
+          options={[{ value: 'admin', label: 'anyLEARN (admin)' }, { value: 'creators', label: 'Tất cả creator' }, { value: 't2m', label: 'Tool t2m' }, ...authors.map(([id, name]) => ({ value: String(id), label: name }))]} />
         <Typography.Text type="secondary">{rows.length} bài</Typography.Text>
       </Space>
       <ReviewModal review={review} onClose={() => setReview(null)} refresh={refresh} />
@@ -211,7 +214,7 @@ function Posts({ data, refresh, onEdit }) {
           </Space>
         ) },
         { title: 'Loại', dataIndex: 'kind', render: k => KINDS[k] },
-        { title: 'Người đăng', key: 'author', render: (_, r) => (r.authorId ? <span>{r.authorFullName}<br /><Typography.Text type="secondary" style={{ fontSize: 12 }}>{r.authorPhone}</Typography.Text></span> : <Typography.Text type="secondary">anyLEARN</Typography.Text>) },
+        { title: 'Người đăng', key: 'author', render: (_, r) => (r.authorId ? <span>{r.authorFullName}{r.source === 't2m' && <Tag color="purple" style={{ marginLeft: 6 }}>t2m</Tag>}<br /><Typography.Text type="secondary" style={{ fontSize: 12 }}>{r.authorPhone}</Typography.Text></span> : <Typography.Text type="secondary">anyLEARN</Typography.Text>) },
         { title: 'Trạng thái', dataIndex: 'status', render: (s, r) => {
           if (r.id in uploading) return <Tag color="processing">Đang tải video {uploading[r.id]}%</Tag>
           if (r.authorId) {
@@ -367,6 +370,8 @@ const NEW_BUTTONS = [['article', '+ Viết bài'], ['image', '+ Đăng hình ả
 
 export default function Explore() {
   const qc = useQueryClient()
+  // a content reviewer (plan 19.A5) has posts, comments and the social queue; creators, keys and settings stay with admins
+  const isAdmin = useAuth()?.user?.role === 'admin'
   const [tab, setTab] = useState('posts')
   const [editing, setEditing] = useState(null)
   const [open, setOpen] = useState(false)
@@ -408,10 +413,12 @@ export default function Explore() {
           ) : null}
           items={[
             { key: 'posts', label: 'Bài viết', children: <Posts data={data} refresh={refresh} onEdit={edit} /> },
-            { key: 'creators', label: 'Creator', children: <Creators /> },
+            isAdmin && { key: 'creators', label: 'Creator', children: <Creators /> },
             { key: 'comments', label: 'Bình luận', children: <Comments /> },
-            { key: 'settings', label: 'Cấu hình', children: <Settings /> },
-          ]} />
+            { key: 'social', label: 'Hàng đợi social', children: <SocialQueue posts={data?.items} /> },
+            isAdmin && { key: 'keys', label: 'Khóa API (t2m)', children: <ApiKeys /> },
+            isAdmin && { key: 'settings', label: 'Cấu hình', children: <Settings /> },
+          ].filter(Boolean)} />
       </Card>
       <PostDrawer post={editing} open={open} onClose={() => setOpen(false)} onSaved={refresh} />
     </div>

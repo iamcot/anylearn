@@ -1,5 +1,6 @@
 package com.anylearn.backend.config;
 
+import com.anylearn.backend.security.ApiKeyFilter;
 import com.anylearn.backend.security.ApiTokenFilter;
 import com.anylearn.backend.security.JwtFilter;
 import jakarta.servlet.http.HttpServletResponse;
@@ -23,6 +24,7 @@ public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
     private final ApiTokenFilter apiTokenFilter;
+    private final ApiKeyFilter apiKeyFilter;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -41,7 +43,8 @@ public class SecurityConfig {
                 // Public content
                 .requestMatchers(HttpMethod.GET,  "/api/users/**", "/api/user/profile/**").permitAll()
                 .requestMatchers(HttpMethod.GET,  "/api/event/**", "/api/search", "/api/search-tags", "/api/search/users", "/api/search/options", "/api/collections", "/api/collections/*", "/api/pathways/*", "/api/items/*/pathway", "/api/partners/nearby", "/api/partners/*/summary", "/api/partners/*/reviews", "/api/discover", "/api/top-rated", "/api/ai-suggestions/status", "/api/membership/family-offer", "/api/compare", "/api/compare/highlights", "/api/ref/*", "/api/achievements/*", "/api/items/*/video-outline", "/api/learn/lessons/*/play").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/achievements/*/open").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/achievements/*/open", "/api/explore/public/*/view", "/api/track/landing").permitAll()
+                .requestMatchers(HttpMethod.GET,  "/api/explore/public/*", "/api/seo/**", "/api/landing").permitAll()
                 .requestMatchers(HttpMethod.GET,  "/api/config/**").permitAll()
                 .requestMatchers(HttpMethod.GET,  "/api/voucher/check").permitAll()
                 .requestMatchers(HttpMethod.GET,  "/api/pdp/**", "/api/points/preview", "/api/points/expiry-policy", "/api/foundation", "/api/doc/**", "/api/helpcenter/**").permitAll()
@@ -80,7 +83,9 @@ public class SecurityConfig {
                 response.getWriter().write("{\"resultCode\":0,\"message\":\"Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại\",\"data\":null,\"code\":\"UNAUTHORIZED\"}");
             }))
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
-            .addFilterAfter(apiTokenFilter, JwtFilter.class);
+            .addFilterAfter(apiTokenFilter, JwtFilter.class)
+            // machine key of t2m (plan 19.A6), only on the creator and studio routes
+            .addFilterAfter(apiKeyFilter, ApiTokenFilter.class);
 
         return http.build();
     }

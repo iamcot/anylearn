@@ -4,12 +4,15 @@ import ReportPriceButton from '@/components/promise/ReportPriceButton'
 import { CheckIcon } from '@/components/icons'
 import { PROMISES, RETURN_POLICY_HREF, WHY_FAQ, ZALO_SUPPORT_URL } from '@/config/promise'
 import { shareMeta } from '@/lib/seo/shareMeta'
+import JsonLd from '@/components/seo/JsonLd'
+import { faqLd } from '@/lib/seo/jsonLd'
 
 export const metadata: Metadata = shareMeta('why')
 
 export default function WhyAnyLearnPage() {
   return (
     <section className="py-10 lg:py-14">
+      <JsonLd data={[faqLd(WHY_FAQ)]} />
       <div className="container max-w-[780px]">
         <h1 className="m-0 mb-2 text-[clamp(24px,4vw,36px)] font-extrabold text-ink">Vì sao đặt qua anyLEARN?</h1>
         <p className="m-0 mb-8 leading-relaxed text-text">

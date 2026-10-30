@@ -396,6 +396,49 @@ public class MeilisearchService {
         }
     }
 
+    /**
+     * Courses matching the filters, counted like the search page counts them (at most `maxPerPartner` of one partner,
+     * 0 = no cap, within the first 300 hits). -1 when Meilisearch cannot answer. Used by the landing pages (plan 19.A7).
+     */
+    public long countVisible(SearchFilters filters, int maxPerPartner) {
+        try {
+            var request = SearchRequest.builder()
+                    .q("")
+                    .filter(SearchFilterBuilder.build(filters).toArray(new String[0]))
+                    .attributesToRetrieve(new String[]{"id", "authorId"})
+                    .limit(CAP_WINDOW)
+                    .build();
+            SearchResult result = (SearchResult) meilisearchClient.index("items").search(request);
+            if (maxPerPartner <= 0) return result.getEstimatedTotalHits();
+            List<Map<String, Object>> hits = objectMapper.convertValue(result.getHits(), new TypeReference<>() {});
+            return PartnerCap.limitPerPartner(hits, maxPerPartner).size();
+        } catch (Exception e) {
+            log.warn("Meilisearch count failed: {}", e.getMessage());
+            return -1;
+        }
+    }
+
+    /** How many matching courses carry each value of a filterable attribute (e.g. tagIds); empty when Meilisearch cannot answer. */
+    public Map<String, Integer> facetCounts(SearchFilters filters, String facet) {
+        try {
+            var request = SearchRequest.builder()
+                    .q("")
+                    .filter(SearchFilterBuilder.build(filters).toArray(new String[0]))
+                    .facets(new String[]{facet})
+                    .limit(0)
+                    .build();
+            SearchResult result = (SearchResult) meilisearchClient.index("items").search(request);
+            Object distribution = result.getFacetDistribution();
+            if (!(distribution instanceof Map<?, ?> all) || !(all.get(facet) instanceof Map<?, ?> counts)) return Map.of();
+            Map<String, Integer> out = new java.util.LinkedHashMap<>();
+            counts.forEach((k, v) -> out.put(String.valueOf(k), v instanceof Number n ? n.intValue() : 0));
+            return out;
+        } catch (Exception e) {
+            log.warn("Meilisearch facet count failed: {}", e.getMessage());
+            return Map.of();
+        }
+    }
+
     private static final List<String> CARD_ATTRIBUTES = List.of("hasFreeTrial", "onSale", "timeSlots", "pricePerSession");
 
     /** What a result card shows about a course ("Học thử", when it runs) comes from the index, nothing is looked up twice. */

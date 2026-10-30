@@ -18,6 +18,8 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AdminCollectionController {
 
+    private final com.anylearn.backend.service.adminaccess.AdminAccessService access;
+
     private final CollectionService collectionService;
     private final MeilisearchService meilisearchService;
 
@@ -72,7 +74,8 @@ public class AdminCollectionController {
                                        @RequestParam(required = false) String mode,
                                        @RequestParam(defaultValue = "false") boolean freeTrial,
                                        @RequestParam(defaultValue = "false") boolean onSale) {
-        if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
+        // content reviewers attach a course to a Khám phá post (plan 19.A5)
+        if (!access.canReviewContent(user)) return ApiResponse.fail("Forbidden");
         var filters = SearchFilters.Builder.empty().provinceCode(location).districtCode(district).mode(mode)
                 .learnerAge(ageFrom, ageTo).timeSlots(timeSlot == null ? List.of() : timeSlot).partnerType(partnerType)
                 .tags(tag == null ? List.of() : tag).price(null, priceMax).today(LocalDate.now());

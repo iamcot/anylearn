@@ -9,6 +9,9 @@ import ReviewItem from '@/components/reviews/ReviewItem'
 import ReviewSummaryCard from '@/components/reviews/ReviewSummaryCard'
 import { PinIcon, SchoolIcon, UserIcon } from '@/components/icons'
 import { detailMeta } from '@/lib/seo/shareMeta'
+import JsonLd from '@/components/seo/JsonLd'
+import { breadcrumbLd, organizationLd } from '@/lib/seo/jsonLd'
+import { siteOrigin } from '@/lib/achievements/share'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -22,12 +25,14 @@ function mapLink(place: { lat?: number | null; lng?: number | null; address?: st
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const profile = await getUserProfile(Number((await params).id))
+  const id = Number((await params).id)
+  const profile = await getUserProfile(id)
   if (!profile) return { title: 'Đối tác | anyLEARN' }
   return detailMeta({
     title: `${profile.name} | anyLEARN`,
     description: profile.introduce ?? `Các khóa học của ${profile.name} trên anyLEARN.`,
     image: profile.banner || profile.image,
+    path: `/partner/${id}`,
   })
 }
 
@@ -44,8 +49,17 @@ export default async function PartnerPage({ params }: Props) {
 
   const kind = PARTNER_TYPE_LABELS[summary.partnerType ?? ''] ?? (profile.role === 'teacher' ? 'Chuyên gia' : 'Đối tác')
 
+  const origin = siteOrigin()
+
   return (
     <div className="container py-6 lg:py-10">
+      <JsonLd data={[
+        organizationLd({
+          url: `${origin}/partner/${id}`, name: profile.name, description: profile.introduce, image: profile.image,
+          places: summary.locations, rating: reviews ? { value: reviews.average, count: reviews.count } : null,
+        }),
+        breadcrumbLd(origin, [{ name: 'Trang chủ', path: '/' }, { name: 'Tìm khóa học', path: '/search' }, { name: profile.name, path: `/partner/${id}` }]),
+      ]} />
       <BackLink href="/search">Tìm khóa học</BackLink>
 
       <header className="mb-8 mt-3 overflow-hidden rounded-card border border-line bg-white shadow-card">

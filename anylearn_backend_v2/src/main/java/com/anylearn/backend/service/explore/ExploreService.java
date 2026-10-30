@@ -35,7 +35,7 @@ public class ExploreService {
 
     static final String POST_COLUMNS = "p.id, p.kind, p.title, p.body, p.media_url AS mediaUrl, p.poster_url AS posterUrl, p.item_id AS itemId, p.status, p.pinned, " +
             "p.published_at AS publishedAt, p.views, p.likes, p.shares, p.comments_count AS comments, p.created_at AS createdAt, i.title AS itemTitle, i.seo_url AS itemSeoUrl, " +
-            "i.image AS itemImage, i.price AS itemPrice, p.author_id AS authorId, au.name AS authorFullName, p.approved, p.hidden_by AS hiddenBy, p.review_note AS reviewNote, p.after_upload AS afterUpload";
+            "i.image AS itemImage, i.price AS itemPrice, p.author_id AS authorId, au.name AS authorFullName, p.approved, p.hidden_by AS hiddenBy, p.review_note AS reviewNote, p.after_upload AS afterUpload, p.source";
     static final String POST_FROM = " FROM explore_posts p LEFT JOIN items i ON i.id = p.item_id LEFT JOIN users au ON au.id = p.author_id ";
 
     /**
@@ -99,7 +99,7 @@ public class ExploreService {
             r.put("tagIds", list.stream().map(t -> t.get("id")).toList());
             String full = (String) r.get("authorFullName");
             r.put("authorName", full == null ? null : ExploreRules.authorName(full));
-            if (!keepFullName) r.remove("authorFullName");
+            if (!keepFullName) { r.remove("authorFullName"); r.remove("source"); }
             if (r.get("approved") instanceof Number n) r.put("approved", n.intValue() == 1);
             if (r.get("pinned") instanceof Number n) r.put("pinned", n.intValue() == 1);
             if (r.get("likedByMe") instanceof Number n) r.put("likedByMe", n.intValue() > 0);
@@ -155,6 +155,29 @@ public class ExploreService {
     public Map<String, Object> post(long userId, long postId) {
         List<Map<String, Object>> rows = jdbc.queryForList("SELECT " + POST_COLUMNS + likedByMe() + POST_FROM + "WHERE p.id = ? AND p.status = 'published'", userId, postId);
         return rows.isEmpty() || !settings.enabled() ? null : decorate(rows, false).get(0);
+    }
+
+    /**
+     * A published post for a visitor without an account (a shared link, plan 19.A3): the post, its slug and the newest
+     * visible comments, read only and with the short name only. Null when the post is not published or Khám phá is off.
+     */
+    public Map<String, Object> publicPost(long postId, int commentCount) {
+        if (!settings.enabled()) return null;
+        List<Map<String, Object>> rows = jdbc.queryForList("SELECT " + POST_COLUMNS + ", 0 AS likedByMe" + POST_FROM + "WHERE p.id = ? AND p.status = 'published'", postId);
+        if (rows.isEmpty()) return null;
+        Map<String, Object> post = decorate(rows, false).get(0);
+        for (String key : List.of("approved", "hiddenBy", "reviewNote", "afterUpload", "status", "source")) post.remove(key);
+        post.put("slug", com.anylearn.backend.service.seo.SeoRules.slug((String) post.get("title")));
+        List<Map<String, Object>> comments = settings.commentsEnabled() ? comments(postId, 0, 0, commentCount) : List.of();
+        comments.forEach(c -> c.remove("mine"));
+        post.put("previewComments", comments);
+        post.put("commentsEnabled", settings.commentsEnabled());
+        return post;
+    }
+
+    /** A visitor without an account opened a post: only the counter (nothing to remember them by). */
+    public void countPublicView(long postId) {
+        jdbc.update("UPDATE explore_posts SET views = views + 1 WHERE id = ? AND status = 'published'", postId);
     }
 
     /** Published posts matching words in the title, the description or a tag name: Meilisearch, or SQL when it is down. */
@@ -323,9 +346,11 @@ public class ExploreService {
         String publishedAt = "IF(? = 'published' AND published_at IS NULL, NOW(), published_at)";
         long postId;
         if (id == null) {
-            jdbc.update("INSERT INTO explore_posts (author_id, kind, title, body, media_url, poster_url, item_id, status, pinned, approved, hidden_by, after_upload, published_at) " +
-                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, " + ("published".equals(cleanStatus) ? "NOW()" : "NULL") + ")",
-                    authorId, cleanKind, cleanTitle, text, media, poster, itemId, cleanStatus, pinned ? 1 : 0, approved == null || approved ? 1 : 0, hiddenBy, afterUpload);
+            // where the post came from (plan 19.A6): the back office, a creator, or t2m through its machine key
+            String source = authorId == null ? "admin" : com.anylearn.backend.service.studio.StudioRequest.isMachine() ? "t2m" : "creator";
+            jdbc.update("INSERT INTO explore_posts (author_id, source, kind, title, body, media_url, poster_url, item_id, status, pinned, approved, hidden_by, after_upload, published_at) " +
+                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, " + ("published".equals(cleanStatus) ? "NOW()" : "NULL") + ")",
+                    authorId, source, cleanKind, cleanTitle, text, media, poster, itemId, cleanStatus, pinned ? 1 : 0, approved == null || approved ? 1 : 0, hiddenBy, afterUpload);
             postId = count("SELECT LAST_INSERT_ID()");
         } else {
             List<String> old = mediaOf(id);

@@ -27,8 +27,11 @@ public class AdminExploreController {
     private final BunnyStreamClient bunny;
     private final ExploreCreatorService creators;
 
-    private static boolean notAdmin(User user) {
-        return user == null || !"admin".equals(user.getRole());
+    private final com.anylearn.backend.service.adminaccess.AdminAccessService access;
+
+    /** Admins and members with "Duyệt nội dung" (plan 19.A5); creators and settings are closed to the latter by AdminAccessInterceptor. */
+    private boolean notAdmin(User user) {
+        return !access.canReviewContent(user);
     }
 
     @GetMapping("/posts")

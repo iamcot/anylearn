@@ -1,12 +1,15 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import { getArticle } from '@/lib/api'
+import { getArticle, getArticleUrl } from '@/lib/api'
 import { formatDate } from '@/lib/format/date'
 import BackLink from '@/components/BackLink'
 import ArticleTypeLabel from '@/components/article/ArticleTypeLabel'
 import { ChevronRightIcon } from '@/components/icons'
 import { detailMeta } from '@/lib/seo/shareMeta'
+import JsonLd from '@/components/seo/JsonLd'
+import { breadcrumbLd } from '@/lib/seo/jsonLd'
+import { siteOrigin } from '@/lib/achievements/share'
 
 interface Props {
   params: Promise<{ id: string; slug: string }>
@@ -16,7 +19,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params
   const article = await getArticle(Number(id))
   if (!article) return { title: 'Bài viết | anyLEARN' }
-  return detailMeta({ title: `${article.title} | anyLEARN`, ogTitle: article.title, description: article.short_content ?? 'Bài viết từ anyLEARN', image: article.image })
+  return detailMeta({ title: `${article.title} | anyLEARN`, ogTitle: article.title, description: article.short_content ?? 'Bài viết từ anyLEARN', image: article.image, path: getArticleUrl(article) })
 }
 
 function getVideoEmbedUrl(url: string): string {
@@ -34,6 +37,7 @@ export default async function ArticleDetailPage({ params }: Props) {
 
   return (
     <div className="container max-w-[800px] py-8 lg:py-12">
+      <JsonLd data={[breadcrumbLd(siteOrigin(), [{ name: 'Trang chủ', path: '/' }, { name: 'Bài viết', path: '/article' }, { name: article.title, path: getArticleUrl(article) }])]} />
       {/* Breadcrumb */}
       <nav aria-label="Đường dẫn" className="mb-6 flex items-center gap-1 text-sm text-muted">
         <Link href="/" className="shrink-0 whitespace-nowrap hover:text-blue">Trang chủ</Link>

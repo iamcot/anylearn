@@ -1,3 +1,4 @@
+import { readStoredAcquisition, signupFields } from '@/lib/acquisition/store'
 import { API_BASE } from '@/lib/apiBase'
 
 export interface AuthUser {
@@ -74,7 +75,8 @@ export async function registerApi(name: string, phone: string, email: string, pa
     const res = await fetch(`${API_BASE}/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, phone, email, password, ref: referral?.ref, game: referral?.game, ach: referral?.ach }),
+      // the first link with UTM parameters this browser came from (plan 19.A4)
+      body: JSON.stringify({ ...signupFields(readStoredAcquisition()), name, phone, email, password, ref: referral?.ref, game: referral?.game, ach: referral?.ach }),
     })
     const json = await res.json()
     if (!res.ok || json?.resultCode !== 1) return { user: null, error: json?.message || 'Đăng ký thất bại' }

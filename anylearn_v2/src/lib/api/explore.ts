@@ -1,5 +1,5 @@
 import { API_BASE } from '@/lib/apiBase'
-import { authFetch } from './client'
+import { apiFetch, authFetch } from './client'
 
 export type ExploreKind = 'article' | 'image' | 'video'
 export type ExploreStatus = 'draft' | 'pending' | 'published' | 'hidden' | 'rejected'
@@ -35,6 +35,13 @@ export interface ExplorePost {
   afterUpload?: string | null
 }
 
+/** A post as the public page of a shared link gets it (plan 19.A3): no `likedByMe`, a few read-only comments. */
+export interface PublicExplorePost extends ExplorePost {
+  slug: string
+  commentsEnabled: boolean
+  previewComments: { id: number; name: string; body: string; createdAt: string }[]
+}
+
 export interface ExploreFeed { enabled: boolean; commentsEnabled: boolean; items: ExplorePost[]; total: number; page: number }
 export interface ExploreComment { id: number; name: string; body: string; createdAt: string; mine: boolean }
 
@@ -46,6 +53,9 @@ export function getExploreFeed(token: string, page: number, size = 10, since?: n
 }
 export const searchExplore = (token: string, q: string, page: number, size = 12) =>
   authFetch<ExploreFeed>(`/explore/search?q=${encodeURIComponent(q)}&page=${page}&size=${size}`, token)
+/** Server render of /fun/explore/{id}/{slug}: kept a minute (the counters move, the post rarely does). */
+export const getPublicExplorePost = (id: number) => apiFetch<PublicExplorePost>(`/explore/public/${id}`, { next: { revalidate: 60 } })
+export const countPublicExploreView = (id: number) => fetch(`${API_BASE}/explore/public/${id}/view`, { method: 'POST' }).catch(() => null)
 export const getExplorePost = (token: string, id: number) => authFetch<ExplorePost>(`/explore/${id}`, token)
 export const countExploreView = (token: string, id: number) => authFetch<{ ok: boolean }>(`/explore/${id}/view`, token, { method: 'POST' })
 export const countExploreShare = (token: string, id: number) => authFetch<{ ok: boolean }>(`/explore/${id}/share`, token, { method: 'POST' })

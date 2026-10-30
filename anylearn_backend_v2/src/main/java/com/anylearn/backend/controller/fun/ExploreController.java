@@ -3,6 +3,8 @@ package com.anylearn.backend.controller.fun;
 import com.anylearn.backend.dto.response.ApiResponse;
 import com.anylearn.backend.entity.User;
 import com.anylearn.backend.service.explore.ExploreService;
+import com.anylearn.backend.service.fun.FunAccessRules;
+import com.anylearn.backend.service.fun.FunAccessSettings;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +22,26 @@ import java.util.Map;
 public class ExploreController {
 
     private final ExploreService explore;
+    private final FunAccessSettings access;
+
+    /**
+     * Public (plan 19.A3): one published post for the shared link /fun/explore/{id}/{slug}, with a few read-only comments.
+     * Only while Khám phá is open to everyone; the feed and every action still need a login.
+     */
+    @GetMapping("/public/{id}")
+    public ApiResponse<?> publicPost(@PathVariable long id) {
+        if (!FunAccessRules.ALL.equals(access.mode("explore"))) return ApiResponse.fail("Bài viết không còn");
+        Map<String, Object> post = explore.publicPost(id, 3);
+        return post == null ? ApiResponse.fail("Bài viết không còn") : ApiResponse.ok(post);
+    }
+
+    /** Public: a visitor without an account watched the post (counter only, once per opening of the page). */
+    @PostMapping("/public/{id}/view")
+    public ApiResponse<?> publicView(@AuthenticationPrincipal User user, @PathVariable long id) {
+        if (user != null) explore.countView(user.getId(), id);
+        else explore.countPublicView(id);
+        return ApiResponse.ok(Map.of("ok", true));
+    }
 
     /**
      * The feed for this person (plan 16.6). `since` = epoch milliseconds of when the list was opened (keeps pages stable),

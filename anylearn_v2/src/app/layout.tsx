@@ -11,6 +11,7 @@ import NavigationProgress from '@/components/NavigationProgress'
 import ToastProvider from '@/components/ToastProvider'
 import ServiceWorkerRegister from '@/components/pwa/ServiceWorkerRegister'
 import GuestLearnerHost from '@/components/guest/GuestLearnerHost'
+import UtmCapture from '@/components/acquisition/UtmCapture'
 import { shareMeta } from '@/lib/seo/shareMeta'
 import { siteOrigin } from '@/lib/achievements/share'
 
@@ -58,6 +59,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <AuthModal />
             <ServiceWorkerRegister />
             <GuestLearnerHost />
+            <UtmCapture />
           </ToastProvider>
         </AuthProvider>
       </body>

@@ -17,6 +17,7 @@ describe('explore media helpers', () => {
     expect(countText(12500)).toBe('13K')
   })
   it('builds the post link', () => {
-    expect(postLink('https://anylearn.vn/', 7)).toBe('https://anylearn.vn/fun/explore?p=7')
+    expect(postLink('https://anylearn.vn/', 7, 'Bé học bơi')).toBe('https://anylearn.vn/fun/explore/7/be-hoc-boi')
+    expect(postLink('https://anylearn.vn', 7)).toBe('https://anylearn.vn/fun/explore/7/bai-viet')
   })
 })

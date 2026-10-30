@@ -665,3 +665,9 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 ### 29/10/2026 – Plan 19: marketing và tool video t2m
 - Đã làm: viết `plans/19-marketing-t2m.md` từ bản phác thảo đã duyệt với chủ sản phẩm (https://claude.ai/artifact/BHN5TKNSfbUupXumdfE9r9), thêm Giai đoạn 5 vào bảng task, chốt câu hoàn tiền (10.1).
 - Chưa làm: toàn bộ task 19.*; repo t2m mới có README.
+
+### 29/10/2026 – Plan 19 phần A: nền SEO, link Khám phá công khai, nguồn khách, người duyệt, t2m, trang đích
+- Đã làm: sitemap.xml (chia file theo loại, cache 1 giờ) + robots.txt; JSON-LD cho khóa học, đối tác, bài viết, bài Khám phá, FAQ, trang đích, link canonical; trang công khai `/fun/explore/{id}/{slug}` (xem một bài không cần đăng nhập, bài tiếp theo hiện thẻ đăng nhập, 301 từ `?p=`); V70 `user_acquisition` + `landing_visits`, lưu UTM lần chạm đầu khi đăng ký, trang admin "Nguồn khách"; V71 quyền "Duyệt nội dung" (`admin_permissions`, `AdminAccessInterceptor`), khóa API cho máy (`api_keys`, header `X-Api-Key`, chỉ đường creator Khám phá và `/api/studio/*`), `explore_posts.source`, hàng đợi social; V72 trang đích `/hoc/{môn}/{tuổi}-tuoi/{quận}` TP.HCM (tìm tổ hợp mỗi đêm từ Meilisearch, tối thiểu 3 khóa, admin bật và duyệt giới thiệu, AI viết nháp); tài liệu.
+- Test: `SeoRulesTest`, `AcquisitionRulesTest`, `AcquisitionFlowTest`, `AdminPermissionsTest`, `StudioRulesTest`, `StudioFlowTest`, `LandingRulesTest`, `ExploreFlowTest` (MariaDB), `lib/seo/*.test.ts`, `lib/explore/publicPath.test.ts`, `lib/acquisition/store.test.ts`, `lib/landing/landing.test.ts`.
+- Chủ sản phẩm cần làm: nộp sitemap vào Search Console và Bing; tạo tài khoản "anyLEARN Studio" (cấp creator) và khóa API cho t2m; bật các trang đích sau khi xem lại.
+- Chưa làm: IndexNow, tự đăng lên mạng xã hội, trang đích ngoài TP.HCM, bản đồ trên trang đích, kiểm tra trên điện thoại thật và với Meilisearch có dữ liệu thật (luồng tìm tổ hợp trang đích chưa chạy với dữ liệu thật).
