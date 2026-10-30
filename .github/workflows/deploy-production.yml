@@ -251,6 +251,7 @@ jobs:
           ZALO_CODE_VERIFIER=${{ secrets.ZALO_CODE_VERIFIER }}
           ZALO_OTP_TEMPLATE_ID=${{ secrets.ZALO_OTP_TEMPLATE_ID }}
           ZALO_ZNS_TEST_MODE=${{ secrets.ZALO_ZNS_TEST_MODE }}
+          ZNS_PARTNER_API_KEY=${{ secrets.ZNS_PARTNER_API_KEY }}
           MAIL_ENABLED=${{ secrets.MAIL_ENABLED }}
           MAIL_HOST=${{ secrets.MAIL_HOST }}
           MAIL_PORT=${{ secrets.MAIL_PORT }}
