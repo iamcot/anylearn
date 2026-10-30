@@ -144,19 +144,26 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 19.A6 | Creator "anyLEARN Studio", khóa API cho máy, `explore_posts.source`, hàng đợi đăng social | todo | Env mới: thêm đủ 3 chỗ |
 | 19.A7 | Trang đích "môn × tuổi × quận" TP.HCM | todo | Chỉ khi có ít nhất 3 khóa |
 | 19.A8 | `CLAUDE.md`, `docs/huong-dan-admin.md`, `http/` | todo | Làm cùng từng task |
-| 19.B1 | t2m: khung CLI, schema kịch bản, `--ai api` hoặc `claude-code`, kiểm tra tự động | todo | Repo `iamcot/t2m` |
-| 19.B2 | t2m: dựng video HTML → PNG → ffmpeg (videotoolbox), phụ đề, nhạc | todo | |
-| 19.B3 | t2m: `TtsProvider`, nghe thử và chọn nhà TTS, hồ sơ giọng | todo | Thử TTS tại máy trước |
-| 19.B4 | t2m: template "Giới thiệu tính năng" (quay site bằng tài khoản demo) | todo | Làm đầu tiên |
+| 19.B1 | t2m: khung CLI, schema kịch bản, `--ai api` hoặc `claude-code`, kiểm tra tự động | done | Repo `iamcot/t2m`; `t2m stats`/`plan` để 19.B8 |
+| 19.B2 | t2m: dựng video HTML → PNG → ffmpeg (videotoolbox), phụ đề, nhạc | done | Chưa có nhạc trong `assets/music`; ảnh Pexels chưa làm |
+| 19.B3 | t2m: `TtsProvider`, nghe thử và chọn nhà TTS, hồ sơ giọng | partial | Có `say` (macOS), FPT.AI, nháp; còn nghe thử trên Mac và chọn nhà |
+| 19.B4 | t2m: template "Giới thiệu tính năng" (quay site bằng tài khoản demo) | done | Brief mẫu 04/11; chỉnh selector khi quay site thật |
 | 19.B5 | t2m: template đố vui, khoa học, lịch sử, STEM, dân gian, theo tuổi, bộ sưu tập, mẹo, đối tác, Đấu trường | todo | |
 | 19.B6 | t2m: ảnh chế / truyện nhiều khung, bộ nhân vật vẽ sẵn | todo | Cần vẽ bộ nhân vật |
-| 19.B7 | t2m: trang sửa, gửi Khám phá, xuất file social, sau đó YouTube / Facebook API | todo | |
+| 19.B7 | t2m: trang sửa, gửi Khám phá, xuất file social, sau đó YouTube / Facebook API | partial | Có duyệt bằng lệnh, xuất file + caption UTM, gửi Khám phá; còn trang FastAPI, API các kênh |
 | 19.B8 | t2m: `stats` hằng ngày, kế hoạch tuần đọc số liệu | todo | Cần 19.A4 |
 | 19.C1 | Tạo YouTube, TikTok; Search Console, Google Business Profile, Meta Pixel | todo | Chủ sản phẩm làm |
 | 19.C2 | Chiến dịch ra mắt 28 ngày (02/11 đến 29/11/2026) | todo | Lịch trong plan 19 mục 4 |
 | 19.C3 | Nhịp đăng thường xuyên + quảng cáo thử | todo | Sau 19.C2 |
 
 ## Nhật ký
+
+### 29/10/2026 – t2m: bản đầu của tool video (19.B1 đến 19.B4)
+- Repo `iamcot/t2m` (Python 3.12, CLI `t2m`): `new` (job từ brief TOML) → `script` (AI viết kịch bản bằng `claude -p` hoặc Anthropic API, tool call có schema, tự viết lại một lần khi kiểm tra báo lỗi, token ghi vào `ai_usage`) → `record` (Playwright quay site ở khung iPhone bằng tài khoản demo, chấm xanh chỗ chạm, ảnh chụp từng shot cho carousel) → `render` → `review` → `approve --by` → `publish` (xuất video + poster + .srt + caption từng kênh có UTM, hoặc `--to explore` gửi bài qua API creator + tải clip Bunny TUS, bài chờ duyệt).
+- Kiểm tra tự động: số chữ theo độ dài (140 đến 170 cho 60s), viết đúng anyLEARN / anyPoint / Leo Xu, "điểm" thay anyPoint, hoàn tiền chỉ khi lớp không mở, "rẻ hơn" chỉ dạng "bằng hoặc rẻ hơn", câu tuyệt đối, tên và giá khóa so với `/pdp/{id}`.
+- Dựng: cảnh card (HTML, Be Vietnam Pro, Leo) đẩy chậm, cảnh quay màn hình trong khung điện thoại + tiêu đề, `xfade`, phụ đề ASS tô từng từ (mlx-whisper nếu cài), nhạc nền tự hạ khi có giọng, `loudnorm` -14 LUFS, `h264_videotoolbox` trên Mac.
+- Giọng: `config/voices.toml` (người dẫn theo template: `ro_rang`, `am_tram`, `tre_nhi_nhanh`; brief đổi theo nhân vật), nhà TTS `say` (macOS, giọng Linh), `fpt`, `silent` (nháp). Chưa nghe thử trên Mac nên chưa chọn nhà.
+- Brief mẫu ngày 04/11 "Tìm kiếm thông minh" có 4 shot; selector viết theo code hiện tại, cần chạy thử trên site thật với tài khoản demo.
 
 ### 27/10/2026 – gom nhóm menu admin
 - Menu trái chia 5 nhóm: Tổng quan · **Đơn hàng** (Đơn hàng, anyPoints, Tài chính) · **Quản lý thành viên** (Thành viên, Hoạt động = học thử/test/tham quan, Nghỉ / đổi lịch, Nhờ tìm khóa học, Báo giá rẻ hơn) · **Khóa học** (Khóa học, Lịch học, Tags, Thiếu thuộc tính) · **Nội dung & phân tích** (Bài viết, Xu hướng nhu cầu). Menu "Cài đặt" ở đáy chia 2 nhóm: Thông báo (email, Zalo OA, người nhận thông báo) và Thanh toán (tài khoản ngân hàng, kiểm toán anyPoint).
