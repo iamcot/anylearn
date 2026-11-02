@@ -135,8 +135,23 @@ public class ZnsService {
         sendTemplate(phone, otpTemplateId, Map.of("otp", otpCode));
     }
 
+    /** False when ZALO_APP_ID is empty: messages are only logged ("ZNS STUB"). */
+    public boolean isConfigured() {
+        return appId != null && !appId.isBlank();
+    }
+
     public void sendTemplate(String phone, String templateId, Map<String, String> data) throws Exception {
-        if (appId == null || appId.isBlank()) {
+        sendTemplate(phone, templateId, data, null);
+    }
+
+    /** `trackingId` (optional) is echoed by Zalo in delivery callbacks and the ZBS log, so a message can be found again. */
+    public void sendTemplate(String phone, String templateId, Map<String, String> data, String trackingId) throws Exception {
+        sendTemplate(phone, templateId, data, trackingId, false);
+    }
+
+    /** `development` = Zalo's development mode for this message (test sends from the back office), whatever ZALO_ZNS_TEST_MODE says. */
+    public void sendTemplate(String phone, String templateId, Map<String, String> data, String trackingId, boolean development) throws Exception {
+        if (!isConfigured()) {
             log.warn("[ZNS STUB] Would send template {} to {}: {}", templateId, phone, data);
             return;
         }
@@ -148,7 +163,8 @@ public class ZnsService {
         payload.put("phone", normalizedPhone);
         payload.put("template_id", templateId);
         payload.put("template_data", data);
-        if (testMode) payload.put("mode", "development");
+        if (trackingId != null && !trackingId.isBlank()) payload.put("tracking_id", trackingId);
+        if (testMode || development) payload.put("mode", "development");
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);

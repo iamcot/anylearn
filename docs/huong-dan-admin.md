@@ -741,3 +741,13 @@ Bài do t2m gửi có nhãn **t2m** ở cột "Người đăng"; bộ lọc ngư
 - Cột "Lượt tìm môn" là số lượt tìm có tên tag trong 90 ngày: ưu tiên bật và viết giới thiệu cho trang có số này cao.
 - Nút "Giới thiệu": viết đoạn giới thiệu, hoặc "AI viết bản nháp" rồi **đọc lại** (số liệu, lời hứa) và bấm "Lưu và duyệt". Chưa duyệt thì trang dùng đoạn mặc định có số khóa. AI chỉ được nói "giá bằng hoặc rẻ hơn tại trường" và "đăng ký mà lớp không mở thì được hoàn tiền".
 - Trang đích dựa vào **tag** và **địa chỉ** của khóa: khóa thiếu tag, thiếu tuổi hoặc thiếu địa chỉ (xem "Thiếu thuộc tính") sẽ không vào trang nào. "Kiểm tra lại ngay" chạy lại việc tìm tổ hợp sau khi sửa dữ liệu (cần tìm kiếm đã cập nhật).
+
+### Tin Zalo ZNS gửi khách (Cài đặt > "Mẫu Zalo ZNS")
+
+Bốn mẫu ZNS đã được Zalo duyệt và **tự gửi** tới số điện thoại của tài khoản (phụ huynh), mỗi tin một lần:
+- **Xác nhận đăng ký thành công** (659722): ngay khi đơn được thanh toán (SePay hoặc admin duyệt).
+- **Nhắc thanh toán** (659976): đơn chưa thanh toán tới mốc nhắc thứ 2 (mặc định 24 giờ, xem "Cấu hình tìm kiếm & đơn hàng"), chỉ trong 8h-21h; tin kèm nội dung chuyển khoản `ALQR<số đơn>` và hạn giữ chỗ (giờ + ngày).
+- **Lớp học sắp khai giảng** (659979): mốc nhắc gần nhất trước buổi đầu (mặc định 1 ngày trước), chỉ với khóa mua qua đơn hàng.
+- **Khảo sát giữa khóa** (659981): khi học được nửa số buổi.
+
+Trên trang: bật / tắt từng mẫu, đổi mã mẫu khi Zalo duyệt mẫu mới (để trống = mã đã duyệt), nút **Gửi thử dữ liệu mẫu** (chế độ development của Zalo, gửi tới số bạn nhập, để trống là số thử mặc định 0395359198; số nhận phải là người thử / quản trị của OA) để kiểm tra tên tham số, và **Nhật ký gửi** (đã gửi, lỗi kèm lý do Zalo trả về). Mỗi tin gửi thật đều tính phí Zalo. Khách tắt kênh Zalo ở Tài khoản > Thông báo thì không nhận nhắc lịch, khảo sát, nhắc thanh toán; tin xác nhận đơn luôn gửi. Nếu Zalo báo hết hạn token, vào Cài đặt > "Kết nối Zalo OA" để kết nối lại.

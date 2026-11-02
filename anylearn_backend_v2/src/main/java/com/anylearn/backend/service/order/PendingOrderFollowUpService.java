@@ -47,6 +47,10 @@ public class PendingOrderFollowUpService {
     private final PaymentApprovalService paymentApprovalService;
     private final OrderFollowUpSettings settings;
     private final Clock clock;
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.anylearn.backend.service.zns.ZnsNotifier znsNotifier;
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.anylearn.backend.repository.UserRepository userRepository;
 
     @Scheduled(fixedDelay = 15 * 60 * 1000, initialDelay = 2 * 60 * 1000)
     public void run() {
@@ -65,6 +69,7 @@ public class PendingOrderFollowUpService {
                     continue;
                 }
                 remind(order, now, remindHours, autoCancelHours);
+                remindByZns(order, now, remindHours, autoCancelHours);
             } catch (Exception e) {
                 log.warn("[orderFollowUp] order {} skipped: {}", order.getId(), e.getMessage());
             }
@@ -97,6 +102,23 @@ public class PendingOrderFollowUpService {
                     Map.of("orderId", String.valueOf(order.getId()), "amount", EmailTemplateService.money(order.getAmount()),
                             "deadline", deadline, "payUrl", "https://anylearn.vn/order/" + order.getId()));
         }
+    }
+
+    /**
+     * ZNS "Nhắc thanh toán" (template order_reminder): once per order, from the reminder step that also sends the email
+     * (default 24 hours), only between 8h and 21h and while the order is still held. A step that falls at night is sent
+     * the next morning by a later run (the message is claimed in zns_messages, not in order_followups).
+     */
+    private void remindByZns(Order order, LocalDateTime now, List<Integer> remindHours, int autoCancelHours) {
+        if (znsNotifier == null || userRepository == null) return;
+        if (!ZnsReminderRules.due(order.getCreatedAt(), now, remindHours, EMAIL_FROM_STAGE, autoCancelHours)) return;
+        if (alreadyPaidElsewhere(order)) return;
+        var buyer = userRepository.findById(order.getUserId()).orElse(null);
+        if (buyer == null) return;
+        LocalDateTime deadline = PendingOrderRules.expiresAt(order.getCreatedAt(), autoCancelHours);
+        znsNotifier.send(buyer.getId(), "order_reminder", com.anylearn.backend.service.zns.ZnsTemplates.ORDER_REMINDER,
+                "order_reminder:" + order.getId(),
+                com.anylearn.backend.service.zns.ZnsTemplates.orderReminder(buyer.getName(), order.getId(), order.getAmount(), deadline));
     }
 
     /** The buyer already paid for the same course and learner in another order: this one is just a leftover. */

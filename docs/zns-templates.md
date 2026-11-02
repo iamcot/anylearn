@@ -5,7 +5,10 @@ Tài liệu cho người đăng ký mẫu trên Zalo OA / ZBS. Liệt kê **tấ
 
 ## Hiện trạng
 
-- Code gửi ZNS đã có (`ZnsService.sendTemplate(phone, templateId, data)`), nhưng **mới dùng cho OTP**. Môi trường `zalo.zns.otpTemplateId` đã có.
+- Code gửi ZNS: `ZnsService.sendTemplate(phone, templateId, data)`. OTP dùng `zalo.zns.otpTemplateId`.
+- **Đã nối (2026-11-02)** 4 mẫu được duyệt: 2 (659722), 3 (659976), 5 (659979), 8 (659981). Tham số và cách lấy dữ liệu nằm trong
+  `service/zns/ZnsTemplates` (một chỗ duy nhất, có test); `ZnsNotifier` gửi sau khi lưu xong, mỗi tin một lần (bảng `zns_messages`).
+  Mã mẫu và công tắc từng mẫu sửa ở back office Cài đặt > "Mẫu Zalo ZNS" (có nút gửi thử dữ liệu mẫu và nhật ký gửi).
 - Các tin khác hiện chỉ gửi **trong app (chuông + push) và email**. Khi mẫu được duyệt, gửi anyLEARN **mã mẫu (template_id)** của từng mẫu
   để nối vào đúng điểm gửi; mỗi mẫu dưới đây có sẵn "Điểm gửi trong code" để dev nối nhanh.
 - Mọi tin ZNS chỉ gửi trong khung **8h–21h**, tôn trọng công tắc "Zalo" của người dùng ở Tài khoản > Thông báo (đã lưu, ZNS sẽ đọc khi nối).
@@ -205,7 +208,8 @@ Mẫu 6 và 8 chỉ cần khi thấy tỷ lệ mở push/email thấp. Mẫu 13 
 ## Khi mẫu được duyệt
 
 1. Gửi cho dev: tên mẫu + `template_id` + danh sách tham số đúng như Zalo đã duyệt (tên tham số có thể bị Zalo đổi).
-2. Dev thêm mã mẫu vào bảng cấu hình (`configurations`, khóa `zns/template/<tên>`), nối vào điểm gửi trong bảng trên, kiểm tra khung 8h–21h và công tắc "Zalo" của người dùng.
+2. Dev thêm mẫu vào `ZnsTemplates.DEFS` (khóa, mã mẫu mặc định, tham số, dữ liệu mẫu) và gọi `ZnsNotifier.send` ở điểm gửi; mã mẫu
+   và công tắc lưu ở `configurations` (`zns/<khóa>/template_id`, `zns/<khóa>/enabled`), sửa ở trang "Mẫu Zalo ZNS".
 3. Kiểm tra bằng `zalo.zns.testMode=true` (chế độ development của Zalo) trước khi tắt.
 
 ## 15. Nhắc Đấu trường Leo — Chăm sóc (plan 18)

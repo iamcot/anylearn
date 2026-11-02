@@ -16,6 +16,7 @@ import com.anylearn.backend.service.today.LearnerData;
 import com.anylearn.backend.service.today.LearnerLoader;
 import com.anylearn.backend.service.today.Session;
 import com.anylearn.backend.service.today.SessionSchedule;
+import com.anylearn.backend.service.zns.ZnsTemplates;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -64,6 +65,8 @@ public class LifecycleService {
     private final PaymentConfig paymentConfig;
     private final Clock clock;
     private final AttendanceRewardService attendanceRewards;
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.anylearn.backend.service.zns.ZnsNotifier znsNotifier;
 
     /** Runs every hour. Messages are only sent inside the sending hours; a step skipped at night is picked up in the morning. */
     public void scan() {
@@ -117,6 +120,14 @@ public class LifecycleService {
                         "daysText", daysLeft <= 0 ? "hôm nay" : daysLeft == 1 ? "ngày mai" : "sau " + daysLeft + " ngày",
                         "classInfo", html(LifecycleMessages.classInfo(context.item().getTitle(), schedule)),
                         "todayUrl", todayUrl(learner)));
+        // ZNS only at the nearest step (default 1 day before); the earlier steps stay app + email.
+        int nearest = settings.preStartDays().stream().mapToInt(Integer::intValue).min().orElse(due.getAsInt());
+        if (due.getAsInt() == nearest) {
+            withOrder(context, (orderId, orderDate) -> znsNotifier.send(accountIdOf(learner), TYPE_START,
+                    ZnsTemplates.COURSE_START, "course_start:" + enrollmentId,
+                    ZnsTemplates.courseStart(accountName(learner), orderId, orderDate, context.item().getTitle(),
+                            first.get().date(), first.get().start())));
+        }
     }
 
     // ── 07.3 absences ─────────────────────────────────────────────────────────
@@ -182,6 +193,33 @@ public class LifecycleService {
                 LifecycleMessages.surveyContent(name, itemTitle), route, "email-lifecycle_survey",
                 "Bé học %s có vui không?".formatted(itemTitle),
                 Map.of("learnerName", name, "itemTitle", itemTitle, "surveyUrl", frontend() + route));
+        withOrder(context, (orderId, orderDate) -> znsNotifier.send(accountIdOf(learner), TYPE_SURVEY,
+                ZnsTemplates.MID_SURVEY, "mid_survey:" + enrollmentId,
+                ZnsTemplates.midSurvey(orderId, orderDate, itemTitle, learner.getName())));
+    }
+
+    /**
+     * Runs a ZNS send for an enrollment that came from an order (Zalo's CSKH templates need the order code and date).
+     * Enrollments without an order (added by hand) get no ZNS. Never breaks the lifecycle scan.
+     */
+    private void withOrder(EnrollmentContext context, java.util.function.BiConsumer<Long, LocalDate> send) {
+        Long orderId = context.enrollment().getOrderId();
+        if (znsNotifier == null || orderId == null) return;
+        if (!ZnsTemplates.inSendWindow(LocalDateTime.now(clock).getHour())) return; // sending hours set wider than Zalo's
+        try {
+            List<java.sql.Timestamp> created = jdbc.queryForList("SELECT created_at FROM orders WHERE id = ?", java.sql.Timestamp.class, orderId);
+            LocalDate orderDate = created.isEmpty() || created.get(0) == null ? null : created.get(0).toLocalDateTime().toLocalDate();
+            send.accept(orderId, orderDate);
+        } catch (Exception e) {
+            log.warn("Lifecycle: ZNS for order {} skipped: {}", orderId, e.getMessage());
+        }
+    }
+
+    /** The parent's name for a child, the account's own name otherwise. */
+    private String accountName(User learner) {
+        Long accountId = accountIdOf(learner);
+        if (accountId.equals(learner.getId())) return learner.getName();
+        return userRepository.findById(accountId).map(User::getName).orElse(null);
     }
 
     private boolean hasFeedback(Long enrollmentId) {

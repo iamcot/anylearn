@@ -34,6 +34,7 @@ import ItemGaps from './pages/ItemGaps'
 import AllReviews from './pages/AllReviews'
 import SearchInsights from './pages/SearchInsights'
 import NotificationRecipients from './pages/NotificationRecipients'
+import ZnsTemplates from './pages/ZnsTemplates'
 import BankAccount from './pages/BankAccount'
 import PaymentMethods from './pages/PaymentMethods'
 import Dashboard from './pages/Dashboard'
@@ -144,6 +145,7 @@ export default function App() {
                   <Route path="bank-account" element={<BankAccount />} />
                   <Route path="payment-methods" element={<PaymentMethods />} />
                   <Route path="notification-recipients" element={<NotificationRecipients />} />
+                  <Route path="zns-templates" element={<ZnsTemplates />} />
                   <Route path="finance" element={<Finance />} />
                 </Route>
                 <Route path="*" element={<Navigate to="/dashboard" replace />} />

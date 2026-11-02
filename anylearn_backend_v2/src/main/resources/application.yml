@@ -136,5 +136,7 @@ zalo:
     codeVerifier: ${ZALO_CODE_VERIFIER:anylearn}
     otpTemplateId: ${ZALO_OTP_TEMPLATE_ID:275670}
     testMode: ${ZALO_ZNS_TEST_MODE:true}
+    # Phone that receives the back office "Gửi thử" of the ZNS templates (sent in development mode).
+    testPhone: "0395359198"
     # Shared key for partner apps calling POST /api/open/zns/otp; empty disables it.
     partnerApiKey: ${ZNS_PARTNER_API_KEY:}
