@@ -1,4 +1,4 @@
-import { Alert, Button, Card, Col, Row, Segmented, Select, Space, Statistic, Table, Typography, message } from 'antd'
+import { Alert, Button, Card, Col, InputNumber, Progress, Row, Segmented, Select, Space, Statistic, Table, Typography, message } from 'antd'
 import { useEffect, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import client from '../api/client'
@@ -42,6 +42,44 @@ function ModelPicker({ onSaved }) {
           </Row>
         ))}
         <Button type="primary" loading={saving} disabled={!dirty} onClick={save}>Lưu</Button>
+      </Space>
+    </Card>
+  )
+}
+
+// AI gateway of partner apps (11 On Field calls POST /api/open/ai/tool with the ZNS partner key): daily token cap.
+function PartnerCap({ onSaved }) {
+  const qc = useQueryClient()
+  const { data, isLoading } = useQuery({ queryKey: ['admin-ai-partner'], queryFn: () => client.get('/admin/ai-usage/partner').then(r => r.data?.data) })
+  const [cap, setCap] = useState(null)
+  const [saving, setSaving] = useState(false)
+  useEffect(() => { if (data) setCap(data.dailyTokens) }, [data])
+  const save = async () => {
+    setSaving(true)
+    try {
+      const res = await client.put('/admin/ai-usage/partner', { dailyTokens: cap ?? 0 }).then(r => r.data)
+      if (res?.resultCode !== 1) message.error(res.message || 'Không lưu được')
+      else { message.success('Đã lưu'); qc.invalidateQueries({ queryKey: ['admin-ai-partner'] }); onSaved?.() }
+    } catch (e) {
+      message.error(e.message || 'Không lưu được')
+    } finally { setSaving(false) }
+  }
+  const used = data?.usedToday ?? 0
+  const limit = data?.dailyTokens ?? 0
+  return (
+    <Card title="AI cho đối tác (11 On Field)" style={{ marginTop: 16 }} loading={isLoading}>
+      <Typography.Paragraph type="secondary">
+        11 On Field gọi AI qua AnyLearn bằng chung khóa đối tác của ZNS ({(data?.features ?? []).join(', ')}). Khi số token hôm nay chạm trần, các lần gọi sau bị từ chối đến hết ngày. Đặt 0 để tắt hẳn. Mô hình của từng tính năng chọn ở bảng phía trên.
+      </Typography.Paragraph>
+      <Space direction="vertical" style={{ width: '100%' }}>
+        <div>Hôm nay đã dùng {fmt(used)} / {fmt(limit)} token</div>
+        <Progress percent={limit > 0 ? Math.min(100, Math.round((used * 100) / limit)) : 100} status={limit > 0 && used < limit ? 'active' : 'exception'} showInfo={false} />
+        <Space wrap>
+          <span>Trần token mỗi ngày</span>
+          <InputNumber min={0} max={100000000} step={100000} value={cap} onChange={setCap} style={{ width: 200 }}
+            formatter={v => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.')} parser={v => v.replace(/\./g, '')} />
+          <Button type="primary" loading={saving} disabled={cap === data?.dailyTokens} onClick={save}>Lưu</Button>
+        </Space>
       </Space>
     </Card>
   )
@@ -100,6 +138,7 @@ export default function AiUsage() {
       </Row>
 
       <ModelPicker onSaved={() => qc.invalidateQueries({ queryKey: ['admin-ai-usage'] })} />
+      <PartnerCap />
 
       <Card title="Theo tính năng" style={{ marginTop: 16 }} loading={isLoading}>
         <Table size="small" rowKey="feature" pagination={false} dataSource={features} scroll={{ x: 700 }}

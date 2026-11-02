@@ -1,0 +1,49 @@
+@baseUrl = {{$dotenv BE_BASE_URL}}
+@partnerKey = {{$dotenv ZNS_PARTNER_API_KEY}}
+
+### ── Partner apps (11 On Field) ─────────────────────────────────────────────
+### One shared key for every partner endpoint: X-Api-Key = ZNS_PARTNER_API_KEY (empty on the server = all off).
+
+### Send an OTP through AnyLearn's Zalo OA
+POST {{baseUrl}}/api/open/zns/otp
+X-Api-Key: {{partnerKey}}
+Content-Type: application/json
+
+{"phone": "0900000000", "otp": "123456"}
+
+### AI gateway: the partner's prompt + one tool; the answer is the tool's JSON.
+### feature: 11of_quiz_write | 11of_quiz_verify (model picked per feature on "Dùng AI (token)").
+### 403 wrong key, 400 bad request, 429 daily token cap reached or cap 0, 503 no Anthropic key, 502 AI call failed.
+POST {{baseUrl}}/api/open/ai/tool
+X-Api-Key: {{partnerKey}}
+Content-Type: application/json
+
+{
+  "feature": "11of_quiz_write",
+  "system": "Bạn viết câu hỏi trắc nghiệm bóng đá bằng tiếng Việt, chính xác theo Luật thi đấu IFAB.",
+  "user": "Viết 2 câu hỏi về luật việt vị, độ khó dễ. Gọi công cụ write_questions một lần.",
+  "maxTokens": 2000,
+  "tool": {
+    "name": "write_questions",
+    "description": "Ghi lại các câu hỏi đã viết.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "questions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "body": {"type": "string"},
+              "options": {"type": "array", "items": {"type": "string"}, "minItems": 4, "maxItems": 4},
+              "correct": {"type": "integer"},
+              "explanation": {"type": "string"}
+            },
+            "required": ["body", "options", "correct", "explanation"]
+          }
+        }
+      },
+      "required": ["questions"]
+    }
+  }
+}

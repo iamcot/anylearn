@@ -9,8 +9,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
 import java.util.Map;
 
 /**
@@ -32,8 +30,7 @@ public class OpenZnsController {
     @PostMapping("/otp")
     public ResponseEntity<ApiResponse<?>> sendOtp(@RequestHeader(value = "X-Api-Key", required = false) String apiKey,
                                                   @RequestBody Map<String, String> body) {
-        if (partnerApiKey == null || partnerApiKey.isBlank() || apiKey == null
-                || !MessageDigest.isEqual(partnerApiKey.getBytes(StandardCharsets.UTF_8), apiKey.getBytes(StandardCharsets.UTF_8))) {
+        if (!PartnerApiKey.matches(partnerApiKey, apiKey)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponse.fail("Forbidden"));
         }
         String phone = body.get("phone");

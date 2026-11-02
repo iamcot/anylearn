@@ -120,6 +120,7 @@ Thư mục `http/` chứa VS Code REST Client files cho mọi endpoint:
 - `quiz.http` — rank quiz game: me, box, start, lifeline, answer, buy
 - `arena.http` — Đấu trường Leo: banner, register, lobby, question, answer, board (admin calls are at the end of `admin.http`)
 - `insights.http` — search logging, "Tìm giúp tôi" course requests, admin request handling and the demand report
+- `open.http` — partner apps (11 On Field): ZNS OTP relay and the AI gateway, key `ZNS_PARTNER_API_KEY`
 - `seo.http` — sitemap, public Khám phá post, UTM tracking, "Nguồn khách", landing pages, content reviewers, t2m studio keys and social queue
 
 ## Porting Status (Portal → v2 + backend)
@@ -189,6 +190,7 @@ Thư mục `http/` chứa VS Code REST Client files cho mọi endpoint:
 
 - **Every call to the Anthropic API goes through `AnthropicClient.askTool(feature, system, user, maxTokens, tool)`** (`ask` = feature `suggest`), which writes one row of `ai_usage_log` (V61: feature, model, input/output tokens, duration, `ok`, short error; failed calls are logged too) through `AiUsageService.record` (never throws). Features: `suggest`, `compare`, `quiz_write`, `quiz_verify` (`AiUsageService`, with labels). A new AI feature must pass its own feature key and add a label there. Never call the API from anywhere else.
 - Back office page "Dùng AI (token)" (`/ai-usage`, `GET /admin/ai-usage?days=7|30|90`, `AdminAiUsageController`): totals, per feature, per model, per day and the last errors. The older per-feature token columns (`ai_suggestions`, `item_compare_facts`, `quiz_gen_runs`) stay as they are.
+- **AI gateway for partner apps (11 On Field)**: `POST /api/open/ai/tool` (`OpenAiController`), header `X-Api-Key` = the same `ZNS_PARTNER_API_KEY` as `/api/open/zns/otp` (shared check `PartnerApiKey`; empty = every partner endpoint off, so no new env var). Body `{feature, system, user, maxTokens, tool}`, answer `{json, inputTokens, outputTokens, model}`; the partner writes its own prompts, AnyLearn only calls `AnthropicClient.askTool` (logged, model per feature). Allowed features and limits are pure in `AiGatewayRules` (`11of_quiz_write`, `11of_quiz_verify`; prefix `11of_`, max 8000 output tokens, 60,000 prompt characters; tested). Daily cap: row `ai/partner_daily_tokens` (`AiPartnerSettings`, default 1,000,000, 0 = off), counted by `AiUsageService.tokensToday("11of_")`; over the cap = 429. Admin `GET`/`PUT /admin/ai-usage/partner` and the block "AI cho đối tác" on the "Dùng AI (token)" page. A new partner feature = a key + label in `AiUsageService`, an entry in `AiGatewayRules.FEATURES` and `AiModelSettings.FEATURES`. Samples `http/open.http`.
 
 ## Course page opens per person
 

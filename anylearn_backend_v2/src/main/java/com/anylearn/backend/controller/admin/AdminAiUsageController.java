@@ -2,7 +2,9 @@ package com.anylearn.backend.controller.admin;
 
 import com.anylearn.backend.dto.response.ApiResponse;
 import com.anylearn.backend.entity.User;
+import com.anylearn.backend.service.ai.AiGatewayRules;
 import com.anylearn.backend.service.ai.AiModelSettings;
+import com.anylearn.backend.service.ai.AiPartnerSettings;
 import com.anylearn.backend.service.ai.AiPricing;
 import com.anylearn.backend.service.ai.AiUsageService;
 import com.anylearn.backend.service.ai.AnthropicClient;
@@ -22,6 +24,7 @@ public class AdminAiUsageController {
     private final AiUsageService usage;
     private final AnthropicClient anthropic;
     private final AiModelSettings modelSettings;
+    private final AiPartnerSettings partnerSettings;
 
     @GetMapping
     public ApiResponse<?> report(@AuthenticationPrincipal User user, @RequestParam(defaultValue = "30") int days) {
@@ -73,5 +76,33 @@ public class AdminAiUsageController {
             return ApiResponse.fail(e.getMessage());
         }
         return ApiResponse.ok(modelsView());
+    }
+
+    private Map<String, Object> partnerView() {
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("dailyTokens", partnerSettings.dailyTokens());
+        out.put("usedToday", usage.tokensToday(AiGatewayRules.PARTNER_PREFIX));
+        out.put("features", AiGatewayRules.FEATURES.stream().map(f -> AiUsageService.LABELS.getOrDefault(f, f)).toList());
+        return out;
+    }
+
+    /** The AI gateway of partner apps (11 On Field): today's tokens and the daily cap. */
+    @GetMapping("/partner")
+    public ApiResponse<?> partner(@AuthenticationPrincipal User user) {
+        if (user == null || !"admin".equals(user.getRole())) return ApiResponse.fail("Forbidden");
+        return ApiResponse.ok(partnerView());
+    }
+
+    /** Body `{dailyTokens}`; 0 switches the gateway off. */
+    @PutMapping("/partner")
+    public ApiResponse<?> savePartner(@AuthenticationPrincipal User user, @RequestBody Map<String, Object> body) {
+        if (user == null || !"admin".equals(user.getRole())) return ApiResponse.fail("Forbidden");
+        if (!(body.get("dailyTokens") instanceof Number n)) return ApiResponse.fail("Thiếu dailyTokens.");
+        try {
+            partnerSettings.saveDailyTokens(n.longValue());
+        } catch (IllegalArgumentException e) {
+            return ApiResponse.fail(e.getMessage());
+        }
+        return ApiResponse.ok(partnerView());
     }
 }
