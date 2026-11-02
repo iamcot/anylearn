@@ -194,6 +194,7 @@ export default function AppShell() {
         item.key === 'email-settings' ? { ...item, onClick: () => navigate('/settings') } : item
       ),
       { key: 'notification-recipients', icon: <BellOutlined />, label: 'Người nhận thông báo admin', onClick: () => navigate('/notification-recipients') },
+      { key: 'zns-templates', icon: <MessageOutlined />, label: 'Mẫu Zalo ZNS', onClick: () => navigate('/zns-templates') },
     ] },
     { key: 'g-ops', type: 'group', label: 'Vận hành', children: [
       { key: 'operations', icon: <SettingOutlined />, label: 'Cấu hình tìm kiếm & đơn hàng', onClick: () => navigate('/operations') },

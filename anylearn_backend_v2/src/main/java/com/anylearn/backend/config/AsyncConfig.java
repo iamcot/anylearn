@@ -46,4 +46,18 @@ public class AsyncConfig {
         executor.initialize();
         return executor;
     }
+
+    // Zalo ZNS template messages (order paid, reminders): one thread, sent after the commit, off request threads.
+    @Bean(name = "znsExecutor")
+    public Executor znsExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(1);
+        executor.setMaxPoolSize(1);
+        executor.setQueueCapacity(1000);
+        executor.setThreadNamePrefix("zns-");
+        executor.setWaitForTasksToCompleteOnShutdown(true);
+        executor.setAwaitTerminationSeconds(20);
+        executor.initialize();
+        return executor;
+    }
 }

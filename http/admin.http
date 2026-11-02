@@ -201,6 +201,28 @@ Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
 ### Bước 2: Zalo tự redirect về /admin/zns/callback?code=... (không cần gọi thủ công)
 # Nếu cần test: GET {{baseUrl}}/admin/zns/callback?code=CODE_FROM_ZALO
 
+### ZNS templates (order paid, payment reminder, course start, mid-course survey): ids, switches, log
+GET {{baseUrl}}/admin/zns/templates
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+### Change an id or switch a template off (blank templateId = the approved default)
+PUT {{baseUrl}}/admin/zns/templates
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+Content-Type: application/json
+
+{"templates": [{"key": "order_reminder", "enabled": true, "templateId": "659976"}]}
+
+### Send the template's sample data to my phone (or "phone")
+POST {{baseUrl}}/admin/zns/templates/order_success/test
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+Content-Type: application/json
+
+{}
+
+### Log of zns_messages (template, status optional)
+GET {{baseUrl}}/admin/zns/messages?page=0&size=20&status=failed
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
 
 
 ### Orders waiting for payment: waiting now, reminded, paid after a reminder, expired (admin)
@@ -523,19 +545,19 @@ Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
 
 ### Custom arena: current
 GET {{baseUrl}}/admin/arena/custom
-Authorization: Bearer {{adminToken}}
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
 
 ### Custom arena: create
 POST {{baseUrl}}/admin/arena/custom
-Authorization: Bearer {{adminToken}}
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
 Content-Type: application/json
 
 {"title": "Đấu trường 1/6", "expectedAt": 1798790400000, "questionCount": 10, "answerSeconds": 15}
 
 ### Custom arena: start (1 minute countdown)
 POST {{baseUrl}}/admin/arena/custom/1/start
-Authorization: Bearer {{adminToken}}
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
 
 ### Custom arena: close
 POST {{baseUrl}}/admin/arena/custom/1/close
-Authorization: Bearer {{adminToken}}
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}

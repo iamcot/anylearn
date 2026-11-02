@@ -46,6 +46,8 @@ public class PaymentApprovalService {
     private com.anylearn.backend.service.lifecycle.LifecycleService lifecycle;
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private com.anylearn.backend.service.lifecycle.RenewalService renewals;
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.anylearn.backend.service.zns.ZnsNotifier znsNotifier;
 
     @Transactional
     public void approveOrder(Long orderId, String paymentMethod) {
@@ -72,6 +74,7 @@ public class PaymentApprovalService {
         }
 
         // Convert pending_reg → reg + create user_course_enrollments
+        List<Long> learnerIds = new java.util.ArrayList<>();
         itemUserActionRepository
                 .findByUserIdAndTypeAndValue(order.getUserId(), "pending_reg", String.valueOf(orderId))
                 .forEach(pending -> {
@@ -88,7 +91,7 @@ public class PaymentApprovalService {
                         itemUserActionRepository.save(pending);
 
                         // Create enrollment record
-                        createEnrollment(pending.getItemId(), order.getUserId(), orderId, extra);
+                        learnerIds.add(createEnrollment(pending.getItemId(), order.getUserId(), orderId, extra));
                         if (renewals != null) renewals.onPaid(extra, orderId, order.getUserId());
                     } catch (Exception e) {
                         log.error("Error converting pending_reg {} to reg", pending.getId(), e);
@@ -144,13 +147,16 @@ public class PaymentApprovalService {
         } catch (Exception e) {
             log.warn("[approveOrder] failed to notify buyer: {}", e.getMessage());
         }
-        String itemTitles = itemRepository.findAllById(details.stream().map(OrderDetail::getItemId).distinct().toList()).stream()
-                .map(Item::getTitle).collect(Collectors.joining("; "));
+        List<String> titleList = itemRepository.findAllById(details.stream().map(OrderDetail::getItemId).distinct().toList()).stream()
+                .map(Item::getTitle).toList();
+        String itemTitles = String.join("; ", titleList);
         notificationService.emailTemplate(order.getUserId(), "order", "email-order_success",
                 "Đơn hàng #" + orderId + " đã thanh toán thành công",
                 Map.of("orderId", String.valueOf(orderId), "items", itemTitles, "amount", EmailTemplateService.money(order.getAmount()),
                         "classInfo", lifecycle == null ? "" : lifecycle.classInfoOfOrder(orderId),
                         "todayUrl", lifecycle == null ? "" : lifecycle.todayUrl(order.getUserId())));
+
+        sendPaidZns(order, titleList, learnerIds);
 
         // Create payment Transaction record (order)
         saveTransaction(order.getUserId(), "order", order.getAmount(), paymentMethod, orderId,
@@ -159,7 +165,24 @@ public class PaymentApprovalService {
         log.info("[approveOrder] order {} fully approved via {}", orderId, paymentMethod);
     }
 
-    private void createEnrollment(Long itemId, Long buyerUserId, Long orderId, Map<String, Object> extra) {
+    /** ZNS "Xác nhận đăng ký thành công" (template order_success) to the buyer's phone, once per order. */
+    private void sendPaidZns(Order order, List<String> titles, List<Long> learnerIds) {
+        if (znsNotifier == null) return;
+        try {
+            User buyer = userRepository.findById(order.getUserId()).orElse(null);
+            if (buyer == null) return;
+            List<String> learnerNames = userRepository.findAllById(learnerIds.stream().distinct().toList()).stream()
+                    .map(User::getName).toList();
+            znsNotifier.send(buyer.getId(), "order", com.anylearn.backend.service.zns.ZnsTemplates.ORDER_SUCCESS,
+                    "order_success:" + order.getId(),
+                    com.anylearn.backend.service.zns.ZnsTemplates.orderSuccess(buyer.getName(), order.getId(), titles,
+                            learnerNames, order.getAmount(), LocalDate.now(), buyer.getPhone()));
+        } catch (Exception e) {
+            log.warn("[approveOrder] ZNS for order {} skipped: {}", order.getId(), e.getMessage());
+        }
+    }
+
+    private Long createEnrollment(Long itemId, Long buyerUserId, Long orderId, Map<String, Object> extra) {
         Object sidObj = extra.get("studentId");
         Long enrolledUserId = sidObj != null ? Long.parseLong(String.valueOf(sidObj)) : buyerUserId;
 
@@ -216,6 +239,7 @@ public class PaymentApprovalService {
         enrollmentRepository.save(e);
         log.info("[approveOrder] created enrollment userId={} itemId={} scheduleId={} status={}",
                 enrolledUserId, itemId, scheduleId, e.getStatus());
+        return enrolledUserId;
     }
 
     private void fillEndDateBySessionCount(UserCourseEnrollment enrollment, ItemSchedule schedule) {
