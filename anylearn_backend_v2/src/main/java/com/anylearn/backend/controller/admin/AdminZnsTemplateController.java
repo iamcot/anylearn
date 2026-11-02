@@ -29,6 +29,9 @@ public class AdminZnsTemplateController {
     private final ZnsService znsService;
     private final JdbcTemplate jdbc;
 
+    @org.springframework.beans.factory.annotation.Value("${zalo.zns.testPhone:}")
+    private String testPhone;
+
     @GetMapping("/templates")
     public ApiResponse<?> templates(@AuthenticationPrincipal User user) {
         if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
@@ -50,12 +53,13 @@ public class AdminZnsTemplateController {
         return ApiResponse.ok(view());
     }
 
-    /** Sends the template with sample data to the admin's own phone (or `phone` in the body). */
+    /** Sends the template with sample data in development mode to `phone` of the body, else `zalo.zns.testPhone`, else the admin's phone. */
     @PostMapping("/templates/{key}/test")
     public ApiResponse<?> test(@AuthenticationPrincipal User user, @PathVariable String key,
                                @RequestBody(required = false) Map<String, Object> body) {
         if (!isAdmin(user)) return ApiResponse.fail("Forbidden");
-        String phone = body != null && body.get("phone") instanceof String typed && !typed.isBlank() ? typed.trim() : user.getPhone();
+        String phone = body != null && body.get("phone") instanceof String typed && !typed.isBlank() ? typed.trim()
+                : testPhone != null && !testPhone.isBlank() ? testPhone.trim() : user.getPhone();
         String error = notifier.sendTest(user.getId(), phone, key);
         if (error != null) return ApiResponse.fail(error);
         return ApiResponse.ok(Map.of("phone", phone, "stub", !znsService.isConfigured()));
@@ -108,7 +112,7 @@ public class AdminZnsTemplateController {
             row.put("last7Days", counts.getOrDefault(def.key(), Map.of()));
             list.add(row);
         }
-        return Map.of("configured", znsService.isConfigured(), "templates", list);
+        return Map.of("configured", znsService.isConfigured(), "testPhone", testPhone == null ? "" : testPhone.trim(), "templates", list);
     }
 
     private static boolean isAdmin(User user) {

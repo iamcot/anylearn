@@ -4,6 +4,7 @@ import com.anylearn.backend.service.payment.bank.TransferNote;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -13,7 +14,7 @@ import java.util.Optional;
 /**
  * The Zalo ZNS templates approved for anyLEARN (docs/zns-templates.md) and the data each one is sent with. Pure: no Spring,
  * no database. The parameter names must be exactly the ones of the template registered on Zalo; a missing or extra name
- * makes Zalo refuse the message. Values are always strings (numbers as plain digits, dates dd/MM/yyyy as in Zalo's sample).
+ * makes Zalo refuse the message. Values are always strings (numbers as plain digits, dates dd/MM/yyyy, date and time HH:mm dd/MM/yyyy).
  */
 public final class ZnsTemplates {
 
@@ -32,6 +33,7 @@ public final class ZnsTemplates {
     public static final int SEND_TO_HOUR = 21;
 
     private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private static final DateTimeFormatter DATE_TIME = DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy");
 
     public record Def(String key, String label, String defaultTemplateId, String when, List<String> params,
                       Map<String, String> sample) {}
@@ -49,7 +51,7 @@ public final class ZnsTemplates {
             new Def(COURSE_START, "Lớp học sắp khai giảng", "659979",
                     "Mốc nhắc gần nhất trước buổi học đầu (mặc định 1 ngày), trong khung 8h-21h",
                     List.of("customer_name", "order_code", "date", "course_name", "start_time"),
-                    courseStart("Nguyễn Văn An", 1234L, LocalDate.of(2026, 11, 2), "Piano cơ bản cho bé", LocalDate.of(2026, 11, 9))),
+                    courseStart("Nguyễn Văn An", 1234L, LocalDate.of(2026, 11, 2), "Piano cơ bản cho bé", LocalDate.of(2026, 11, 9), LocalTime.of(18, 0))),
             new Def(MID_SURVEY, "Khảo sát giữa khóa", "659981",
                     "Học được nửa số buổi (cài đặt khảo sát giữa khóa), trong khung 8h-21h",
                     List.of("order_code", "date", "course_name", "learner_name"),
@@ -82,19 +84,19 @@ public final class ZnsTemplates {
         data.put("order_code", orderCode(orderId));
         data.put("amount", number(amount));
         data.put("bank_transfer_note", transferNote(orderId));
-        data.put("deadline", deadline == null ? "" : date(deadline.toLocalDate()));
+        data.put("deadline", deadline == null ? "" : deadline.format(DATE_TIME));
         return data;
     }
 
-    /** Template 659979: the first session is near. `orderDate` = when the order was placed. */
+    /** Template 659979: the first session is near. `orderDate` = when the order was placed; `startTime` may be null (date only). */
     public static Map<String, String> courseStart(String customerName, long orderId, LocalDate orderDate, String courseName,
-                                                  LocalDate startDate) {
+                                                  LocalDate startDate, LocalTime startTime) {
         Map<String, String> data = new LinkedHashMap<>();
         data.put("customer_name", name(customerName, null));
         data.put("order_code", orderCode(orderId));
         data.put("date", date(orderDate));
         data.put("course_name", cut(courseName, TEXT_MAX));
-        data.put("start_time", date(startDate));
+        data.put("start_time", startDate == null ? "" : startTime == null ? date(startDate) : startDate.atTime(startTime).format(DATE_TIME));
         return data;
     }
 

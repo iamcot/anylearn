@@ -18,7 +18,7 @@ const statusTag = (status) => {
 
 const formatTime = (value) => value ? new Date(value).toLocaleString('vi-VN') : ''
 
-function TemplateCard({ template, onSaved }) {
+function TemplateCard({ template, testPhone: defaultPhone, onSaved }) {
   const [templateId, setTemplateId] = useState(null)
   const [testPhone, setTestPhone] = useState('')
   const id = templateId ?? template.templateId
@@ -38,7 +38,7 @@ function TemplateCard({ template, onSaved }) {
     onSuccess: (res) => {
       onSaved()
       if (res.resultCode !== 1) return message.error(`Zalo từ chối: ${res.message}`, 8)
-      message.success(res.data.stub ? 'Server chưa cấu hình Zalo (ZALO_APP_ID trống): tin chỉ được ghi log' : `Đã gửi tới ${res.data.phone}`)
+      message.success(res.data.stub ? 'Server chưa cấu hình Zalo (ZALO_APP_ID trống): tin chỉ được ghi log' : `Đã gửi thử (chế độ development) tới ${res.data.phone}`)
     },
   })
 
@@ -62,7 +62,7 @@ function TemplateCard({ template, onSaved }) {
         {JSON.stringify(template.sample, null, 2)}
       </pre>
       <Space wrap>
-        <Input style={{ width: 180 }} value={testPhone} onChange={e => setTestPhone(e.target.value)} placeholder="SĐT nhận thử (trống = của bạn)" />
+        <Input style={{ width: 180 }} value={testPhone} onChange={e => setTestPhone(e.target.value)} placeholder={`SĐT nhận thử (trống = ${defaultPhone || 'của bạn'})`} />
         <Button icon={<SendOutlined />} onClick={() => test.mutate()} loading={test.isPending}>Gửi thử dữ liệu mẫu</Button>
         <Typography.Text type="secondary">7 ngày: gửi {counts.sent ?? 0} · lỗi {counts.failed ?? 0}{counts.stub ? ` · chỉ log ${counts.stub}` : ''}</Typography.Text>
       </Space>
@@ -114,9 +114,9 @@ export default function ZnsTemplates() {
         message="Server chưa có ZALO_APP_ID: tin ZNS chỉ được ghi vào nhật ký bên dưới, không gửi thật." />}
       <Alert type="info" showIcon style={{ marginBottom: 16 }}
         message="Tin ZNS gửi tới số điện thoại của tài khoản (phụ huynh). Người dùng tắt kênh Zalo ở Tài khoản > Thông báo thì không nhận tin nhắc lịch, khảo sát, nhắc thanh toán; tin xác nhận đơn luôn gửi. Mỗi tin chỉ gửi một lần."
-        description="Mỗi tin gửi thật đều tính phí Zalo. Dùng nút Gửi thử để kiểm tra tên tham số với mẫu đã duyệt trước khi bật." />
+        description="Mỗi tin gửi thật đều tính phí Zalo. Nút Gửi thử gửi ở chế độ development của Zalo (không tính phí, chỉ tới số đã khai là người thử / quản trị của OA) để kiểm tra tên tham số." />
 
-      {(data?.templates ?? []).map(t => <TemplateCard key={t.key} template={t} onSaved={refresh} />)}
+      {(data?.templates ?? []).map(t => <TemplateCard key={t.key} template={t} testPhone={data?.testPhone} onSaved={refresh} />)}
 
       <Card size="small" title="Nhật ký gửi">
         <Space style={{ marginBottom: 12 }} wrap>

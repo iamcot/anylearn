@@ -43,7 +43,7 @@ class ZnsTemplatesTest {
     @Test
     void missingNameFallsBackToPhoneThenBan() {
         assertThat(ZnsTemplates.orderSuccess(null, 1L, List.of(), List.of(), null, null, "0901").get("customer_name")).isEqualTo("0901");
-        assertThat(ZnsTemplates.courseStart(" ", 1L, null, "A", null).get("customer_name")).isEqualTo("bạn");
+        assertThat(ZnsTemplates.courseStart(" ", 1L, null, "A", null, null).get("customer_name")).isEqualTo("bạn");
         assertThat(ZnsTemplates.orderSuccess(null, 1L, List.of(), List.of(), null, null, null).get("price")).isEqualTo("0");
     }
 
@@ -51,8 +51,15 @@ class ZnsTemplatesTest {
     void reminderCarriesTheTransferNoteAndDeadlineDay() {
         Map<String, String> data = ZnsTemplates.orderReminder("An", 55L, 300_000L, LocalDateTime.of(2026, 11, 5, 22, 30));
         assertThat(data).containsEntry("bank_transfer_note", "ALQR55")
-                .containsEntry("deadline", "05/11/2026")
+                .containsEntry("deadline", "22:30 05/11/2026")
                 .containsEntry("amount", "300000");
+    }
+
+    @Test
+    void startTimeHasTheHourWhenTheClassHasOne() {
+        assertThat(ZnsTemplates.courseStart("An", 1L, null, "A", LocalDate.of(2026, 11, 5), java.time.LocalTime.of(18, 0)).get("start_time"))
+                .isEqualTo("18:00 05/11/2026");
+        assertThat(ZnsTemplates.courseStart("An", 1L, null, "A", LocalDate.of(2026, 11, 5), null).get("start_time")).isEqualTo("05/11/2026");
     }
 
     @Test

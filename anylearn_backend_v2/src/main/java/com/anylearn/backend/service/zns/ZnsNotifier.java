@@ -63,7 +63,7 @@ public class ZnsNotifier {
             Long id = claim(accountId, account.getPhone().trim(), templateKey, templateId, dedupKey, data);
             if (id == null) return false;
             String phone = account.getPhone().trim();
-            afterCommit(() -> executor.execute(() -> deliver(id, phone, templateId, dedupKey, data)));
+            afterCommit(() -> executor.execute(() -> deliver(id, phone, templateId, dedupKey, data, false)));
             return true;
         } catch (Exception e) {
             log.warn("[zns] {} {} not queued: {}", templateKey, dedupKey, e.getMessage());
@@ -71,28 +71,31 @@ public class ZnsNotifier {
         }
     }
 
-    /** Sends the template's sample data to a phone right away (back office "Gửi thử"). Returns the error, or null when sent. */
+    /**
+     * Sends the template's sample data to a phone right away, in Zalo's development mode (back office "Gửi thử": free, only
+     * reaches phones registered as testers / admins of the OA). Returns the error, or null when sent.
+     */
     public String sendTest(Long userId, String phone, String templateKey) {
         ZnsTemplates.Def def = ZnsTemplates.def(templateKey).orElse(null);
         if (def == null) return "Không có mẫu " + templateKey;
-        if (phone == null || phone.isBlank()) return "Tài khoản của bạn chưa có số điện thoại";
+        if (phone == null || phone.isBlank()) return "Chưa có số nhận thử (zalo.zns.testPhone trống)";
         String templateId = settings.templateId(templateKey);
         if (templateId.isBlank()) return "Mẫu chưa có mã ZNS";
         String dedupKey = "test:%s:%d".formatted(templateKey, System.currentTimeMillis());
         Long id = claim(userId, phone.trim(), templateKey, templateId, dedupKey, def.sample());
         if (id == null) return "Không ghi được tin thử";
-        return deliver(id, phone.trim(), templateId, dedupKey, def.sample());
+        return deliver(id, phone.trim(), templateId, dedupKey, def.sample(), true);
     }
 
     /** Sends a claimed message and writes the outcome on its row. Returns the error, or null when sent. */
-    String deliver(Long id, String phone, String templateId, String trackingId, Map<String, String> data) {
+    String deliver(Long id, String phone, String templateId, String trackingId, Map<String, String> data, boolean development) {
         if (!zns.isConfigured()) {
             jdbc.update("UPDATE zns_messages SET status = 'stub', error = 'ZALO_APP_ID trống: chỉ ghi log' WHERE id = ?", id);
             log.info("[zns] stub {} -> {} {}", templateId, phone, data);
             return null;
         }
         try {
-            zns.sendTemplate(phone, templateId, data, trackingId);
+            zns.sendTemplate(phone, templateId, data, trackingId, development);
             jdbc.update("UPDATE zns_messages SET status = 'sent', sent_at = NOW(), error = NULL WHERE id = ?", id);
             return null;
         } catch (Exception e) {

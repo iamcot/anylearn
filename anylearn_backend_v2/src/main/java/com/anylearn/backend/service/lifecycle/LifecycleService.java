@@ -125,7 +125,8 @@ public class LifecycleService {
         if (due.getAsInt() == nearest) {
             withOrder(context, (orderId, orderDate) -> znsNotifier.send(accountIdOf(learner), TYPE_START,
                     ZnsTemplates.COURSE_START, "course_start:" + enrollmentId,
-                    ZnsTemplates.courseStart(accountName(learner), orderId, orderDate, context.item().getTitle(), first.get().date())));
+                    ZnsTemplates.courseStart(accountName(learner), orderId, orderDate, context.item().getTitle(),
+                            first.get().date(), first.get().start())));
         }
     }
 
