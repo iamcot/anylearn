@@ -561,3 +561,14 @@ Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
 ### Custom arena: close
 POST {{baseUrl}}/admin/arena/custom/1/close
 Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+### AI gateway of partner apps (11 On Field): tokens used today and the daily cap
+GET {{baseUrl}}/admin/ai-usage/partner
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+### Save the daily token cap of partner apps (0 = gateway off, max 100,000,000)
+PUT {{baseUrl}}/admin/ai-usage/partner
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+Content-Type: application/json
+
+{"dailyTokens": 1000000}

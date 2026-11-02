@@ -35,4 +35,13 @@ class AiUsageServiceTest {
         assertTrue(((Number) compare.get("errors")).longValue() >= 1);
         assertFalse(((List<?>) report.get("recentErrors")).isEmpty());
     }
+
+    @Test
+    void tokensTodayCountsOnlyTheFeaturesWithThePrefix() {
+        long before = usage.tokensToday(AiGatewayRules.PARTNER_PREFIX);
+        usage.record(AiUsageService.P11OF_QUIZ_WRITE, "test-model", 300, 100, 1000, null);
+        usage.record(AiUsageService.P11OF_QUIZ_VERIFY, "test-model", 20, 5, 1000, "boom");
+        usage.record(AiUsageService.QUIZ_WRITE, "test-model", 999, 999, 1000, null);
+        assertEquals(before + 425, usage.tokensToday(AiGatewayRules.PARTNER_PREFIX));
+    }
 }

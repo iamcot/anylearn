@@ -14,7 +14,8 @@ import java.util.Map;
 @Component
 public class AiModelSettings {
 
-    public static final List<String> FEATURES = List.of(AiUsageService.SUGGEST, AiUsageService.COMPARE, AiUsageService.QUIZ_WRITE, AiUsageService.QUIZ_VERIFY, AiUsageService.LANDING_INTRO);
+    public static final List<String> FEATURES = List.of(AiUsageService.SUGGEST, AiUsageService.COMPARE, AiUsageService.QUIZ_WRITE, AiUsageService.QUIZ_VERIFY, AiUsageService.LANDING_INTRO,
+            AiUsageService.P11OF_QUIZ_WRITE, AiUsageService.P11OF_QUIZ_VERIFY);
 
     private final ConfigurationRepository configurationRepository;
     private final String defaultModel;

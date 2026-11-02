@@ -22,12 +22,17 @@ public class AiUsageService {
     public static final String QUIZ_WRITE = "quiz_write";
     public static final String QUIZ_VERIFY = "quiz_verify";
     public static final String LANDING_INTRO = "landing_intro";
+    /** Features called by the partner app 11 On Field through `/api/open/ai/tool` (see {@link AiGatewayRules}). */
+    public static final String P11OF_QUIZ_WRITE = "11of_quiz_write";
+    public static final String P11OF_QUIZ_VERIFY = "11of_quiz_verify";
     public static final Map<String, String> LABELS = Map.of(
             LANDING_INTRO, "Trang đích: AI viết giới thiệu",
             SUGGEST, "Gợi ý khóa học AI",
             COMPARE, "So sánh khóa học (đọc mô tả)",
             QUIZ_WRITE, "Quiz: AI viết câu hỏi",
-            QUIZ_VERIFY, "Quiz: AI chấm đáp án");
+            QUIZ_VERIFY, "Quiz: AI chấm đáp án",
+            P11OF_QUIZ_WRITE, "11 On Field: AI viết câu hỏi",
+            P11OF_QUIZ_VERIFY, "11 On Field: AI kiểm đáp án");
 
     private final JdbcTemplate jdbc;
 
@@ -40,6 +45,14 @@ public class AiUsageService {
         } catch (RuntimeException e) {
             log.warn("Could not write the AI usage log: {}", e.getMessage());
         }
+    }
+
+    /** Tokens in + out of today (server clock) of every feature whose key starts with `prefix`, failed calls included. */
+    public long tokensToday(String prefix) {
+        String like = prefix.replace("\\", "\\\\").replace("_", "\\_").replace("%", "\\%") + "%";
+        Long v = jdbc.queryForObject("SELECT COALESCE(SUM(input_tokens + output_tokens), 0) FROM ai_usage_log WHERE feature LIKE ? AND created_at >= CURDATE()",
+                Long.class, like);
+        return v == null ? 0 : v;
     }
 
     /** Totals, per feature, per model and per day for the last `days` days (today included). */
