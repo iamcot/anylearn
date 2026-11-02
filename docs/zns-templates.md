@@ -52,28 +52,40 @@ Giữ nguyên mẫu đang dùng. Tham số `otp`. Không cần đăng ký lại.
 
 ## 2. Xác nhận đăng ký thành công — Giao dịch
 
+- ZNS ID: 659722
 - Điểm gửi trong code: `PaymentApprovalService.approveOrder`, sau email `email-order_success`.
 - Tham số: `customer_name`, `order_code`, `course_name`, `amount`, `first_date`.
 - Nút: "Xem lịch học" → `https://anylearn.vn/today`.
 
 > **anyLEARN xác nhận đăng ký thành công**
 > Chào khách hàng <customer_name>, Khóa học <course_name> đã được đăng ký thành công. Bạn xem lịch học trong trang "Hôm nay" của anyLEARN nhé.
-{order_code}
-{phone_number}
-{price}
-{date}
-{learner}
+{
+"order_code": "order_code",
+"date": "01/08/2020",
+"course_name": "course_name",
+"price": 100,
+"learner": "learner",
+"phone_number": "phone_number",
+"customer_name": "customer_name",
+}
 
 ## 3. Nhắc thanh toán đơn hàng — Giao dịch
 
+- ZNS ID: 659976
 - Điểm gửi: `PendingOrderFollowUpService` (bước nhắc lần 2 sau 24 giờ).
 - Tham số: `customer_name`, `order_code`, `amount`, `deadline` (giờ + ngày).
 - Nút: "Thanh toán" → `https://anylearn.vn/order/<order_code>`.
 
 > **Đơn hàng chờ thanh toán**
-> Chào <customer_name>, đơn hàng <order_code> với số tiền <amount> vẫn đang chờ thanh toán. anyLEARN giữ chỗ cho bạn đến <deadline>.
-> Nếu bạn đã chuyển khoản, bạn không cần làm gì thêm, anyLEARN sẽ xác nhận sau khi kiểm tra.
-{bank_transfer_note}
+> Chào khách hàng <customer_name>, đơn hàng <order_code> vẫn đang chờ thanh toán. anyLEARN giữ chỗ cho bạn đến <deadline>. Nếu đã chuyển khoản, bạn không cần làm gì thêm, anyLEARN sẽ xác nhận sau khi kiểm tra.
+{
+"order_code": "order_code",
+"amount": 15000,
+"bank_transfer_note": "bank_transfer_note",
+"customer_name": "customer_name",
+"deadline": "01/08/2020",
+}
+
 ## 4. Đơn hàng đã hủy — Giao dịch
 
 - Điểm gửi: `PaymentApprovalService.cancelOrder` (lý do hết hạn).
@@ -85,13 +97,20 @@ Giữ nguyên mẫu đang dùng. Tham số `otp`. Không cần đăng ký lại.
 
 ## 5. Nhắc trước ngày khai giảng — CSKH
 
+- ZNS ID: 659979
 - Điểm gửi: `LifecycleService.beforeStart` (mốc 1 ngày; mốc 3 ngày chỉ gửi app + email).
 - Tham số: `customer_name`, `learner_name`, `course_name`, `start_time` (giờ + ngày), `gather_info` (giờ tập trung hoặc địa điểm, ngắn).
 - Nút: "Xem chi tiết lớp" → `https://anylearn.vn/today`.
 
-> **Sắp khai giảng**
-> Chào khách hàng <customer_name>, <learner> sắp học <course_name> buổi đầu tiên: <start_time>. Bạn xem dặn dò trong trang Hôm nay của anyLEARN nhé.
-
+> **Lớp học sắp khai giảng**
+> Chào khách hàng <customer_name>, khóa học <course_name> sắp khai giảng <start_time>. Bạn xem dặn dò trong trang Hôm nay của anyLEARN nhé.
+{
+"order_code": "order_code",
+"date": "01/08/2020",
+"start_time": "01/08/2020",
+"course_name": "course_name",
+"customer_name": "customer_name",
+}
 ## 6. Nhắc buổi học ngày mai — CSKH (tùy chọn)
 
 Hiện đã có push + email nên mẫu này chỉ cần khi muốn phủ cả người chưa bật push.
@@ -114,14 +133,19 @@ Hiện đã có push + email nên mẫu này chỉ cần khi muốn phủ cả n
 
 ## 8. Khảo sát giữa khóa — CSKH
 
+- ZNS ID: 659981
 - Điểm gửi: `LifecycleService.midCourse`.
 - Tham số: `customer_name`, `learner_name`, `course_name`.
 - Nút: "Chấm điểm" → `https://anylearn.vn/today?survey=1`.
 
 > **Học với anyLEARN có vui không??**
 > Xin chào, Học viên <learner_name> đã đi được nửa chặng đường khóa <course_name>. Bạn học có vui, có tiến bộ không? Bạn dành vài giây chấm điểm giúp anyLEARN nhé, ý kiến của bạn giúp lớp học đồng hành tốt hơn.
-{order_code}
-{date}
+{
+"order_code": "order_code",
+"date": "01/08/2020",
+"course_name": "course_name",
+"learner_name": "learner_name",
+}
 
 ## 9. Nhắc gia hạn gói buổi — CSKH
 
