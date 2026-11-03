@@ -108,6 +108,20 @@ public class CartService {
         return result;
     }
 
+    private String resolveFlexibleStart(Long itemId, Long scheduleId, String startDate) {
+        if (scheduleId == null || startDate == null || startDate.isBlank()) return startDate;
+        ItemSchedule schedule = itemScheduleRepository.findById(scheduleId).orElse(null);
+        if (schedule == null || !itemId.equals(schedule.getItemId())
+                || !com.anylearn.backend.service.today.FlexibleStartRules.TYPE_OPEN.equals(schedule.getScheduleType())) return startDate;
+        java.time.LocalDate picked;
+        try { picked = java.time.LocalDate.parse(startDate.substring(0, Math.min(10, startDate.length()))); }
+        catch (Exception e) { throw new IllegalArgumentException("Ngày khai giảng không hợp lệ."); }
+        return com.anylearn.backend.service.today.FlexibleStartRules
+                .resolve(com.anylearn.backend.service.today.ScheduleSlot.from(schedule), picked, java.time.LocalDate.now())
+                .map(java.time.LocalDate::toString)
+                .orElseThrow(() -> new IllegalArgumentException("Ca học không còn buổi nào từ ngày đã chọn, vui lòng chọn ngày khác."));
+    }
+
     private void rejectOverlappingFee(Item item, Long studentUserId, String startDate) {
         if (!Integer.valueOf(1).equals(item.getIsPaymentfee())) return;
         if (orderDetailRepository.findItemIdsWithPendingPayment(studentUserId).contains(item.getId()))
@@ -168,6 +182,9 @@ public class CartService {
             // A learner with only a birth year is checked again with the full date at checkout.
             requireAgeInRange(item, student);
         }
+
+        // A flexible class starts on its first class day on or after the picked day (not before tomorrow).
+        startDate = resolveFlexibleStart(itemId, scheduleId, startDate);
 
         // Rule 4: Fee period must not overlap a paid or waiting one
         rejectOverlappingFee(item, studentUserId, startDate);
@@ -254,7 +271,13 @@ public class CartService {
                     if (schId != null) {
                         itemScheduleRepository.findById(Long.parseLong(String.valueOf(schId))).ifPresent(sch -> {
                             row.put("scheduleTitle", sch.getTitle());
-                            row.put("scheduleTime", buildScheduleTime(sch));
+                            String time = buildScheduleTime(sch);
+                            // a flexible class shows the start day the parent picked
+                            if ("open".equals(sch.getScheduleType()) && extra.get("startDate") instanceof String sd && sd.length() >= 10) {
+                                String day = java.time.LocalDate.parse(sd.substring(0, 10)).format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+                                time = (time == null || time.isBlank() ? "" : time + " · ") + "Khai giảng " + day;
+                            }
+                            row.put("scheduleTime", time);
                         });
                     }
                     // expose activities array for checkout display

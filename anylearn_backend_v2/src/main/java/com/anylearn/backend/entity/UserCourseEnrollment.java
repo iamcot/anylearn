@@ -38,6 +38,10 @@ public class UserCourseEnrollment {
     @Column(nullable = false)
     private String status = "pending";
 
+    /** When the parent picked or changed the start of a flexible class from the account page (allowed once). */
+    @Column(name = "start_changed_at")
+    private LocalDateTime startChangedAt;
+
     @Column(name = "remind_sent_at")
     private LocalDateTime remindSentAt;
 

@@ -9,6 +9,7 @@ import type { CalendarEvent, Enrollment } from '@/lib/schedule/calendar'
 import ChevronLabel from '@/components/ChevronLabel'
 import OrderItemRating from '@/components/OrderItemRating'
 import { CloseIcon } from '@/components/icons'
+import StartDateChooser from './StartDateChooser'
 
 const POPOVER_WIDTH = 360
 const POPOVER_MARGIN = 8
@@ -23,6 +24,8 @@ interface Props {
   /** 'markable' shows the "Đã đến lớp" button, 'attended' the tick; onMarkAttended resolves to an error text or null. */
   attendance?: 'none' | 'attended' | 'markable'
   onMarkAttended?: () => Promise<string | null>
+  /** Changes the start of a flexible class (once, from the account page); resolves to an error text or null. */
+  onChangeStart?: (enrollmentId: number, day: string) => Promise<string | null>
 }
 
 function DetailRow({ label, children }: { label: string; children: React.ReactNode }) {
@@ -61,8 +64,9 @@ function EnrollmentDetails({ enrollment }: { enrollment: Enrollment }) {
   )
 }
 
-export default function EventPopup({ event, position, onClose, onCancelActivity, attendance = 'none', onMarkAttended }: Props) {
+export default function EventPopup({ event, position, onClose, onCancelActivity, attendance = 'none', onMarkAttended, onChangeStart }: Props) {
   const [confirming, setConfirming] = useState(false)
+  const [changingStart, setChangingStart] = useState(false)
   const [marking, setMarking] = useState(false)
   const [markError, setMarkError] = useState('')
   const [cancelling, setCancelling] = useState(false)
@@ -72,7 +76,12 @@ export default function EventPopup({ event, position, onClose, onCancelActivity,
   const left = Math.min(Math.max(position.x - POPOVER_WIDTH / 2, POPOVER_MARGIN), window.innerWidth - POPOVER_WIDTH - POPOVER_MARGIN)
   const below = window.innerHeight - position.y - 16 >= MIN_SPACE_BELOW
   const placement = isDesktop
-    ? { left, width: POPOVER_WIDTH, ...(below ? { top: position.y + 10 } : { bottom: window.innerHeight - position.y + 10 }) }
+    ? {
+        left, width: POPOVER_WIDTH,
+        ...(below
+          ? { top: position.y + 10, maxHeight: window.innerHeight - position.y - 10 - POPOVER_MARGIN }
+          : { bottom: window.innerHeight - position.y + 10, maxHeight: position.y - 10 - POPOVER_MARGIN }),
+      }
     : undefined
 
   const selfStudy = event.kind === 'enrollment' && event.data.selfStudy
@@ -85,7 +94,7 @@ export default function EventPopup({ event, position, onClose, onCancelActivity,
         role="dialog"
         aria-label={event.data.itemTitle}
         style={placement}
-        className="fixed inset-x-0 bottom-0 z-[2000] rounded-t-[20px] bg-white p-[18px] pb-[calc(18px+env(safe-area-inset-bottom))] shadow-raised md:inset-x-auto md:bottom-auto md:rounded-[14px] md:pb-[18px]"
+        className="fixed inset-x-0 bottom-0 z-[2000] max-h-[88vh] overflow-y-auto rounded-t-[20px] bg-white p-[18px] pb-[calc(18px+env(safe-area-inset-bottom))] shadow-raised md:inset-x-auto md:bottom-auto md:max-h-none md:rounded-[14px] md:pb-[18px]"
       >
         <div className="mb-3 flex items-start justify-between gap-2">
           <div>
@@ -121,6 +130,21 @@ export default function EventPopup({ event, position, onClose, onCancelActivity,
               {marking ? 'Đang lưu...' : 'Đánh dấu đã đến lớp'}
             </button>
             {markError && <p className="mb-0 mt-2 text-xs text-red">{markError}</p>}
+          </div>
+        )}
+
+        {event.kind === 'enrollment' && event.data.canChangeStart && event.data.status === 'active' && onChangeStart && (
+          <div className="mt-3">
+            {changingStart ? (
+              <div className="rounded-xl border border-line p-3">
+                <StartDateChooser enrollment={event.data} onSave={onChangeStart} compact />
+              </div>
+            ) : (
+              <button type="button" onClick={() => setChangingStart(true)}
+                className="min-h-11 w-full cursor-pointer rounded-full border border-line bg-white px-4 text-sm font-bold text-green-dark hover:bg-bg">
+                Đổi ngày khai giảng (còn 1 lần)
+              </button>
+            )}
           </div>
         )}
 
