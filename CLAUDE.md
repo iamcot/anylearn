@@ -142,6 +142,10 @@ Thư mục `http/` chứa VS Code REST Client files cho mọi endpoint:
 | Knowledge base | ✅ | entity only | ❌ |
 | Social feed | ✅ | minimal | ❌ |
 
+## Self registration (anti-bot)
+
+- `POST /api/register` (`AuthService.register`) checks `SignupRules` (pure, tested): phone normalized (+84 → 0, no spaces) and only a Vietnamese mobile `0[35789]xxxxxxxx`, name 2 to 60 characters and not a generated one-word name with many capitals, email format when given, password 6+ characters. No limit per IP on purpose: at an event many people sign up from the same wifi (owner, 2026-11-03). New accounts get role **`member`** (the old code wrote `user`, which no rule knows: tiers, point expiry and wallet rules all read `member`) and `created_at`/`updated_at` (V75 copied the sign-up time from `user_acquisition` into accounts left without a date; V76 turned old `user` rows into `member` except suspected bots, which keep `user`). FE copy of the phone rule: `isValidSignupPhone` in `lib/auth/validation.ts`. Read-only query of suspect accounts: `scripts/suspect_bot_signups.sql`. Not done: OTP at sign-up.
+
 ## Learner date of birth
 
 - `users.dob_year_only` (V17): a child created from a guest's answer only has a birth year; `dob` is then January 1st of it. `LearnerDob` (service) holds the rules: complete = `dob` set and not year-only; with a year only the age is a range (`ageBounds`), so `addToCart` rejects only when no possible age fits an item's `ages_min/ages_max`.
