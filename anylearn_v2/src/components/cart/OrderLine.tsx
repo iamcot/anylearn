@@ -17,9 +17,11 @@ interface Props {
   item: OrderLineItem
   href?: string
   action?: React.ReactNode
+  // Shown on the learner chip's row, e.g. the checkout's "+ Thêm người học" link
+  learnerAction?: React.ReactNode
 }
 
-export default function OrderLine({ item, href, action }: Props) {
+export default function OrderLine({ item, href, action, learnerAction }: Props) {
   const schedule = [item.scheduleTitle, item.scheduleTime].filter(Boolean).join(' · ')
   const title = (
     <>
@@ -41,10 +43,15 @@ export default function OrderLine({ item, href, action }: Props) {
           ? <Link href={href} className="block text-[15px] font-extrabold leading-tight text-green-dark no-underline">{title}</Link>
           : <div className="text-[15px] font-extrabold leading-tight text-green-dark">{title}</div>
         }
-        {item.studentName && (
-          <div className="mt-1.5 inline-flex items-center gap-1.5 rounded-full bg-green-soft px-2.5 py-0.5 text-xs text-green-dark">
-            <UserIcon className="size-3.5" />
-            <span>Học viên: <strong className="font-extrabold">{item.studentName}</strong></span>
+        {(item.studentName || learnerAction) && (
+          <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1">
+            {item.studentName && (
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-green-soft px-2.5 py-0.5 text-xs text-green-dark">
+                <UserIcon className="size-3.5" />
+                <span>Học viên: <strong className="font-extrabold">{item.studentName}</strong></span>
+              </div>
+            )}
+            {learnerAction}
           </div>
         )}
         {schedule && <div className="mt-1 text-[13px] text-text">{schedule}</div>}
