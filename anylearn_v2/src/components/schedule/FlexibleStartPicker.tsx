@@ -53,6 +53,8 @@ export default function FlexibleStartPicker({ schedule, value, onChange, compact
           {customActive && custom && customStart !== custom && <span className="text-[11px] text-muted">từ {dayMonth(custom)}</span>}
           <input type="date" value={custom} min={earliestStart(today)} onChange={event => pickCustom(event.target.value)}
             aria-label="Chọn ngày khác"
+            // a desktop browser opens the calendar only from its small icon: open it on any click of the tile
+            onClick={event => { try { event.currentTarget.showPicker() } catch { /* older browsers open it by themselves */ } }}
             className="absolute inset-0 size-full cursor-pointer opacity-0" />
         </label>
       </div>
