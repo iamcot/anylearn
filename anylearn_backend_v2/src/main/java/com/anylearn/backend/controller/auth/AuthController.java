@@ -5,24 +5,19 @@ import com.anylearn.backend.dto.response.LoginResponse;
 import com.anylearn.backend.service.AuthService;
 import com.anylearn.backend.service.PasswordResetService;
 import com.anylearn.backend.service.acquisition.AcquisitionService;
-import com.anylearn.backend.service.signup.SignupGuard;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
-@Slf4j
 @RequiredArgsConstructor
 public class AuthController {
 
     private final AuthService authService;
     private final PasswordResetService passwordResetService;
     private final AcquisitionService acquisitionService;
-    private final SignupGuard signupGuard;
 
     @GetMapping("/login")
     public ApiResponse<LoginResponse> login(@RequestParam String phone, @RequestParam String password) {
@@ -30,28 +25,13 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ApiResponse<LoginResponse> register(@RequestBody Map<String, String> body, HttpServletRequest request) {
-        String ip = clientIp(request);
-        long now = System.currentTimeMillis();
-        if (!signupGuard.allowed(ip, now)) {
-            log.warn("[register] too many registrations from ip {}", ip);
-            return ApiResponse.fail("Bạn đã đăng ký quá nhiều tài khoản. Vui lòng thử lại sau.");
-        }
+    public ApiResponse<LoginResponse> register(@RequestBody Map<String, String> body) {
         LoginResponse response = authService.register(
                 body.get("name"), body.get("phone"), body.get("email"), body.get("password"),
                 body.get("ref"), body.get("game"), body.get("ach"));
         // where the new account came from (plan 19.A4): UTM values the browser kept, the landing address, the referral code
         acquisitionService.recordSignup(response.getId(), body, body.get("ref"));
-        signupGuard.record(ip, now);
         return ApiResponse.ok(response);
-    }
-
-    /** nginx sets X-Real-IP to the real client; the first X-Forwarded-For value can be written by the client, so it is the fallback only. */
-    private static String clientIp(HttpServletRequest request) {
-        String real = request.getHeader("X-Real-IP");
-        if (real != null && !real.isBlank()) return real.trim();
-        String forwarded = request.getHeader("X-Forwarded-For");
-        return forwarded != null && !forwarded.isBlank() ? forwarded.split(",")[0].trim() : request.getRemoteAddr();
     }
 
     @PostMapping("/simple-register")

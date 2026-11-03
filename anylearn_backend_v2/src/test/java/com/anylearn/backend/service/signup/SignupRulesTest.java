@@ -47,18 +47,4 @@ class SignupRulesTest {
         assertThat(SignupRules.problem("Nguyễn Nhật Huy", "0844152779", "", null)).isNotNull();
         assertThat(SignupRules.problem(" ", "0844152779", "", "secret1")).isNotNull();
     }
-
-    @Test
-    void guardCountsPerIp() {
-        SignupGuard guard = new SignupGuard();
-        long t = 1_000_000_000L;
-        for (int i = 0; i < SignupRules.PER_IP_HOUR; i++) {
-            assertThat(guard.allowed("1.2.3.4", t)).isTrue();
-            guard.record("1.2.3.4", t);
-        }
-        assertThat(guard.allowed("1.2.3.4", t)).isFalse();
-        assertThat(guard.allowed("5.6.7.8", t)).isTrue();
-        // an hour later the hourly window is free again
-        assertThat(guard.allowed("1.2.3.4", t + 3_600_001L)).isTrue();
-    }
 }

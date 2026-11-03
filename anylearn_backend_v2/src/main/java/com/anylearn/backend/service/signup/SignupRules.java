@@ -12,9 +12,6 @@ public final class SignupRules {
 
     public static final int MIN_PASSWORD_LENGTH = 6; // keep in step with anylearn_v2/src/config/auth.ts
     public static final int MAX_NAME_LENGTH = 60;
-    /** Registrations allowed from one IP per hour and per day. */
-    public static final int PER_IP_HOUR = 5;
-    public static final int PER_IP_DAY = 20;
 
     /** Vietnamese mobile numbers: 10 digits starting with 03, 05, 07, 08 or 09. */
     private static final Pattern VN_MOBILE = Pattern.compile("0[35789]\\d{8}");
