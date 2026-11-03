@@ -24,6 +24,7 @@ import { ResultRowsSkeleton } from '@/components/PageSkeleton'
 import GuestLearnerChips from '@/components/guest/GuestLearnerChips'
 import LearnerChips, { useLearnerChips } from '@/components/search/LearnerChips'
 import FilterBar from '@/components/search/FilterBar'
+import CollectVouchers from '@/components/vouchers/CollectVouchers'
 import { useAuth } from '@/context/AuthContext'
 import { MapIcon } from '@/components/icons'
 import { GOOGLE_MAPS_KEY } from '@/lib/maps/googleMaps'
@@ -166,6 +167,9 @@ function SearchPageInner() {
 
           <div className="min-w-0">
             {authorProfile && <AuthorProfileCard profile={authorProfile} />}
+            {state.mode === 'class' && state.page <= 1 && (
+              <CollectVouchers place={state.authorId ? 'partner' : 'search'} partnerId={state.authorId} className="mb-5" />
+            )}
 
             <div className="mb-[18px] flex items-end justify-between gap-3">
               <div className="shrink-0">

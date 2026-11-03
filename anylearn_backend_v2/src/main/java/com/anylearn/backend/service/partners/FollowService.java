@@ -19,11 +19,15 @@ public class FollowService {
     private final JdbcTemplate jdbc;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
+    // Plan 20: a partner's "follow_partner" voucher event. Optional so tests that build the service by hand keep working.
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.anylearn.backend.service.voucher.VoucherService voucherService;
 
     /** Adds a follow. Returns false when the partner does not exist or is the person themselves. */
     public boolean follow(Long userId, Long partnerId) {
         if (userId.equals(partnerId) || !userRepository.existsById(partnerId)) return false;
-        jdbc.update("INSERT IGNORE INTO follows (user_id, partner_id) VALUES (?, ?)", userId, partnerId);
+        int added = jdbc.update("INSERT IGNORE INTO follows (user_id, partner_id) VALUES (?, ?)", userId, partnerId);
+        if (added > 0 && voucherService != null) voucherService.fire("follow_partner", userId, partnerId); // never throws
         return true;
     }
 

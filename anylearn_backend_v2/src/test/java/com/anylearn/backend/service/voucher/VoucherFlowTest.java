@@ -1,0 +1,189 @@
+package com.anylearn.backend.service.voucher;
+
+import com.anylearn.backend.entity.User;
+import com.anylearn.backend.repository.UserRepository;
+import com.anylearn.backend.service.CartService;
+import com.anylearn.backend.service.payment.PaymentApprovalService;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+/** Plan 20 against the real schema (needs MySQL or MariaDB like the context test); every test rolls back. */
+@SpringBootTest
+@Transactional
+class VoucherFlowTest {
+
+    @Autowired VoucherService vouchers;
+    @Autowired VoucherAdminService admin;
+    @Autowired CartService cart;
+    @Autowired PaymentApprovalService approvals;
+    @Autowired UserRepository users;
+    @Autowired JdbcTemplate jdbc;
+    @Autowired jakarta.persistence.EntityManager em;
+    @Autowired com.anylearn.backend.service.partners.FollowService follows;
+
+    private long walletC(long id) {
+        em.flush();
+        return jdbc.queryForObject("SELECT wallet_c FROM users WHERE id = ?", Long.class, id);
+    }
+
+    private long member() {
+        String phone = "09" + (long) (Math.random() * 100000000L);
+        jdbc.update("INSERT INTO users (name, phone, refcode, password, role, dob, wallet_c, created_at) VALUES ('Me Bin', ?, ?, 'x', 'member', '1990-01-01', 100, NOW())", phone, phone);
+        return jdbc.queryForObject("SELECT id FROM users WHERE phone = ?", Long.class, phone);
+    }
+
+    private long course(long price) {
+        String phone = "08" + (long) (Math.random() * 100000000L);
+        jdbc.update("INSERT INTO users (name, phone, refcode, password, role, created_at) VALUES ('Trung tam', ?, ?, 'x', 'school', NOW())", phone, phone);
+        long partner = jdbc.queryForObject("SELECT id FROM users WHERE phone = ?", Long.class, phone);
+        jdbc.update("INSERT INTO items (user_id, title, type, subtype, status, user_status, price) VALUES (?, 'Khoa thu', 'class', 'online', 1, 1, ?)", partner, price);
+        return jdbc.queryForObject("SELECT MAX(id) FROM items", Long.class);
+    }
+
+    private void addToCart(long userId, long itemId) {
+        jdbc.update("INSERT INTO item_user_actions (item_id, user_id, type, value, created_at, updated_at) VALUES (?, ?, 'cart', '1', NOW(), NOW())", itemId, userId);
+    }
+
+    private long group(Map<String, Object> body) {
+        return admin.saveGroup(null, body);
+    }
+
+    private User user(long id) { return users.findById(id).orElseThrow(); }
+
+    @Test
+    void checkoutTakesTheWalletVoucherAndTheAnyPointOffTheAmountAndCancelGivesThemBack() {
+        long me = member();
+        long a = course(300_000), b = course(500_000);
+        addToCart(me, a);
+        addToCart(me, b);
+        long g = group(Map.of("title", "Giảm 50k khóa B", "value", 50_000, "generateType", "auto", "prefix", "TST", "itemIds", List.of(b)));
+        Long wallet = vouchers.issue(me, g, VoucherService.SOURCE_ADMIN, null);
+        assertNotNull(wallet);
+
+        List<Map<String, Object>> forCart = vouchers.wallet(me, cart.voucherLines(user(me)));
+        assertEquals(50_000L, ((Number) forCart.get(0).get("discount")).longValue());
+        assertNull(forCart.get(0).get("problem"));
+
+        Map<String, Object> res = cart.checkout("bank_transfer", null, wallet, 30, user(me));
+        long orderId = Long.parseLong((String) res.get("orderId"));
+        // 800,000 - 50,000 voucher - 30 anyPoint × 1,000
+        assertEquals(720_000L, jdbc.queryForObject("SELECT amount FROM orders WHERE id = ?", Long.class, orderId));
+        assertEquals(70L, walletC(me));
+        assertEquals("used", jdbc.queryForObject("SELECT status FROM user_vouchers WHERE id = ?", String.class, wallet));
+        assertEquals(50_000L, vouchers.discountOfOrder(orderId));
+        Map<String, Object> view = cart.getOrder(String.valueOf(orderId), user(me));
+        assertEquals(50_000L, ((Number) view.get("voucherDiscount")).longValue());
+        assertEquals(30L, ((Number) view.get("pointsUsed")).longValue());
+
+        approvals.cancelOrder(orderId, "buyer");
+        assertEquals("active", jdbc.queryForObject("SELECT status FROM user_vouchers WHERE id = ?", String.class, wallet));
+        assertEquals(0L, vouchers.discountOfOrder(orderId));
+        assertEquals(100L, walletC(me));
+    }
+
+    @Test
+    void anyPointNeverPaysMoreThanTheAmountAndOnlyWhatIsNeededIsTaken() {
+        long me = member();
+        addToCart(me, course(20_000));
+        Map<String, Object> res = cart.checkout("bank_transfer", null, null, 100, user(me));
+        long orderId = Long.parseLong((String) res.get("orderId"));
+        assertEquals(0L, jdbc.queryForObject("SELECT amount FROM orders WHERE id = ?", Long.class, orderId));
+        assertEquals(80L, walletC(me));
+    }
+
+    @Test
+    void aVoucherForOtherCoursesOrAnUsedCodeStopsTheCheckout() {
+        long me = member();
+        long a = course(300_000);
+        addToCart(me, a);
+        long g = group(Map.of("value", 50_000, "generateType", "manual", "itemIds", List.of(a + 999)));
+        vouchers.addFixedCode(g, "TEST-ONLY-B", 10, null);
+        var ex = assertThrows(IllegalArgumentException.class, () -> cart.checkout("bank_transfer", "TEST-ONLY-B", null, null, user(me)));
+        assertTrue(ex.getMessage().contains("một số khóa học"));
+        assertEquals(0L, jdbc.queryForObject("SELECT COUNT(*) FROM orders WHERE user_id = ?", Long.class, me));
+
+        long g2 = group(Map.of("value", 20_000, "generateType", "manual"));
+        vouchers.addFixedCode(g2, "TEST-ONCE", 10, null);
+        cart.checkout("bank_transfer", "TEST-ONCE", null, null, user(me));
+        addToCart(me, a);
+        var again = assertThrows(IllegalArgumentException.class, () -> cart.checkout("bank_transfer", "TEST-ONCE", null, null, user(me)));
+        assertEquals("Bạn đã dùng mã này rồi", again.getMessage());
+    }
+
+    @Test
+    void eventsFillTheWalletOncePerPersonAndCollectingIsOncePerGroup() {
+        long me = member();
+        long g = group(Map.of("title", "Chào bạn mới", "value", 30_000, "generateType", "auto", "prefix", "HI", "walletDays", 30));
+        admin.saveEvent(null, Map.of("type", "register", "title", "Tặng khi đăng ký", "groupIds", List.of(g)));
+        assertEquals(1, vouchers.fire("register", me, 0));
+        assertEquals(0, vouchers.fire("register", me, 0));
+        List<Map<String, Object>> w = vouchers.wallet(me, null);
+        assertEquals(1, w.size());
+        assertEquals("active", w.get(0).get("state"));
+        assertNotNull(w.get(0).get("expiresAt"));
+        assertTrue(((String) w.get(0).get("code")).startsWith("HI"));
+
+        long item = course(100_000);
+        long g2 = group(Map.of("value", 10_000, "generateType", "auto", "prefix", "BUY"));
+        admin.saveEvent(null, Map.of("type", "buy_item", "title", "Mua khóa", "trigger", item, "groupIds", List.of(g2)));
+        assertEquals(0, vouchers.fire("buy_item", me, item + 1));
+        assertEquals(1, vouchers.fire("buy_item", me, item));
+
+        long g3 = group(Map.of("value", 10_000, "generateType", "auto", "prefix", "GET", "qtt", 1, "collectible", true));
+        assertTrue(vouchers.collectible(me, "home", null, null).stream().anyMatch(c -> ((Number) c.get("groupId")).longValue() == g3));
+        vouchers.collect(me, g3);
+        assertThrows(IllegalArgumentException.class, () -> vouchers.collect(me, g3));
+        long other = member();
+        var gone = assertThrows(IllegalArgumentException.class, () -> vouchers.collect(other, g3));
+        assertTrue(gone.getMessage().contains("hết lượt"));
+        assertEquals(3, vouchers.activeCount(me));
+    }
+
+    @Test
+    void aTypedCodeCanBeSavedToTheWallet() {
+        long me = member();
+        long g = group(Map.of("value", 15_000, "generateType", "manual"));
+        vouchers.addFixedCode(g, "TEST-FANPAGE", 100, null);
+        vouchers.addCode(me, "TEST-FANPAGE");
+        assertThrows(IllegalArgumentException.class, () -> vouchers.addCode(me, "TEST-FANPAGE"));
+        assertThrows(IllegalArgumentException.class, () -> vouchers.addCode(me, "NO-SUCH-CODE"));
+        assertEquals(1, vouchers.wallet(me, null).size());
+    }
+
+    @Test
+    void aPartnerEventGivesTheirVoucherOnFollowAndItShowsOnTheirPageAndCoursesOnly() {
+        long me = member();
+        long item = course(400_000);
+        long partner = jdbc.queryForObject("SELECT user_id FROM items WHERE id = ?", Long.class, item);
+        long other = course(400_000);
+        long g = group(Map.of("title", "Quà của trung tâm", "value", 40_000, "generateType", "auto", "prefix", "PT",
+                "partnerId", partner, "collectible", true, "showOn", List.of("partner", "pdp")));
+        admin.saveEvent(null, Map.of("type", "follow_partner", "title", "Theo dõi trung tâm", "partnerId", partner, "groupIds", List.of(g)));
+        follows.follow(me, partner);
+        assertEquals(1, vouchers.wallet(me, null).size());
+        follows.follow(me, partner); // already following: nothing more
+        assertEquals(1, vouchers.wallet(me, null).size());
+
+        assertTrue(vouchers.collectible(null, "partner", partner, null).stream().anyMatch(c -> ((Number) c.get("groupId")).longValue() == g));
+        assertTrue(vouchers.collectible(null, "pdp", null, item).stream().anyMatch(c -> ((Number) c.get("groupId")).longValue() == g));
+        assertTrue(vouchers.collectible(null, "pdp", null, other).stream().noneMatch(c -> ((Number) c.get("groupId")).longValue() == g));
+        assertTrue(vouchers.collectible(null, "home", null, null).stream().noneMatch(c -> ((Number) c.get("groupId")).longValue() == g));
+
+        long wallet = ((Number) vouchers.wallet(me, null).get(0).get("id")).longValue();
+        addToCart(me, other);
+        var ex = assertThrows(IllegalArgumentException.class, () -> cart.checkout("bank_transfer", null, wallet, null, user(me)));
+        assertTrue(ex.getMessage().contains("một đối tác"));
+        addToCart(me, item);
+        Map<String, Object> res = cart.checkout("bank_transfer", null, wallet, null, user(me));
+        assertEquals(40_000L, ((Number) res.get("voucherDiscount")).longValue());
+        assertEquals(760_000L, ((Number) res.get("amount")).longValue());
+    }
+}

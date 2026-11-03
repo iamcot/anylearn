@@ -760,3 +760,20 @@ Trên trang: bật / tắt từng mẫu, đổi mã mẫu khi Zalo duyệt mẫu
 Khách tự đăng ký trên web giờ được kiểm tra: chỉ nhận **số di động Việt Nam** (03, 05, 07, 08, 09, đủ 10 số; gõ +84 cũng được), họ tên thật (tên một chữ dài toàn chữ hoa thường lẫn lộn như "FOBGDAdlCASpcaOT" bị từ chối), email đúng dạng nếu có, mật khẩu từ 6 ký tự. Không giới hạn số tài khoản theo mạng, để sự kiện có nhiều người đăng ký cùng lúc vẫn chạy bình thường.
 - Tài khoản mới có role **member** (Thành viên) và có **Ngày tạo**. Tài khoản đăng ký trước đây mang role "user" và nhiều tài khoản thiếu ngày tạo: ngày tạo đã được điền lại cho những tài khoản có ghi nhận "Nguồn khách". Tài khoản cũ đã được đổi sang member, **trừ tài khoản nghi là bot**: những tài khoản này giữ role "user", lọc role user ở trang Thành viên là ra danh sách để khóa.
 - Danh sách tài khoản nghi là bot (số không phải di động Việt Nam, tên ngẫu nhiên): nhờ kỹ thuật chạy `scripts/suspect_bot_signups.sql` (chỉ đọc). Không tự xóa: khóa tài khoản (Trạng thái) nếu cần.
+
+### Voucher và ví voucher (menu Đơn hàng > "Voucher")
+
+Khách có **Ví voucher** (Tài khoản > Ví voucher): voucher được tặng, voucher tự bấm "Lưu" và mã tự nhập đều nằm ở đây. Ở trang thanh toán, hệ thống chọn sẵn voucher giảm nhiều nhất dùng được cho giỏ hàng; khách đổi voucher khác hoặc nhập mã. Số tiền giảm **được trừ thật vào số tiền đơn** (số tiền chuyển khoản và mã QR đã là số sau giảm). Đơn bị hủy (tay hoặc quá hạn) thì voucher trả lại ví và anyPoint trả lại tài khoản.
+
+- **Tab "Bộ voucher"** ("Tạo bộ voucher"):
+  - **Tên hiển thị cho khách**, **Số tiền giảm**, **Đơn tối thiểu** (tính trên các khóa được áp dụng, trống = không cần), **Hạn dùng sau khi nhận** (số ngày voucher còn trong ví; trống = theo hạn của mã).
+  - **Cách tạo mã**: *Mã động* = tiền tố + ký tự tự sinh, mỗi người nhận một mã riêng, "Tổng số mã tối đa" = 0 là không giới hạn; *Mã tĩnh* = một mã cố định cho nhiều người (ví dụ `HOCVUI`), thêm mã ở nút **Mã** với số lượt và ngày hết hạn.
+  - **Điều kiện**: chọn **đối tác** để voucher chỉ dùng cho khóa của đối tác đó (voucher của đối tác, hiện trên trang đối tác); chọn **khóa học** bằng ô tìm khóa giống Bộ sưu tập / Lộ trình (không chọn khóa = mọi khóa). Voucher chỉ giảm tối đa bằng tiền các khóa được áp dụng trong giỏ.
+  - **Cho khách tự lưu** + **Hiện ở đâu**: trang chủ, tìm kiếm, trang khóa học (chỉ voucher dùng được cho khóa đó), trang đối tác, Vui học, trang hạng thành viên / ví. Không chọn nơi nào = mọi nơi. Mỗi người lưu một lần mỗi bộ.
+  - Công tắc **Bật**: tắt thì không phát, không lưu và không dùng được nữa (kể cả voucher đã nằm trong ví).
+  - Nút **Mã** xem mã, số lượt đã dùng, người giữ; nút **Tặng** đưa voucher vào ví của các số điện thoại nhập vào.
+- **Tab "Sự kiện phát"**: khi một việc xảy ra thì phát voucher của các bộ đã chọn vào ví (có thông báo). Loại sự kiện: **Đăng ký tài khoản mới**, **Đơn hàng đầu tiên được thanh toán**, **Mua một khóa học** (chọn khóa, trống = khóa bất kỳ), **Theo dõi một đối tác** và **Mua khóa bất kỳ của một đối tác** (sự kiện của đối tác, phải chọn đối tác). Mỗi người nhận **một lần** mỗi sự kiện. "Lời nhắn trong thông báo" để trống thì dùng câu mặc định.
+- **Tab "Ví của khách"**: nhập số điện thoại để xem ví của một người (còn dùng, đã dùng cho đơn nào, hết hạn).
+- **Tab "Báo cáo"**: lượt dùng và tiền đã giảm theo tháng, voucher vào ví theo nguồn, sự kiện phát nhiều nhất.
+- **Ai chịu tiền giảm:** anyLEARN. Hoa hồng đối tác và phần góp quỹ vẫn tính trên giá khóa, không trừ voucher.
+- **Lưu ý:** dùng anyPoint ở bước thanh toán giờ cũng trừ thật vào số tiền đơn (trước đây chỉ trừ điểm, không trừ tiền).

@@ -28,6 +28,8 @@ public class AuthService {
 
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private com.anylearn.backend.service.sticker.WelcomePackService welcomePackService;
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.anylearn.backend.service.voucher.VoucherService voucherService;
 
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private com.anylearn.backend.service.achievement.AchievementService achievementService;
@@ -96,6 +98,7 @@ public class AuthService {
         if (referrer != null) referralService.record(referrer, user, game);
         if (referrer != null && ach != null && achievementService != null) achievementService.attachSignup(ach, user.getId());
         if (referrer != null && welcomePackService != null) welcomePackService.start(referrer, user);
+        if (voucherService != null) voucherService.fire("register", user.getId(), 0); // plan 20: welcome vouchers, never throws
         if (emailTemplateService != null && !user.getEmail().isBlank()) {
             try {
                 emailTemplateService.sendToUser(user.getId(), "email-user_register", "Chào mừng bạn đến với anyLEARN",

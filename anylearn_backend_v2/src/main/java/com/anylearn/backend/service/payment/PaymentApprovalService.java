@@ -48,6 +48,8 @@ public class PaymentApprovalService {
     private com.anylearn.backend.service.lifecycle.RenewalService renewals;
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private com.anylearn.backend.service.zns.ZnsNotifier znsNotifier;
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.anylearn.backend.service.voucher.VoucherService voucherService;
 
     @Transactional
     public void approveOrder(Long orderId, String paymentMethod) {
@@ -162,7 +164,24 @@ public class PaymentApprovalService {
         saveTransaction(order.getUserId(), "order", order.getAmount(), paymentMethod, orderId,
                 "Thanh toán đơn hàng #" + orderId, 1);
 
+        fireVoucherEvents(order, details);
+
         log.info("[approveOrder] order {} fully approved via {}", orderId, paymentMethod);
+    }
+
+    /** Plan 20: vouchers for buying a course ("buy_item", trigger = course id), a course of a partner ("buy_partner", trigger = partner id) and the first paid order. */
+    private void fireVoucherEvents(Order order, List<OrderDetail> details) {
+        if (voucherService == null) return;
+        try {
+            List<Long> itemIds = details.stream().map(OrderDetail::getItemId).distinct().toList();
+            itemIds.forEach(itemId -> voucherService.fire("buy_item", order.getUserId(), itemId));
+            itemRepository.findAllById(itemIds).stream().map(Item::getUserId).filter(java.util.Objects::nonNull).distinct()
+                    .forEach(partnerId -> voucherService.fire("buy_partner", order.getUserId(), partnerId));
+            long paid = orderRepository.findByUserIdAndStatusInOrderByIdDesc(order.getUserId(), List.of(OrderStatus.DELIVERED)).size();
+            if (paid <= 1) voucherService.fire("first_order", order.getUserId(), 0);
+        } catch (Exception e) {
+            log.warn("[approveOrder] voucher events for order {} skipped: {}", order.getId(), e.getMessage());
+        }
     }
 
     /** ZNS "Xác nhận đăng ký thành công" (template order_success) to the buyer's phone, once per order. */
@@ -429,6 +448,9 @@ public class PaymentApprovalService {
 
         // 5. Refund exchange anyPoints if buyer used points and they're still pending
         refundExchangePoints(orderId, order.getUserId());
+
+        // 5b. Give the voucher back (plan 20)
+        if (voucherService != null) voucherService.releaseForOrder(orderId);
 
         // 6. Notify buyer
         try {

@@ -46,7 +46,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/achievements/*/open", "/api/explore/public/*/view", "/api/track/landing").permitAll()
                 .requestMatchers(HttpMethod.GET,  "/api/explore/public/*", "/api/seo/**", "/api/landing").permitAll()
                 .requestMatchers(HttpMethod.GET,  "/api/config/**").permitAll()
-                .requestMatchers(HttpMethod.GET,  "/api/voucher/check").permitAll()
+                .requestMatchers(HttpMethod.GET,  "/api/voucher/check", "/api/vouchers/collectible").permitAll()
                 .requestMatchers(HttpMethod.GET,  "/api/pdp/**", "/api/points/preview", "/api/points/expiry-policy", "/api/foundation", "/api/doc/**", "/api/helpcenter/**").permitAll()
                 .requestMatchers(HttpMethod.GET,  "/api/item/*/reviews", "/api/item/*/review-summary", "/api/review-rewards").permitAll()
                 .requestMatchers(HttpMethod.GET,  "/api/article/**").permitAll()

@@ -5,6 +5,7 @@ import { PARTNER_TYPE_LABELS } from '@/config/itemLabels'
 import BackLink from '@/components/BackLink'
 import PartnerCourses from '@/components/partner/PartnerCourses'
 import FollowButton from '@/components/partner/FollowButton'
+import CollectVouchers from '@/components/vouchers/CollectVouchers'
 import ReviewItem from '@/components/reviews/ReviewItem'
 import ReviewSummaryCard from '@/components/reviews/ReviewSummaryCard'
 import { PinIcon, SchoolIcon, UserIcon } from '@/components/icons'
@@ -80,6 +81,8 @@ export default async function PartnerPage({ params }: Props) {
           <FollowButton partnerId={id} initialFollowers={summary.followerCount} />
         </div>
       </header>
+
+      <CollectVouchers place="partner" partnerId={id} title="Voucher của đối tác" className="mb-8" />
 
       {(profile.introduce || profile.full_content) && (
         <section className="mb-8">

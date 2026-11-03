@@ -17,6 +17,7 @@ import OrderRecommendations from '@/components/recommendations/OrderRecommendati
 import AppPromptCard from '@/components/pwa/AppPromptCard'
 import { earnedLabel } from '@/lib/points/reward'
 import { formatHoldUntil } from '@/lib/orders/deadline'
+import { formatVnd } from '@/lib/vouchers/rules'
 import { refreshPendingOrders } from '@/components/orders/pendingOrdersStore'
 
 const GATEWAY_WAIT_STEPS = ['Giao dịch đang được xử lý. Vui lòng kiểm tra email xác nhận.']
@@ -213,6 +214,15 @@ export default function OrderPage() {
                 ))}
               </ul>
             </section>
+
+            {((order.voucherDiscount ?? 0) > 0 || (order.pointsUsed ?? 0) > 0 || (order.familyDiscount ?? 0) > 0) && (
+              <div className="mb-5 flex flex-col gap-1 rounded-card border border-line bg-white px-5 py-3 text-left text-sm">
+                {(order.familyDiscount ?? 0) > 0 && <div className="flex justify-between"><span className="text-muted">Ưu đãi gia đình</span><span className="font-bold text-green-dark">-{formatVnd(order.familyDiscount ?? 0)}</span></div>}
+                {(order.voucherDiscount ?? 0) > 0 && <div className="flex justify-between"><span className="text-muted">Voucher</span><span className="font-bold text-green-dark">-{formatVnd(order.voucherDiscount ?? 0)}</span></div>}
+                {(order.pointsUsed ?? 0) > 0 && <div className="flex justify-between"><span className="text-muted">Dùng {order.pointsUsed} anyPoint</span><span className="font-bold text-green-dark">đã trừ</span></div>}
+                {order.amount != null && <div className="flex justify-between border-t border-line pt-1"><span className="font-bold text-ink">Số tiền thanh toán</span><span className="font-extrabold text-ink">{formatVnd(order.amount)}</span></div>}
+              </div>
+            )}
 
             {isApproved && (order.pointsEarned ?? 0) > 0 && (
               <PointsEarnedNote pointsEarned={order.pointsEarned ?? 0} balance={user.walletC} />

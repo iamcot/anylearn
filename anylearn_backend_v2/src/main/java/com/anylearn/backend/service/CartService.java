@@ -57,6 +57,11 @@ public class CartService {
     private final FeeCards feeCards;
     private final com.anylearn.backend.service.membership.FamilyDiscountService familyDiscountService;
     private final com.anylearn.backend.service.membership.MemberTierService memberTierService;
+    // Plan 20: vouchers and the anyPoint value at checkout. Optional so tests that build the service by hand keep working.
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.anylearn.backend.service.voucher.VoucherService voucherService;
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private ConfigurationRepository configurationRepository;
 
     private static final int POINT_RATE = 1000; // 1 anyPoint = 1,000 VND (kept for reference)
 
@@ -367,6 +372,17 @@ public class CartService {
 
     public Map<String, Object> checkout(String paymentMethod, String couponCode,
                                          Integer pointsUsed, User currentUser) {
+        return checkout(paymentMethod, couponCode, null, pointsUsed, currentUser);
+    }
+
+    /**
+     * Create the order. The amount to pay = list prices − family offer − voucher − anyPoint value, so the bank
+     * transfer, the payment gateways and the webhook all ask for what the buyer really owes.
+     * voucherWalletId (a row of the voucher wallet) wins over a typed couponCode.
+     */
+    @org.springframework.transaction.annotation.Transactional
+    public Map<String, Object> checkout(String paymentMethod, String couponCode, Long voucherWalletId,
+                                         Integer pointsUsed, User currentUser) {
         List<ItemUserAction> cartItems = findCartItems(currentUser.getId());
         if (cartItems.isEmpty()) throw new IllegalArgumentException("Giỏ hàng trống");
         requireFullDobForLearners(cartItems, currentUser);
@@ -384,6 +400,34 @@ public class CartService {
         Map<Long, Long> familyOff = familyDiscounts(cartItems, currentUser);
         for (Long off : familyOff.values()) totalAmount -= off;
 
+        // Voucher (plan 20): checked again here with the code locked; a refusal stops the checkout with the reason.
+        com.anylearn.backend.service.voucher.VoucherService.Quote voucher = null;
+        boolean wantsVoucher = voucherWalletId != null || (couponCode != null && !couponCode.isBlank());
+        if (wantsVoucher && voucherService != null) {
+            List<com.anylearn.backend.service.voucher.VoucherRules.Line> lines = new ArrayList<>();
+            for (ItemUserAction ci : cartItems) {
+                Item it = items.stream().filter(i -> i.getId().equals(ci.getItemId())).findFirst().orElse(null);
+                if (it == null) continue;
+                long price = it.getPrice() != null ? it.getPrice() : 0L;
+                lines.add(new com.anylearn.backend.service.voucher.VoucherRules.Line(it.getId(), it.getUserId() != null ? it.getUserId() : 0L, Math.max(0L, price - familyOff.getOrDefault(ci.getId(), 0L))));
+            }
+            voucher = voucherService.reserve(couponCode, voucherWalletId, currentUser.getId(), lines);
+            totalAmount = Math.max(0L, totalAmount - voucher.discount());
+        }
+
+        // anyPoint: only what is needed for the rest of the amount is taken, and its value lowers the amount.
+        long deductPoints = 0;
+        long pointsValue = 0;
+        if (pointsUsed != null && pointsUsed > 0 && totalAmount > 0) {
+            User fresh = userRepository.findById(currentUser.getId()).orElse(currentUser);
+            long balance = fresh.getWalletC() != null ? fresh.getWalletC() : 0;
+            double vndPerPoint = vndPerPoint();
+            long neededPoints = (long) Math.ceil(totalAmount / vndPerPoint);
+            deductPoints = Math.max(0, Math.min(Math.min(pointsUsed, balance), neededPoints));
+            pointsValue = com.anylearn.backend.service.voucher.VoucherRules.pointsValue(deductPoints, vndPerPoint, totalAmount);
+            totalAmount -= pointsValue;
+        }
+
         // Create Order
         Order order = new Order();
         order.setUserId(currentUser.getId());
@@ -394,6 +438,7 @@ public class CartService {
         order.setCreatedAt(LocalDateTime.now());
         order.setUpdatedAt(LocalDateTime.now());
         orderRepository.save(order);
+        if (voucher != null) voucherService.recordUse(voucher, currentUser.getId(), order.getId());
 
         // Create OrderDetail + pending_reg for each cart item
         List<Map<String, Object>> orderedItems = new ArrayList<>();
@@ -436,8 +481,8 @@ public class CartService {
             extraData.put("orderId", String.valueOf(order.getId()));
             extraData.put("orderDetailId", detail.getId());
             extraData.put("paymentMethod", paymentMethod);
-            if (couponCode != null) extraData.put("couponCode", couponCode);
-            if (pointsUsed != null) extraData.put("pointsUsed", pointsUsed);
+            if (voucher != null) extraData.put("couponCode", voucher.code());
+            if (deductPoints > 0) extraData.put("pointsUsed", deductPoints);
 
             ItemUserAction pendingReg = new ItemUserAction();
             pendingReg.setItemId(item.getId());
@@ -488,30 +533,55 @@ public class CartService {
         notifyAdminsNewOrder(order, currentUser, orderedItems);
         notifyAdminsActivityRegistrations(currentUser, cartItems);
 
-        // Deduct anyPoints from wallet_c and create pending transaction
-        if (pointsUsed != null && pointsUsed > 0) {
-            User user = userRepository.findById(currentUser.getId()).orElse(currentUser);
-            long maxDeductible = user.getWalletC() != null ? user.getWalletC() : 0;
-            long deductPoints = Math.min(pointsUsed, maxDeductible);
-            if (deductPoints > 0) {
-                walletService.debitWalletC(user.getId(), deductPoints); // also spends the lots that expire first
+        // Deduct the anyPoint used (the amount already counts their value) and record the exchange.
+        if (deductPoints > 0) {
+            walletService.debitWalletC(currentUser.getId(), deductPoints); // also spends the lots that expire first
 
-                Transaction pointsTx = new Transaction();
-                pointsTx.setUserId(currentUser.getId());
-                pointsTx.setType("exchange");
-                pointsTx.setAmount(-deductPoints);
-                pointsTx.setPayMethod(paymentMethod);
-                pointsTx.setOrderId(order.getId());
-                pointsTx.setContent("Dùng " + deductPoints + " anyPoint cho đơn hàng #" + order.getId());
-                pointsTx.setStatus(1); // immediate — wallet_c already deducted, exchange is instant
-                pointsTx.setCreatedAt(LocalDateTime.now());
-                pointsTx.setUpdatedAt(LocalDateTime.now());
-                transactionRepository.save(pointsTx);
-                log.info("checkout: deducted {} anyPoints for order {}", deductPoints, order.getId());
-            }
+            Transaction pointsTx = new Transaction();
+            pointsTx.setUserId(currentUser.getId());
+            pointsTx.setType("exchange");
+            pointsTx.setAmount(-deductPoints);
+            pointsTx.setPayMethod(paymentMethod);
+            pointsTx.setOrderId(order.getId());
+            pointsTx.setContent("Dùng " + deductPoints + " anyPoint cho đơn hàng #" + order.getId());
+            pointsTx.setStatus(1); // immediate — wallet_c already deducted, exchange is instant
+            pointsTx.setCreatedAt(LocalDateTime.now());
+            pointsTx.setUpdatedAt(LocalDateTime.now());
+            transactionRepository.save(pointsTx);
+            log.info("checkout: deducted {} anyPoints ({} đ) for order {}", deductPoints, pointsValue, order.getId());
         }
 
-        return Map.of("orderId", String.valueOf(order.getId()), "items", orderedItems, "paymentMethod", paymentMethod);
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("orderId", String.valueOf(order.getId()));
+        result.put("items", orderedItems);
+        result.put("paymentMethod", paymentMethod);
+        result.put("amount", order.getAmount());
+        result.put("voucherDiscount", voucher != null ? voucher.discount() : 0L);
+        result.put("pointsDiscount", pointsValue);
+        return result;
+    }
+
+    /** The cart as voucher lines (course + price after the family offer), for the wallet picker at checkout. */
+    public List<com.anylearn.backend.service.voucher.VoucherRules.Line> voucherLines(User currentUser) {
+        List<ItemUserAction> cartItems = findCartItems(currentUser.getId());
+        Map<Long, Long> familyOff = cartItems.isEmpty() ? Map.of() : familyDiscounts(cartItems, currentUser);
+        List<com.anylearn.backend.service.voucher.VoucherRules.Line> lines = new ArrayList<>();
+        for (ItemUserAction ci : cartItems) {
+            itemRepository.findById(ci.getItemId()).ifPresent(it -> {
+                long price = it.getPrice() != null ? it.getPrice() : 0L;
+                lines.add(new com.anylearn.backend.service.voucher.VoucherRules.Line(it.getId(), it.getUserId() != null ? it.getUserId() : 0L, Math.max(0L, price - familyOff.getOrDefault(ci.getId(), 0L))));
+            });
+        }
+        return lines;
+    }
+
+    /** VND per anyPoint: the global bonus_rate configuration (default 1000). */
+    double vndPerPoint() {
+        if (configurationRepository == null) return CommissionConfig.DEFAULT_BONUS_RATE;
+        return configurationRepository.findByKey("bonus_rate").map(c -> {
+            try { double v = Double.parseDouble(c.getValue()); return v > 0 ? v : CommissionConfig.DEFAULT_BONUS_RATE; }
+            catch (Exception e) { return CommissionConfig.DEFAULT_BONUS_RATE; }
+        }).orElse(CommissionConfig.DEFAULT_BONUS_RATE);
     }
 
     private void notifyAdminsNewOrder(Order order, User buyer, List<Map<String, Object>> orderedItems) {
@@ -622,6 +692,9 @@ public class CartService {
         view.put("amount", order.getAmount());
         view.put("transferNote", TransferNote.forOrder(order.getId()));
         view.put("pointsEarned", pointsEarned);
+        view.put("voucherDiscount", voucherService != null ? voucherService.discountOfOrder(order.getId()) : 0L);
+        view.put("pointsUsed", transactionRepository.findByOrderIdAndType(order.getId(), "exchange").stream()
+                .mapToLong(t -> Math.abs(t.getAmount() != null ? t.getAmount() : 0L)).sum());
         view.put("familyDiscount", details.stream().mapToLong(d -> Math.max(0L,
                 (d.getUnitPrice() != null ? d.getUnitPrice() : 0L) - (d.getPaidPrice() != null ? d.getPaidPrice() : 0L))).sum());
         if (order.getCreatedAt() != null) {

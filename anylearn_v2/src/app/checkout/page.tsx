@@ -5,8 +5,8 @@ import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
-  getCart, removeCartItem, checkout, initiatePayment, getPendingOrders, cancelOrder, checkVoucher, saveChild, updateProfile,
-  type CartItem, type PendingOrder, type VoucherResult,
+  getCart, removeCartItem, checkout, initiatePayment, getPendingOrders, cancelOrder, saveChild, updateProfile,
+  type CartItem, type PendingOrder,
 } from '@/lib/api'
 import { formatExactPrice } from '@/lib/format/price'
 import { calcCheckoutTotals, maxUsablePoints, pointsToApply, type PointsChoice } from '@/lib/checkout/totals'
@@ -20,7 +20,7 @@ import OrderLine from '@/components/cart/OrderLine'
 import { addLearnerHref, addLearnerLineIds } from '@/lib/cart/learners'
 import { cartRewardLabel, sumCartPoints } from '@/lib/points/reward'
 import { PRICE_GUARANTEE_LINE } from '@/config/promise'
-import ApplyRow from '@/components/cart/ApplyRow'
+import VoucherPicker, { type VoucherChoice } from '@/components/vouchers/VoucherPicker'
 import LearnerDobForm from '@/components/cart/LearnerDobForm'
 import { learnersMissingFullDob, nextLearnerMessage, type LearnerNeedingDob } from '@/lib/checkout/learnerDob'
 import { useToast } from '@/components/ToastProvider'
@@ -53,7 +53,7 @@ function TotalsSummary({ subtotal, familyDiscount, pointsDiscount, voucherDiscou
       <TotalRow label="Tạm tính" value={subtotal} />
       {familyDiscount > 0 && <TotalRow label="Ưu đãi gia đình (bé thứ 2 trở lên)" value={familyDiscount} discount />}
       {pointsDiscount > 0 && <TotalRow label="Dùng anyPoint" value={pointsDiscount} discount />}
-      {voucherDiscount > 0 && <TotalRow label={voucherCode ? `Mã ${voucherCode}` : 'Mã giảm giá'} value={voucherDiscount} discount />}
+      {voucherDiscount > 0 && <TotalRow label={voucherCode ? `Voucher: ${voucherCode}` : 'Voucher'} value={voucherDiscount} discount />}
       <div className="mt-1 flex items-baseline justify-between gap-3 border-t border-dashed border-line pt-2.5">
         <span className="text-sm font-bold text-ink">Tổng thanh toán</span>
         <span className="text-xl font-extrabold text-red">{formatExactPrice(finalTotal)}</span>
@@ -82,15 +82,11 @@ export default function CheckoutPage() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [paymentMethod, setPaymentMethod] = useState('bank_transfer')
-  const [coupon, setCoupon] = useState('')
-  const [showCoupon, setShowCoupon] = useState(false)
   const [duplicateOrder, setDuplicateOrder] = useState<PendingOrder | null>(null)
   const [agreedTerms, setAgreedTerms] = useState(true)
 
   const [pointsChoice, setPointsChoice] = useState<PointsChoice>({ on: false, custom: null })
-  const [voucherResult, setVoucherResult] = useState<VoucherResult | null>(null)
-  const [voucherError, setVoucherError] = useState('')
-  const [voucherLoading, setVoucherLoading] = useState(false)
+  const [voucher, setVoucher] = useState<VoucherChoice | null>(null)
   const [savingDobFor, setSavingDobFor] = useState<number | null>(null)
 
   useEffect(() => {
@@ -113,7 +109,7 @@ export default function CheckoutPage() {
   const familyDiscount = items.reduce((sum, item) => sum + (item.familyDiscount ?? 0), 0)
   const subtotal = grossSubtotal - familyDiscount
   const walletPoints = user.walletC ?? 0
-  const voucherValue = voucherResult?.discountValue ?? 0
+  const voucherValue = voucher?.discount ?? 0
   const maxPoints = maxUsablePoints(walletPoints, subtotal, voucherValue)
   const pointsApplied = pointsToApply(pointsChoice, maxPoints)
   const { pointsDiscount, voucherDiscount, finalTotal } = calcCheckoutTotals(subtotal, pointsApplied, voucherValue)
@@ -124,18 +120,6 @@ export default function CheckoutPage() {
     await removeCartItem(id, token)
     setItems(prev => prev.filter(item => item.cartItemId !== id))
     await refreshCartCount()
-  }
-
-  const handleApplyCoupon = async () => {
-    if (!coupon.trim()) return
-    setVoucherLoading(true)
-    setVoucherError('')
-    setVoucherResult(null)
-    const { data, error: err } = await checkVoucher(coupon.trim(), subtotal)
-    setVoucherLoading(false)
-    if (err || !data) { setVoucherError(err || 'Mã không hợp lệ'); return }
-    setVoucherResult(data)
-    toast({ kind: 'success', text: data.message })
   }
 
   const handleCancelPending = async (orderId: string) => {
@@ -171,7 +155,12 @@ export default function CheckoutPage() {
     setDuplicateOrder(null)
     setSubmitting(true)
     setError('')
-    const { data, error: err } = await checkout({ paymentMethod, couponCode: coupon || undefined, pointsUsed: pointsApplied > 0 ? pointsApplied : undefined }, token)
+    const { data, error: err } = await checkout({
+      paymentMethod,
+      voucherId: voucher?.walletId,
+      couponCode: voucher && !voucher.walletId ? voucher.code : undefined,
+      pointsUsed: pointsApplied > 0 ? pointsApplied : undefined,
+    }, token)
     if (err || !data) {
       setError(err || 'Thanh toán thất bại')
       setSubmitting(false)
@@ -242,7 +231,7 @@ export default function CheckoutPage() {
 
               <div className="flex items-center gap-2 border-y border-line bg-bg px-5 py-2.5 text-muted">
                 <GiftIcon className="size-4" />
-                <span className="text-sm font-bold">Dùng anyPoint & Mã khuyến mãi</span>
+                <span className="text-sm font-bold">Dùng anyPoint & Voucher</span>
               </div>
 
               <div className="flex flex-col gap-4 px-4 py-4 sm:px-5">
@@ -254,30 +243,14 @@ export default function CheckoutPage() {
                   onToggle={on => setPointsChoice({ on, custom: null })}
                   onCustomPoints={custom => setPointsChoice({ on: true, custom })}
                 />
-                <div>
-                  <button
-                    type="button"
-                    onClick={() => setShowCoupon(open => !open)}
-                    aria-expanded={showCoupon || !!voucherResult}
-                    className="cursor-pointer border-0 bg-transparent p-0 font-[inherit] text-xs font-medium text-green-dark underline"
-                  >
-                    Bạn có mã giảm giá
-                  </button>
-                  {(showCoupon || voucherResult) && (
-                    <div className="mt-2">
-                      <ApplyRow
-                        label="Mã giảm giá"
-                        inputProps={{ type: 'text', placeholder: 'Nhập mã giảm giá', value: coupon, onChange: event => { setCoupon(event.target.value); setVoucherResult(null); setVoucherError('') } }}
-                        buttonLabel={voucherLoading ? '...' : voucherResult ? 'Đã dùng' : 'Áp dụng'}
-                        onApply={handleApplyCoupon}
-                        disabled={voucherLoading}
-                        message={voucherResult
-                          ? { kind: 'success', text: `Giảm ${formatExactPrice(voucherDiscount)} từ mã ${voucherResult.code}` }
-                          : voucherError ? { kind: 'error', text: voucherError } : null}
-                      />
-                    </div>
-                  )}
-                </div>
+                {token && (
+                  <VoucherPicker
+                    token={token}
+                    cartKey={items.map(item => `${item.cartItemId}:${item.price}:${item.familyDiscount ?? 0}`).join(',')}
+                    value={voucher}
+                    onChange={setVoucher}
+                  />
+                )}
               </div>
 
               <TotalsSummary
@@ -285,7 +258,7 @@ export default function CheckoutPage() {
                 familyDiscount={familyDiscount}
                 pointsDiscount={pointsDiscount}
                 voucherDiscount={voucherDiscount}
-                voucherCode={voucherResult?.code}
+                voucherCode={voucher?.label}
                 finalTotal={finalTotal}
                 pointsToEarn={sumCartPoints(items)}
               />

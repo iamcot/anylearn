@@ -22,6 +22,7 @@ const NAV_GROUPS = [
     { key: '/orders',           icon: <OrderedListOutlined />, label: 'Đơn hàng'  },
     { key: '/transactions',     icon: <SwapOutlined />,        label: 'anyPoints'  },
     { key: '/finance',          icon: <FundOutlined />,        label: 'Tài chính'  },
+    { key: '/vouchers',         icon: <GiftOutlined />,        label: 'Voucher'  },
   ] },
   { key: 'g-requests', type: 'group', label: 'Quản lý thành viên', children: [
     { key: '/users',            icon: <TeamOutlined />,        label: 'Thành viên' },

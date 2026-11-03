@@ -57,6 +57,9 @@ export interface OrderData {
   pointsEarned?: number
   // VND taken off the order by the family offer
   familyDiscount?: number
+  // VND taken off by a voucher, and anyPoint spent on the order
+  voucherDiscount?: number
+  pointsUsed?: number
   // When the order is cancelled if it is still unpaid (only while it waits for payment)
   expiresAt?: string
 }
@@ -99,7 +102,7 @@ export async function getUpcomingEvents(token: string): Promise<UpcomingEvent[]>
 }
 
 export async function checkout(payload: {
-  paymentMethod: string; couponCode?: string; pointsUsed?: number
+  paymentMethod: string; couponCode?: string; voucherId?: number; pointsUsed?: number
 }, token: string): Promise<{ data: OrderData | null; error?: string }> {
   return authFetch(`/checkout`, token, { method: 'POST', body: JSON.stringify(payload) })
 }
