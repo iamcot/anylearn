@@ -126,40 +126,46 @@ Bản phác thảo đã duyệt cùng chủ sản phẩm (có lịch sử commen
 
 - Tạo YouTube (Brand Account) và TikTok (Business), chung tên; Search Console + Bing; Google Business Profile; Meta Pixel + Conversions API trước khi chạy quảng cáo.
 
-### 19.C2 Chiến dịch ra mắt phiên bản mới (28 ngày, 02/11 đến 29/11/2026)
+### 19.C2 Chiến dịch ra mắt phiên bản mới (28 bài, 04/11 đến 01/12/2026)
+
+Lịch cũ bắt đầu 02/11 bị trễ vì t2m chưa thử trên máy thật (đổi ngày 03/11/2026). Cách xếp mới: **tuần đầu chỉ đăng bài không cần t2m** (ảnh chụp màn hình, carousel, bài chữ làm tay), trong lúc đó chủ sản phẩm thử t2m trên Mac; **video bắt đầu từ 09/11**; các dạng t2m chưa làm (video đố vui 19.B5, ảnh chế 19.B6) dời về cuối. Không bỏ tính năng nào, chiến dịch kết thúc muộn 2 ngày.
 
 Mỗi ngày một bài Facebook, mở bằng nỗi lo của phụ huynh rồi tới tính năng, link đúng trang, `utm_campaign=ra-mat-v2`. Cùng nội dung lên Khám phá, tin Zalo OA tóm tắt cuối tuần, blog `/article` tổng hợp mỗi tuần. Giờ đăng: thử 12:00 và 21:00 tuần đầu (tránh 20:00 trùng Đấu trường, trừ ngày 22/11 đăng 18:00).
 
-| Ngày | Tính năng | Góc nói | Dạng | Link |
-|---|---|---|---|---|
-| T2 02/11 | Ra mắt phiên bản mới | "Tìm lớp cho con giờ chỉ còn vài chạm": 6 điểm mới | Video 60s tổng hợp | `/info/why-anylearn` |
-| T3 03/11 | Giao diện mới, cài như app | Không cần tải app từ store | Carousel | Trang chủ |
-| T4 04/11 | Tìm kiếm thông minh | Lọc theo tuổi bé, học thử miễn phí, đang giảm giá | Video quay màn hình | `/search` |
-| T5 05/11 | Tìm theo vị trí, bản đồ | "Lớp đá banh trong 3 km quanh nhà" | Video quay màn hình | `/search/map` |
-| T6 06/11 | Ảnh chế | Mẹ tìm lớp cho con: trước và sau anyLEARN | Truyện 4 khung | `/search` |
-| T7 07/11 | Vui học và Leo | Chờ con tan lớp cũng vui: điểm danh nhận quà | Video | `/fun` |
-| CN 08/11 | Lời hứa giá | Giá bằng hoặc rẻ hơn tại trường, lớp không mở thì hoàn tiền, thấy rẻ hơn thì báo | Bài + ảnh | `/info/why-anylearn` |
-| T2 09/11 | So sánh khóa học | 3 khóa cạnh nhau bằng số liệu, AI đọc mô tả giúp | Video quay màn hình | `/compare` |
-| T3 10/11 | Gợi ý AI cho bé | Trả lời vài câu về sở thích, nhận lớp hợp tuổi, hợp lịch | Video | `/ai-suggest` |
-| T4 11/11 | Lộ trình học | Học xong lớp này thì lên lớp nào | Carousel | một `/pathway/...` |
-| T5 12/11 | Bộ sưu tập | Lớp hay cho mùa Tết / hè, chọn sẵn | Carousel | một `/collections/...` |
-| T6 13/11 | Đánh giá thật | Chỉ người đã học mới đánh giá, có ảnh, đối tác trả lời | Ảnh review (xin phép) | một trang khóa |
-| T7 14/11 | Đố vui cùng Leo | 3 câu đố, trả lời dưới bình luận | Video quiz | `/fun/quiz` |
-| CN 15/11 | Tìm giúp tôi | Không thấy lớp cần? anyLEARN tìm giúp | Bài ngắn | `/search` |
-| T2 16/11 | anyPoint rõ ràng | Biết trước mỗi khóa nhận bao nhiêu anyPoint, hạn dùng | Infographic | `/info/anypoint` |
-| T3 17/11 | Thanh toán 1 chạm | Quét QR là xong, tự xác nhận, công tắc dùng anyPoint | Video quay màn hình | một trang khóa |
-| T4 18/11 | Hạng thành viên | Bạc, Vàng, Kim cương nhân anyPoint | Infographic | `/account/rewards` |
-| T5 19/11 | Ưu đãi gia đình | Bé thứ hai được giảm | Ảnh chế 2 khung | `/account/rewards` |
-| T6 20/11 | Gia hạn 1 chạm | Sắp hết buổi thì được nhắc, bấm một lần là gia hạn | Video | `/today` |
-| T7 21/11 | Giới thiệu bạn bè | Gửi link cho bạn, cả hai có quà | Bài + ảnh | `/account/rewards` |
-| CN 22/11 | Đấu trường Leo | 20:00 tối nay, cả nhà cùng đấu | Video + nhắc giờ | `/fun` |
-| T2 23/11 | Lịch học cả nhà | Mọi lớp của các con trên một trang | Video quay màn hình | `/today` |
-| T3 24/11 | Điểm danh, xin nghỉ, đổi lịch | Con ốm báo nghỉ vài chạm | Carousel | `/account/schedule` |
-| T4 25/11 | Nhắc lịch bằng thông báo | Không quên giờ đưa con đi học | Bài ngắn + ảnh động | `/account/notifications` |
-| T5 26/11 | Nhóm chat lớp | Phụ huynh cùng lớp hỏi nhau, giáo viên trả lời | Video | `/community` |
-| T6 27/11 | Khóa học video | Học mọi lúc, lịch tự học, xem trọn đời | Video | một khóa video |
-| T7 28/11 | Sticker Leo | Sưu tập và đổi sticker với bạn | Video vui | `/fun/sticker` |
-| CN 29/11 | Tổng kết tháng | Nhắc lại 4 tuần, mời theo dõi TikTok / YouTube | Video tổng hợp | Trang chủ |
+**Việc thử t2m trong tuần 04/11 đến 08/11** (cần xong trước 09/11): giọng `say` Linh và FPT.AI (nghe thử, chọn một), xuất video bằng `h264_videotoolbox`, phụ đề mlx-whisper, `claude -p` thật; tạo tài khoản demo và tài khoản creator "anyLEARN Studio" + khóa API (Khám phá > Khóa API (t2m)); chỉnh selector của brief mẫu trên site thật; dựng thử video "Tìm kiếm thông minh" và gửi lên Khám phá để duyệt. Thêm vài bản nhạc miễn phí vào `assets/music`.
+
+| Ngày | Tính năng | Góc nói | Dạng | Cần t2m | Link |
+|---|---|---|---|---|---|
+| T4 04/11 | Ra mắt phiên bản mới | "Tìm lớp cho con giờ chỉ còn vài chạm": 6 điểm mới | Carousel ảnh chụp màn hình | Không | `/info/why-anylearn` |
+| T5 05/11 | Giao diện mới, cài như app | Không cần tải app từ store | Carousel | Không | Trang chủ |
+| T6 06/11 | Lời hứa giá | Giá bằng hoặc rẻ hơn tại trường, lớp không mở thì hoàn tiền, thấy rẻ hơn thì báo | Bài + ảnh | Không | `/info/why-anylearn` |
+| T7 07/11 | Vui học và Leo | Chờ con tan lớp cũng vui: điểm danh nhận quà | Carousel | Không | `/fun` |
+| CN 08/11 | Tìm giúp tôi | Không thấy lớp cần? anyLEARN tìm giúp | Bài ngắn | Không | `/search` |
+| T2 09/11 | Tìm kiếm thông minh | Lọc theo tuổi bé, học thử miễn phí, đang giảm giá | Video quay màn hình | Có (B4) | `/search` |
+| T3 10/11 | anyPoint rõ ràng | Biết trước mỗi khóa nhận bao nhiêu anyPoint, hạn dùng | Infographic | Không | `/info/anypoint` |
+| T4 11/11 | Tìm theo vị trí, bản đồ | "Lớp đá banh trong 3 km quanh nhà" | Video quay màn hình | Có (B4) | `/search/map` |
+| T5 12/11 | Bộ sưu tập | Lớp hay cho mùa Tết / hè, chọn sẵn | Carousel | Không | một `/collections/...` |
+| T6 13/11 | So sánh khóa học | 3 khóa cạnh nhau bằng số liệu, AI đọc mô tả giúp | Video quay màn hình | Có (B4) | `/compare` |
+| T7 14/11 | Đánh giá thật | Chỉ người đã học mới đánh giá, có ảnh, đối tác trả lời | Ảnh review (xin phép) | Không | một trang khóa |
+| CN 15/11 | Gợi ý AI cho bé | Trả lời vài câu về sở thích, nhận lớp hợp tuổi, hợp lịch | Video | Có (B4) | `/ai-suggest` |
+| T2 16/11 | Lộ trình học | Học xong lớp này thì lên lớp nào | Carousel | Không | một `/pathway/...` |
+| T3 17/11 | Thanh toán 1 chạm | Quét QR là xong, tự xác nhận, công tắc dùng anyPoint | Video quay màn hình | Có (B4) | một trang khóa |
+| T4 18/11 | Hạng thành viên | Bạc, Vàng, Kim cương nhân anyPoint | Infographic | Không | `/account/rewards` |
+| T5 19/11 | Ưu đãi gia đình | Bé thứ hai được giảm | Ảnh 2 khung (làm tay nếu B6 chưa xong) | Không | `/account/rewards` |
+| T6 20/11 | Gia hạn 1 chạm | Sắp hết buổi thì được nhắc, bấm một lần là gia hạn | Video | Có (B4) | `/today` |
+| T7 21/11 | Đố vui cùng Leo | 3 câu đố, trả lời dưới bình luận | Video quiz | Có (B5) | `/fun/quiz` |
+| CN 22/11 | Đấu trường Leo | 20:00 tối nay, cả nhà cùng đấu (đăng 18:00) | Video + nhắc giờ | Có (B4) | `/fun` |
+| T2 23/11 | Lịch học cả nhà | Mọi lớp của các con trên một trang | Video quay màn hình | Có (B4) | `/today` |
+| T3 24/11 | Điểm danh, xin nghỉ, đổi lịch | Con ốm báo nghỉ vài chạm | Carousel | Không | `/account/schedule` |
+| T4 25/11 | Nhắc lịch bằng thông báo | Không quên giờ đưa con đi học | Bài ngắn + ảnh động | Không | `/account/notifications` |
+| T5 26/11 | Nhóm chat lớp | Phụ huynh cùng lớp hỏi nhau, giáo viên trả lời | Video | Có (B4) | `/community` |
+| T6 27/11 | Khóa học video | Học mọi lúc, lịch tự học, xem trọn đời | Video | Có (B4) | một khóa video |
+| T7 28/11 | Sticker Leo | Sưu tập và đổi sticker với bạn | Video vui | Có (B4) | `/fun/sticker` |
+| CN 29/11 | Giới thiệu bạn bè | Gửi link cho bạn, cả hai có quà | Bài + ảnh | Không | `/account/rewards` |
+| T2 30/11 | Ảnh chế | Mẹ tìm lớp cho con: trước và sau anyLEARN | Truyện 4 khung | Có (B6) | `/search` |
+| T3 01/12 | Tổng kết tháng | Nhắc lại 4 tuần, mời theo dõi TikTok / YouTube | Video tổng hợp | Có (B4) | Trang chủ |
+
+Nếu đến 09/11 t2m vẫn chưa ra được video: quay màn hình điện thoại bằng tay cho các bài video tuần 2 (cùng kịch bản), t2m thay dần từ tuần 3. Nếu 19.B5 / 19.B6 chưa xong trước 21/11 và 30/11: đổi hai bài đó sang bài chữ + ảnh làm tay.
 
 Câu chữ: so sánh chỉ nói "đặt cạnh nhau bằng số liệu, AI đọc mô tả giúp", không nói AI chọn khóa tốt nhất; phần trăm ưu đãi gia đình và mức hạng lấy từ cài đặt thật lúc viết.
 
