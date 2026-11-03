@@ -285,6 +285,11 @@ function EventDrawer({ event, types, groups, onClose }) {
             <CourseSelect label={event?.item_title} />
           </Form.Item>
         )}
+        {type === 'journey_chapter' && (
+          <Form.Item name="trigger" label="Chương" extra="Chương bất kỳ = phát ở chương đầu tiên người đó hoàn thành (mỗi người nhận một lần cho mỗi sự kiện).">
+            <Select options={[{ value: 0, label: 'Chương bất kỳ' }, ...[1, 2, 3, 4, 5].map(n => ({ value: n, label: `Chương ${n}` }))]} />
+          </Form.Item>
+        )}
         {partnerEvent && (
           <Form.Item name="partnerId" label="Đối tác" rules={[{ required: true, message: 'Chọn đối tác' }]}>
             <PartnerSelect placeholder="Chọn đối tác" />

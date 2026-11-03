@@ -42,6 +42,7 @@ const NAV_GROUPS = [
     { key: '/ai-usage',         icon: <RobotOutlined />,       label: 'Dùng AI (token)' },
   ] },
   { key: 'g-fun', type: 'group', label: 'Giải trí', children: [
+    { key: '/gamification',     icon: <GiftOutlined />,        label: 'Hành trình & đơn đầu' },
     { key: '/fun-events',       icon: <TrophyOutlined />,      label: 'Vui học' },
     { key: '/fun-arena',        icon: <TrophyOutlined />,      label: 'Đấu trường Leo' },
     { key: '/explore',          icon: <CompassOutlined />,     label: 'Khám phá' },

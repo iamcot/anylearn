@@ -777,3 +777,23 @@ Khách có **Ví voucher** (Tài khoản > Ví voucher): voucher được tặng
 - **Tab "Báo cáo"**: lượt dùng và tiền đã giảm theo tháng, voucher vào ví theo nguồn, sự kiện phát nhiều nhất.
 - **Ai chịu tiền giảm:** anyLEARN. Hoa hồng đối tác và phần góp quỹ vẫn tính trên giá khóa, không trừ voucher.
 - **Lưu ý:** dùng anyPoint ở bước thanh toán giờ cũng trừ thật vào số tiền đơn (trước đây chỉ trừ điểm, không trừ tiền).
+
+### Hành trình & đơn đầu (menu Giải trí > "Hành trình & đơn đầu")
+
+Mọi thứ dẫn gia đình mới tới **khóa học đầu tiên**. Mỗi tab có bảng số cài đặt; lưu xong là áp dụng ngay.
+
+- **Hành trình anyLEARN**: 5 chương nhiệm vụ một lần (Làm quen, Tìm lớp, Học thử, Đi học, Lan tỏa). Hệ thống **tự kiểm tra trên dữ liệu thật** (đã thêm bé, đã bật thông báo, đã thích 3 khóa, đã mua, đã điểm danh…), khách không phải bấm "xong". Mỗi nhiệm vụ và mỗi chương trả quà **một lần** mỗi tài khoản. Chương 4 và 5 chỉ mở sau đơn hàng đầu tiên; khách chưa đăng nhập thấy chương 1 bị khóa kèm "Đăng ký để nhận quà".
+  - Cài đặt: bật / tắt cả Hành trình, bật / tắt từng nhiệm vụ, số Leo Xu mỗi nhiệm vụ và mỗi chương, anyPoint khi xong chương 2 và 4 (mặc định 0), tiền góp Foundation khi xong chương 1, khi đăng ký học thử, khi viết đánh giá có ảnh. Bảng "Số người đã nhận" cho biết khách hay dừng ở đâu.
+  - Quà chương: chương 1 sticker + góp Foundation, chương 2 voucher (tạo ở trang Voucher > Sự kiện phát, loại **Xong một chương Hành trình**, chọn số chương) + anyPoint, chương 3 huy hiệu "Nhà hảo tâm nhỏ", chương 4 sticker + anyPoint, chương 5 huy hiệu "Đại sứ anyLEARN". Sự kiện voucher "Xong một chương" gắn được cho bất kỳ chương nào.
+  - Khi khách nhận quà, **Leo hiện lên trao xu** (khoảng 2,5 giây, chạm để bỏ qua).
+- **Thưởng đơn đầu & giới thiệu**: khi đơn đầu tiên của một tài khoản được thanh toán: Leo Xu (mặc định 300), anyPoint (mặc định 0) cho **N người đầu tiên** ("Số người đầu tiên được thưởng anyPoint", 0 = không giới hạn). Nếu tài khoản đó đăng ký qua link giới thiệu, **cả người mời và người được mời** đều nhận Leo Xu, anyPoint và một phần góp Foundation đứng tên mình. Bảng "Đã thưởng" đếm số lần và tổng đã trả.
+- **anyLEARN Foundation** (xây nhà vệ sinh cho trường vùng cao; luôn viết là "chương trình anyLEARN Foundation"):
+  - Tiền góp tự động = phần quỹ của mỗi đơn (5% phần anyLEARN giữ lại sau phần đối tác, cài ở cấu hình hoa hồng), **đơn đầu tiên gấp đôi** (đổi ở "Đơn đầu tiên góp gấp mấy lần").
+  - **Giá trị một căn**: đổi số này chỉ đổi phần trăm căn đang xây, không đổi số căn đã xong. Hạ thấp hơn số tiền đã có thì căn đang xây xong ở lần góp tiếp theo.
+  - Khi một căn đủ tiền: mọi người đã góp cho căn đó nhận thông báo + huy hiệu. Bấm **Sửa thông tin** ở bảng "Căn đã xây xong" để điền trường, địa điểm, ngày khánh thành, ảnh, link chứng từ (hiện ở trang công khai `/foundation`).
+  - **anyLEARN góp thêm**: ghi khoản anyLEARN tự góp (ví dụ khởi động).
+  - Chữ hiển thị: từ bao nhiêu tiền là "1 xô gạch / 1 xe rùa gạch / 1 xe tải gạch" (dưới mức xô là "1 viên gạch"), một viên gạch trong "Gạch của tôi" là bao nhiêu tiền.
+  - Khách thấy: trang `/foundation`, dải trên trang chủ, dòng "Đăng ký khóa này góp … " ở trang khóa học, khung góp gạch ở trang đơn thành công, thẻ "Gạch của tôi" ở Tài khoản (có ô ẩn tên, khi đó hiện "Một phụ huynh").
+- **Cấp học viên**: mỗi bé (và tài khoản tự học) có cấp theo số khóa **hoàn thành**: Hạt mầm, Chồi non (1), Lá xanh (3), Cây non (6), Đại thụ (10); đổi các mốc ở cài đặt. Một khóa hoàn thành khi: học xong 100% khóa video; hoặc lớp đã kết thúc và bé đi đủ tỉ lệ buổi (mặc định 80%); hoặc phụ huynh bấm "Đã hoàn thành" (tắt được). Danh sách cho phép **Bỏ** (bắt buộc lý do; dòng đã bỏ không bị hệ thống thêm lại), **Khôi phục**, **Thêm thủ công** (ID người học + ID khóa).
+- **Quiz thử cho khách**: trang công khai `/quiz-thu` (không cần đăng nhập), lấy câu dễ từ Kho câu hỏi theo chủ đề chọn ở đây (mặc định nuôi dạy con). Số câu, mức khó cao nhất, Leo Xu tặng khi đăng ký từ trang kết quả (một lần mỗi tài khoản). Cần Kho câu hỏi có câu "Đang dùng" ở chủ đề đó.
+- **Leo hướng dẫn**: Leo nhỏ ở góc dưới màn hình (trên thanh tab), chạm để nghe gợi ý; tự mở tối đa một lần mỗi trang mỗi ngày và chỉ khi có quà chờ hoặc nhiệm vụ ngay trên trang đó. Không hiện ở trang khóa học, giỏ, thanh toán, đơn hàng, trang học và trò chơi. Khách tắt ở Tài khoản > Thông báo > "Tắt Leo hướng dẫn".

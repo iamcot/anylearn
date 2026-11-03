@@ -1,0 +1,147 @@
+@baseUrl = {{$dotenv BE_BASE_URL}}
+@jwtToken = {{$dotenv JWT_TOKEN}}
+@adminToken = {{$dotenv ADMIN_TOKEN}}
+
+### ── Hành trình anyLEARN (plan 21) ──────────────────────────────────────
+
+### Journey of the signed-in account (without a token: visitor view, every chapter locked)
+GET {{baseUrl}}/api/journey
+Authorization: Bearer {{jwtToken}}
+
+### Pay every mission that is done and every complete chapter (safe to call often)
+POST {{baseUrl}}/api/journey/claim
+Authorization: Bearer {{jwtToken}}
+
+### A signal only the app sees: pwa_install | near | compare (once per account)
+POST {{baseUrl}}/api/journey/event
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{"type": "compare"}
+
+### ── anyLEARN Foundation ────────────────────────────────────────────────
+
+### Public state (house in progress, finished houses, latest contributions)
+GET {{baseUrl}}/api/foundation?recent=20
+
+### What registering a course gives the fund (course page line)
+GET {{baseUrl}}/api/foundation/item/1
+
+### "Gạch của tôi"
+GET {{baseUrl}}/api/foundation/me
+Authorization: Bearer {{jwtToken}}
+
+### Hide my name in the public list
+POST {{baseUrl}}/api/foundation/hide-name
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{"hide": true}
+
+### ── Learner tier ──────────────────────────────────────────────────────
+
+### The account and its children with their tier and finished courses
+GET {{baseUrl}}/api/me/learner-tier
+Authorization: Bearer {{jwtToken}}
+
+### The parent marks a course as finished
+POST {{baseUrl}}/api/me/learner-tier/complete
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{"enrollmentId": 1}
+
+### ── Guest quiz (no login) ─────────────────────────────────────────────
+
+GET {{baseUrl}}/api/guest-quiz
+
+### Grade one answer (option 0-3)
+POST {{baseUrl}}/api/guest-quiz/answer
+Content-Type: application/json
+
+{"questionId": 1, "option": 0}
+
+### Registering with game guest_quiz pays the sign-up Leo Xu once
+POST {{baseUrl}}/api/register
+Content-Type: application/json
+
+{"name": "Me Bin Thu", "phone": "0912345678", "password": "123456", "game": "guest_quiz"}
+
+### ── Admin ─────────────────────────────────────────────────────────────
+
+GET {{baseUrl}}/admin/gamification/journey
+Authorization: Bearer {{adminToken}}
+
+### Settings (numbers by key; see the fields of the GET)
+PUT {{baseUrl}}/admin/gamification/journey/settings
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{"numbers": {"add_child_coins": 50, "chapter2_points": 0}}
+
+GET {{baseUrl}}/admin/gamification/milestones
+Authorization: Bearer {{adminToken}}
+
+###
+PUT {{baseUrl}}/admin/gamification/milestones/settings
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{"numbers": {"first_order_coins": 300, "referral_coins": 300}}
+
+GET {{baseUrl}}/admin/gamification/guest-quiz
+Authorization: Bearer {{adminToken}}
+
+###
+PUT {{baseUrl}}/admin/gamification/guest-quiz/settings
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{"numbers": {"questions": 5, "signup_coins": 100}, "topic": "parenting"}
+
+### Foundation: state, settings, seed, house details
+GET {{baseUrl}}/admin/foundation
+Authorization: Bearer {{adminToken}}
+
+###
+PUT {{baseUrl}}/admin/foundation/settings
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{"numbers": {"house_value": 80000000}}
+
+###
+POST {{baseUrl}}/admin/foundation/seed
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{"amount": 5000000, "note": "anyLEARN góp khởi động"}
+
+###
+PUT {{baseUrl}}/admin/foundation/houses/1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{"school": "Trường TH Lũng Cú", "place": "Hà Giang", "openedOn": "2027-03-15"}
+
+### Learner tier: list, revoke / restore, add, sync one learner, settings
+GET {{baseUrl}}/admin/learner-tier?status=all&page=0
+Authorization: Bearer {{adminToken}}
+
+###
+PUT {{baseUrl}}/admin/learner-tier/1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{"status": "revoked", "note": "Bé nghỉ giữa chừng"}
+
+###
+POST {{baseUrl}}/admin/learner-tier
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{"learnerId": 2, "itemId": 1, "note": "Xác nhận với trường"}
+
+###
+POST {{baseUrl}}/admin/learner-tier/sync/2
+Authorization: Bearer {{adminToken}}
