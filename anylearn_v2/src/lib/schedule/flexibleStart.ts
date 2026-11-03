@@ -32,9 +32,9 @@ function classDays(schedule: FlexibleClass): Set<string> {
   return new Set((schedule.weekdays ?? '').split(',').map(code => code.trim().toLowerCase()).filter(code => WEEKDAY_CODES.includes(code)))
 }
 
-/** The first day a class may start: tomorrow (the order is paid and the partner told first). */
+/** The first day a class may start: today. */
 export function earliestStart(today: string): string {
-  return addDays(today, 1)
+  return today
 }
 
 /** First class day on or after `from` (not before the class's own start, null after its end). */
@@ -50,13 +50,13 @@ export function firstClassDay(schedule: FlexibleClass, from: string): string | n
   return null
 }
 
-/** The start of a picked day: the first class day on or after it, never before tomorrow. */
+/** The start of a picked day: the first class day on or after it, never before today. */
 export function resolveStart(schedule: FlexibleClass, picked: string, today: string): string | null {
   const earliest = earliestStart(today)
   return firstClassDay(schedule, picked && picked >= earliest ? picked : earliest)
 }
 
-/** The next class days from tomorrow (fewer when the class ends sooner). */
+/** The next class days from today (fewer when the class ends sooner). */
 export function suggestedStarts(schedule: FlexibleClass, today: string, count = SUGGESTED_STARTS): string[] {
   const out: string[] = []
   let from = earliestStart(today)

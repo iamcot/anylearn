@@ -17,15 +17,15 @@ class FlexibleStartRulesTest {
     }
 
     @Test
-    void suggestsTheNextThreeClassDaysFromTomorrow() {
+    void suggestsTheNextThreeClassDaysFromToday() {
         assertThat(FlexibleStartRules.suggestions(slot("tue,thu,sat", null, null), TODAY, 3))
-                .containsExactly(LocalDate.of(2026, 11, 5), LocalDate.of(2026, 11, 7), LocalDate.of(2026, 11, 10));
+                .containsExactly(LocalDate.of(2026, 11, 3), LocalDate.of(2026, 11, 5), LocalDate.of(2026, 11, 7));
     }
 
     @Test
     void aClassWithoutWeekdaysMeetsAnyDay() {
         assertThat(FlexibleStartRules.suggestions(slot(null, null, null), TODAY, 3))
-                .containsExactly(LocalDate.of(2026, 11, 4), LocalDate.of(2026, 11, 5), LocalDate.of(2026, 11, 6));
+                .containsExactly(LocalDate.of(2026, 11, 3), LocalDate.of(2026, 11, 4), LocalDate.of(2026, 11, 5));
     }
 
     @Test
@@ -48,10 +48,11 @@ class FlexibleStartRulesTest {
     }
 
     @Test
-    void aPastOrTodayPickStartsFromTomorrow() {
+    void aPastPickStartsFromToday() {
         ScheduleSlot s = slot("tue,wed", null, null);
-        assertThat(FlexibleStartRules.resolve(s, TODAY, TODAY)).contains(LocalDate.of(2026, 11, 4));
-        assertThat(FlexibleStartRules.resolve(s, TODAY.minusDays(10), TODAY)).contains(LocalDate.of(2026, 11, 4));
+        assertThat(FlexibleStartRules.resolve(s, TODAY, TODAY)).contains(TODAY);
+        assertThat(FlexibleStartRules.resolve(s, TODAY.minusDays(10), TODAY)).contains(TODAY);
+        assertThat(FlexibleStartRules.resolve(slot("wed", null, null), TODAY.minusDays(10), TODAY)).contains(LocalDate.of(2026, 11, 4));
     }
 
     @Test

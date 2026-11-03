@@ -19,9 +19,9 @@ public final class FlexibleStartRules {
 
     private FlexibleStartRules() {}
 
-    /** The first day a class may start: tomorrow, so the order can be paid and the partner told first. */
+    /** The first day a class may start: today. */
     public static LocalDate earliest(LocalDate today) {
-        return today.plusDays(1);
+        return today;
     }
 
     /**
@@ -39,13 +39,13 @@ public final class FlexibleStartRules {
         return Optional.empty();
     }
 
-    /** The start of a picked day: the first class day on or after it, and not before {@link #earliest}. */
+    /** The start of a picked day: the first class day on or after it, and not before today. */
     public static Optional<LocalDate> resolve(ScheduleSlot slot, LocalDate picked, LocalDate today) {
         LocalDate from = picked == null || picked.isBefore(earliest(today)) ? earliest(today) : picked;
         return firstClassDay(slot, from);
     }
 
-    /** The next {@code count} class days from {@link #earliest} (fewer when the class ends sooner). */
+    /** The next {@code count} class days from today (fewer when the class ends sooner). */
     public static List<LocalDate> suggestions(ScheduleSlot slot, LocalDate today, int count) {
         List<LocalDate> days = new ArrayList<>();
         LocalDate from = earliest(today);
