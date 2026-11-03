@@ -109,6 +109,7 @@ Khi lưu khóa học, hệ thống **bắt buộc có địa chỉ** trừ khi h
 
 - Ngày bắt đầu / kết thúc, cờ **Liên tục**, **Chu kỳ thanh toán** (số lượng + đơn vị: buổi, ngày, tuần, tháng, năm).
 - **Ca học**: mỗi ca có thứ trong tuần, giờ, địa chỉ, link Zoom nếu học online. Khung giờ "sáng/chiều/tối, trong tuần/cuối tuần" mà khách lọc được suy ra từ giờ của các ca. Ca không có giờ thì khóa không lọt vào lọc khung giờ.
+- **Loại lịch** khi tạo ca mới mặc định là **Linh hoạt** (tab đầu tiên): phụ huynh tự chọn ngày khai giảng khi thêm vào giỏ (3 buổi học gần nhất của ca, hoặc một ngày tự chọn, lớp sẽ khai giảng vào buổi học đầu tiên từ ngày đó) và được đổi lại 1 lần trong Tài khoản > Lịch học trước ngày khai giảng. Ca linh hoạt nên ghi đủ các thứ có lớp để hệ thống gợi ý đúng ngày. Chọn "Lớp cố định" khi lớp có ngày khai giảng chung.
 - **Giá mỗi buổi** = học phí chia cho số buổi suy ra từ chu kỳ. Chu kỳ tính bằng tuần hoặc tháng cần ca học có ghi các thứ trong tuần mới tính được.
 
 ### 3.3 Học phí và giảm giá

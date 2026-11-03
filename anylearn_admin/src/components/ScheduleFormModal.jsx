@@ -5,10 +5,11 @@ const WEEKDAYS = [
   { label: 'T2', value: 'mon' }, { label: 'T3', value: 'tue' }, { label: 'T4', value: 'wed' }, { label: 'T5', value: 'thu' },
   { label: 'T6', value: 'fri' }, { label: 'T7', value: 'sat' }, { label: 'CN', value: 'sun' },
 ]
+// "Linh hoạt" first and the default for a new class: most classes let the parent pick the start day.
 const KINDS = [
+  { value: 'open', label: 'Linh hoạt' },
   { value: 'recurring', label: 'Lớp cố định' },
   { value: 'event', label: 'Một buổi' },
-  { value: 'open', label: 'Linh hoạt' },
 ]
 const KIND_HINT = {
   recurring: 'Có ngày khai giảng, học đều các thứ trong tuần.',
@@ -54,7 +55,7 @@ function AddressPicker({ isNew, locations, onAddLocation }) {
 // Only the parts that matter for the course are shown: a place for courses taught at a place, a meeting link for
 // online courses, bring-along notes for extra-curricular ones.
 function Fields({ form, isNew, item, locations, onAddLocation }) {
-  const kind = Form.useWatch('scheduleType', form) ?? 'recurring'
+  const kind = Form.useWatch('scheduleType', form) ?? 'open'
   const meetingUrl = Form.useWatch('meetingUrl', form)
   const meetingId = Form.useWatch('meetingId', form)
   const [forceOnline, setForceOnline] = useState(false)
@@ -68,7 +69,7 @@ function Fields({ form, isNew, item, locations, onAddLocation }) {
       <Form.Item name="title" label="Tên ca (tuỳ chọn)" style={{ marginBottom: 12 }}>
         <Input placeholder="VD: Ca chiều T3-T5" />
       </Form.Item>
-      <Form.Item name="scheduleType" label="Loại lịch" initialValue="recurring" style={{ marginBottom: 4 }}>
+      <Form.Item name="scheduleType" label="Loại lịch" initialValue="open" style={{ marginBottom: 4 }}>
         <Segmented block options={KINDS} />
       </Form.Item>
       <Typography.Text type="secondary" style={{ fontSize: 12 }}>{KIND_HINT[kind]}</Typography.Text>
