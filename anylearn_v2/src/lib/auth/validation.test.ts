@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { digitsOnly, isCompleteOtp, isValidPhone, passwordError, safeRedirect } from './validation'
+import { digitsOnly, isCompleteOtp, isValidPhone, isValidSignupPhone, normalizeSignupPhone, passwordError, safeRedirect } from './validation'
 
 describe('isValidPhone', () => {
   it('accepts 10 digits starting with 0', () => {
@@ -46,5 +46,18 @@ describe('safeRedirect', () => {
     expect(safeRedirect('javascript:alert(1)')).toBe('/')
     expect(safeRedirect(null)).toBe('/')
     expect(safeRedirect('', '/today')).toBe('/today')
+  })
+})
+
+describe('signup phone', () => {
+  it('accepts Vietnamese mobiles, also typed with +84 or spaces', () => {
+    expect(isValidSignupPhone('0967126687')).toBe(true)
+    expect(isValidSignupPhone('+84 967 126 687')).toBe(true)
+    expect(normalizeSignupPhone('+84 967 126 687')).toBe('0967126687')
+  })
+  it('refuses numbers that are not Vietnamese mobiles', () => {
+    expect(isValidSignupPhone('2826993000')).toBe(false)
+    expect(isValidSignupPhone('0123456789')).toBe(false)
+    expect(isValidSignupPhone('096712668')).toBe(false)
   })
 })

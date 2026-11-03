@@ -3,7 +3,7 @@
 import { useMemo, useState, useSyncExternalStore } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/context/AuthContext'
-import { passwordError } from '@/lib/auth/validation'
+import { isValidSignupPhone, normalizeSignupPhone, passwordError } from '@/lib/auth/validation'
 import { MIN_PASSWORD_LENGTH } from '@/config/auth'
 import FormField from '@/components/FormField'
 import Alert from '@/components/Alert'
@@ -37,11 +37,12 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: Props) {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
     setError('')
+    if (!isValidSignupPhone(values.phone)) { setError('Số điện thoại không hợp lệ'); return }
     const problem = passwordError(values.password, values.confirm)
     if (problem) { setError(problem); return }
     if (!agreedTerms) { setError('Vui lòng đồng ý với điều khoản sử dụng'); return }
     setLoading(true)
-    const { error: err } = await register(values.name, values.phone, values.email, values.password, referral ? { ref: referral.code, game: referral.game, ach: referral.ach } : undefined)
+    const { error: err } = await register(values.name.trim(), normalizeSignupPhone(values.phone), values.email, values.password, referral ? { ref: referral.code, game: referral.game, ach: referral.ach } : undefined)
     setLoading(false)
     if (err) { setError(err); return }
     const redirectTo = afterRegisterPath(referral)

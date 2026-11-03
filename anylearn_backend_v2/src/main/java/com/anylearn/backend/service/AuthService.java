@@ -9,6 +9,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.security.MessageDigest;
+import java.time.LocalDateTime;
 import java.security.SecureRandom;
 import java.util.HexFormat;
 
@@ -33,6 +34,11 @@ public class AuthService {
 
     public LoginResponse login(String phone, String password) {
         User user = userRepository.findByPhone(phone)
+                .or(() -> {
+                    // registration stores the phone normalized (+84 → 0, no spaces): accept the same typing at login
+                    String normalized = com.anylearn.backend.service.signup.SignupRules.normalizePhone(phone);
+                    return normalized == null || normalized.equals(phone) ? java.util.Optional.empty() : userRepository.findByPhone(normalized);
+                })
                 .orElseThrow(() -> new IllegalArgumentException("Thông tin xác thực không hợp lệ"));
 
         if (!passwordEncoder.matches(password, user.getPassword())) {
@@ -61,7 +67,11 @@ public class AuthService {
     }
 
     /** {@code ach} is the token of the achievement banner whose share page the person came from (reports only). */
-    public LoginResponse register(String name, String phone, String email, String password, String ref, String game, String ach) {
+    public LoginResponse register(String name, String rawPhone, String email, String password, String ref, String game, String ach) {
+        String phone = com.anylearn.backend.service.signup.SignupRules.normalizePhone(rawPhone);
+        String problem = com.anylearn.backend.service.signup.SignupRules.problem(name, phone, email, password);
+        if (problem != null) throw new IllegalArgumentException(problem);
+        name = name.trim();
         if (userRepository.findByPhone(phone).isPresent()) {
             throw new IllegalArgumentException("Số điện thoại này đã được đăng ký.");
         }
@@ -70,10 +80,13 @@ public class AuthService {
         user.setName(name);
         user.setPhone(phone);
         user.setRefcode(phone);
-        user.setEmail(email != null ? email : "");
+        user.setEmail(email != null ? email.trim() : "");
         user.setPassword(passwordEncoder.encode(password));
-        user.setRole("user");
+        user.setRole("member");
         NewUserDefaults.apply(user);
+        LocalDateTime now = LocalDateTime.now();
+        user.setCreatedAt(now);
+        user.setUpdatedAt(now);
         user.setApiToken(generateApiToken());
 
         User referrer = referralService.findReferrer(ref, phone).orElse(null);
