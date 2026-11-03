@@ -110,4 +110,14 @@ class VoucherRulesTest {
         assertTrue(VoucherRules.showsAt(List.of("fun"), "fun"));
         assertFalse(VoucherRules.showsAt(List.of("fun"), "home"));
     }
+
+    @Test
+    void oldGroupTypesAreReadCarefully() {
+        assertTrue(VoucherRules.isMoney("money"));
+        assertTrue(VoucherRules.isMoney(" Money "));
+        assertTrue(VoucherRules.isMoney(null));
+        assertTrue(VoucherRules.isMoney(""));
+        assertFalse(VoucherRules.isMoney("class"));
+        assertFalse(VoucherRules.evaluate(new VoucherRules.Group("class", 50_000, 0, Set.of()), CART).ok());
+    }
 }

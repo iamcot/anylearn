@@ -1,4 +1,4 @@
-import { Button, Card, Checkbox, Drawer, Empty, Form, Input, InputNumber, Modal, Radio, Select, Space, Switch, Table, Tabs, Tag, Typography, message } from 'antd'
+import { Alert, Button, Card, Checkbox, Drawer, Empty, Form, Input, InputNumber, Modal, Radio, Select, Space, Switch, Table, Tabs, Tag, Typography, message } from 'antd'
 import { CloseOutlined, EditOutlined, GiftOutlined, PlusOutlined, UnorderedListOutlined } from '@ant-design/icons'
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -37,6 +37,9 @@ function PartnerSelect({ value, onChange, placeholder = 'Mọi đối tác' }) {
 
 // ── Groups ─────────────────────────────────────────────────────────────
 
+// Old portal groups may carry another type (e.g. a free class); only "money" works at checkout (VoucherRules.isMoney).
+const isMoneyType = (t) => !t || String(t).trim().toLowerCase() === 'money'
+
 function GroupDrawer({ group, onClose }) {
   const qc = useQueryClient()
   const [form] = Form.useForm()
@@ -60,6 +63,11 @@ function GroupDrawer({ group, onClose }) {
   return (
     <Drawer open width={760} title={group?.id ? `Sửa bộ voucher #${group.id}` : 'Tạo bộ voucher'} onClose={onClose}
       extra={<Button type="primary" loading={save.isPending} onClick={() => form.submit()}>Lưu</Button>}>
+      {group && !isMoneyType(group.type) && (
+        <Alert type="warning" showIcon style={{ marginBottom: 16 }}
+          message={`Bộ này từ hệ thống cũ, loại "${group.type}", nên khách chưa dùng được khi thanh toán.`}
+          description="Kiểm tra số tiền ở ô Giảm rồi bấm Lưu: bộ sẽ chuyển thành voucher giảm tiền và dùng được ngay." />
+      )}
       <Form form={form} layout="vertical" initialValues={initial} onFinish={submit}>
         <Form.Item name="title" label="Tên hiển thị cho khách" rules={[{ required: true, message: 'Nhập tên' }]}
           extra="Ví dụ: Giảm 50.000đ cho đơn đầu tiên"><Input maxLength={150} /></Form.Item>
@@ -215,6 +223,9 @@ function GroupsTab() {
                 {r.partner_name ? ` · Đối tác ${r.partner_name}` : ''}
                 {r.itemIds?.length ? ` · ${r.itemIds.length} khóa` : ''}
               </Typography.Text>
+              {!isMoneyType(r.type) && (
+                <div><Tag color="red" style={{ marginTop: 4 }}>Loại cũ "{r.type}": khách chưa dùng được khi thanh toán. Bấm Sửa rồi Lưu để chuyển thành giảm tiền</Tag></div>
+              )}
             </div>
           ) },
           { title: 'Giảm', dataIndex: 'value', width: 100, align: 'right', render: v => fmtVND(v) },

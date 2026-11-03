@@ -769,6 +769,7 @@ Khách có **Ví voucher** (Tài khoản > Ví voucher): voucher được tặng
   - **Tên hiển thị cho khách**, **Số tiền giảm**, **Đơn tối thiểu** (tính trên các khóa được áp dụng, trống = không cần), **Hạn dùng sau khi nhận** (số ngày voucher còn trong ví; trống = theo hạn của mã).
   - **Cách tạo mã**: *Mã động* = tiền tố + ký tự tự sinh, mỗi người nhận một mã riêng, "Tổng số mã tối đa" = 0 là không giới hạn; *Mã tĩnh* = một mã cố định cho nhiều người (ví dụ `HOCVUI`), thêm mã ở nút **Mã** với số lượt và ngày hết hạn.
   - **Điều kiện**: chọn **đối tác** để voucher chỉ dùng cho khóa của đối tác đó (voucher của đối tác, hiện trên trang đối tác); chọn **khóa học** bằng ô tìm khóa giống Bộ sưu tập / Lộ trình (không chọn khóa = mọi khóa). Voucher chỉ giảm tối đa bằng tiền các khóa được áp dụng trong giỏ.
+  - **Bộ voucher từ hệ thống cũ**: bộ nào có nhãn đỏ "Loại cũ" thì khách chưa dùng được khi thanh toán (báo "Mã này thuộc loại voucher cũ…"). Bấm **Sửa**, kiểm tra số tiền ở ô Giảm, bấm **Lưu**: bộ chuyển thành voucher giảm tiền và dùng được ngay.
   - **Cho khách tự lưu** + **Hiện ở đâu**: trang chủ, tìm kiếm, trang khóa học (chỉ voucher dùng được cho khóa đó), trang đối tác, Vui học, trang hạng thành viên / ví. Không chọn nơi nào = mọi nơi. Mỗi người lưu một lần mỗi bộ.
   - Công tắc **Bật**: tắt thì không phát, không lưu và không dùng được nữa (kể cả voucher đã nằm trong ví).
   - Nút **Mã** xem mã, số lượt đã dùng, người giữ; nút **Tặng** đưa voucher vào ví của các số điện thoại nhập vào.

@@ -16,6 +16,12 @@ public final class VoucherRules {
     private VoucherRules() {}
 
     public static final String TYPE_MONEY = "money";
+
+    /** A group that takes money off the cart: "money" in any case, or no type at all (old rows). Other portal types
+     *  (e.g. a free class) are not usable at checkout; saving the group in the back office turns it into "money". */
+    public static boolean isMoney(String type) {
+        return type == null || type.isBlank() || TYPE_MONEY.equalsIgnoreCase(type.trim());
+    }
     public static final String CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no 0/O, 1/I
 
     /** One cart line: the course, its partner and what is paid for it (after the family offer). */
@@ -66,8 +72,8 @@ public final class VoucherRules {
 
     public static Evaluation evaluate(Group g, List<Line> lines) {
         if (g == null) return new Evaluation(0, 0, 0, "Mã khuyến mãi không hợp lệ");
-        if (!TYPE_MONEY.equals(g.type()))
-            return new Evaluation(0, 0, 0, "Mã này chưa dùng được khi thanh toán trực tuyến, vui lòng liên hệ anyLEARN");
+        if (!isMoney(g.type()))
+            return new Evaluation(0, 0, 0, "Mã này thuộc loại voucher cũ, chưa dùng được khi thanh toán trực tuyến, vui lòng liên hệ anyLEARN");
         if (lines == null || lines.isEmpty()) return new Evaluation(0, 0, 0, "Giỏ hàng trống");
         boolean limited = (g.itemIds() != null && !g.itemIds().isEmpty()) || (g.partnerId() != null && g.partnerId() > 0);
         long covered = 0;
