@@ -1,19 +1,18 @@
-/** Rows of bricks drawn in the house picture. */
-export const HOUSE_ROWS = 8
-
-/** How many brick rows of the house in progress are filled for a percent (a started house shows at least one row). */
-export function filledRows(percent: number, rows = HOUSE_ROWS): number {
+/** Where Leo stands on the Foundation bar: the percent kept inside 0..100 (a started house shows a little progress). */
+export function barPercent(percent: number): number {
   if (!(percent > 0)) return 0
-  return Math.min(rows, Math.max(1, Math.round(percent * rows / 100)))
+  return Math.min(100, Math.max(2, percent))
 }
 
-/** The stage of the house picture: brick pile, walls, roof, door, done. */
-export function houseStage(percent: number): 'bricks' | 'walls' | 'roof' | 'door' | 'done' {
-  if (percent >= 100) return 'done'
-  if (percent >= 75) return 'door'
-  if (percent >= 50) return 'roof'
-  if (percent >= 20) return 'walls'
-  return 'bricks'
+/** "căn đầu tiên", "căn thứ 2", ... (never "căn số 1"). */
+export function houseOrdinal(n: number): string {
+  return n <= 1 ? 'căn đầu tiên' : `căn thứ ${n}`
+}
+
+/** The same with a capital letter, for titles: "Căn đầu tiên". */
+export function houseTitle(n: number): string {
+  const text = houseOrdinal(n)
+  return text.charAt(0).toUpperCase() + text.slice(1)
 }
 
 /** "12.500.000đ". */

@@ -22,7 +22,7 @@ public class VoucherAdminService {
             Map.of("key", "buy_item", "label", "Mua một khóa học (chọn khóa, để trống = khóa bất kỳ)"),
             Map.of("key", "follow_partner", "label", "Theo dõi một đối tác (sự kiện của đối tác)"),
             Map.of("key", "buy_partner", "label", "Mua khóa bất kỳ của một đối tác (sự kiện của đối tác)"),
-            Map.of("key", "journey_chapter", "label", "Xong một chương Hành trình anyLEARN (ô \"điều kiện\" = số chương 1-5)"));
+            Map.of("key", "journey_chapter", "label", "Xong một chương Hành trình HỌC không giới hạn (ô \"điều kiện\" = số chương 1-5)"));
 
     /** Event types whose trigger is a partner id (the event belongs to that partner). */
     public static final Set<String> PARTNER_TYPES = Set.of("follow_partner", "buy_partner");

@@ -14,7 +14,7 @@ public final class AchievementRules {
     public static final String BOARD = "board";
     public static final String STICKER_SET = "sticker_set";
     public static final String ARENA = "arena";
-    public static final String FOUNDATION = "foundation"; // plan 21: "Mình đã góp gạch xây căn số N"
+    public static final String FOUNDATION = "foundation"; // plan 21: "Mình đã góp gạch xây căn thứ N"
     public static final String JOURNEY = "journey";       // plan 21: a finished chapter of "Hành trình anyLEARN"
     public static final List<String> TYPES = List.of(RANKUP, STREAK, BOARD, STICKER_SET, ARENA, FOUNDATION, JOURNEY);
 

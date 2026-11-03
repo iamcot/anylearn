@@ -45,9 +45,12 @@ function Loading() {
   )
 }
 
+// No course yet: the journey leads the way to the first one, so it comes first.
 function EmptyState() {
   return (
     <PageFrame>
+      <div className="mb-5 empty:hidden"><PendingOrdersCard /></div>
+      <div className="mb-5 empty:hidden"><JourneyCard /></div>
       <h1 className="text-2xl font-black">Chưa có khóa học đang học</h1>
       <p className="mt-2 text-muted">Khi bạn đăng ký khóa học, lịch học sẽ hiện ở đây mỗi ngày.</p>
       <Link href={BROWSE_HOME_URL} className="mt-5 inline-flex min-h-11 items-center rounded-full bg-green px-5 text-[15px] font-black text-white">

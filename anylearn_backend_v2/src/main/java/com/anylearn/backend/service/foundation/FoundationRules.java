@@ -71,4 +71,15 @@ public final class FoundationRules {
         if (foundationPoints <= 0) return 0;
         return Math.round(foundationPoints * vndPerPoint) * Math.max(1, multiplier);
     }
+
+    /** "căn đầu tiên", "căn thứ 2", ... (owner: never "căn số 1"). */
+    public static String houseOrdinal(long houseNo) {
+        return houseNo <= 1 ? "căn đầu tiên" : "căn thứ " + houseNo;
+    }
+
+    /** The same with a capital letter: "Căn đầu tiên". */
+    public static String houseTitle(long houseNo) {
+        String t = houseOrdinal(houseNo);
+        return Character.toUpperCase(t.charAt(0)) + t.substring(1);
+    }
 }

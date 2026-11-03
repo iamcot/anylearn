@@ -8,7 +8,7 @@ import { ChevronRightIcon } from '@/components/icons'
 import { Leo } from '@/components/fun/Leo'
 import BrandText from '@/components/fun/BrandText'
 
-// "Hành trình anyLEARN" on /today and /account: the chapter in progress, its bar and the next mission.
+// "Hành trình HỌC không giới hạn!" on /today and /account: the chapter in progress, its bar and the next mission.
 // Reads the journey the host keeps in the store, so it costs no extra call.
 export default function JourneyCard() {
   const journey = useSyncExternalStore(journeyStore.subscribe, journeyStore.get, () => null)
@@ -23,8 +23,8 @@ export default function JourneyCard() {
       <div className="flex items-center gap-3">
         <Leo className="size-12 shrink-0" />
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-extrabold">Hành trình anyLEARN</span>
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <span className="text-sm font-extrabold">Hành trình HỌC không giới hạn!</span>
             <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-bold text-muted">{done}/{journey.chapters.length} chương</span>
             {journey.ready > 0 && <span className="rounded-full bg-red px-2 py-0.5 text-[11px] font-extrabold text-white">{journey.ready} quà</span>}
           </div>

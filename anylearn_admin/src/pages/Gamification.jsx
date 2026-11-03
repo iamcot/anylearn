@@ -237,18 +237,20 @@ function LearnerTierTab() {
 
 export default function Gamification() {
   return (
-    <div>
+    <div style={{ padding: 24 }}>
+      <Card>
       <Typography.Title level={3} style={{ marginTop: 0 }}>Hành trình & đơn đầu</Typography.Title>
       <Descriptions size="small" column={1} style={{ marginBottom: 12 }}>
         <Descriptions.Item label="Mục tiêu">Dẫn gia đình mới tới khóa học đầu tiên và quay lại lớp.</Descriptions.Item>
       </Descriptions>
       <Tabs items={[
-        { key: 'journey', label: 'Hành trình anyLEARN', children: <JourneyTab /> },
+        { key: 'journey', label: 'Hành trình HỌC không giới hạn!', children: <JourneyTab /> },
         { key: 'milestones', label: 'Thưởng đơn đầu & giới thiệu', children: <MilestonesTab /> },
         { key: 'foundation', label: 'anyLEARN Foundation', children: <FoundationTab /> },
         { key: 'tier', label: 'Cấp học viên', children: <LearnerTierTab /> },
         { key: 'guest-quiz', label: 'Quiz thử cho khách', children: <GuestQuizTab /> },
       ]} />
+      </Card>
     </div>
   )
 }

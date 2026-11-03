@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import ApplyRow from '@/components/cart/ApplyRow'
 import { getVouchersForCart, quoteVoucher, type WalletVoucher } from '@/lib/api/vouchers'
@@ -20,7 +21,10 @@ interface Props {
   onChange: (choice: VoucherChoice | null) => void
 }
 
-/** Checkout voucher box (plan 20): vouchers of the wallet that fit the cart, the best one pre-selected, or a typed code. */
+/**
+ * Checkout voucher box (plan 20): the voucher wallet first (vouchers that fit the cart, the best one pre-selected, the
+ * others greyed with the reason), a link to the wallet page, then "Có mã giảm giá?" that opens the code field.
+ */
 export default function VoucherPicker({ token, cartKey, value, onChange }: Props) {
   const [items, setItems] = useState<WalletVoucher[]>([])
   const [loaded, setLoaded] = useState(false)
@@ -28,6 +32,8 @@ export default function VoucherPicker({ token, cartKey, value, onChange }: Props
   const [codeError, setCodeError] = useState('')
   const [codeLoading, setCodeLoading] = useState(false)
   const [showAll, setShowAll] = useState(false)
+  // The code field stays a short text link until the person opens it (as in the old checkout).
+  const [codeOpen, setCodeOpen] = useState(false)
 
   useEffect(() => {
     let alive = true
@@ -64,6 +70,15 @@ export default function VoucherPicker({ token, cartKey, value, onChange }: Props
 
   return (
     <div className="flex flex-col gap-2">
+      <div className="flex items-center justify-between gap-2 text-xs">
+        <span className="font-bold text-ink">Ví voucher của bạn{loaded ? ` (${sorted.length})` : ''}</span>
+        <Link href="/account/vouchers" className="font-semibold text-green-dark no-underline">Xem ví ›</Link>
+      </div>
+      {loaded && sorted.length === 0 && (
+        <p className="m-0 rounded-xl border border-dashed border-line bg-bg px-3 py-2.5 text-xs text-muted">
+          Ví chưa có voucher. Voucher bạn nhận từ Hành trình, sự kiện hay nhập mã sẽ nằm ở đây.
+        </p>
+      )}
       {loaded && sorted.length > 0 && (
         <ul className="m-0 flex list-none flex-col gap-2 p-0" aria-label="Voucher trong ví">
           {visible.map(v => {
@@ -113,14 +128,21 @@ export default function VoucherPicker({ token, cartKey, value, onChange }: Props
           </span>
         </div>
       )}
-      <ApplyRow
-        label="Mã giảm giá"
-        inputProps={{ type: 'text', placeholder: 'Nhập mã giảm giá', value: code, onChange: e => { setCode(e.target.value); setCodeError('') } }}
-        buttonLabel={codeLoading ? '...' : 'Áp dụng'}
-        onApply={applyCode}
-        disabled={codeLoading}
-        message={codeError ? { kind: 'error', text: codeError } : null}
-      />
+      {codeOpen ? (
+        <ApplyRow
+          label="Mã giảm giá"
+          inputProps={{ type: 'text', placeholder: 'Nhập mã giảm giá', value: code, onChange: e => { setCode(e.target.value); setCodeError('') } }}
+          buttonLabel={codeLoading ? '...' : 'Áp dụng'}
+          onApply={applyCode}
+          disabled={codeLoading}
+          message={codeError ? { kind: 'error', text: codeError } : null}
+        />
+      ) : (
+        <button type="button" onClick={() => setCodeOpen(true)}
+          className="cursor-pointer self-start border-0 bg-transparent p-0 font-[inherit] text-sm font-semibold text-green-dark underline">
+          Có mã giảm giá? Nhập mã
+        </button>
+      )}
     </div>
   )
 }

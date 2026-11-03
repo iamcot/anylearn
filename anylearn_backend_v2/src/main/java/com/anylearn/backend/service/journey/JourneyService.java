@@ -58,7 +58,7 @@ public class JourneyService {
         this.jdbc = jdbc;
         this.clock = clock;
         NumberSettings s = new NumberSettings(GAME, configurationRepository)
-                .field("enabled", "Bật Hành trình anyLEARN (1 = bật, 0 = tắt)", "Chung", 1, 0, 1);
+                .field("enabled", "Bật Hành trình HỌC không giới hạn (1 = bật, 0 = tắt)", "Chung", 1, 0, 1);
         for (JourneyRules.Chapter c : JourneyRules.CHAPTERS) {
             String group = "Chương " + c.no() + ": " + c.title();
             s.field("chapter" + c.no() + "_coins", "Leo Xu khi xong chương", group, CHAPTER_COINS[c.no() - 1], 0, 100_000);
@@ -117,7 +117,8 @@ public class JourneyService {
         Set<String> d = new HashSet<>();
         if (exists("SELECT 1 FROM users WHERE user_id = ? AND is_child = 1 AND dob IS NOT NULL AND COALESCE(dob_year_only, 0) = 0", u)) d.add("add_child");
         if (exists("SELECT 1 FROM learner_interests WHERE learner_id IN " + learnerIn(), u, u)) d.add("interests");
-        if (exists("SELECT 1 FROM user_locations WHERE user_id = ? AND status = 1", u)) d.add("home_address");
+        if (exists("SELECT 1 FROM users WHERE id = ? AND TRIM(COALESCE(address, '')) <> ''", u)
+                || exists("SELECT 1 FROM user_locations WHERE user_id = ? AND status = 1", u)) d.add("home_address");
         if (event(u, "pwa_install") || exists("SELECT 1 FROM push_subscriptions WHERE user_id = ? AND is_standalone = 1", u)) d.add("install_app");
         if (exists("SELECT 1 FROM push_subscriptions WHERE user_id = ?", u)) d.add("notifications");
         if (exists("SELECT 1 FROM ai_suggestions WHERE user_id = ?", u)) d.add("ai_suggest");

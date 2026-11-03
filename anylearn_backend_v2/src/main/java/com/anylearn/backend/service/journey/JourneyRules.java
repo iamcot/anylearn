@@ -26,9 +26,9 @@ public final class JourneyRules {
     public static final List<Def> DEFS = List.of(
             new Def("add_child", 1, "Thêm bé với ngày sinh đầy đủ", "Thêm bé để Leo gợi ý lớp vừa tuổi", "/account/children", 50, false, false),
             new Def("interests", 1, "Trả lời khảo sát sở thích của bé", "Cho Leo biết bé thích gì", "/account/children", 50, false, false),
-            new Def("home_address", 1, "Lưu khu vực nhà bạn", "Lưu khu vực để tìm lớp gần nhà", "/account/profile", 30, false, false),
+            new Def("home_address", 1, "Lưu địa chỉ nhà bạn", "Ghi địa chỉ trong hồ sơ để tìm lớp gần nhà", "/account/profile", 30, false, false),
             new Def("install_app", 1, "Thêm anyLEARN vào màn hình chính", "Cài app để mở nhanh hơn", "/info", 0, true, true),
-            new Def("notifications", 1, "Bật thông báo", "Bật thông báo để không lỡ lịch học", "/account/notifications", 30, false, false),
+            new Def("notifications", 1, "Bật thông báo", "Bật thông báo để không lỡ lịch học", "/account/notifications", 30, true, false),
             new Def("ai_suggest", 2, "Xem gợi ý AI cho bé", "Xem các khóa Leo chọn cho bé", "/today", 50, false, false),
             new Def("near_search", 2, "Tìm lớp \"Gần tôi\" hoặc xem bản đồ", "Bật bộ lọc Gần tôi ở trang tìm kiếm", "/search", 30, false, false),
             new Def("compare", 2, "So sánh 2 khóa học", "Bấm \"+ So sánh\" trên 2 khóa rồi xem bảng", "/search", 30, false, false),

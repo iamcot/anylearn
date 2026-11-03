@@ -1,17 +1,19 @@
 import { describe, expect, it } from 'vitest'
-import { filledRows, houseStage, housesBadge, itemLine, vnd } from './rules'
+import { barPercent, houseOrdinal, houseTitle, housesBadge, itemLine, vnd } from './rules'
 
 describe('foundation rules', () => {
-  it('fills the house picture by percent', () => {
-    expect(filledRows(0)).toBe(0)
-    expect(filledRows(0.1)).toBe(1)
-    expect(filledRows(50)).toBe(4)
-    expect(filledRows(100)).toBe(8)
-    expect(houseStage(10)).toBe('bricks')
-    expect(houseStage(30)).toBe('walls')
-    expect(houseStage(60)).toBe('roof')
-    expect(houseStage(80)).toBe('door')
-    expect(houseStage(100)).toBe('done')
+  it('keeps Leo on the bar', () => {
+    expect(barPercent(0)).toBe(0)
+    expect(barPercent(0.4)).toBe(2)
+    expect(barPercent(57)).toBe(57)
+    expect(barPercent(130)).toBe(100)
+  })
+
+  it('names houses by order, never "số 1"', () => {
+    expect(houseOrdinal(1)).toBe('căn đầu tiên')
+    expect(houseOrdinal(2)).toBe('căn thứ 2')
+    expect(houseTitle(1)).toBe('Căn đầu tiên')
+    expect(houseTitle(5)).toBe('Căn thứ 5')
   })
 
   it('formats texts', () => {

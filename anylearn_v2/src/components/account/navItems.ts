@@ -8,7 +8,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: '/account/anypoint', label: 'anyPoint', Icon: CoinIcon, isPoint: true },
   { href: '/account/rewards', label: 'Ưu đãi của tôi', Icon: GiftIcon },
   { href: '/account/vouchers', label: 'Ví voucher', Icon: TagIcon },
-  { href: '/account/journey', label: 'Hành trình anyLEARN', Icon: MapIcon },
+  { href: '/account/journey', label: 'Hành trình HỌC không giới hạn!', Icon: MapIcon },
   { href: '/account/profile', label: 'Thông tin cá nhân', Icon: UserIcon },
   { href: '/account/schedule', label: 'Lịch học', Icon: CalendarIcon },
   { href: '/account/videos', label: 'Khóa học video', Icon: PlayIcon },

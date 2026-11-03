@@ -8,7 +8,7 @@ import { getMeSummary, type MeSummary } from '@/lib/api'
 import AccountCard from '@/components/account/AccountCard'
 import TierCard from '@/components/membership/TierCard'
 import JourneyCard from '@/components/journey/JourneyCard'
-import LearnerTierCard from '@/components/learnertier/LearnerTierCard'
+import { getLearnerTiers, type LearnerTier } from '@/lib/api/gamification'
 import MyBricksCard from '@/components/foundation/MyBricksCard'
 import { PendingOrdersPill, PointBadge } from '@/components/account/AccountBadges'
 import { NAV_ITEMS } from '@/components/account/navItems'
@@ -36,7 +36,17 @@ function Todos({ summary }: { summary: MeSummary }) {
   )
 }
 
-function Children({ summary }: { summary: MeSummary }) {
+// The learner tier sits in each child's row (owner: no separate card); the child page has the details.
+function TierChip({ tier }: { tier?: LearnerTier }) {
+  if (!tier) return null
+  return (
+    <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-green-soft px-2 py-0.5 text-[11px] font-extrabold text-green">
+      <span aria-hidden>{tier.icon}</span>{tier.label}
+    </span>
+  )
+}
+
+function Children({ summary, tiers }: { summary: MeSummary; tiers: Map<number, LearnerTier> }) {
   if (summary.children.length === 0) return null
   return (
     <AccountCard title="Các bé" subtitle="Xem khóa học, đơn hàng và sở thích của từng bé">
@@ -46,8 +56,14 @@ function Children({ summary }: { summary: MeSummary }) {
             <Link href={`/account/children/${child.id}`} className="flex min-h-12 items-center gap-3 px-4 py-3 text-sm no-underline hover:bg-bg sm:px-5">
               <span className="grid size-9 shrink-0 place-items-center rounded-full bg-blue-soft font-extrabold text-blue">{child.name?.charAt(0).toUpperCase()}</span>
               <span className="min-w-0 flex-1">
-                <span className="block truncate font-bold text-ink">{child.name}</span>
-                <span className="block text-xs text-muted">{child.activeCourses > 0 ? `${child.activeCourses} khóa đang học` : 'Chưa có khóa đang học'}</span>
+                <span className="flex min-w-0 items-center gap-2">
+                  <span className="truncate font-bold text-ink">{child.name}</span>
+                  <TierChip tier={tiers.get(child.id)} />
+                </span>
+                <span className="block text-xs text-muted">
+                  {child.activeCourses > 0 ? `${child.activeCourses} khóa đang học` : 'Chưa có khóa đang học'}
+                  {(tiers.get(child.id)?.finished ?? 0) > 0 && ` · ${tiers.get(child.id)!.finished} khóa đã xong`}
+                </span>
               </span>
               <ChevronRightIcon className="size-4 text-muted" />
             </Link>
@@ -64,10 +80,14 @@ export default function AccountHomePage() {
   const router = useRouter()
   const [summary, setSummary] = useState<MeSummary | null>(null)
   const [loading, setLoading] = useState(true)
+  const [tiers, setTiers] = useState<Map<number, LearnerTier>>(new Map())
 
   useEffect(() => {
     if (!token) return
     getMeSummary(token).then(data => { setSummary(data); setLoading(false) })
+    getLearnerTiers(token).then(data => {
+      if (data?.enabled) setTiers(new Map(data.learners.map(l => [l.learnerId, l])))
+    })
   }, [token])
 
   return (
@@ -94,9 +114,7 @@ export default function AccountHomePage() {
         {loading ? <div className="p-5"><ListSkeleton showTitle={false} /></div> : summary ? <Todos summary={summary} /> : <p className="m-0 p-5 text-sm text-muted">Chưa tải được, vui lòng thử lại sau.</p>}
       </AccountCard>
 
-      {summary && <Children summary={summary} />}
-
-      <LearnerTierCard />
+      {summary && <Children summary={summary} tiers={tiers} />}
 
       <MyBricksCard />
 

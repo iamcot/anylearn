@@ -127,11 +127,11 @@ public class FoundationService {
         for (Long u : people) {
             try {
                 if (notifications != null)
-                    notifications.createNotification(u, "foundation_house", "Căn nhà vệ sinh số " + houseNo + " đã đủ tiền xây",
+                    notifications.createNotification(u, "foundation_house", FoundationRules.houseTitle(houseNo) + " (nhà vệ sinh) đã đủ tiền xây",
                             "Cảm ơn bạn đã góp gạch cho chương trình anyLEARN Foundation. anyLEARN sẽ cập nhật ảnh khi căn nhà hoàn thành.", "/foundation");
                 if (achievements != null)
                     achievements.grant(u, AchievementRules.FOUNDATION, "foundation:" + houseNo,
-                            "Mình đã góp gạch xây căn số " + houseNo, "Nhà vệ sinh cho trường vùng cao · anyLEARN Foundation", "house");
+                            "Mình đã góp gạch xây " + FoundationRules.houseOrdinal(houseNo), "Nhà vệ sinh cho trường vùng cao · anyLEARN Foundation", "house");
             } catch (Exception e) {
                 log.warn("[foundation] house {} not announced to {}: {}", houseNo, u, e.getMessage());
             }
@@ -252,7 +252,7 @@ public class FoundationService {
     public void updateHouse(int houseNo, Map<String, Object> b) {
         int rows = jdbc.update("UPDATE foundation_houses SET school = ?, place = ?, opened_on = ?, photo_url = ?, proof_url = ?, note = ? WHERE house_no = ?",
                 str(b.get("school")), str(b.get("place")), str(b.get("openedOn")), str(b.get("photoUrl")), str(b.get("proofUrl")), str(b.get("note")), houseNo);
-        if (rows == 0) throw new IllegalArgumentException("Căn số " + houseNo + " chưa xây xong");
+        if (rows == 0) throw new IllegalArgumentException(FoundationRules.houseTitle(houseNo) + " chưa xây xong");
     }
 
     private static String str(Object o) {

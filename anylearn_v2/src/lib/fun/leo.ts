@@ -248,7 +248,7 @@ const PAGE_TIPS: Record<string, string[]> = {
   home: ['Chào bạn! Mình là Leo. Bấm vào mình khi cần gợi ý nhé.'],
   search: ['Bật "Gần tôi" để thấy lớp gần nhà.', 'Bấm "+ So sánh" trên 2 khóa để xem bảng so sánh.'],
   today: ['Đây là lịch học hôm nay của cả nhà.', 'Bé đến lớp thì nhớ điểm danh nha!'],
-  account: ['Hành trình anyLEARN có quà ở mỗi chương đó.'],
+  account: ['Hành trình HỌC không giới hạn có quà ở mỗi chương đó.'],
   foundation: ['Mỗi khóa học bạn đăng ký góp gạch xây nhà vệ sinh cho trường vùng cao.'],
   partner: ['Bấm "Theo dõi" để biết khi trường mở lớp mới.'],
   collections: ['Bộ sưu tập do anyLEARN chọn theo mùa.'],
@@ -264,7 +264,7 @@ export function guideFor(path: string, ctx: GuideContext): Guide | null {
     if (pageKey === 'home' || pageKey === 'search') {
       return {
         pageKey,
-        lines: ['Đăng ký tài khoản để Leo tặng quà chào mừng và bắt đầu Hành trình anyLEARN!', 'Chưa muốn đăng ký? Chơi thử 5 câu đố nuôi dạy con nhé.'],
+        lines: ['Đăng ký tài khoản để Leo tặng quà chào mừng và bắt đầu Hành trình HỌC không giới hạn!', 'Chưa muốn đăng ký? Chơi thử 5 câu đố nuôi dạy con nhé.'],
         action: { label: 'Chơi thử', href: '/quiz-thu' },
         auto: pageKey === 'home',
       }

@@ -11,7 +11,18 @@ import BrandText from '@/components/fun/BrandText'
 import { CheckIcon, LockIcon } from '@/components/icons'
 import { ListSkeleton } from '@/components/PageSkeleton'
 
+// Missions a desktop browser cannot really do: they are optional and point to the phone there.
+const PHONE_ONLY = new Set(['install_app', 'notifications'])
+
+function subscribeCoarse(cb: () => void) {
+  const mq = window.matchMedia('(pointer: coarse)')
+  mq.addEventListener('change', cb)
+  return () => mq.removeEventListener('change', cb)
+}
+const isCoarse = () => window.matchMedia('(pointer: coarse)').matches
+
 function Chapter({ ch, coinName, hasOrder }: { ch: JourneyChapter; coinName: string; hasOrder: boolean }) {
+  const onPhone = useSyncExternalStore(subscribeCoarse, isCoarse, () => true)
   const pct = chapterPercent(ch)
   return (
     <AccountCard
@@ -30,14 +41,14 @@ function Chapter({ ch, coinName, hasOrder }: { ch: JourneyChapter; coinName: str
               {m.done && <CheckIcon className="size-3.5" />}
             </span>
             <span className="min-w-0 flex-1">
-              <span className={`block text-sm font-bold ${m.done ? 'text-muted line-through' : 'text-ink'}`}>{m.label}{m.optional && <span className="ml-1 text-xs font-semibold text-muted no-underline">(thêm)</span>}</span>
-              {!m.done && <span className="block text-xs text-muted">{m.hint}</span>}
+              <span className={`block text-sm font-bold ${m.done ? 'text-muted line-through' : 'text-ink'}`}>{m.label}{m.optional && <span className="ml-1 text-xs font-semibold text-muted no-underline">(không bắt buộc)</span>}</span>
+              {!m.done && <span className="block text-xs text-muted">{!onPhone && PHONE_ONLY.has(m.key) ? 'Mở anyLEARN trên điện thoại để làm việc này.' : m.hint}</span>}
               <span className="block text-xs font-semibold text-green">
                 {m.coins > 0 && <BrandText text={`+${m.coins} ${coinName}`} />}{m.sticker && <>{m.coins > 0 ? ' · ' : ''}1 sticker</>}
                 {m.done && !m.claimed && ch.open && <span className="ml-1 font-bold text-red">· chờ nhận</span>}
               </span>
             </span>
-            {!m.done && ch.open && <Link href={m.route} className="btn btn--outline shrink-0 px-3 py-1.5 text-xs no-underline">Làm</Link>}
+            {!m.done && ch.open && (onPhone || !PHONE_ONLY.has(m.key)) && <Link href={m.route} className="btn btn--outline shrink-0 px-3 py-1.5 text-xs no-underline">Làm</Link>}
           </li>
         ))}
       </ul>
@@ -59,11 +70,11 @@ export default function JourneyPage() {
 
   const view = stored ?? journey
   if (loading && !view) return <div className="rounded-card border border-line bg-white p-5"><ListSkeleton /></div>
-  if (!view || !view.enabled) return <p className="rounded-card border border-line bg-white p-5 text-sm text-muted">Hành trình anyLEARN đang tạm đóng.</p>
+  if (!view || !view.enabled) return <p className="rounded-card border border-line bg-white p-5 text-sm text-muted">Hành trình HỌC không giới hạn đang tạm đóng.</p>
   return (
     <div className="flex flex-col gap-3">
       <div className="rounded-card border border-line bg-gradient-to-br from-green-soft to-white p-4">
-        <h1 className="m-0 text-xl font-extrabold text-ink">Hành trình anyLEARN</h1>
+        <h1 className="m-0 text-xl font-extrabold text-ink">Hành trình HỌC không giới hạn!</h1>
         <p className="m-0 mt-1 text-sm text-muted">
           Mỗi việc nhỏ giúp bạn tìm lớp hợp với bé. Làm xong là <BrandText text="Leo" /> tặng quà ngay, mỗi việc nhận một lần.
         </p>

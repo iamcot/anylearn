@@ -12,6 +12,15 @@ import { CloseIcon } from '@/components/icons'
 const SEEN_KEY = 'leo-guide:seen'
 const subscribeNever = () => () => {}
 
+// Leo steps aside while any popup or sheet is open, so he never sits on top of (or under) its buttons.
+const DIALOG_SELECTOR = '[role="dialog"], [role="alertdialog"], [aria-modal="true"], dialog[open]'
+function subscribeDialogs(cb: () => void) {
+  const observer = new MutationObserver(cb)
+  observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['role', 'aria-modal', 'open'] })
+  return () => observer.disconnect()
+}
+const dialogOpen = () => document.querySelector(DIALOG_SELECTOR) != null
+
 function readSeen(): Record<string, string> {
   try { return JSON.parse(localStorage.getItem(SEEN_KEY) || '{}') } catch { return {} }
 }
@@ -34,6 +43,7 @@ export default function LeoGuide() {
   const journey = useSyncExternalStore(journeyStore.subscribe, journeyStore.get, () => null)
   const storedOff = useSyncExternalStore(subscribeNever, readGuideOff, () => true)
   const off = useSyncExternalStore(guideOff.subscribe, guideOff.get, () => false) || storedOff
+  const covered = useSyncExternalStore(subscribeDialogs, dialogOpen, () => false)
   const [openFor, setOpenFor] = useState<string | null>(null)
   const [line, setLine] = useState(0)
 
@@ -56,7 +66,7 @@ export default function LeoGuide() {
     return () => window.clearTimeout(t)
   }, [guide, off, pathname])
 
-  if (off || !guide) return null
+  if (off || !guide || covered) return null
   const open = openFor === pathname
   const text = guide.lines[line % guide.lines.length]
 

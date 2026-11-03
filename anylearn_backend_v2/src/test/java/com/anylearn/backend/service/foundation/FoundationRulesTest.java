@@ -52,4 +52,11 @@ class FoundationRulesTest {
         assertEquals(3, FoundationRules.bricks(30_000, 10_000));
         assertEquals(1, FoundationRules.bricks(500, 10_000));
     }
+
+    @Test
+    void housesAreNamedByOrder() {
+        assertEquals("căn đầu tiên", FoundationRules.houseOrdinal(1));
+        assertEquals("căn thứ 2", FoundationRules.houseOrdinal(2));
+        assertEquals("Căn thứ 7", FoundationRules.houseTitle(7));
+    }
 }

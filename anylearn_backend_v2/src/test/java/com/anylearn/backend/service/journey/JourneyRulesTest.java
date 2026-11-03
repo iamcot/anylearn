@@ -20,13 +20,14 @@ class JourneyRulesTest {
 
     @Test
     void optionalMissionsDoNotBlockAChapter() {
-        Set<String> done = Set.of("add_child", "interests", "home_address", "notifications");
+        // install_app and notifications are optional: a desktop browser cannot do them
+        Set<String> done = Set.of("add_child", "interests", "home_address");
         assertTrue(JourneyRules.chapterComplete(1, done, ALL));
         assertFalse(JourneyRules.chapterComplete(1, Set.of("add_child"), ALL));
         // a switched-off mission does not block either
         Set<String> enabled = new HashSet<>(ALL);
-        enabled.remove("notifications");
-        assertTrue(JourneyRules.chapterComplete(1, Set.of("add_child", "interests", "home_address"), enabled));
+        enabled.remove("home_address");
+        assertTrue(JourneyRules.chapterComplete(1, Set.of("add_child", "interests"), enabled));
     }
 
     @Test
