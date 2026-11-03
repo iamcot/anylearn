@@ -153,7 +153,7 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 19.B7 | t2m: trang sửa, gửi Khám phá, xuất file social, sau đó YouTube / Facebook API | partial | Có duyệt bằng lệnh, xuất file + caption UTM, gửi Khám phá; còn trang FastAPI, API các kênh |
 | 19.B8 | t2m: `stats` hằng ngày, kế hoạch tuần đọc số liệu | todo | Cần 19.A4 |
 | 19.C1 | Tạo YouTube, TikTok; Search Console, Google Business Profile, Meta Pixel | todo | Chủ sản phẩm làm |
-| 19.C2 | Chiến dịch ra mắt 28 ngày (02/11 đến 29/11/2026) | todo | Lịch trong plan 19 mục 4 |
+| 19.C2 | Chiến dịch ra mắt 28 bài (04/11 đến 01/12/2026, dời từ 02/11) | todo | Lịch mới trong plan 19 mục 4: tuần đầu không cần t2m, video từ 09/11 |
 | 19.C3 | Nhịp đăng thường xuyên + quảng cáo thử | todo | Sau 19.C2 |
 
 ## Nhật ký
@@ -671,3 +671,7 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 - Test: `SeoRulesTest`, `AcquisitionRulesTest`, `AcquisitionFlowTest`, `AdminPermissionsTest`, `StudioRulesTest`, `StudioFlowTest`, `LandingRulesTest`, `ExploreFlowTest` (MariaDB), `lib/seo/*.test.ts`, `lib/explore/publicPath.test.ts`, `lib/acquisition/store.test.ts`, `lib/landing/landing.test.ts`.
 - Chủ sản phẩm cần làm: nộp sitemap vào Search Console và Bing; tạo tài khoản "anyLEARN Studio" (cấp creator) và khóa API cho t2m; bật các trang đích sau khi xem lại.
 - Chưa làm: IndexNow, tự đăng lên mạng xã hội, trang đích ngoài TP.HCM, bản đồ trên trang đích, kiểm tra trên điện thoại thật và với Meilisearch có dữ liệu thật (luồng tìm tổ hợp trang đích chưa chạy với dữ liệu thật).
+
+### 03/11/2026 – Plan 19: dời lịch chiến dịch ra mắt
+- Chiến dịch chưa bắt đầu ngày 02/11 vì t2m chưa thử trên máy thật. Lịch mới 04/11 đến 01/12: tuần đầu 5 bài không cần t2m (carousel, bài chữ), video từ 09/11, video đố vui (19.B5) và ảnh chế (19.B6) dời về 21/11 và 30/11; không bỏ tính năng nào. Tuần 04/11 đến 08/11 dành để thử t2m trên Mac (danh sách việc trong plan 19 mục 4).
+- Đã xong trước đó: sitemap đã nộp Search Console ngày 03/11 (Google nhận 800 link).
