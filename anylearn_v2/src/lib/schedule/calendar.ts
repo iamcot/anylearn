@@ -25,6 +25,8 @@ export interface Enrollment {
   learnerId?: number
   learnerName?: string
   scheduleId?: number
+  /** A flexible class whose start the parent may still pick or change once from the account page. */
+  canChangeStart?: boolean
   /** A video course study plan shown as a calendar slot (not a class: no attendance, opens the learning page). */
   selfStudy?: boolean
 }
@@ -53,6 +55,7 @@ export interface RawEnrollment {
   schedule_title?: string; location_note?: string; status: string
   cycle_type?: string; cycle_amount?: number | string | null
   learner_id?: number; learner_name?: string; schedule_id?: number | null
+  can_change_start?: boolean
 }
 
 export interface RawActivity {
@@ -84,6 +87,7 @@ export function normalizeEnrollment(raw: RawEnrollment): Enrollment {
     learnerId: raw.learner_id,
     learnerName: raw.learner_name,
     scheduleId: raw.schedule_id ?? undefined,
+    canChangeStart: raw.can_change_start ?? undefined,
   }
 }
 

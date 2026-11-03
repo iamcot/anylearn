@@ -21,6 +21,7 @@ import { BookIcon, CalendarIcon, GiftIcon, PencilIcon, UserIcon } from '@/compon
 import { takePendingChildId } from '@/components/guest/guestLearnerStore'
 import { useChildrenVersion } from '@/components/guest/useGuestLearners'
 import Modal from '@/components/Modal'
+import FlexibleStartPicker from '@/components/schedule/FlexibleStartPicker'
 import DuplicateOrderModal from '@/components/orders/DuplicateOrderModal'
 import { usePendingOrders } from '@/components/orders/usePendingOrders'
 import { findDuplicatePendingOrder } from '@/lib/orders/pendingOrders'
@@ -60,6 +61,8 @@ export default function Add2CartPage() {
   const [selectedSchedule, setSelectedSchedule] = useState<number | null>(null)
   const [activities, setActivities] = useState<ActivitySelection>(EMPTY_SELECTION)
   const [startMonth, setStartMonth] = useState('')
+  // Start day of a flexible (open) class, picked from its next class days or any later day.
+  const [flexStart, setFlexStart] = useState('')
   // The learner a link was made for (e.g. a suggestion for Bin): choosing someone else asks once before going on.
   const [intendedChild, setIntendedChild] = useState<number | null>(null)
   const [askOtherLearner, setAskOtherLearner] = useState(false)
@@ -158,6 +161,7 @@ export default function Add2CartPage() {
     setSubmitting(true)
     setError('')
 
+    const openSelected = data.schedules?.find(schedule => schedule.id === selectedSchedule)?.scheduleType === 'open'
     const payload = buildActivityPayload(activities, { trial: !!data.activiyTrial, test: !!data.activiyTest, visit: !!data.activiyVisit })
     const { error: err } = await addToCart({
       itemId: Number(itemId),
@@ -165,7 +169,7 @@ export default function Add2CartPage() {
       planId: selectedPlan ?? undefined,
       scheduleId: selectedSchedule ?? undefined,
       activities: payload.length > 0 ? payload : undefined,
-      startDate: startMonth ? startMonth + '-01' : undefined,
+      startDate: openSelected && flexStart ? flexStart : startMonth ? startMonth + '-01' : undefined,
     }, token)
 
     setSubmitting(false)
@@ -260,19 +264,26 @@ export default function Add2CartPage() {
           <SectionCard icon={<CalendarIcon className="size-5" />} title="Chọn ca học">
             <div className="flex flex-col gap-2.5 p-4 sm:px-5">
               {schedules.map(schedule => (
-                <RadioOption
-                  key={schedule.id}
-                  name="schedule"
-                  checked={selectedSchedule === schedule.id}
-                  onChange={() => setSelectedSchedule(schedule.id)}
-                  label={schedule.title || `Ca ${schedule.id}`}
-                  hint={scheduleLabel(schedule) || undefined}
-                >
-                  {schedule.scheduleType === 'open' && (
-                    <span className="mt-0.5 block text-xs font-medium text-green">Chọn ngày khai giảng linh hoạt sau khi đăng ký</span>
+                <div key={schedule.id}>
+                  <RadioOption
+                    name="schedule"
+                    checked={selectedSchedule === schedule.id}
+                    onChange={() => { if (selectedSchedule !== schedule.id) setFlexStart(''); setSelectedSchedule(schedule.id) }}
+                    label={schedule.title || `Ca ${schedule.id}`}
+                    hint={scheduleLabel(schedule) || undefined}
+                  >
+                    {schedule.scheduleType === 'open' && selectedSchedule !== schedule.id && (
+                      <span className="mt-0.5 block text-xs font-medium text-green">Khai giảng linh hoạt: chọn ngày bắt đầu</span>
+                    )}
+                    {schedule.locationNote && <span className="block text-xs text-muted">{schedule.locationNote}</span>}
+                  </RadioOption>
+                  {schedule.scheduleType === 'open' && selectedSchedule === schedule.id && (
+                    <div className="mt-2 rounded-xl border border-green/40 bg-white p-3 sm:p-4">
+                      <FlexibleStartPicker schedule={schedule} value={flexStart} onChange={setFlexStart} />
+                      <p className="mb-0 mt-1 text-xs text-muted">Bạn vẫn đổi lại được 1 lần trong Tài khoản &gt; Lịch học trước ngày khai giảng.</p>
+                    </div>
                   )}
-                  {schedule.locationNote && <span className="block text-xs text-muted">{schedule.locationNote}</span>}
-                </RadioOption>
+                </div>
               ))}
             </div>
           </SectionCard>

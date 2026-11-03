@@ -201,7 +201,7 @@ public class PaymentApprovalService {
         if (scheduleId != null) {
             itemScheduleRepository.findById(scheduleId).ifPresent(sch -> {
                 if ("open".equals(sch.getScheduleType())) {
-                    e.setStatus("pending"); // user picks start date later
+                    applyFlexibleStart(e, sch, extra.get("startDate") instanceof String sd ? sd : null);
                 } else if ("event".equals(sch.getScheduleType())) {
                     e.setStatus("active");
                     e.setStartDate(sch.getEventDate());
@@ -240,6 +240,25 @@ public class PaymentApprovalService {
         log.info("[approveOrder] created enrollment userId={} itemId={} scheduleId={} status={}",
                 enrolledUserId, itemId, scheduleId, e.getStatus());
         return enrolledUserId;
+    }
+
+    /**
+     * A flexible class starts on the day picked at add-to-cart (moved to the first class day on or after it, and to a
+     * later one when the payment came after it). No day picked = pending: the parent picks it on the account page.
+     */
+    private void applyFlexibleStart(UserCourseEnrollment e, ItemSchedule sch, String picked) {
+        e.setStatus("pending");
+        if (picked == null || picked.isBlank()) return;
+        LocalDate day;
+        try { day = LocalDate.parse(picked.substring(0, Math.min(10, picked.length()))); } catch (Exception ex) { return; }
+        com.anylearn.backend.service.today.ScheduleSlot slot = ScheduleSlot.from(sch);
+        com.anylearn.backend.service.today.FlexibleStartRules.resolve(slot, day, LocalDate.now()).ifPresent(start -> {
+            e.setStatus("active");
+            e.setStartDate(start);
+            Item item = itemRepository.findById(e.getItemId()).orElse(null);
+            if (item != null) e.setEndDate(com.anylearn.backend.service.today.FlexibleStartRules
+                    .endDate(slot, start, item.getCycleType(), item.getCycleAmount()));
+        });
     }
 
     private void fillEndDateBySessionCount(UserCourseEnrollment enrollment, ItemSchedule schedule) {

@@ -149,6 +149,11 @@ Thư mục `http/` chứa VS Code REST Client files cho mọi endpoint:
 - A parent cannot have two children with the same name (accents, case and spacing ignored, `PersonNames`): `POST /user/children` answers 400 "Đã có bé tên …" for a new or renamed child (editing other fields of an old duplicate still works).
 - `POST /user/children` and `POST /user/edit` accept `dob` (+ `dobYearOnly: true` for a birth year); a full `dob` clears the flag. Samples: `http/user.http`.
 
+## Flexible class start date
+
+- A flexible class (`item_schedules.schedule_type = 'open'`) gets its start day at add-to-cart: `/add2cart` expands the chosen open class into `components/schedule/FlexibleStartPicker` (next 3 class days from today + a 4th "Ngày khác" tile; 4 in a row on desktop, 2 x 2 on a phone) and sends `startDate`. The day always becomes the **first class day on or after the picked one**, never before today, never past the class end: `FlexibleStartRules` (backend, pure, tested) and `lib/schedule/flexibleStart.ts` (FE copy, tested), keep in step. `CartService.addToCart` resolves it, `GET /cart` shows "Khai giảng dd/MM/yyyy" in `scheduleTime`, and `PaymentApprovalService` makes the enrollment `active` with that start (moved later when paid after it) and an end date from the course cycle; no day = `pending` as before.
+- The parent may pick or change the start **once** from `/account/schedule` (pending card "Cần xử lý", or "Đổi ngày khai giảng (còn 1 lần)" in the class popup; `StartDateChooser`) and only before the class starts: `PUT /user/enrollments/{id}/start-date` (owner or parent of the learner, open classes only) sets `user_course_enrollments.start_changed_at` (V74) and refuses a second change; `GET /user/schedule` rows carry `can_change_start`.
+
 ## Who the back office notifies
 
 - Notifications for the team (new orders, bank transfers, course requests, leave requests, audit alerts) go to `UserRepository.findAdminNotificationRecipients()`: every user with role `admin` plus the members an admin added in the back office (user menu "Cài đặt" > "Người nhận thông báo admin", `/admin/notification-recipients`; table `admin_notification_recipients`, V19; API `/admin/notification-recipients` GET / PUT `{userIds}` / POST `/test`; `AdminRecipientsService`). Use that method, never `findByRole("admin")`, for a new back-office notification.

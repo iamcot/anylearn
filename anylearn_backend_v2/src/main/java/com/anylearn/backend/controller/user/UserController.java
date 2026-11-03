@@ -1,5 +1,6 @@
 package com.anylearn.backend.controller.user;
 
+import com.anylearn.backend.service.today.FlexibleStartRules;
 import com.anylearn.backend.dto.response.ApiResponse;
 import com.anylearn.backend.entity.User;
 import com.anylearn.backend.repository.ItemActivityRepository;
@@ -184,6 +185,13 @@ public class UserController {
 
     private static java.util.Map<String, Object> withLearner(java.util.Map<String, Object> row, Long learnerId, String learnerName) {
         var copy = new java.util.LinkedHashMap<String, Object>(row);
+        if (FlexibleStartRules.TYPE_OPEN.equals(row.get("schedule_type"))) {
+            Object changed = row.get("start_changed_at");
+            Object start = row.get("start_date");
+            java.time.LocalDate startDay = start == null ? null : java.time.LocalDate.parse(start.toString().substring(0, 10));
+            copy.put("can_change_start", changed == null
+                    && FlexibleStartRules.canChangeFromAccount(startDay, null, java.time.LocalDate.now()));
+        }
         copy.put("learner_id", learnerId);
         copy.put("learner_name", learnerName);
         return copy;
@@ -283,60 +291,41 @@ public class UserController {
         return m;
     }
 
+    /**
+     * The parent picks (or changes) the start day of a flexible class from the account page: once, and only while the
+     * class has not started. The day becomes the first class day on or after the picked one (FlexibleStartRules).
+     */
     @PutMapping("/user/enrollments/{id}/start-date")
     public ApiResponse<?> setEnrollmentStartDate(@PathVariable Long id,
                                                    @org.springframework.web.bind.annotation.RequestBody java.util.Map<String, Object> body,
                                                    @AuthenticationPrincipal User user) {
         if (user == null) return ApiResponse.fail("Unauthorized");
-        return enrollmentRepository.findById(id).map(e -> {
-            if (!e.getUserId().equals(user.getId())) return ApiResponse.fail("Không có quyền");
-            String dateStr = body.get("startDate") instanceof String s ? s : null;
-            if (dateStr == null) return ApiResponse.fail("Thiếu ngày bắt đầu");
-            try {
-                java.time.LocalDate start = java.time.LocalDate.parse(dateStr);
-                e.setStartDate(start);
-                e.setStatus("active");
-                e.setUpdatedAt(java.time.LocalDateTime.now());
-
-                // Compute end_date from item cycleType/cycleAmount + schedule weekdays
-                if (e.getEndDate() == null) {
-                    var item = itemRepository.findById(e.getItemId()).orElse(null);
-                    if (item != null && item.getCycleType() != null && item.getCycleAmount() != null) {
-                        java.time.LocalDate endDate = null;
-                        if ("session".equals(item.getCycleType()) && e.getScheduleId() != null) {
-                            // Count forward sessions on schedule's weekdays
-                            var sch = itemScheduleRepository.findById(e.getScheduleId()).orElse(null);
-                            if (sch != null && sch.getWeekdays() != null) {
-                                java.util.Map<String,Integer> WDM = java.util.Map.of(
-                                    "mon",1,"tue",2,"wed",3,"thu",4,"fri",5,"sat",6,"sun",0);
-                                java.util.Set<Integer> days = new java.util.HashSet<>();
-                                for (String w : sch.getWeekdays().split(",")) {
-                                    Integer v = WDM.get(w.trim()); if (v != null) days.add(v);
-                                }
-                                int count = 0; int target = item.getCycleAmount();
-                                for (java.time.LocalDate d = start; count < target; d = d.plusDays(1)) {
-                                    int dow = d.getDayOfWeek().getValue() % 7;
-                                    if (days.contains(dow)) { endDate = d; count++; }
-                                    if (d.isAfter(start.plusYears(5))) break; // safety cap
-                                }
-                            }
-                        } else {
-                            endDate = switch (item.getCycleType()) {
-                                case "year"  -> start.plusYears(item.getCycleAmount()).minusDays(1);
-                                case "week"  -> start.plusWeeks(item.getCycleAmount()).minusDays(1);
-                                case "day"   -> start.plusDays(item.getCycleAmount()).minusDays(1);
-                                default      -> start.plusMonths(item.getCycleAmount()).minusDays(1);
-                            };
-                        }
-                        if (endDate != null) e.setEndDate(endDate);
-                    }
-                }
-                enrollmentRepository.save(e);
-                return ApiResponse.ok("Đã cập nhật");
-            } catch (Exception ex) {
-                return ApiResponse.fail("Ngày không hợp lệ");
-            }
-        }).orElse(ApiResponse.fail("Không tìm thấy"));
+        var e = enrollmentRepository.findById(id).orElse(null);
+        if (e == null) return ApiResponse.fail("Không tìm thấy");
+        boolean own = e.getUserId().equals(user.getId())
+                || userService.getChildren(user).stream().anyMatch(child -> child.getId().equals(e.getUserId()));
+        if (!own) return ApiResponse.fail("Không có quyền");
+        var sch = e.getScheduleId() == null ? null : itemScheduleRepository.findById(e.getScheduleId()).orElse(null);
+        if (sch == null || !FlexibleStartRules.TYPE_OPEN.equals(sch.getScheduleType()))
+            return ApiResponse.fail("Lớp này có lịch khai giảng cố định");
+        java.time.LocalDate today = java.time.LocalDate.now();
+        if (!FlexibleStartRules.canChangeFromAccount(e.getStartDate(), e.getStartChangedAt(), today))
+            return ApiResponse.fail(e.getStartChangedAt() != null
+                    ? "Bạn đã đổi ngày khai giảng 1 lần, vui lòng liên hệ anyLEARN nếu cần đổi thêm"
+                    : "Lớp đã khai giảng, không đổi được ngày nữa");
+        java.time.LocalDate picked = parseDate(body.get("startDate") instanceof String str ? str : null);
+        if (picked == null) return ApiResponse.fail("Thiếu ngày bắt đầu");
+        var slot = com.anylearn.backend.service.today.ScheduleSlot.from(sch);
+        var start = FlexibleStartRules.resolve(slot, picked, today).orElse(null);
+        if (start == null) return ApiResponse.fail("Ca học không còn buổi nào từ ngày đã chọn, vui lòng chọn ngày khác");
+        var item = itemRepository.findById(e.getItemId()).orElse(null);
+        e.setStartDate(start);
+        e.setEndDate(item == null ? null : FlexibleStartRules.endDate(slot, start, item.getCycleType(), item.getCycleAmount()));
+        e.setStatus("active");
+        e.setStartChangedAt(java.time.LocalDateTime.now());
+        e.setUpdatedAt(java.time.LocalDateTime.now());
+        enrollmentRepository.save(e);
+        return ApiResponse.ok(java.util.Map.of("startDate", start.toString(), "endDate", java.util.Objects.toString(e.getEndDate(), "")));
     }
 
     @GetMapping("/user/join/{itemId}")

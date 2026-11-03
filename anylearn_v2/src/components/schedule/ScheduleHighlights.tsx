@@ -1,7 +1,7 @@
 'use client'
 
 import MissedBadge from './MissedBadge'
-import { useState } from 'react'
+import StartDateChooser from './StartDateChooser'
 import { ACTIVITY_LABELS } from '@/config/itemLabels'
 import type { CalendarEvent, Enrollment } from '@/lib/schedule/calendar'
 import { AlertIcon } from '@/components/icons'
@@ -9,48 +9,25 @@ import { eventColorClass, eventKey, pointOf, type SelectEvent } from './eventSty
 
 interface PendingProps {
   enrollments: Enrollment[]
-  onSetStartDate: (enrollmentId: number, date: string) => Promise<void>
+  onSetStartDate: (enrollmentId: number, date: string) => Promise<string | null>
 }
 
 export function PendingStartDates({ enrollments, onSetStartDate }: PendingProps) {
-  const [dates, setDates] = useState<Record<number, string>>({})
-  const [savingId, setSavingId] = useState<number | null>(null)
-
   if (enrollments.length === 0) return null
-
-  const save = async (id: number) => {
-    const date = dates[id]
-    if (!date) return
-    setSavingId(id)
-    await onSetStartDate(id, date)
-    setSavingId(null)
-  }
 
   return (
     <div className="rounded-[10px] border border-warn-line bg-warn-soft px-3.5 py-2.5">
       <div className="mb-2 text-[11px] font-medium uppercase tracking-[0.06em] text-warn-text">Cần xử lý</div>
       {enrollments.map(enrollment => (
-        <div key={enrollment.id} className="mb-2 last:mb-0">
-          <div className="mb-1 flex items-start gap-2 text-[13px]">
+        <div key={enrollment.id} className="mb-3 last:mb-0">
+          <div className="mb-2 flex items-start gap-2 text-[13px]">
             <AlertIcon className="mt-0.5 size-4 shrink-0 text-warn-text" />
-            <span><strong>{enrollment.itemTitle}</strong> — Chọn ngày khai giảng</span>
+            <span>
+              <strong>{enrollment.itemTitle}</strong>{enrollment.learnerName ? ` (${enrollment.learnerName})` : ''} — Chọn ngày khai giảng
+            </span>
           </div>
-          <div className="flex flex-wrap items-center gap-2 pl-6">
-            <input
-              type="date"
-              value={dates[enrollment.id] ?? ''}
-              onChange={event => setDates(prev => ({ ...prev, [enrollment.id]: event.target.value }))}
-              aria-label={`Ngày khai giảng ${enrollment.itemTitle}`}
-              className="min-h-11 rounded-lg border border-line bg-white px-2 text-xs"
-            />
-            <button
-              type="button"
-              onClick={() => save(enrollment.id)}
-              disabled={!dates[enrollment.id] || savingId === enrollment.id}
-              className="min-h-11 cursor-pointer rounded-full border-0 bg-green px-4 text-xs font-medium text-white disabled:opacity-50"
-            >
-              {savingId === enrollment.id ? '...' : 'Xác nhận'}
-            </button>
+          <div className="rounded-xl bg-white p-3">
+            <StartDateChooser enrollment={enrollment} onSave={onSetStartDate} />
           </div>
         </div>
       ))}

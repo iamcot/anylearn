@@ -101,6 +101,7 @@ export default function ChatRoomPage() {
   const [sending, setSending] = useState(false)
   const [notice, setNotice] = useState('')
   const bottomRef = useRef<HTMLDivElement>(null)
+  const composerRef = useRef<HTMLDivElement>(null)
   const lastId = useRef(0)
 
 
@@ -150,7 +151,25 @@ export default function ChatRoomPage() {
     return () => es.close()
   }, [joined, apiToken, roomId, poll])
 
-  useEffect(() => { bottomRef.current?.scrollIntoView({ block: 'end' }) }, [messages.length])
+  // `overflow-x: hidden` on body (globals.css) makes body a scroll box, so `position: sticky` never sticks to the screen
+  // and the composer ends up below the last message out of view; clip keeps the page from scrolling sideways without that.
+  useEffect(() => {
+    document.body.style.overflowX = 'clip'
+    return () => { document.body.style.overflowX = '' }
+  }, [])
+
+  // The composer sticks to the bottom (above the app tabs on a phone) and covers whatever is under it: scroll the last
+  // message to just above it, not to the bottom of the screen.
+  useEffect(() => {
+    const end = bottomRef.current
+    const composer = composerRef.current
+    if (!end) return
+    // instant: html has smooth scrolling, and the second step measures where the first one landed
+    end.scrollIntoView({ block: 'end', behavior: 'instant' })
+    if (!composer) return
+    const hidden = end.getBoundingClientRect().bottom - composer.getBoundingClientRect().top
+    if (hidden > 0) window.scrollBy({ top: hidden + 8, behavior: 'instant' })
+  }, [messages.length, replyTo, notice])
 
   const join = async (name: string): Promise<string | null> => {
     if (!token) return 'Chưa đăng nhập'
@@ -242,7 +261,7 @@ export default function ChatRoomPage() {
         {messages.length === 0 && <p className="py-10 text-center text-sm text-muted">Chưa có tin nhắn. Hãy là người đầu tiên chào lớp.</p>}
         <div ref={bottomRef} />
       </div>
-      <div className="sticky bottom-[calc(3.75rem+var(--app-tabs-pad))] border-t border-line bg-white px-3 py-2 lg:bottom-0">
+      <div ref={composerRef} className="sticky bottom-[calc(3.75rem+var(--app-tabs-pad))] border-t border-line bg-white px-3 py-2 lg:bottom-0">
         {notice && <p className="mb-1 text-sm font-semibold text-green-dark">{notice}</p>}
         {room.locked && !moderator ? (
           <p className="py-2 text-center text-sm text-muted">Nhóm đang tạm khóa, bạn chỉ đọc được tin nhắn.</p>
@@ -269,6 +288,8 @@ export default function ChatRoomPage() {
           </>
         )}
       </div>
+      {/* room under the composer for the app tabs (this zone gets no body padding), so the page can scroll the last message above it */}
+      <div aria-hidden className="h-[var(--app-tabs-h)] shrink-0 lg:hidden" />
     </div>
   )
 }

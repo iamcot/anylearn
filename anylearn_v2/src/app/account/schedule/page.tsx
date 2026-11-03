@@ -87,15 +87,24 @@ export default function SchedulePage() {
 
   const select: SelectEvent = (event, position) => setSelected({ event, position })
 
-  const handleSetStartDate = async (enrollmentId: number, date: string) => {
-    if (!authHeader) return
-    const response = await fetch(`${API_BASE}/user/enrollments/${enrollmentId}/start-date`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', ...authHeader },
-      body: JSON.stringify({ startDate: date }),
-    })
-    if (response.ok) {
-      setEnrollments(prev => prev.map(e => (e.id === enrollmentId ? { ...e, status: 'active', startDate: date } : e)))
+  // Pick or change the start of a flexible class (once): the server moves it to the first class day on or after it.
+  const handleSetStartDate = async (enrollmentId: number, date: string): Promise<string | null> => {
+    if (!authHeader) return 'Vui lòng đăng nhập lại'
+    try {
+      const response = await fetch(`${API_BASE}/user/enrollments/${enrollmentId}/start-date`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', ...authHeader },
+        body: JSON.stringify({ startDate: date }),
+      })
+      const json = await response.json().catch(() => null)
+      if (!response.ok || !json || Number(json.resultCode) !== 1) return json?.message || 'Không lưu được ngày khai giảng'
+      const startDate: string = json.data?.startDate ?? date
+      const endDate: string | undefined = json.data?.endDate || undefined
+      setEnrollments(prev => prev.map(e => (e.id === enrollmentId ? { ...e, status: 'active', startDate, endDate, canChangeStart: false } : e)))
+      setSelected(null)
+      return null
+    } catch {
+      return 'Không lưu được ngày khai giảng'
     }
   }
 
@@ -174,6 +183,7 @@ export default function SchedulePage() {
 
       {selected && (
         <EventPopup event={selected.event} position={selected.position} onClose={() => setSelected(null)} onCancelActivity={handleCancelActivity}
+          onChangeStart={handleSetStartDate}
           attendance={attendanceState(selected.event, attended, toISO(new Date()), nowTime())} onMarkAttended={markAttended} />
       )}
     </AccountCard>

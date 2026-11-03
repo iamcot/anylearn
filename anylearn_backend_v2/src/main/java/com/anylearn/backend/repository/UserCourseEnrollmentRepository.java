@@ -15,7 +15,7 @@ public interface UserCourseEnrollmentRepository extends JpaRepository<UserCourse
 
     @Query(value = """
         SELECT uce.id, uce.user_id, uce.item_id, uce.order_id, uce.schedule_id,
-               uce.start_date, uce.end_date, uce.billing_period, uce.status,
+               uce.start_date, uce.end_date, uce.billing_period, uce.status, uce.start_changed_at,
                isc.schedule_type, isc.weekdays, isc.time_start, isc.time_end,
                isc.date_start, isc.date_end, isc.event_date,
                isc.title AS schedule_title,
