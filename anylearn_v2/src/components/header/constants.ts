@@ -13,6 +13,7 @@ export const MEMBER_NAV_LINKS = TODAY_NAV.filter(item => ['Cộng đồng', 'Hô
 export const DESKTOP_NAV_LINKS = [NAV_LINKS[0], ...MEMBER_NAV_LINKS]
 
 export const ACCOUNT_MENU = [
+  { href: '/account', label: 'Tổng quan tài khoản' },
   { href: '/today', label: 'Hôm nay' },
   { href: '/account/journey', label: 'Hành trình HỌC không giới hạn!' },
   { href: '/account/rewards', label: 'Ưu đãi của tôi' },

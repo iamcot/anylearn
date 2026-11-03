@@ -75,7 +75,8 @@ export default async function PartnerPage({ params }: Props) {
           <div className="min-w-0 flex-1">
             <span className="inline-flex rounded-full bg-green-soft px-3 py-1 text-xs font-medium text-green-dark">{kind}</span>
             <h1 className="m-0 mt-1 text-2xl font-extrabold text-ink lg:text-3xl">{profile.name}</h1>
-            {profile.title && <p className="m-0 mt-1 text-muted">{profile.title}</p>}
+            {/* a school's title is its internal contact person: never shown */}
+            {profile.title && profile.role !== 'school' && <p className="m-0 mt-1 text-muted">{profile.title}</p>}
             <p className="m-0 mt-2 text-sm text-muted">{summary.courseCount} khóa đang mở</p>
           </div>
           <FollowButton partnerId={id} initialFollowers={summary.followerCount} />

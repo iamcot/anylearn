@@ -106,6 +106,8 @@ export default function AccountHomePage() {
         </div>
       )}
 
+      <h1 className="m-0 hidden text-xl font-extrabold text-ink lg:block">Tổng quan tài khoản</h1>
+
       <JourneyCard />
 
       <TierCard />

@@ -33,7 +33,9 @@ function DesktopSidebar({ pathname, user, onLogout }: {
   return (
     <aside className="hidden h-fit lg:block">
       <div className="sticky top-24 overflow-hidden rounded-card border border-line bg-white">
-        <div className="flex items-center gap-3 border-b border-line p-5">
+        {/* name and phone open the account overview (the /account page), like the phone menu */}
+        <Link href={ACCOUNT_HOME} aria-current={pathname === ACCOUNT_HOME ? 'page' : undefined}
+          className={`flex items-center gap-3 border-b border-line p-5 no-underline transition-colors hover:bg-bg ${pathname === ACCOUNT_HOME ? 'bg-blue-soft' : ''}`}>
           {user.image
             // eslint-disable-next-line @next/next/no-img-element
             ? <img src={user.image} alt={user.name} className="size-12 rounded-full border-2 border-line object-cover" />
@@ -43,7 +45,7 @@ function DesktopSidebar({ pathname, user, onLogout }: {
             <div className="truncate text-sm font-extrabold text-ink">{user.name}</div>
             <div className="truncate text-xs text-muted">{user.phone}</div>
           </div>
-        </div>
+        </Link>
 
         <nav className="py-2">
           {NAV_ITEMS.map(({ href, label, Icon, isPoint }) => {

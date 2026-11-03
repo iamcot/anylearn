@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import ApplyRow from '@/components/cart/ApplyRow'
+import { ChevronRightIcon, CloseIcon, TagIcon } from '@/components/icons'
 import { getVouchersForCart, quoteVoucher, type WalletVoucher } from '@/lib/api/vouchers'
 import { bestVoucher, conditionLine, expiryLabel, formatVnd, sortForCheckout } from '@/lib/vouchers/rules'
 
@@ -22,8 +23,9 @@ interface Props {
 }
 
 /**
- * Checkout voucher box (plan 20): the voucher wallet first (vouchers that fit the cart, the best one pre-selected, the
- * others greyed with the reason), a link to the wallet page, then "Có mã giảm giá?" that opens the code field.
+ * Checkout voucher box (plan 20): one row "Ví voucher (n)" with the chosen voucher (the best one is pre-selected); a tap
+ * opens the wallet as a popup (a sheet from the bottom on a phone, at least half the screen) where the vouchers that fit
+ * the cart can be picked and the others are greyed with the reason. Below, "Có mã giảm giá?" opens the code field.
  */
 export default function VoucherPicker({ token, cartKey, value, onChange }: Props) {
   const [items, setItems] = useState<WalletVoucher[]>([])
@@ -31,7 +33,7 @@ export default function VoucherPicker({ token, cartKey, value, onChange }: Props
   const [code, setCode] = useState('')
   const [codeError, setCodeError] = useState('')
   const [codeLoading, setCodeLoading] = useState(false)
-  const [showAll, setShowAll] = useState(false)
+  const [sheetOpen, setSheetOpen] = useState(false)
   // The code field stays a short text link until the person opens it (as in the old checkout).
   const [codeOpen, setCodeOpen] = useState(false)
 
@@ -53,7 +55,7 @@ export default function VoucherPicker({ token, cartKey, value, onChange }: Props
   }, [token, cartKey])
 
   const sorted = sortForCheckout(items)
-  const visible = showAll ? sorted : sorted.slice(0, 3)
+  const chosen = value?.walletId ? items.find(v => v.id === value.walletId) : null
 
   const applyCode = async () => {
     if (!code.trim()) return
@@ -70,54 +72,19 @@ export default function VoucherPicker({ token, cartKey, value, onChange }: Props
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex items-center justify-between gap-2 text-xs">
-        <span className="font-bold text-ink">Ví voucher của bạn{loaded ? ` (${sorted.length})` : ''}</span>
-        <Link href="/account/vouchers" className="font-semibold text-green-dark no-underline">Xem ví ›</Link>
-      </div>
-      {loaded && sorted.length === 0 && (
-        <p className="m-0 rounded-xl border border-dashed border-line bg-bg px-3 py-2.5 text-xs text-muted">
-          Ví chưa có voucher. Voucher bạn nhận từ Hành trình, sự kiện hay nhập mã sẽ nằm ở đây.
-        </p>
-      )}
-      {loaded && sorted.length > 0 && (
-        <ul className="m-0 flex list-none flex-col gap-2 p-0" aria-label="Voucher trong ví">
-          {visible.map(v => {
-            const usable = !v.problem && (v.discount ?? 0) > 0
-            const selected = value?.walletId === v.id
-            const exp = expiryLabel(v.expiresAt)
-            return (
-              <li key={v.id}>
-                <button
-                  type="button"
-                  disabled={!usable}
-                  aria-pressed={selected}
-                  onClick={() => onChange(selected ? null : { walletId: v.id, label: v.title, discount: v.discount ?? 0 })}
-                  className={`flex w-full cursor-pointer items-center gap-3 rounded-xl border p-3 text-left font-[inherit] ${
-                    selected ? 'border-green bg-green-soft' : 'border-line bg-white'
-                  } disabled:cursor-not-allowed disabled:opacity-60`}
-                >
-                  <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-green text-xs font-extrabold text-white">
-                    {Math.round(v.value / 1000)}K
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-bold text-ink">{v.title}</span>
-                    <span className="block text-xs text-muted">{conditionLine(v)}{exp ? ` · ${exp}` : ''}</span>
-                    {!usable && v.problem && <span className="block text-xs text-red">{v.problem}</span>}
-                  </span>
-                  {usable && (
-                    <span className="shrink-0 text-right text-sm font-bold text-green-dark">−{formatVnd(v.discount ?? 0)}</span>
-                  )}
-                </button>
-              </li>
-            )
-          })}
-        </ul>
-      )}
-      {sorted.length > 3 && (
-        <button type="button" onClick={() => setShowAll(s => !s)}
-          className="cursor-pointer self-start border-0 bg-transparent p-0 font-[inherit] text-xs font-medium text-green-dark underline">
-          {showAll ? 'Thu gọn' : `Xem thêm ${sorted.length - 3} voucher`}
-        </button>
+      <button type="button" onClick={() => setSheetOpen(true)}
+        className="flex min-h-12 w-full cursor-pointer items-center gap-3 rounded-xl border border-line bg-white px-3 py-2.5 text-left font-[inherit]">
+        <TagIcon className="size-5 shrink-0 text-green" />
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-bold text-ink">Ví voucher{loaded ? ` (${sorted.length})` : ''}</span>
+          <span className="block truncate text-xs text-muted">{chosen ? chosen.title : sorted.length > 0 ? 'Chọn voucher' : 'Chưa có voucher'}</span>
+        </span>
+        {chosen && <span className="shrink-0 text-sm font-bold text-green-dark">−{formatVnd(value?.discount ?? 0)}</span>}
+        <ChevronRightIcon className="size-4 shrink-0 text-muted" />
+      </button>
+      {sheetOpen && (
+        <WalletSheet items={sorted} selectedId={value?.walletId ?? null} onClose={() => setSheetOpen(false)}
+          onPick={v => { onChange(v ? { walletId: v.id, label: v.title, discount: v.discount ?? 0 } : null); setSheetOpen(false) }} />
       )}
       {value?.code && !value.walletId && (
         <div className="flex items-center justify-between rounded-xl border border-green bg-green-soft p-3 text-sm">
@@ -143,6 +110,76 @@ export default function VoucherPicker({ token, cartKey, value, onChange }: Props
           Có mã giảm giá? Nhập mã
         </button>
       )}
+    </div>
+  )
+}
+
+/** A voucher ticket drawn in SVG for the empty wallet. */
+function EmptyVoucherArt() {
+  return (
+    <svg viewBox="0 0 120 80" className="h-20 w-28" aria-hidden>
+      <path d="M10 14a6 6 0 0 1 6-6h88a6 6 0 0 1 6 6v14a10 10 0 0 0 0 24v14a6 6 0 0 1-6 6H16a6 6 0 0 1-6-6V52a10 10 0 0 0 0-24Z" fill="#e8f6ee" stroke="#9fd8b8" strokeWidth="2" />
+      <path d="M42 12v56" stroke="#9fd8b8" strokeWidth="2" strokeDasharray="4 4" />
+      <text x="26" y="45" textAnchor="middle" fontSize="16" fontWeight="800" fill="#00a551">%</text>
+      <rect x="52" y="28" width="44" height="7" rx="3.5" fill="#c3e8d2" />
+      <rect x="52" y="42" width="30" height="6" rx="3" fill="#dcf1e5" />
+    </svg>
+  )
+}
+
+function WalletSheet({ items, selectedId, onPick, onClose }: {
+  items: WalletVoucher[]
+  selectedId: number | null
+  onPick: (v: WalletVoucher | null) => void
+  onClose: () => void
+}) {
+  return (
+    <div className="fixed inset-0 z-[2000] flex items-end justify-center bg-ink/45 lg:items-center lg:p-4" onClick={onClose}>
+      <div role="dialog" aria-modal="true" aria-label="Ví voucher" onClick={e => e.stopPropagation()}
+        className="flex max-h-[85vh] min-h-[50vh] w-full max-w-[480px] flex-col rounded-t-3xl bg-white pb-[env(safe-area-inset-bottom)] shadow-raised lg:min-h-[420px] lg:rounded-[18px]">
+        <div className="flex items-center justify-between border-b border-line px-5 py-3">
+          <h3 className="m-0 text-base font-extrabold text-ink">Ví voucher ({items.length})</h3>
+          <button type="button" aria-label="Đóng" onClick={onClose} className="-mr-2 grid size-11 cursor-pointer place-items-center border-0 bg-transparent text-muted hover:text-ink">
+            <CloseIcon />
+          </button>
+        </div>
+        {items.length === 0 ? (
+          <div className="flex flex-1 flex-col items-center justify-center gap-3 p-6 text-center">
+            <EmptyVoucherArt />
+            <p className="m-0 text-sm font-bold text-ink">Bạn chưa có voucher nào</p>
+            <p className="m-0 text-xs text-muted">Voucher bạn nhận từ Hành trình, sự kiện hay nhập mã sẽ nằm ở đây.</p>
+          </div>
+        ) : (
+          <ul className="m-0 flex flex-1 list-none flex-col gap-2 overflow-y-auto p-4" aria-label="Voucher trong ví">
+            {items.map(v => {
+              const usable = !v.problem && (v.discount ?? 0) > 0
+              const selected = selectedId === v.id
+              const exp = expiryLabel(v.expiresAt)
+              return (
+                <li key={v.id}>
+                  <button type="button" disabled={!usable} aria-pressed={selected} onClick={() => onPick(selected ? null : v)}
+                    className={`flex w-full cursor-pointer items-center gap-3 rounded-xl border p-3 text-left font-[inherit] ${
+                      selected ? 'border-green bg-green-soft' : 'border-line bg-white'
+                    } disabled:cursor-not-allowed disabled:opacity-60`}>
+                    <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-green text-xs font-extrabold text-white">
+                      {Math.round(v.value / 1000)}K
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-bold text-ink">{v.title}</span>
+                      <span className="block text-xs text-muted">{conditionLine(v)}{exp ? ` · ${exp}` : ''}</span>
+                      {!usable && v.problem && <span className="block text-xs text-red">{v.problem}</span>}
+                    </span>
+                    {usable && <span className="shrink-0 text-right text-sm font-bold text-green-dark">−{formatVnd(v.discount ?? 0)}</span>}
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+        )}
+        <div className="border-t border-line px-5 py-3 text-center">
+          <Link href="/account/vouchers" className="text-sm font-semibold text-green-dark no-underline">Xem ví voucher ›</Link>
+        </div>
+      </div>
     </div>
   )
 }
