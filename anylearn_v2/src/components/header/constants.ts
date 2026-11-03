@@ -15,17 +15,14 @@ export const DESKTOP_NAV_LINKS = [NAV_LINKS[0], ...MEMBER_NAV_LINKS]
 export const ACCOUNT_MENU = [
   { href: '/account', label: 'Tổng quan tài khoản' },
   { href: '/today', label: 'Hôm nay' },
+  { href: '/account/orders', label: 'Khóa học của tôi' },
+  { href: '/account/schedule', label: 'Lịch học' },
+  { href: '/account/children', label: 'Quản lý người học' },
   { href: '/account/journey', label: 'Hành trình HỌC không giới hạn!' },
   { href: '/account/rewards', label: 'Ưu đãi của tôi' },
   { href: '/account/vouchers', label: 'Ví voucher' },
   { href: '/account/anypoint', label: 'anyPoint' },
   { href: '/account/profile', label: 'Thông tin cá nhân' },
-  { href: '/account/children', label: 'Tài khoản của con' },
-  { href: '/account/orders', label: 'Đơn hàng của tôi' },
-  { href: '/account/favorites', label: 'Yêu thích' },
-  { href: '/account/schedule', label: 'Lịch học' },
-  { href: '/account/videos', label: 'Khóa học video' },
-  { href: '/account/course-codes', label: 'Mã code khóa học' },
   { href: '/account/change-password', label: 'Đổi mật khẩu' },
 ]
 

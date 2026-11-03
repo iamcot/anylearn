@@ -4,8 +4,14 @@ import { Suspense, useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/context/AuthContext'
-import { getUserOrders, cancelOrder, getCourseUrl, type UserOrder } from '@/lib/api'
+import { getUserOrders, cancelOrder, getCourseUrl, getUserItemCodes, type ItemCode, type UserOrder } from '@/lib/api'
+import { getMyVideoCourses, type MyVideoCourse } from '@/lib/api/learn'
+import { learnHref } from '@/lib/learn/rules'
 import OrderItemRating from '@/components/OrderItemRating'
+import Modal from '@/components/Modal'
+import ItemCodeLines from '@/components/account/ItemCodeLines'
+import FavoriteCourses from '@/components/account/FavoriteCourses'
+import { KeyIcon, PlayIcon } from '@/components/icons'
 import AccountCard from '@/components/account/AccountCard'
 import Badge, { type BadgeTone } from '@/components/Badge'
 import { formatPrice } from '@/lib/format/price'
@@ -21,7 +27,7 @@ const UNPAID_STATUSES = new Set(['new', 'pay_pending'])
 const STATUS_LABELS: Record<string, { label: string; tone: BadgeTone }> = {
   new:           { label: 'Mới',            tone: 'neutral' },
   pay_pending:   { label: 'Chờ thanh toán', tone: 'warning' },
-  delivered:     { label: 'Hoàn thành',     tone: 'success' },
+  delivered:     { label: 'Đã thanh toán',  tone: 'success' },
   cancel_buyer:  { label: 'Đã hủy',         tone: 'danger' },
   cancel_system: { label: 'Đã hủy',         tone: 'danger' },
   cancel_seller: { label: 'Đã hủy',         tone: 'danger' },
@@ -37,6 +43,37 @@ const PAYMENT_LABELS: Record<string, string> = {
   installment:   'Trả góp',
 }
 
+const ROW_BUTTON = 'inline-flex min-h-11 items-center gap-1.5 rounded-full px-4 text-xs font-bold no-underline'
+
+/** Progress, self-study plan and the "Đi học" button of a video course, under its title. */
+function VideoRow({ course }: { course: MyVideoCourse }) {
+  return (
+    <>
+      <div className="flex items-center gap-2">
+        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-bg"><div className="h-full rounded-full bg-green" style={{ width: `${course.percent}%` }} /></div>
+        <span className="shrink-0 text-xs font-bold text-green-dark">{course.percent}%</span>
+      </div>
+      {course.plan?.enabled && <div className="mt-1 text-xs text-muted">Lịch tự học: {course.plan.text}</div>}
+    </>
+  )
+}
+
+function GoLearn({ course }: { course: MyVideoCourse }) {
+  return (
+    <Link href={learnHref(course.itemId, course.resumeLessonId, course.learnerId)} className={`${ROW_BUTTON} bg-green text-white hover:opacity-90`}>
+      <PlayIcon className="size-3.5" /> Đi học
+    </Link>
+  )
+}
+
+function ShowCodes({ onOpen }: { onOpen: () => void }) {
+  return (
+    <button type="button" onClick={onOpen} className={`${ROW_BUTTON} cursor-pointer border-0 bg-blue text-white hover:opacity-90`}>
+      <KeyIcon className="size-3.5" /> Xem mã code
+    </button>
+  )
+}
+
 function OrdersContent() {
   const { token } = useAuth()
   const searchParams = useSearchParams()
@@ -46,11 +83,25 @@ function OrdersContent() {
   const [cancellingId, setCancellingId] = useState<string | null>(null)
   const [confirmId, setConfirmId] = useState<string | null>(null)
   const [pickedTab, setPickedTab] = useState<OrderTab | null>(null)
+  const [videos, setVideos] = useState<MyVideoCourse[]>([])
+  const [codes, setCodes] = useState<ItemCode[]>([])
+  const [codesFor, setCodesFor] = useState<{ title: string; codes: ItemCode[] } | null>(null)
 
   useEffect(() => {
     if (!token) return
     getUserOrders(token).then(data => { setOrders(data); setLoading(false) })
+    getMyVideoCourses(token).then(res => setVideos(res.data ?? []))
+    getUserItemCodes(token).then(setCodes)
   }, [token])
+
+  // A paid line shows its video progress or its codes; a video of the line's learner first, else any learner's.
+  const videoOf = (itemId: number, learnerId?: number) =>
+    videos.find(v => v.itemId === itemId && v.learnerId === learnerId) ?? videos.find(v => v.itemId === itemId)
+  const codesOf = (itemId: number) => codes.filter(c => c.itemId === itemId)
+  const paidItemIds = new Set(orders.filter(order => orderTab(order.status) === 'completed').flatMap(order => order.items.map(item => item.itemId)))
+  // Courses the person has without a paid order here (given by anyLEARN, for example).
+  const otherVideos = videos.filter(v => !paidItemIds.has(v.itemId))
+  const otherCodes = Array.from(new Map(codes.filter(c => !paidItemIds.has(c.itemId)).map(c => [c.itemId, c])).values())
 
   async function handleCancel(orderId: string) {
     if (!token) return
@@ -78,7 +129,20 @@ function OrdersContent() {
   const shownOrders = byChild.filter(order => orderTab(order.status) === activeTab)
 
   return (
-    <AccountCard title="Đơn hàng của tôi">
+    <div className="flex flex-col gap-4">
+    {codesFor && (
+      <Modal title={codesFor.title} onClose={() => setCodesFor(null)} maxWidth="max-w-[480px]">
+        <div className="flex max-h-[60vh] flex-col gap-4 overflow-y-auto">
+          {codesFor.codes.map(code => (
+            <div key={code.codeId}>
+              {codesFor.codes.length > 1 && code.createdAt && <div className="mb-1 text-xs text-muted">Mua ngày {formatDate(code.createdAt)}</div>}
+              <ItemCodeLines code={code.code} />
+            </div>
+          ))}
+        </div>
+      </Modal>
+    )}
+    <AccountCard title="Khóa học của tôi">
       {!loading && orders.length > 0 && (
         <div className="flex gap-2 overflow-x-auto border-b border-line px-4 py-3 sm:px-5" role="tablist">
           {ORDER_TABS.map(tab => (
@@ -107,8 +171,8 @@ function OrdersContent() {
       {loading ? (
         <div className="p-5"><ListSkeleton showTitle={false} /></div>
       ) : orders.length === 0 ? (
-        <div className="p-10 text-center text-sm text-muted">Chưa có đơn hàng nào.</div>
-      ) : shownOrders.length === 0 ? (
+        <div className="p-10 text-center text-sm text-muted">Bạn chưa đăng ký khóa học nào.</div>
+      ) : shownOrders.length === 0 && !(activeTab === 'completed' && (otherVideos.length > 0 || otherCodes.length > 0)) ? (
         <div className="p-10 text-center text-sm text-muted">Không có đơn nào trong mục này.</div>
       ) : (
         <div className="divide-y divide-line">
@@ -174,16 +238,74 @@ function OrdersContent() {
                           {index === 0 && <div className="text-xs text-muted">{paymentLabel}</div>}
                         </div>
                       </div>
-                      {order.status === 'delivered' && <OrderItemRating itemId={item.itemId} />}
+                      {orderTab(order.status) === 'completed' && (() => {
+                        const video = videoOf(item.itemId, item.learnerId)
+                        const itemCodes = codesOf(item.itemId)
+                        return (
+                          <div className={item.image ? 'pl-14' : ''}>
+                            {video && <div className="mt-2"><VideoRow course={video} /></div>}
+                            <div className="mt-2 flex flex-wrap items-center gap-2">
+                              {video && <GoLearn course={video} />}
+                              {itemCodes.length > 0 && <ShowCodes onOpen={() => setCodesFor({ title: item.title, codes: itemCodes })} />}
+                              {order.status === 'delivered' && <OrderItemRating itemId={item.itemId} className="" />}
+                            </div>
+                          </div>
+                        )
+                      })()}
                     </div>
                   ))}
                 </div>
               </div>
             )
           })}
+          {activeTab === 'completed' && (otherVideos.length > 0 || otherCodes.length > 0) && (
+            <div className="px-4 py-4 sm:px-5">
+              <div className="mb-3 text-xs font-bold text-muted">Khóa học khác của bạn</div>
+              <div className="flex flex-col gap-4">
+                {otherVideos.map(video => (
+                  <OtherCourse key={`v-${video.learnerId}-${video.itemId}`} itemId={video.itemId} title={video.title} image={video.image}
+                    learner={video.self ? undefined : video.learnerName}>
+                    <div className="mt-2"><VideoRow course={video} /></div>
+                    <div className="mt-2 flex flex-wrap items-center gap-2"><GoLearn course={video} /><OrderItemRating itemId={video.itemId} className="" /></div>
+                  </OtherCourse>
+                ))}
+                {otherCodes.map(code => (
+                  <OtherCourse key={`c-${code.itemId}`} itemId={code.itemId} title={code.itemTitle} image={code.itemImage}>
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <ShowCodes onOpen={() => setCodesFor({ title: code.itemTitle, codes: codesOf(code.itemId) })} />
+                      <OrderItemRating itemId={code.itemId} className="" />
+                    </div>
+                  </OtherCourse>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </AccountCard>
+    <FavoriteCourses />
+    </div>
+  )
+}
+
+function OtherCourse({ itemId, title, image, learner, children }: { itemId: number; title: string; image?: string | null; learner?: string; children: React.ReactNode }) {
+  const url = getCourseUrl({ id: itemId, title })
+  return (
+    <div>
+      <div className="flex items-center gap-3">
+        {image && (
+          <Link href={url} target="_blank" rel="noopener noreferrer" className="shrink-0">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={image} alt="" loading="lazy" className="size-11 rounded-lg object-cover" />
+          </Link>
+        )}
+        <div className="min-w-0 flex-1">
+          <Link href={url} target="_blank" rel="noopener noreferrer" className="line-clamp-2 block text-sm font-bold text-ink no-underline hover:underline">{title}</Link>
+          {learner && <div className="text-xs text-muted">Học sinh: {learner}</div>}
+        </div>
+      </div>
+      <div className={image ? 'pl-14' : ''}>{children}</div>
+    </div>
   )
 }
 

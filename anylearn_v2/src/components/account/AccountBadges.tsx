@@ -2,7 +2,7 @@
 
 import { usePendingOrders } from '@/components/orders/usePendingOrders'
 
-// Red number next to "Đơn hàng của tôi" while orders wait for payment.
+// Red number next to "Khóa học của tôi" while orders wait for payment.
 export function PendingOrdersPill() {
   const count = usePendingOrders().length
   if (count === 0) return null

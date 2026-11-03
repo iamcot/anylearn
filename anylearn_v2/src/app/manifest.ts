@@ -22,7 +22,7 @@ export default function manifest(): MetadataRoute.Manifest {
     shortcuts: [
       { name: 'Hôm nay', url: '/today', icons: SHORTCUT_ICON },
       { name: 'Tìm khóa học', url: '/search', icons: SHORTCUT_ICON },
-      { name: 'Đơn hàng của tôi', url: '/account/orders', icons: SHORTCUT_ICON },
+      { name: 'Khóa học của tôi', url: '/account/orders', icons: SHORTCUT_ICON },
     ],
   }
 }

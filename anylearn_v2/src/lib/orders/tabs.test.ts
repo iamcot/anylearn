@@ -21,8 +21,9 @@ describe('defaultOrderTab', () => {
     expect(defaultOrderTab(null, ['delivered', 'pay_pending'])).toBe('pending')
   })
 
-  it('otherwise opens the tab of the newest order', () => {
-    expect(defaultOrderTab(null, ['cancel_buyer', 'delivered'])).toBe('cancelled')
+  it('otherwise opens the paid tab', () => {
+    expect(defaultOrderTab(null, ['cancel_buyer', 'delivered'])).toBe('completed')
+    expect(defaultOrderTab(null, ['cancel_buyer'])).toBe('completed')
     expect(defaultOrderTab(null, [])).toBe('completed')
   })
 })

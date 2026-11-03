@@ -6,7 +6,8 @@ import StarRating from './StarRating'
 import { StarIcon } from './icons'
 import { useItemRatingStatus, type MyRating } from './useItemRatingStatus'
 
-export default function OrderItemRating({ itemId }: { itemId: number }) {
+/** `className` sets the outer margin; while the form is open the block takes the full row. */
+export default function OrderItemRating({ itemId, className = 'mt-2' }: { itemId: number; className?: string }) {
   const { checked, hasPurchased, myRating, saveRating } = useItemRatingStatus(itemId)
   const [open, setOpen] = useState(false)
 
@@ -16,10 +17,11 @@ export default function OrderItemRating({ itemId }: { itemId: number }) {
   }
 
   if (!checked || !hasPurchased) return null
+  const box = `${className} ${open ? 'w-full' : ''}`
 
   if (!myRating) {
     return (
-      <div className="mt-2">
+      <div className={box}>
         {open ? (
           <>
             <RatingForm itemId={itemId} onSaved={handleSaved} />
@@ -40,7 +42,7 @@ export default function OrderItemRating({ itemId }: { itemId: number }) {
   }
 
   return (
-    <div className="mt-2">
+    <div className={box}>
       {open ? (
         <>
           <RatingForm
