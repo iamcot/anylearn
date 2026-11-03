@@ -393,9 +393,16 @@ body {
 .leo-stride-a { animation: leo-stride-a .55s ease-in-out infinite }
 .leo-stride-b { animation: leo-stride-b .55s ease-in-out infinite }
 .leo-wave { animation: leo-wave .5s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 0 }
+/* Leo hands over coins (plan 21, components/journey/LeoReward): coins jump out of Leo's hands and fall into the card. */
+@keyframes reward-coin { 0% { transform: translateY(30px) scale(.4); opacity: 0 } 35% { transform: translateY(-34px) scale(1.1); opacity: 1 } 100% { transform: translateY(70px) scale(.8); opacity: 0 } }
+.reward-coin { display: inline-block; animation: reward-coin 1.2s ease-out infinite both }
+/* Foundation: the row of the house being built pulses softly. */
+@keyframes brick-pulse { 0%, 100% { opacity: 1 } 50% { opacity: .55 } }
+.brick-pulse { animation: brick-pulse 1.6s ease-in-out infinite }
 .leo-still .leo-bob, .leo-still .leo-leg-a, .leo-still .leo-leg-b, .leo-still .leo-arm-a, .leo-still .leo-arm-b { animation: none }
 @media (prefers-reduced-motion: reduce) {
-  .leo-bob, .leo-stride-a, .leo-stride-b, .leo-wave, .leo-leg-a, .leo-leg-b, .leo-arm-a, .leo-arm-b, .leo-eyes, .leo-pop { animation: none }
+  .leo-bob, .leo-stride-a, .leo-stride-b, .leo-wave, .leo-leg-a, .leo-leg-b, .leo-arm-a, .leo-arm-b, .leo-eyes, .leo-pop, .reward-coin, .brick-pulse { animation: none }
+  .reward-coin { opacity: 1 }
 }
 
 /* Vui học: light from the sun, several layers that sway and breathe */

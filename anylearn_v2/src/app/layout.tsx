@@ -12,6 +12,9 @@ import ToastProvider from '@/components/ToastProvider'
 import ServiceWorkerRegister from '@/components/pwa/ServiceWorkerRegister'
 import GuestLearnerHost from '@/components/guest/GuestLearnerHost'
 import UtmCapture from '@/components/acquisition/UtmCapture'
+import JourneyHost from '@/components/journey/JourneyHost'
+import LeoReward from '@/components/journey/LeoReward'
+import LeoGuide from '@/components/journey/LeoGuide'
 import { shareMeta } from '@/lib/seo/shareMeta'
 import { siteOrigin } from '@/lib/achievements/share'
 
@@ -60,6 +63,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <ServiceWorkerRegister />
             <GuestLearnerHost />
             <UtmCapture />
+            <JourneyHost />
+            <LeoGuide />
+            <LeoReward />
           </ToastProvider>
         </AuthProvider>
       </body>

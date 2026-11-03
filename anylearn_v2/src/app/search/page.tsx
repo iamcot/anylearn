@@ -26,6 +26,7 @@ import LearnerChips, { useLearnerChips } from '@/components/search/LearnerChips'
 import FilterBar from '@/components/search/FilterBar'
 import CollectVouchers from '@/components/vouchers/CollectVouchers'
 import { useAuth } from '@/context/AuthContext'
+import { useJourneySignal } from '@/components/journey/useJourneySignal'
 import { MapIcon } from '@/components/icons'
 import { GOOGLE_MAPS_KEY } from '@/lib/maps/googleMaps'
 import { ALL_LEARNERS, readActiveLearner, writeActiveLearner, type LearnerChip } from '@/lib/search/learners'
@@ -50,6 +51,7 @@ function SearchPageInner() {
   const [options, setOptions] = useState<SearchOptions>({ districts: [], tags: [] })
   const [filtersOpen, setFiltersOpen] = useState(false)
   const { token } = useAuth()
+  useJourneySignal(token, 'near', !!state.adv.near)
   const learnerChips = useLearnerChips()
   const { history, remember, clear: clearHistory } = useSearchHistory()
   const headingRef = useRef<HTMLHeadingElement>(null)

@@ -209,3 +209,93 @@ export function reminderFor(days: Pick<TodayData, 'learner' | 'nextSession'>[], 
     ? `${best.who} sắp có lớp ${best.title} lúc ${clock} rồi, chuẩn bị thôi nào!`
     : `${best.who} có lớp ${best.title} lúc ${clock} hôm nay, đừng mải chơi mà quên giờ nhé!`
 }
+
+// ── Leo guide across the app (plan 21) ─────────────────────────────────
+
+/** Pages where the small Leo never shows: buying, paying, learning and full-screen games (he must never cover those buttons). */
+export const GUIDE_HIDDEN_PREFIXES = ['/class/', '/checkout', '/add2cart', '/order/', '/learn/', '/login', '/register', '/fun', '/quiz-thu', '/compare', '/admin']
+
+/** What the guide knows about the person. */
+export interface GuideContext {
+  signedIn: boolean
+  /** Journey rewards waiting to be paid. */
+  ready?: number
+  /** The next journey mission. */
+  next?: { key: string; label: string; hint: string; route: string; coins: number } | null
+  coinName?: string
+}
+
+export interface Guide {
+  /** One key per page kind, used for "auto-open at most once per page per day". */
+  pageKey: string
+  lines: string[]
+  action?: { label: string; href: string }
+  /** True only when there is something real to say (a reward, a mission on this page, a visitor's welcome on home). */
+  auto: boolean
+}
+
+function pageKeyOf(path: string): string {
+  if (path === '/' || path === '') return 'home'
+  return path.split('?')[0].split('/').filter(Boolean)[0] ?? 'home'
+}
+
+function samePage(route: string, path: string): boolean {
+  const target = route.split('?')[0]
+  return target === path || (target !== '/' && path.startsWith(target + '/'))
+}
+
+const PAGE_TIPS: Record<string, string[]> = {
+  home: ['Chào bạn! Mình là Leo. Bấm vào mình khi cần gợi ý nhé.'],
+  search: ['Bật "Gần tôi" để thấy lớp gần nhà.', 'Bấm "+ So sánh" trên 2 khóa để xem bảng so sánh.'],
+  today: ['Đây là lịch học hôm nay của cả nhà.', 'Bé đến lớp thì nhớ điểm danh nha!'],
+  account: ['Hành trình anyLEARN có quà ở mỗi chương đó.'],
+  foundation: ['Mỗi khóa học bạn đăng ký góp gạch xây nhà vệ sinh cho trường vùng cao.'],
+  partner: ['Bấm "Theo dõi" để biết khi trường mở lớp mới.'],
+  collections: ['Bộ sưu tập do anyLEARN chọn theo mùa.'],
+}
+
+/** What Leo says on a page, or null on pages where he hides. Pure, tested. */
+export function guideFor(path: string, ctx: GuideContext): Guide | null {
+  const clean = path.split('?')[0] || '/'
+  if (GUIDE_HIDDEN_PREFIXES.some(p => clean === p.replace(/\/$/, '') || clean.startsWith(p))) return null
+  const pageKey = pageKeyOf(clean)
+  const coinName = ctx.coinName || 'Leo Xu'
+  if (!ctx.signedIn) {
+    if (pageKey === 'home' || pageKey === 'search') {
+      return {
+        pageKey,
+        lines: ['Đăng ký tài khoản để Leo tặng quà chào mừng và bắt đầu Hành trình anyLEARN!', 'Chưa muốn đăng ký? Chơi thử 5 câu đố nuôi dạy con nhé.'],
+        action: { label: 'Chơi thử', href: '/quiz-thu' },
+        auto: pageKey === 'home',
+      }
+    }
+    return PAGE_TIPS[pageKey] ? { pageKey, lines: PAGE_TIPS[pageKey], auto: false } : null
+  }
+  if ((ctx.ready ?? 0) > 0) {
+    return {
+      pageKey,
+      lines: [`Bạn có ${ctx.ready} phần quà Hành trình đang chờ nè!`],
+      action: { label: 'Nhận quà', href: '/account/journey' },
+      auto: true,
+    }
+  }
+  if (ctx.next && samePage(ctx.next.route, clean)) {
+    const reward = ctx.next.coins > 0 ? ` (+${ctx.next.coins} ${coinName})` : ''
+    return { pageKey, lines: [`Nhiệm vụ: ${ctx.next.label}${reward}`, ctx.next.hint], auto: true }
+  }
+  const tips = PAGE_TIPS[pageKey]
+  if (ctx.next) {
+    return {
+      pageKey,
+      lines: [...(tips ?? []), `Nhiệm vụ tiếp theo: ${ctx.next.label}`],
+      action: { label: 'Làm ngay', href: ctx.next.route },
+      auto: false,
+    }
+  }
+  return tips ? { pageKey, lines: tips, auto: false } : null
+}
+
+/** "Auto-open at most once per page per day": `seen` maps a page key to the day it last opened by itself. */
+export function shouldAutoOpen(guide: Guide | null, seen: Record<string, string>, day: string): boolean {
+  return !!guide && guide.auto && seen[guide.pageKey] !== day
+}

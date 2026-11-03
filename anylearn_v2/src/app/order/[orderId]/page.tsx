@@ -1,6 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import OrderFoundationNote from '@/components/foundation/OrderFoundationNote'
+import { orderRewards } from '@/lib/journey/rules'
+import { enqueueRewards, nudgeJourneyClaim } from '@/lib/journey/store'
 import { useAuth } from '@/context/AuthContext'
 import { useRouter, useParams, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
@@ -148,6 +151,15 @@ export default function OrderPage() {
     refreshPendingOrders(token, true)
   }, [token, isApproved, orderId, refreshUser])
 
+  // Leo hands over the first-order / referral rewards once per order and browser tab session (plan 21).
+  useEffect(() => {
+    if (!isApproved || !order?.rewards?.length) return
+    const key = `order-rewards:${orderId}`
+    try { if (sessionStorage.getItem(key)) return; sessionStorage.setItem(key, '1') } catch { /* private mode */ }
+    enqueueRewards(orderRewards(order.rewards))
+    nudgeJourneyClaim()
+  }, [isApproved, order?.rewards, orderId])
+
   if (isAuthLoading) return <FormPageSkeleton />
   if (!user) return null
 
@@ -223,6 +235,8 @@ export default function OrderPage() {
                 {order.amount != null && <div className="flex justify-between border-t border-line pt-1"><span className="font-bold text-ink">Số tiền thanh toán</span><span className="font-extrabold text-ink">{formatVnd(order.amount)}</span></div>}
               </div>
             )}
+
+            {isApproved && order.foundation && <OrderFoundationNote foundation={order.foundation} />}
 
             {isApproved && (order.pointsEarned ?? 0) > 0 && (
               <PointsEarnedNote pointsEarned={order.pointsEarned ?? 0} balance={user.walletC} />

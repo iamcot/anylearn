@@ -8,6 +8,7 @@ import RegisterButton from './RegisterButton'
 import PointsRewardBadge from '@/components/points/PointsRewardBadge'
 import PromiseStrip from '@/components/promise/PromiseStrip'
 import CollectVouchers from '@/components/vouchers/CollectVouchers'
+import FoundationItemLine from '@/components/foundation/FoundationItemLine'
 import ReportPriceButton from '@/components/promise/ReportPriceButton'
 import FavButton from '@/components/FavButton'
 import ReviewsSection from '@/components/ReviewsSection'
@@ -222,6 +223,7 @@ export default async function PdpPage({ params }: Props) {
               <ActivityButton itemId={item.id}
                 activiyTrial={item.activiyTrial} activiyTest={item.activiyTest} activiyVisit={item.activiyVisit} />
               <PromiseStrip />
+              <div className="mt-3"><FoundationItemLine itemId={item.id} /></div>
               <CollectVouchers place="pdp" itemId={item.id} title="Voucher dùng cho khóa này" className="mt-4" />
               <div className="mt-3"><ReportPriceButton itemId={item.id} /></div>
             </div>

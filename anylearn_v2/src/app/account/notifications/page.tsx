@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext'
 import { sendTestPush } from '@/lib/api'
 import NotificationPrefsForm from '@/components/account/NotificationPrefs'
 import AccountCard from '@/components/account/AccountCard'
+import LeoGuideSwitch from '@/components/journey/LeoGuideSwitch'
 import Alert from '@/components/Alert'
 import { ListSkeleton } from '@/components/PageSkeleton'
 import { useToast } from '@/components/ToastProvider'
@@ -103,7 +104,7 @@ export default function NotificationSettingsPage() {
   return (
     <AccountCard title="Thông báo" subtitle="Nhắc lịch học, xác nhận thanh toán, đổi lịch và tin từ anyLEARN">
       <div className="max-w-xl p-4 sm:p-5">
-        {isAuthLoading ? <ListSkeleton showTitle={false} /> : <><DeviceStatus push={push} /><NotificationPrefsForm /></>}
+        {isAuthLoading ? <ListSkeleton showTitle={false} /> : <><DeviceStatus push={push} /><NotificationPrefsForm /><LeoGuideSwitch /></>}
       </div>
     </AccountCard>
   )

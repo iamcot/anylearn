@@ -7,6 +7,9 @@ import { useAuth } from '@/context/AuthContext'
 import { getMeSummary, type MeSummary } from '@/lib/api'
 import AccountCard from '@/components/account/AccountCard'
 import TierCard from '@/components/membership/TierCard'
+import JourneyCard from '@/components/journey/JourneyCard'
+import LearnerTierCard from '@/components/learnertier/LearnerTierCard'
+import MyBricksCard from '@/components/foundation/MyBricksCard'
 import { PendingOrdersPill, PointBadge } from '@/components/account/AccountBadges'
 import { NAV_ITEMS } from '@/components/account/navItems'
 import { ChevronRightIcon, LogoutIcon } from '@/components/icons'
@@ -83,6 +86,8 @@ export default function AccountHomePage() {
         </div>
       )}
 
+      <JourneyCard />
+
       <TierCard />
 
       <AccountCard title="Cần làm ngay">
@@ -90,6 +95,10 @@ export default function AccountHomePage() {
       </AccountCard>
 
       {summary && <Children summary={summary} />}
+
+      <LearnerTierCard />
+
+      <MyBricksCard />
 
       <div className="lg:hidden">
         <AccountCard title="Tài khoản">

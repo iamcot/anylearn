@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { getMeChild, saveChild, type MeChild } from '@/lib/api'
 import AccountCard from '@/components/account/AccountCard'
+import LearnerTierCard from '@/components/learnertier/LearnerTierCard'
 import ChildFormModal, { type ChildDraft } from '@/components/ChildFormModal'
 import ChildInterestsModal from '@/components/ChildInterestsModal'
 import { ListSkeleton } from '@/components/PageSkeleton'
@@ -74,6 +75,8 @@ export default function ChildPage() {
           </p>
         )}
       </AccountCard>
+
+      <LearnerTierCard learnerId={child.id} />
 
       <AccountCard title="Khóa học của bé">
         {child.courses.length === 0 ? (

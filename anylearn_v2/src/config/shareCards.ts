@@ -180,6 +180,24 @@ export const SHARE_CARDS = {
     art: 'leo_front',
     colors: FUN,
   },
+  foundation: {
+    title: 'anyLEARN Foundation - Nhà vệ sinh cho trường vùng cao',
+    description: 'Mỗi khóa học bạn đăng ký trên anyLEARN góp gạch xây nhà vệ sinh cho các trường vùng cao. Xem căn nhà đang xây và những căn đã xong.',
+    eyebrow: 'anyLEARN Foundation',
+    headline: 'Mỗi khóa học góp một viên gạch',
+    sub: 'Xây nhà vệ sinh cho trường vùng cao · Đơn đầu tiên góp gấp đôi',
+    art: 'logo',
+    colors: ['#fff6ec', '#ffd9b8'],
+  },
+  quizthu: {
+    title: 'Đố vui nuôi dạy con cùng Leo - anyLEARN',
+    description: '5 câu đố vui về nuôi dạy con, chơi ngay không cần đăng ký. Đăng ký để lưu điểm và nhận quà từ Leo.',
+    eyebrow: 'Chơi thử miễn phí',
+    headline: 'Bạn hiểu con đến đâu?',
+    sub: '5 câu đố nuôi dạy con · Không cần đăng ký',
+    art: 'leo_rank',
+    colors: FUN,
+  },
 } satisfies Record<string, ShareCard>
 
 export type ShareCardKey = keyof typeof SHARE_CARDS

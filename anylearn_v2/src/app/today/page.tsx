@@ -1,6 +1,7 @@
 'use client'
 
 import PendingOrdersCard from '@/components/orders/PendingOrdersCard'
+import JourneyCard from '@/components/journey/JourneyCard'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
@@ -102,6 +103,7 @@ function TodayContent() {
   return (
     <PageFrame>
       <div className="mb-4 empty:hidden"><PendingOrdersCard /></div>
+      {token && <div className="mb-4 empty:hidden"><JourneyCard /></div>}
       {token && <div className="mb-4 empty:hidden"><SurveyCard key={selectedId} learnerId={selectedId} token={token} /></div>}
       {token && <div className="mb-4 empty:hidden"><VideoTodayCard key={selectedId} learnerId={selectedId} token={token} /></div>}
       {token && <div className="mb-4 empty:hidden"><MissedAttendanceCard key={`${selectedId}-${reloadCount}`} learnerId={selectedId} token={token} /></div>}

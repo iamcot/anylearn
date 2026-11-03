@@ -59,6 +59,9 @@ export interface OrderData {
   familyDiscount?: number
   // VND taken off by a voucher, and anyPoint spent on the order
   voucherDiscount?: number
+  /** Plan 21: first-order / referral rewards this order gave the buyer, and its anyLEARN Foundation share. */
+  rewards?: { kind: string; points: number; coins: number }[]
+  foundation?: { amount: number; label: string; houseNo: number; housesBuilt: number; percent: number } | null
   pointsUsed?: number
   // When the order is cancelled if it is still unpaid (only while it waits for payment)
   expiresAt?: string
