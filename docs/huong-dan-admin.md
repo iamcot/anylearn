@@ -758,5 +758,5 @@ Trên trang: bật / tắt từng mẫu, đổi mã mẫu khi Zalo duyệt mẫu
 ### Tài khoản tự đăng ký (chặn bot)
 
 Khách tự đăng ký trên web giờ được kiểm tra: chỉ nhận **số di động Việt Nam** (03, 05, 07, 08, 09, đủ 10 số; gõ +84 cũng được), họ tên thật (tên một chữ dài toàn chữ hoa thường lẫn lộn như "FOBGDAdlCASpcaOT" bị từ chối), email đúng dạng nếu có, mật khẩu từ 6 ký tự. Một địa chỉ mạng chỉ đăng ký được **5 tài khoản mỗi giờ, 20 mỗi ngày** (gia đình dùng chung wifi vẫn đủ).
-- Tài khoản mới có role **member** (Thành viên) và có **Ngày tạo**. Tài khoản đăng ký trước đây mang role "user" và nhiều tài khoản thiếu ngày tạo: ngày tạo đã được điền lại cho những tài khoản có ghi nhận "Nguồn khách"; đổi role cũ sang member làm riêng khi có quyết định.
+- Tài khoản mới có role **member** (Thành viên) và có **Ngày tạo**. Tài khoản đăng ký trước đây mang role "user" và nhiều tài khoản thiếu ngày tạo: ngày tạo đã được điền lại cho những tài khoản có ghi nhận "Nguồn khách". Tài khoản cũ đã được đổi sang member, **trừ tài khoản nghi là bot**: những tài khoản này giữ role "user", lọc role user ở trang Thành viên là ra danh sách để khóa.
 - Danh sách tài khoản nghi là bot (số không phải di động Việt Nam, tên ngẫu nhiên): nhờ kỹ thuật chạy `scripts/suspect_bot_signups.sql` (chỉ đọc). Không tự xóa: khóa tài khoản (Trạng thái) nếu cần.

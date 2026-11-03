@@ -7,8 +7,8 @@ FROM users u
 WHERE u.is_child = 0
   AND u.role IN ('user', 'member')
   AND (u.phone NOT REGEXP '^0[35789][0-9]{8}$'
-       OR (u.name NOT LIKE '% %' AND CHAR_LENGTH(u.name) >= 10 AND u.name REGEXP BINARY '^.(.*[A-Z]){4}'))
+       OR (u.name NOT LIKE '% %' AND CHAR_LENGTH(u.name) >= 10 AND (u.name COLLATE utf8mb4_bin) REGEXP '^.(.*[A-Z]){4}'))
 ORDER BY u.id DESC;
 
--- How many self registrations still carry the old role 'user' (members by mistake):
+-- After V76 the accounts still on role 'user' are the suspects V76 left alone:
 SELECT COUNT(*) AS role_user FROM users WHERE role = 'user';
