@@ -14,7 +14,6 @@ export const DESKTOP_NAV_LINKS = [NAV_LINKS[0], ...MEMBER_NAV_LINKS]
 
 export const ACCOUNT_MENU = [
   { href: '/account', label: 'Tổng quan tài khoản' },
-  { href: '/today', label: 'Hôm nay' },
   { href: '/account/orders', label: 'Khóa học của tôi' },
   { href: '/account/schedule', label: 'Lịch học' },
   { href: '/account/children', label: 'Quản lý người học' },
