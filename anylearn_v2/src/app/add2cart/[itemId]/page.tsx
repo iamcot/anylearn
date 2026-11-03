@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
-import { getCartInfo, addToCart, saveChild, CartInfoData, ItemSchedule, getCourseUrl } from '@/lib/api'
+import { getCartInfo, getCart, addToCart, saveChild, CartInfoData, ItemSchedule, getCourseUrl } from '@/lib/api'
+import { firstFreeLearner, learnersInCart, type LearnerChoice } from '@/lib/cart/learners'
 import { formatPrice } from '@/lib/format/price'
 import { formatSchedule } from '@/lib/format/schedule'
 import { CYCLE_LABELS } from '@/config/itemLabels'
@@ -57,6 +58,8 @@ export default function Add2CartPage() {
   const [error, setError] = useState('')
 
   const [selectedStudent, setSelectedStudent] = useState<number | null>(null)
+  // Learners who already have this course in the cart: shown but not selectable (the server refuses a second line).
+  const [inCart, setInCart] = useState<Set<LearnerChoice>>(new Set())
   const [selectedPlan, setSelectedPlan] = useState<number | null>(null)
   const [selectedSchedule, setSelectedSchedule] = useState<number | null>(null)
   const [activities, setActivities] = useState<ActivitySelection>(EMPTY_SELECTION)
@@ -86,7 +89,9 @@ export default function Add2CartPage() {
       openAuthModal('login', () => router.refresh())
       return
     }
-    getCartInfo(Number(itemId), token).then(info => {
+    Promise.all([getCartInfo(Number(itemId), token), getCart(token).catch(() => [])]).then(([info, cart]) => {
+      const taken = learnersInCart(cart, Number(itemId))
+      setInCart(taken)
       setData(info)
       setLoading(false)
       if (info?.plans && info.plans.length > 0) setSelectedPlan(info.plans[0].id)
@@ -98,7 +103,8 @@ export default function Add2CartPage() {
       // The child created from what the visitor told us before registering is picked unless a link chose another one.
       const pendingChildId = takePendingChildId()
       const preselected = childId || pendingChildId
-      if (preselected && info?.children?.some(c => c.id === preselected)) setSelectedStudent(preselected)
+      const wanted = preselected && info?.children?.some(c => c.id === preselected) ? preselected : null
+      setSelectedStudent(firstFreeLearner(wanted, info?.children?.map(c => c.id) ?? [], taken))
       if (childId && info?.children?.some(c => c.id === childId)) setIntendedChild(childId)
       const start = params.get('start')
       if (start && /^\d{4}-\d{2}$/.test(start)) setStartMonth(start)
@@ -190,6 +196,12 @@ export default function Add2CartPage() {
   const schedules: ItemSchedule[] = data.schedules ?? []
   const isBillingOnly = schedules.length === 0 && !!item.cycleType && BILLING_CYCLES.includes(item.cycleType)
   const cycleAmount = item.cycleAmount && item.cycleAmount > 1 ? `${item.cycleAmount} ` : ''
+  const learnerHint = (id: LearnerChoice, dob?: string | null) => {
+    const age = dob ? `${calcAge(dob)} tuổi` : ''
+    if (!inCart.has(id)) return age || undefined
+    return [age, 'Đã có trong giỏ hàng'].filter(Boolean).join(' · ')
+  }
+  const selectionInCart = inCart.has(selectedStudent)
 
   return (
     <div className="section bg-bg py-6 lg:py-10">
@@ -222,7 +234,7 @@ export default function Add2CartPage() {
             <div className="flex items-stretch gap-2">
               <div className="flex-1">
                 <RadioOption name="student" checked={selectedStudent === null} onChange={() => setSelectedStudent(null)} label={`${user.name} (Tôi)`}
-                  hint={selfDob ? `${calcAge(selfDob)} tuổi` : undefined} />
+                  hint={learnerHint(null, selfDob)} disabled={inCart.has(null)} />
               </div>
               <button type="button" onClick={() => setEditingSelf(true)}
                 aria-label="Sửa ngày sinh của bạn" title="Sửa ngày sinh"
@@ -238,7 +250,8 @@ export default function Add2CartPage() {
                     checked={selectedStudent === child.id}
                     onChange={() => setSelectedStudent(child.id)}
                     label={child.name}
-                    hint={child.dob ? `${calcAge(child.dob)} tuổi` : undefined}
+                    hint={learnerHint(child.id, child.dob)}
+                    disabled={inCart.has(child.id)}
                   />
                 </div>
                 <button type="button" onClick={() => setChildDraft({ id: child.id, name: child.name, dob: child.dob ?? '' })}
@@ -348,7 +361,13 @@ export default function Add2CartPage() {
 
         {error && <div className="mb-4 rounded-xl border border-red-line bg-red-soft px-4 py-3 text-red">{error}</div>}
 
-        <button type="button" onClick={() => handleAddToCart()} className="btn btn--green mb-3 w-full p-4 text-[17px]" disabled={submitting}>
+        {selectionInCart && (
+          <div className="mb-4 rounded-xl border border-warn-line bg-warn-soft px-4 py-3 text-sm text-warn-text">
+            Người học này đã có khóa này trong giỏ hàng. Chọn hoặc thêm một người học khác.
+          </div>
+        )}
+
+        <button type="button" onClick={() => handleAddToCart()} className="btn btn--green mb-3 w-full p-4 text-[17px]" disabled={submitting || selectionInCart}>
           {submitting ? 'Đang thêm...' : 'Thêm vào giỏ hàng'}
         </button>
         {askOtherLearner && intendedChild && (

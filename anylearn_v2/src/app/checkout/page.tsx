@@ -17,6 +17,7 @@ import { refreshPendingOrders } from '@/components/orders/pendingOrdersStore'
 import PaymentMethodSelector from '@/components/PaymentMethodSelector'
 import SectionCard from '@/components/SectionCard'
 import OrderLine from '@/components/cart/OrderLine'
+import { addLearnerHref, addLearnerLineIds } from '@/lib/cart/learners'
 import { cartRewardLabel, sumCartPoints } from '@/lib/points/reward'
 import { PRICE_GUARANTEE_LINE } from '@/config/promise'
 import ApplyRow from '@/components/cart/ApplyRow'
@@ -196,11 +197,21 @@ export default function CheckoutPage() {
     }
   }
 
+  const addLearnerIds = addLearnerLineIds(items)
+
   return (
     <div className="section section--soft py-6 lg:py-10">
       <div className="container max-w-[900px]">
 
-        <SectionCard icon={<CartIcon className="size-5" />} title="Đơn hàng của bạn">
+        <SectionCard
+          icon={<CartIcon className="size-5" />}
+          title="Đơn hàng của bạn"
+          action={
+            <Link href="/search" className="inline-flex min-h-11 shrink-0 items-center whitespace-nowrap text-[13px] font-bold text-green-dark no-underline hover:underline sm:text-sm">
+              + Thêm khóa học<span className="hidden sm:inline">&nbsp;khác</span>
+            </Link>
+          }
+        >
           {loading ? (
             <div className="p-5"><ListSkeleton showTitle={false} /></div>
           ) : items.length === 0 ? (
@@ -215,6 +226,11 @@ export default function CheckoutPage() {
                   <OrderLine
                     key={item.cartItemId}
                     item={item}
+                    learnerAction={addLearnerIds.has(item.cartItemId) && (
+                      <Link href={addLearnerHref(item.itemId)} className="inline-flex min-h-8 items-center text-xs font-bold text-green-dark no-underline hover:underline">
+                        + Thêm người học
+                      </Link>
+                    )}
                     action={
                       <button type="button" aria-label={`Xóa ${item.title} khỏi giỏ`} onClick={() => handleRemove(item.cartItemId)} className={REMOVE_BUTTON_CLASS}>
                         <CloseIcon className="size-5" />
