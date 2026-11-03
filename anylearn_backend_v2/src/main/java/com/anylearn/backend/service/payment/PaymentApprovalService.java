@@ -50,6 +50,11 @@ public class PaymentApprovalService {
     private com.anylearn.backend.service.zns.ZnsNotifier znsNotifier;
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private com.anylearn.backend.service.voucher.VoucherService voucherService;
+    // Plan 21: Foundation share of the order, first-order and referral rewards.
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.anylearn.backend.service.foundation.FoundationService foundationService;
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.anylearn.backend.service.milestone.MilestoneService milestoneService;
 
     @Transactional
     public void approveOrder(Long orderId, String paymentMethod) {
@@ -165,6 +170,9 @@ public class PaymentApprovalService {
                 "Thanh toán đơn hàng #" + orderId, 1);
 
         fireVoucherEvents(order, details);
+        boolean firstOrder = orderRepository.findByUserIdAndStatusInOrderByIdDesc(order.getUserId(), List.of(OrderStatus.DELIVERED)).size() <= 1;
+        if (foundationService != null) foundationService.onOrderPaid(orderId, order.getUserId(), firstOrder);
+        if (milestoneService != null) milestoneService.onOrderPaid(orderId, order.getUserId(), firstOrder);
 
         log.info("[approveOrder] order {} fully approved via {}", orderId, paymentMethod);
     }

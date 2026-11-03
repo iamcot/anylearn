@@ -61,6 +61,10 @@ public class CartService {
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private com.anylearn.backend.service.voucher.VoucherService voucherService;
     @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.anylearn.backend.service.milestone.MilestoneService milestoneService;
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.anylearn.backend.service.foundation.FoundationService foundationService;
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
     private ConfigurationRepository configurationRepository;
 
     private static final int POINT_RATE = 1000; // 1 anyPoint = 1,000 VND (kept for reference)
@@ -693,6 +697,8 @@ public class CartService {
         view.put("transferNote", TransferNote.forOrder(order.getId()));
         view.put("pointsEarned", pointsEarned);
         view.put("voucherDiscount", voucherService != null ? voucherService.discountOfOrder(order.getId()) : 0L);
+        if (milestoneService != null) view.put("rewards", milestoneService.ofOrder(order.getId(), order.getUserId()));
+        if (foundationService != null) view.put("foundation", foundationService.ofOrder(order.getId()));
         view.put("pointsUsed", transactionRepository.findByOrderIdAndType(order.getId(), "exchange").stream()
                 .mapToLong(t -> Math.abs(t.getAmount() != null ? t.getAmount() : 0L)).sum());
         view.put("familyDiscount", details.stream().mapToLong(d -> Math.max(0L,

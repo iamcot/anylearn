@@ -142,11 +142,6 @@ public class ConfigController {
         return ApiResponse.ok(result);
     }
 
-    @GetMapping("/foundation")
-    public ApiResponse<?> foundation() {
-        return ApiResponse.fail("Not implemented");
-    }
-
     @GetMapping("/doc/{key}")
     public ApiResponse<?> getDoc(@PathVariable String key) {
         return configurationRepository.findByKey(key)
