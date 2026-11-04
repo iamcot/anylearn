@@ -1,6 +1,7 @@
 import {
   Alert, App, Button, Card, Drawer, Empty, Form, Input, InputNumber, Modal, Popconfirm, Radio, Select, Space, Switch, Tag, Tooltip, Typography, Upload,
 } from 'antd'
+import SettingInput, { settingLabel } from './SettingInput'
 import {
   ArrowDownOutlined, ArrowUpOutlined, DeleteOutlined, EditOutlined, MinusCircleOutlined, PlusOutlined, ReloadOutlined, SettingOutlined, UploadOutlined,
 } from '@ant-design/icons'
@@ -175,7 +176,7 @@ function SettingsModal({ open, onClose }) {
             <div key={group}>
               <Typography.Title level={5}>{group}</Typography.Title>
               {fields.map(f => (
-                <Form.Item key={f.key} name={f.key} label={f.label}><InputNumber min={f.min} max={f.max} /></Form.Item>
+                <Form.Item key={f.key} name={f.key} label={settingLabel(f)}><SettingInput field={f} style={{ width: 'auto' }} /></Form.Item>
               ))}
             </div>
           ))}
