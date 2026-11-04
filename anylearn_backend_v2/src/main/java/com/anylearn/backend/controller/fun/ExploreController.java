@@ -79,7 +79,7 @@ public class ExploreController {
     @PostMapping("/{id}/share")
     public ApiResponse<?> share(@AuthenticationPrincipal User user, @PathVariable long id) {
         if (user == null) return ApiResponse.fail("Unauthorized");
-        explore.countShare(id);
+        explore.countShare(user.getId(), id);
         return ApiResponse.ok(Map.of("ok", true));
     }
 

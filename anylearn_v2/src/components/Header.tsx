@@ -6,7 +6,7 @@ import { useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import HeaderBack from './header/HeaderBack'
 import UpcomingEventsBar from './UpcomingEventsBar'
-import { CartIcon, MenuIcon, SearchIcon } from './icons'
+import { CartIcon, MenuIcon, SearchIcon, ZaloIcon } from './icons'
 import AccountMenu from './header/AccountMenu'
 import CountBadge from './header/CountBadge'
 import MobileMenu from './header/MobileMenu'
@@ -65,8 +65,7 @@ export default function Header() {
         <div className="hidden lg:flex items-center gap-2.5">
           <Link href="/search" onClick={isToday ? markBrowsing : undefined} aria-label="Tìm khóa học" className={ICON_BUTTON_CLASS}><SearchIcon /></Link>
           <a href={ZALO_SUPPORT_URL} target="_blank" rel="noopener noreferrer" aria-label="Chat Zalo với anyLEARN" className={ICON_BUTTON_CLASS}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/cdn/img/zalo.png" alt="" className="size-6 object-contain" />
+            <ZaloIcon />
           </a>
           <Link href="/checkout" aria-label="Giỏ hàng" className={ICON_BUTTON_CLASS}>
             <CartIcon />
@@ -87,8 +86,7 @@ export default function Header() {
               className={ICON_BUTTON_CLASS}><SearchIcon /></Link>
           )}
           <a href={ZALO_SUPPORT_URL} target="_blank" rel="noopener noreferrer" aria-label="Chat Zalo với anyLEARN" className={ICON_BUTTON_CLASS}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/cdn/img/zalo.png" alt="" className="size-6 object-contain" />
+            <ZaloIcon />
           </a>
           <Link href="/checkout" aria-label="Giỏ hàng" className={ICON_BUTTON_CLASS}>
             <CartIcon />

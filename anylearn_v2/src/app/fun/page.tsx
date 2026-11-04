@@ -9,6 +9,7 @@ import FunShortcuts from '@/components/fun/FunShortcuts'
 import MissionsCard from '@/components/fun/MissionsCard'
 import ArenaCustomBanner from '@/components/fun/arena/ArenaCustomBanner'
 import ArenaBanner from '@/components/fun/arena/ArenaBanner'
+import CollectVouchers from '@/components/vouchers/CollectVouchers'
 import MyAchievements from '@/components/fun/share/MyAchievements'
 import ExploreBrowser from '@/components/fun/explore/ExploreBrowser'
 import { LEO_NAME, reminderFor } from '@/lib/fun/leo'
@@ -72,6 +73,7 @@ export default function FunPage() {
       {token && access?.arena && <ArenaBanner token={token} />}
       {token && status && access?.checkin !== false && <MissionsCard token={token} refreshKey={claims} onClaimed={() => setClaims(n => n + 1)} />}
       {token && status && <MyAchievements key={claims} token={token} />}
+      {token && <CollectVouchers place="fun" className="mt-5" />}
 
       {access && !access.checkin && !access.quiz && !access.sticker && !access.explore && !access.arena && <p className="mt-4 rounded-2xl bg-white p-4 text-center text-sm text-muted ring-1 ring-line">Vui học đang thử nghiệm với một nhóm nhỏ, bạn sẽ được chơi sớm thôi!</p>}
 

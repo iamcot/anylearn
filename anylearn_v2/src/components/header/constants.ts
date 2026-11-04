@@ -1,7 +1,7 @@
 import { TODAY_NAV } from '@/lib/today/nav'
 
 export const NAV_LINKS = [
-  { href: '/info', label: 'Giới thiệu' },
+  { href: '/info', label: 'Giới thiệu', icon: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 11v5M12 7.5h.01' },
   { href: '/search?mode=school', label: 'anySCHOOL' },
   { href: '/search?mode=teacher', label: 'anyPROFESSOR' },
 ]
@@ -13,13 +13,15 @@ export const MEMBER_NAV_LINKS = TODAY_NAV.filter(item => ['Cộng đồng', 'Hô
 export const DESKTOP_NAV_LINKS = [NAV_LINKS[0], ...MEMBER_NAV_LINKS]
 
 export const ACCOUNT_MENU = [
-  { href: '/today', label: 'Hôm nay' },
-  { href: '/account/profile', label: 'Thông tin cá nhân' },
-  { href: '/account/children', label: 'Tài khoản của con' },
-  { href: '/account/orders', label: 'Đơn hàng của tôi' },
-  { href: '/account/favorites', label: 'Yêu thích' },
+  { href: '/account', label: 'Tổng quan tài khoản' },
+  { href: '/account/orders', label: 'Khóa học của tôi' },
   { href: '/account/schedule', label: 'Lịch học' },
-  { href: '/account/course-codes', label: 'Mã code khóa học' },
+  { href: '/account/children', label: 'Quản lý người học' },
+  { href: '/account/journey', label: 'Hành trình HỌC không giới hạn!' },
+  { href: '/account/rewards', label: 'Ưu đãi của tôi' },
+  { href: '/account/vouchers', label: 'Ví voucher' },
+  { href: '/account/anypoint', label: 'anyPoint' },
+  { href: '/account/profile', label: 'Thông tin cá nhân' },
   { href: '/account/change-password', label: 'Đổi mật khẩu' },
 ]
 

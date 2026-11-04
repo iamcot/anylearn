@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { chatLines, energyValue, leoLines, quizLobbyContext, quizLobbyLines, quizResultContext, quizResultLines, reminderFor } from './leo'
+import { chatLines, energyValue, leoLines, quizLobbyContext, quizLobbyLines, quizResultContext, quizResultLines, reminderFor, guideFor, shouldAutoOpen } from './leo'
 
 const now = new Date(2026, 9, 28, 10, 0)
 const day = (name: string, self: boolean, startAt: string | null) => ({
@@ -125,5 +125,39 @@ describe('quizResultLines', () => {
   })
   it('uses the training wording in practice mode', () => {
     expect(quizResultLines(quizResultContext(base, true))[0]).toMatch(/tập luyện/)
+  })
+})
+
+describe('Leo guide', () => {
+  const next = { key: 'fav3', label: 'Thích 3 khóa học', hint: 'Bấm tim', route: '/search', coins: 30 }
+
+  it('hides on buying, paying and game pages', () => {
+    expect(guideFor('/class/12/abc', { signedIn: true })).toBeNull()
+    expect(guideFor('/checkout', { signedIn: true })).toBeNull()
+    expect(guideFor('/fun/quiz', { signedIn: true })).toBeNull()
+  })
+
+  it('welcomes a visitor on home and opens by itself there only', () => {
+    expect(guideFor('/', { signedIn: false })?.auto).toBe(true)
+    expect(guideFor('/search', { signedIn: false })?.auto).toBe(false)
+    expect(guideFor('/search', { signedIn: false })?.action?.href).toBe('/quiz-thu')
+  })
+
+  it('puts waiting rewards first, then a mission of this page', () => {
+    expect(guideFor('/today', { signedIn: true, ready: 2, next })?.lines[0]).toBe('Bạn có 2 phần quà Hành trình đang chờ nè!')
+    const here = guideFor('/search', { signedIn: true, next, coinName: 'Leo Xu' })
+    expect(here?.lines[0]).toBe('Nhiệm vụ: Thích 3 khóa học (+30 Leo Xu)')
+    expect(here?.auto).toBe(true)
+    const elsewhere = guideFor('/today', { signedIn: true, next })
+    expect(elsewhere?.auto).toBe(false)
+    expect(elsewhere?.action?.href).toBe('/search')
+  })
+
+  it('opens by itself once per page per day', () => {
+    const g = guideFor('/', { signedIn: false })
+    expect(shouldAutoOpen(g, {}, '2026-11-03')).toBe(true)
+    expect(shouldAutoOpen(g, { home: '2026-11-03' }, '2026-11-03')).toBe(false)
+    expect(shouldAutoOpen(g, { home: '2026-11-02' }, '2026-11-03')).toBe(true)
+    expect(shouldAutoOpen(guideFor('/today', { signedIn: true, next }), {}, '2026-11-03')).toBe(false)
   })
 })

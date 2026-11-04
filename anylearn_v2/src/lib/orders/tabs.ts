@@ -1,8 +1,8 @@
 export type OrderTab = 'pending' | 'completed' | 'cancelled'
 
 export const ORDER_TABS: { key: OrderTab; label: string }[] = [
-  { key: 'pending', label: 'Đang chờ' },
-  { key: 'completed', label: 'Hoàn thành' },
+  { key: 'pending', label: 'Chờ thanh toán' },
+  { key: 'completed', label: 'Đã thanh toán' },
   { key: 'cancelled', label: 'Đã hủy' },
 ]
 
@@ -19,11 +19,9 @@ export function parseOrderTab(value: string | null): OrderTab | null {
   return ORDER_TABS.find(tab => tab.key === value)?.key ?? null
 }
 
-// The tab to open first: the one from the link, else "pending" when something waits, else the newest kind of order.
+// The tab to open first: the one from the link, else "pending" when something waits for payment, else "paid".
 export function defaultOrderTab(requested: string | null, statuses: string[]): OrderTab {
   const fromLink = parseOrderTab(requested)
   if (fromLink) return fromLink
-  const tabs = statuses.map(orderTab)
-  if (tabs.includes('pending')) return 'pending'
-  return tabs[0] ?? 'completed'
+  return statuses.some(status => orderTab(status) === 'pending') ? 'pending' : 'completed'
 }

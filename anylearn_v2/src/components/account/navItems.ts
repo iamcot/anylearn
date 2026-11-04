@@ -1,19 +1,19 @@
 import type { ComponentType, SVGProps } from 'react'
-import { BellIcon, CalendarIcon, CoinIcon, GiftIcon, HeartIcon, KeyIcon, LockIcon, PackageIcon, PlayIcon, UserIcon, UsersIcon } from '@/components/icons'
+import { BellIcon, BookIcon, CalendarIcon, CoinIcon, GiftIcon, LockIcon, MapIcon, TagIcon, UserIcon, UsersIcon } from '@/components/icons'
 
 export type IconComponent = ComponentType<SVGProps<SVGSVGElement>>
 export interface NavItem { href: string; label: string; Icon: IconComponent; isPoint?: boolean }
 
+// Ordered by how often people need them: courses and schedule first, settings last.
 export const NAV_ITEMS: NavItem[] = [
-  { href: '/account/anypoint', label: 'anyPoint', Icon: CoinIcon, isPoint: true },
-  { href: '/account/rewards', label: 'Ưu đãi của tôi', Icon: GiftIcon },
-  { href: '/account/profile', label: 'Thông tin cá nhân', Icon: UserIcon },
+  { href: '/account/orders', label: 'Khóa học của tôi', Icon: BookIcon },
   { href: '/account/schedule', label: 'Lịch học', Icon: CalendarIcon },
-  { href: '/account/videos', label: 'Khóa học video', Icon: PlayIcon },
-  { href: '/account/course-codes', label: 'Mã code khóa học', Icon: KeyIcon },
-  { href: '/account/orders', label: 'Đơn hàng của tôi', Icon: PackageIcon },
-  { href: '/account/favorites', label: 'Yêu thích', Icon: HeartIcon },
-  { href: '/account/children', label: 'Tài khoản của con', Icon: UsersIcon },
+  { href: '/account/children', label: 'Quản lý người học', Icon: UsersIcon },
+  { href: '/account/journey', label: 'Hành trình HỌC không giới hạn!', Icon: MapIcon },
+  { href: '/account/rewards', label: 'Ưu đãi của tôi', Icon: GiftIcon },
+  { href: '/account/vouchers', label: 'Ví voucher', Icon: TagIcon },
+  { href: '/account/anypoint', label: 'anyPoint', Icon: CoinIcon, isPoint: true },
+  { href: '/account/profile', label: 'Thông tin cá nhân', Icon: UserIcon },
   { href: '/account/notifications', label: 'Thông báo', Icon: BellIcon },
   { href: '/account/change-password', label: 'Đổi mật khẩu', Icon: LockIcon },
 ]

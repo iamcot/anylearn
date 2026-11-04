@@ -15,6 +15,9 @@ import java.util.Map;
 public class ArticleController {
 
     private final ArticleRepository articleRepository;
+    private final com.fasterxml.jackson.databind.ObjectMapper objectMapper;
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.anylearn.backend.service.voucher.VoucherService voucherService;
 
     @GetMapping("/article")
     public ApiResponse<?> index(
@@ -54,7 +57,18 @@ public class ArticleController {
     public ApiResponse<?> loadArticle(@PathVariable Long id) {
         return articleRepository.findById(id)
                 .filter(a -> a.getStatus() == 1)
-                .<ApiResponse<?>>map(ApiResponse::ok)
+                .<ApiResponse<?>>map(a -> {
+                    // The article as before, plus the voucher people can save from it (promotions with a voucher group).
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> out = objectMapper.convertValue(a, java.util.LinkedHashMap.class);
+                    out.remove("voucherGroupId");
+                    out.putIfAbsent("short_content", a.getShortContent());
+                    if (voucherService != null) {
+                        Map<String, Object> v = voucherService.articleVoucher(a.getVoucherGroupId());
+                        if (v != null) out.put("voucher", v);
+                    }
+                    return ApiResponse.ok(out);
+                })
                 .orElse(ApiResponse.fail("Bài viết không tồn tại"));
     }
 

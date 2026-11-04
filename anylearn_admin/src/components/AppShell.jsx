@@ -22,6 +22,7 @@ const NAV_GROUPS = [
     { key: '/orders',           icon: <OrderedListOutlined />, label: 'Đơn hàng'  },
     { key: '/transactions',     icon: <SwapOutlined />,        label: 'anyPoints'  },
     { key: '/finance',          icon: <FundOutlined />,        label: 'Tài chính'  },
+    { key: '/vouchers',         icon: <GiftOutlined />,        label: 'Voucher'  },
   ] },
   { key: 'g-requests', type: 'group', label: 'Quản lý thành viên', children: [
     { key: '/users',            icon: <TeamOutlined />,        label: 'Thành viên' },
@@ -41,6 +42,7 @@ const NAV_GROUPS = [
     { key: '/ai-usage',         icon: <RobotOutlined />,       label: 'Dùng AI (token)' },
   ] },
   { key: 'g-fun', type: 'group', label: 'Giải trí', children: [
+    { key: '/gamification',     icon: <GiftOutlined />,        label: 'Hành trình & đơn đầu' },
     { key: '/fun-events',       icon: <TrophyOutlined />,      label: 'Vui học' },
     { key: '/fun-arena',        icon: <TrophyOutlined />,      label: 'Đấu trường Leo' },
     { key: '/explore',          icon: <CompassOutlined />,     label: 'Khám phá' },

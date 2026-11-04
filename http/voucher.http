@@ -1,0 +1,92 @@
+@baseUrl = {{$dotenv BE_BASE_URL}}
+@jwtToken = {{$dotenv JWT_TOKEN}}
+@adminToken = {{$dotenv ADMIN_TOKEN}}
+
+### ── Member: voucher wallet (plan 20) ─────────────────────────────────────
+
+### My wallet: every voucher with state active / used / expired
+GET {{baseUrl}}/api/vouchers/wallet
+Authorization: Bearer {{jwtToken}}
+
+### Wallet checked against my cart: discount or problem per voucher
+GET {{baseUrl}}/api/vouchers/for-cart
+Authorization: Bearer {{jwtToken}}
+
+### Check a typed code against my cart
+GET {{baseUrl}}/api/vouchers/quote?code=HOCVUI
+Authorization: Bearer {{jwtToken}}
+
+### Put a code into my wallet
+POST {{baseUrl}}/api/vouchers/add
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{"code": "HOCVUI"}
+
+### Vouchers to collect at a place (public; home, search, pdp, partner, fun, tier)
+GET {{baseUrl}}/api/vouchers/collectible?place=pdp&itemId=123
+
+###
+GET {{baseUrl}}/api/vouchers/collectible?place=partner&partnerId=45
+
+### Collect one (one per person per group)
+POST {{baseUrl}}/api/vouchers/collect
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{"groupId": 1}
+
+### Checkout with a wallet voucher (or "couponCode" for a typed code) and anyPoint
+POST {{baseUrl}}/api/cart/checkout
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{"paymentMethod": "bank_transfer", "voucherId": 10, "pointsUsed": 30}
+
+### ── Admin ────────────────────────────────────────────────────────────────
+
+### Groups
+GET {{baseUrl}}/admin/vouchers/groups
+Authorization: Bearer {{adminToken}}
+
+### New dynamic group limited to two courses, collectible on the home page and the course page
+POST {{baseUrl}}/admin/vouchers/groups
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{"title": "Giảm 50.000đ khóa bơi", "type": "money", "generateType": "auto", "prefix": "BOI", "length": 6, "qtt": 200,
+ "value": 50000, "ruleMin": 500000, "status": true, "collectible": true, "walletDays": 30,
+ "showOn": ["home", "pdp"], "itemIds": [123, 124]}
+
+### Static code with 100 uses until a date
+POST {{baseUrl}}/admin/vouchers/groups/1/codes
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{"code": "HOCVUI", "uses": 100, "expiredAt": "2026-12-31"}
+
+### Give one voucher of a group to some phones
+POST {{baseUrl}}/admin/vouchers/groups/1/grant
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{"phones": "0901234567, 0912345678"}
+
+### Events (types: register, first_order, buy_item, follow_partner, buy_partner)
+GET {{baseUrl}}/admin/vouchers/events
+Authorization: Bearer {{adminToken}}
+
+### Partner event: following partner 45 gives group 2
+POST {{baseUrl}}/admin/vouchers/events
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{"type": "follow_partner", "title": "Theo dõi trường ABC tặng 30k", "partnerId": 45, "groupIds": [2], "qtt": 1, "status": true}
+
+### Wallet of a member, report
+GET {{baseUrl}}/admin/vouchers/wallet?who=0901234567
+Authorization: Bearer {{adminToken}}
+
+###
+GET {{baseUrl}}/admin/vouchers/report?months=6
+Authorization: Bearer {{adminToken}}

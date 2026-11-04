@@ -393,9 +393,35 @@ body {
 .leo-stride-a { animation: leo-stride-a .55s ease-in-out infinite }
 .leo-stride-b { animation: leo-stride-b .55s ease-in-out infinite }
 .leo-wave { animation: leo-wave .5s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 0 }
+/* Leo hands over coins (plan 21, components/journey/LeoReward): coins jump out of Leo's hands and fall into the card. */
+/* Leo hands over a reward: a turning sun behind him, coins bursting out in every direction, twinkling sparkles. */
+@keyframes reward-spin { to { transform: rotate(360deg) } }
+@keyframes reward-glow { 0%, 100% { opacity: .75; transform: scale(.92) } 50% { opacity: 1; transform: scale(1.08) } }
+@keyframes reward-coin {
+  0% { transform: rotate(var(--a)) translateY(0) rotate(calc(-1 * var(--a))) scale(.3); opacity: 0 }
+  12% { opacity: 0 }
+  30% { opacity: 1 }
+  75% { opacity: 1 }
+  100% { transform: rotate(var(--a)) translateY(-118px) rotate(calc(-1 * var(--a))) scale(1); opacity: 0 }
+}
+@keyframes reward-sparkle { 0%, 100% { transform: scale(0) rotate(0deg); opacity: 0 } 50% { transform: scale(1.15) rotate(45deg); opacity: 1 } }
+.reward-rays {
+  background: repeating-conic-gradient(from 0deg, rgba(255, 196, 30, .55) 0deg 9deg, rgba(255, 196, 30, 0) 9deg 22.5deg);
+  -webkit-mask-image: radial-gradient(circle, #000 18%, transparent 68%);
+  mask-image: radial-gradient(circle, #000 18%, transparent 68%);
+  animation: reward-spin 9s linear infinite;
+}
+.reward-glow { background: radial-gradient(circle, rgba(255, 226, 120, .95), rgba(255, 210, 63, .35) 55%, transparent 72%); animation: reward-glow 1.6s ease-in-out infinite }
+.reward-coin { display: block; animation: reward-coin 1.3s cubic-bezier(.2, .7, .3, 1) infinite both }
+.reward-sparkle { display: block; animation: reward-sparkle 1.1s ease-in-out infinite both }
+/* Foundation: the row of the house being built pulses softly. */
+@keyframes brick-pulse { 0%, 100% { opacity: 1 } 50% { opacity: .55 } }
+.brick-pulse { animation: brick-pulse 1.6s ease-in-out infinite }
 .leo-still .leo-bob, .leo-still .leo-leg-a, .leo-still .leo-leg-b, .leo-still .leo-arm-a, .leo-still .leo-arm-b { animation: none }
 @media (prefers-reduced-motion: reduce) {
-  .leo-bob, .leo-stride-a, .leo-stride-b, .leo-wave, .leo-leg-a, .leo-leg-b, .leo-arm-a, .leo-arm-b, .leo-eyes, .leo-pop { animation: none }
+  .leo-bob, .leo-stride-a, .leo-stride-b, .leo-wave, .leo-leg-a, .leo-leg-b, .leo-arm-a, .leo-arm-b, .leo-eyes, .leo-pop, .reward-coin, .reward-rays, .reward-glow, .reward-sparkle, .brick-pulse { animation: none }
+  .reward-coin { display: none }
+  .reward-sparkle { opacity: 1 }
 }
 
 /* Vui học: light from the sun, several layers that sway and breathe */

@@ -33,7 +33,9 @@ function DesktopSidebar({ pathname, user, onLogout }: {
   return (
     <aside className="hidden h-fit lg:block">
       <div className="sticky top-24 overflow-hidden rounded-card border border-line bg-white">
-        <div className="flex items-center gap-3 border-b border-line p-5">
+        {/* name and phone open the account overview (the /account page), like the phone menu */}
+        <Link href={ACCOUNT_HOME} aria-current={pathname === ACCOUNT_HOME ? 'page' : undefined}
+          className={`flex items-center gap-3 border-b border-line p-5 no-underline transition-colors hover:bg-bg ${pathname === ACCOUNT_HOME ? 'bg-blue-soft' : ''}`}>
           {user.image
             // eslint-disable-next-line @next/next/no-img-element
             ? <img src={user.image} alt={user.name} className="size-12 rounded-full border-2 border-line object-cover" />
@@ -43,7 +45,7 @@ function DesktopSidebar({ pathname, user, onLogout }: {
             <div className="truncate text-sm font-extrabold text-ink">{user.name}</div>
             <div className="truncate text-xs text-muted">{user.phone}</div>
           </div>
-        </div>
+        </Link>
 
         <nav className="py-2">
           {NAV_ITEMS.map(({ href, label, Icon, isPoint }) => {
@@ -55,7 +57,7 @@ function DesktopSidebar({ pathname, user, onLogout }: {
                   active ? 'border-blue bg-blue-soft font-bold text-blue' : 'border-transparent font-medium text-text hover:bg-bg'
                 }`}>
                 <Icon className="size-[18px] shrink-0" />
-                <span className="flex-1">{label}</span>
+                <span className="min-w-0 flex-1 truncate" title={label}>{label}</span>
                 {isPoint && <PointBadge points={user.walletC ?? 0} active={active} />}
                 {href === ORDERS_HREF && <PendingOrdersPill />}
               </Link>
@@ -95,7 +97,7 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
   return (
     <div className="min-h-[80vh] bg-bg py-3 lg:py-10">
       <div className="container">
-        <div className="grid grid-cols-1 gap-3 lg:grid-cols-[260px_1fr] lg:gap-6">
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-[300px_1fr] lg:gap-6">
           <MobileBackBar pathname={pathname} />
           <DesktopSidebar pathname={pathname} user={user} onLogout={handleLogout} />
           <main className="min-w-0">

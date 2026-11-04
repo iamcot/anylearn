@@ -9,6 +9,8 @@ export interface Article {
   view?: number
   like?: number
   createdAt?: string
+  /** Promotions only: the voucher group people can save from the banner. */
+  voucher?: { groupId: number; title: string; value: number; minOrder: number; itemIds?: number[]; partnerName?: string | null } | null
 }
 
 export interface ArticleDetail extends Article {

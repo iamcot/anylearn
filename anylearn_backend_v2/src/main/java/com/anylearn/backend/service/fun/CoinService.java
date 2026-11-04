@@ -23,6 +23,9 @@ public class CoinService {
     public static final String SOURCE_QUIZ_RANK = "quiz_rank";
     public static final String SOURCE_QUIZ_ITEM = "quiz_item";
     public static final String SOURCE_MISSION = "mission";
+    public static final String SOURCE_MILESTONE = "milestone";   // plan 21: first order, referral on purchase
+    public static final String SOURCE_JOURNEY = "journey";       // plan 21: system missions
+    public static final String SOURCE_GUEST_QUIZ = "guest_quiz"; // plan 21: sign-up after the guest quiz
     public static final String SOURCE_SHARE = "share";
     public static final String SOURCE_INVITE = "invite";
     public static final String SOURCE_ARENA = "arena";

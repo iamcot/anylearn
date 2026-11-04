@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { getMeChild, saveChild, type MeChild } from '@/lib/api'
 import AccountCard from '@/components/account/AccountCard'
+import LearnerTierCard from '@/components/learnertier/LearnerTierCard'
 import ChildFormModal, { type ChildDraft } from '@/components/ChildFormModal'
 import ChildInterestsModal from '@/components/ChildInterestsModal'
 import { ListSkeleton } from '@/components/PageSkeleton'
@@ -49,10 +50,10 @@ export default function ChildPage() {
     load()
   }
 
-  if (loading) return <AccountCard title="Tài khoản của con"><div className="p-5"><ListSkeleton showTitle={false} /></div></AccountCard>
+  if (loading) return <AccountCard title="Quản lý người học"><div className="p-5"><ListSkeleton showTitle={false} /></div></AccountCard>
   if (!child) {
     return (
-      <AccountCard title="Tài khoản của con">
+      <AccountCard title="Quản lý người học">
         <p className="m-0 p-5 text-sm text-muted">Không tìm thấy tài khoản này. <Link href="/account/children">Xem danh sách các bé</Link></p>
       </AccountCard>
     )
@@ -74,6 +75,8 @@ export default function ChildPage() {
           </p>
         )}
       </AccountCard>
+
+      <LearnerTierCard learnerId={child.id} />
 
       <AccountCard title="Khóa học của bé">
         {child.courses.length === 0 ? (

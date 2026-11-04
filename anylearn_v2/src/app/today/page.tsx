@@ -1,6 +1,7 @@
 'use client'
 
 import PendingOrdersCard from '@/components/orders/PendingOrdersCard'
+import JourneyCard from '@/components/journey/JourneyCard'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
@@ -44,9 +45,12 @@ function Loading() {
   )
 }
 
+// No course yet: the journey leads the way to the first one, so it comes first.
 function EmptyState() {
   return (
     <PageFrame>
+      <div className="mb-5 empty:hidden"><PendingOrdersCard /></div>
+      <div className="mb-5 empty:hidden"><JourneyCard /></div>
       <h1 className="text-2xl font-black">Chưa có khóa học đang học</h1>
       <p className="mt-2 text-muted">Khi bạn đăng ký khóa học, lịch học sẽ hiện ở đây mỗi ngày.</p>
       <Link href={BROWSE_HOME_URL} className="mt-5 inline-flex min-h-11 items-center rounded-full bg-green px-5 text-[15px] font-black text-white">
@@ -102,6 +106,7 @@ function TodayContent() {
   return (
     <PageFrame>
       <div className="mb-4 empty:hidden"><PendingOrdersCard /></div>
+      {token && <div className="mb-4 empty:hidden"><JourneyCard /></div>}
       {token && <div className="mb-4 empty:hidden"><SurveyCard key={selectedId} learnerId={selectedId} token={token} /></div>}
       {token && <div className="mb-4 empty:hidden"><VideoTodayCard key={selectedId} learnerId={selectedId} token={token} /></div>}
       {token && <div className="mb-4 empty:hidden"><MissedAttendanceCard key={`${selectedId}-${reloadCount}`} learnerId={selectedId} token={token} /></div>}

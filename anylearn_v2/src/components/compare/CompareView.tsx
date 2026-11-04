@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useJourneySignal } from '@/components/journey/useJourneySignal'
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
@@ -33,6 +34,8 @@ export default function CompareView() {
   const queryIds = useMemo(() => idsFromQuery(params.get('ids')), [params])
   const ids = queryIds.length > 0 ? queryIds : stored.map(entry => entry.id)
   const idsKey = ids.join(',')
+
+  useJourneySignal(token, 'compare', ids.length >= 2)
 
   const [point, setPoint] = useState<{ lat: number; lng: number } | null>(null)
   // Answers are kept with the request they belong to, so a new pick shows "loading" without setting state in an effect.

@@ -24,6 +24,8 @@ import Membership from './pages/Membership'
 import Tags from './pages/Tags'
 import Collections from './pages/Collections'
 import Pathways from './pages/Pathways'
+import Vouchers from './pages/Vouchers'
+import Gamification from './pages/Gamification'
 import AiSuggestions from './pages/AiSuggestions'
 import AiUsage from './pages/AiUsage'
 import Acquisition from './pages/Acquisition'
@@ -129,6 +131,8 @@ export default function App() {
                   <Route path="tags" element={<Tags />} />
                   <Route path="collections" element={<Collections />} />
                   <Route path="pathways" element={<Pathways />} />
+                  <Route path="vouchers" element={<Vouchers />} />
+                  <Route path="gamification" element={<Gamification />} />
                   <Route path="ai-suggestions" element={<AiSuggestions />} />
                   <Route path="ai-usage" element={<AiUsage />} />
                   <Route path="acquisition" element={<Acquisition />} />

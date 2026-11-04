@@ -11,6 +11,8 @@ import HomeQuickChips from '@/components/home/HomeQuickChips'
 import HomePersonalRows from '@/components/home/HomePersonalRows'
 import CollectionsRow from '@/components/home/CollectionsRow'
 import FeaturedPartners from '@/components/home/FeaturedPartners'
+import CollectVouchers from '@/components/vouchers/CollectVouchers'
+import FoundationStrip from '@/components/foundation/FoundationStrip'
 
 const FEATURED_PARTNERS_PER_ROLE = 4
 
@@ -43,8 +45,11 @@ export default async function HomePage() {
 
       <PromoSlider promos={promos} />
 
+      <div className="container"><CollectVouchers place="home" className="pt-6" /></div>
+
       <HomePersonalRows />
       <CollectionsRow collections={collections} />
+      <div className="container pt-6"><FoundationStrip /></div>
       <FeaturedPartners partners={partners} />
 
       {/* ── Ask us to find a course ── */}

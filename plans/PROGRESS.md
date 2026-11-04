@@ -156,6 +156,10 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 | 19.C2 | Chiến dịch ra mắt 28 bài (04/11 đến 01/12/2026, dời từ 02/11) | todo | Lịch mới trong plan 19 mục 4: tuần đầu không cần t2m, video từ 09/11 |
 | 19.C3 | Nhịp đăng thường xuyên + quảng cáo thử | todo | Sau 19.C2 |
 
+### Giai đoạn 6 – đơn hàng đầu tiên (plan 21)
+
+Chi tiết và trạng thái: `plans/21-gamification-first-order.md`.
+
 ## Nhật ký
 
 ### 29/10/2026 – t2m: bản đầu của tool video (19.B1 đến 19.B4)
@@ -675,3 +679,12 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 ### 03/11/2026 – Plan 19: dời lịch chiến dịch ra mắt
 - Chiến dịch chưa bắt đầu ngày 02/11 vì t2m chưa thử trên máy thật. Lịch mới 04/11 đến 01/12: tuần đầu 5 bài không cần t2m (carousel, bài chữ), video từ 09/11, video đố vui (19.B5) và ảnh chế (19.B6) dời về 21/11 và 30/11; không bỏ tính năng nào. Tuần 04/11 đến 08/11 dành để thử t2m trên Mac (danh sách việc trong plan 19 mục 4).
 - Đã xong trước đó: sitemap đã nộp Search Console ngày 03/11 (Google nhận 800 link).
+
+### 03/11/2026 – Plan 20: voucher và ví voucher
+- Đã làm: thanh toán trừ thật voucher và anyPoint vào số tiền đơn (trước đây mã chỉ được lưu, anyPoint chỉ trừ điểm), hủy đơn trả lại voucher; V77 ví voucher, voucher theo khóa / đối tác, nơi hiện; sự kiện đăng ký, đơn đầu, mua khóa, theo dõi / mua của đối tác; trang Ví voucher, chọn voucher ở thanh toán, ô "Voucher cho bạn" ở trang chủ, tìm kiếm, trang khóa, trang đối tác, Vui học, ưu đãi của tôi; trang admin "Voucher"; tài liệu.
+- Test: `VoucherRulesTest`, `VoucherFlowTest` (MariaDB), `lib/vouchers/rules.test.ts`.
+- Chưa làm: đổi Leo Xu lấy voucher, voucher từ nhiệm vụ hệ thống, voucher phần trăm.
+
+### 2026-11-03 – Plan 21: gamification hướng tới đơn đầu
+- Đã làm: V78; cấp học viên (`service/learnertier`), anyLEARN Foundation (`service/foundation`), Hành trình anyLEARN 5 chương (`service/journey`), thưởng đơn đầu + giới thiệu khi bạn mua (`service/milestone`), quiz thử cho khách (`service/guestquiz`); app: thẻ + trang Hành trình, Leo tặng xu, Leo hướng dẫn, `/foundation`, cấp học viên ở tài khoản và trang bé, `/quiz-thu`; admin "Hành trình & đơn đầu"; tài liệu, `http/journey.http`.
+- Test: `FoundationRulesTest`, `LearnerTierRulesTest`, `JourneyRulesTest`, `GamificationFlowTest` (MariaDB), `lib/journey`, `lib/foundation`, `lib/guestQuiz`, `lib/fun/leo.test.ts` (Leo guide).

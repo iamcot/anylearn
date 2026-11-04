@@ -220,6 +220,12 @@ public class ExploreService {
         jdbc.update("UPDATE explore_posts SET shares = shares + 1 WHERE id = ? AND status = 'published'", postId);
     }
 
+    /** A signed-in share also writes `explore/share` (the journey mission "Chia sẻ 1 bài Khám phá" counts it). */
+    public void countShare(long userId, long postId) {
+        if (jdbc.update("UPDATE explore_posts SET shares = shares + 1 WHERE id = ? AND status = 'published'", postId) > 0)
+            events.record(userId, GameEventService.GAME_EXPLORE, "share", "Bài #" + postId, 0);
+    }
+
     /** Toggles the like of the caller; returns the new state and count. */
     @Transactional
     public Map<String, Object> toggleLike(long userId, long postId) {

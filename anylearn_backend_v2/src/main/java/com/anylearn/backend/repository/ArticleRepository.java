@@ -16,7 +16,7 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
     @Query("SELECT new map(a.id as id, a.title as title, a.image as image, a.type as type, a.shortContent as short_content, a.view as view, a.like as like, a.createdAt as createdAt) FROM Article a WHERE a.status = :status AND a.type IN :types ORDER BY a.id DESC")
     List<java.util.Map<String, Object>> findLightByStatusAndTypeIn(Byte status, List<String> types, Pageable pageable);
 
-    @Query("SELECT new map(a.id as id, a.title as title, a.image as image, a.type as type, a.shortContent as short_content, a.view as view, a.like as like, a.createdAt as createdAt) FROM Article a WHERE a.status = :status AND a.type = :type ORDER BY a.id DESC")
+    @Query("SELECT new map(a.id as id, a.title as title, a.image as image, a.type as type, a.shortContent as short_content, a.view as view, a.like as like, a.createdAt as createdAt, a.voucherGroupId as voucherGroupId) FROM Article a WHERE a.status = :status AND a.type = :type ORDER BY a.id DESC")
     List<java.util.Map<String, Object>> findLightByStatusAndType(Byte status, String type, Pageable pageable);
 
     long countByStatusAndTypeIn(Byte status, List<String> types);

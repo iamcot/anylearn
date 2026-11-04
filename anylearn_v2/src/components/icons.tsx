@@ -258,3 +258,20 @@ export const SparkleIcon = (props: IconProps) => (
     <path d="M19 15l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7.7-2z" />
   </Icon>
 )
+
+/** Zalo chat, drawn as a line icon like search and cart: a speech bubble with a "Z". */
+export const ZaloIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M12 3.5c-5 0-9 3.3-9 7.5 0 2.2 1.1 4.2 2.9 5.6L5 20.5l4.2-2a10.6 10.6 0 0 0 2.8.4c5 0 9-3.4 9-7.5s-4-7.9-9-7.9Z" />
+    <path d="M9 8.8h5.5L9 14.2h5.5" />
+  </Icon>
+)
+
+/** A voucher ticket: notched sides, dashed tear line and a percent sign. */
+export const TicketIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2.5a2.5 2.5 0 0 0 0 5V17a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2.5a2.5 2.5 0 0 0 0-5Z" />
+    <path d="M15 5.5v2M15 11v2M15 16.5v2" />
+    <path d="m7.5 14.5 4-5" /><circle cx="8" cy="9.8" r=".6" /><circle cx="11" cy="14.2" r=".6" />
+  </Icon>
+)

@@ -25,6 +25,8 @@ public class ConfigService {
     private final com.anylearn.backend.repository.UserRepository userRepository;
     private final ItemUserActionRepository itemUserActionRepository;
     private final com.anylearn.backend.service.points.ItemPointsResolver itemPointsResolver;
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.anylearn.backend.service.voucher.VoucherService voucherService;
 
     public Map<String, Object> homeV2(String role) {
         Map<String, Object> result = new LinkedHashMap<>();
@@ -44,8 +46,10 @@ public class ConfigService {
         result.put("home_classes", getHomeSpecialClasses());
 
         // Promotions
-        result.put("promotions", articleRepository.findLightByStatusAndType(
-                (byte) 1, "promotion", PageRequest.of(0, 5)));
+        List<Map<String, Object>> promotions = articleRepository.findLightByStatusAndType(
+                (byte) 1, "promotion", PageRequest.of(0, 5));
+        promotions.forEach(this::attachVoucher);
+        result.put("promotions", promotions);
         result.put("promotions_title", "Ưu đãi độc quyền");
 
         // Events
@@ -57,6 +61,14 @@ public class ConfigService {
         result.put("categories", getCategoriesWithItems());
 
         return result;
+    }
+
+    /** A promotion with a live voucher group gets {groupId, title, value, minOrder}, for the banner's "Lưu mã" button. */
+    private void attachVoucher(Map<String, Object> promo) {
+        Object gid = promo.remove("voucherGroupId");
+        if (!(gid instanceof Number n) || voucherService == null) return;
+        Map<String, Object> v = voucherService.articleVoucher(n.longValue());
+        if (v != null) promo.put("voucher", v);
     }
 
     private List<Object> getBanners() {

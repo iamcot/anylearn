@@ -36,7 +36,7 @@ export default function AccountMenu({ user }: { user: AuthUser }) {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-56 bg-white border border-line rounded-card shadow-raised overflow-hidden z-50">
+        <div className="absolute right-0 top-full mt-2 w-72 bg-white border border-line rounded-card shadow-raised overflow-hidden z-50">
           <Link
             href="/account/anypoint"
             onClick={() => setOpen(false)}

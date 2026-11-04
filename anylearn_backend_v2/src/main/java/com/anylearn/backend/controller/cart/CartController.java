@@ -59,7 +59,9 @@ public class CartController {
         String couponCode = (String) body.get("couponCode");
         Integer pointsUsed = body.get("pointsUsed") != null
                 ? Integer.parseInt(String.valueOf(body.get("pointsUsed"))) : null;
-        return ApiResponse.ok(cartService.checkout(paymentMethod, couponCode, pointsUsed, user));
+        Long voucherId = body.get("voucherId") != null && !String.valueOf(body.get("voucherId")).isBlank()
+                ? Long.parseLong(String.valueOf(body.get("voucherId"))) : null;
+        return ApiResponse.ok(cartService.checkout(paymentMethod, couponCode, voucherId, pointsUsed, user));
     }
 
     @GetMapping("/order/{orderId}")

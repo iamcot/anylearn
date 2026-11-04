@@ -7,6 +7,10 @@ import { useAuth } from '@/context/AuthContext'
 import { getMeSummary, type MeSummary } from '@/lib/api'
 import AccountCard from '@/components/account/AccountCard'
 import TierCard from '@/components/membership/TierCard'
+import JourneyCard from '@/components/journey/JourneyCard'
+import { getLearnerTiers, type LearnerTier } from '@/lib/api/gamification'
+import TierChip from '@/components/learnertier/TierChip'
+import MyBricksCard from '@/components/foundation/MyBricksCard'
 import { PendingOrdersPill, PointBadge } from '@/components/account/AccountBadges'
 import { NAV_ITEMS } from '@/components/account/navItems'
 import { ChevronRightIcon, LogoutIcon } from '@/components/icons'
@@ -33,22 +37,41 @@ function Todos({ summary }: { summary: MeSummary }) {
   )
 }
 
-function Children({ summary }: { summary: MeSummary }) {
-  if (summary.children.length === 0) return null
+type Self = { id: number; name: string; image?: string | null }
+
+function LearnerRow({ href, name, image, tier, line }: { href: string; name: string; image?: string | null; tier?: LearnerTier; line: string }) {
   return (
-    <AccountCard title="Các bé" subtitle="Xem khóa học, đơn hàng và sở thích của từng bé">
+    <li className="border-t border-line first:border-t-0">
+      <Link href={href} className="flex min-h-12 items-center gap-3 px-4 py-3 text-sm no-underline hover:bg-bg sm:px-5">
+        {image
+          // eslint-disable-next-line @next/next/no-img-element
+          ? <img src={image} alt="" className="size-9 shrink-0 rounded-full object-cover" />
+          : <span className="grid size-9 shrink-0 place-items-center rounded-full bg-blue-soft font-extrabold text-blue">{name?.charAt(0).toUpperCase()}</span>}
+        <span className="min-w-0 flex-1">
+          <span className="flex min-w-0 items-center gap-2">
+            <span className="truncate font-bold text-ink">{name}</span>
+            <TierChip tier={tier} />
+          </span>
+          <span className="block text-xs text-muted">{line}</span>
+        </span>
+        <ChevronRightIcon className="size-4 text-muted" />
+      </Link>
+    </li>
+  )
+}
+
+// Every learner of the account (the person first, then the children) with their learner tier.
+function Learners({ self, summary, tiers }: { self: Self; summary: MeSummary; tiers: Map<number, LearnerTier> }) {
+  const finished = (id: number) => tiers.get(id)?.finished ?? 0
+  const selfTier = tiers.get(self.id)
+  return (
+    <AccountCard title="Người học" subtitle="Bạn và các bé: khóa học, danh hiệu người học, sở thích">
       <ul className="m-0 flex list-none flex-col p-0">
+        <LearnerRow href="/account/children" name={`${self.name} (bạn)`} image={self.image} tier={selfTier}
+          line={finished(self.id) > 0 ? `${finished(self.id)} khóa đã xong` : 'Học cùng con cũng được tính danh hiệu'} />
         {summary.children.map(child => (
-          <li key={child.id} className="border-t border-line first:border-t-0">
-            <Link href={`/account/children/${child.id}`} className="flex min-h-12 items-center gap-3 px-4 py-3 text-sm no-underline hover:bg-bg sm:px-5">
-              <span className="grid size-9 shrink-0 place-items-center rounded-full bg-blue-soft font-extrabold text-blue">{child.name?.charAt(0).toUpperCase()}</span>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate font-bold text-ink">{child.name}</span>
-                <span className="block text-xs text-muted">{child.activeCourses > 0 ? `${child.activeCourses} khóa đang học` : 'Chưa có khóa đang học'}</span>
-              </span>
-              <ChevronRightIcon className="size-4 text-muted" />
-            </Link>
-          </li>
+          <LearnerRow key={child.id} href={`/account/children/${child.id}`} name={child.name} tier={tiers.get(child.id)}
+            line={`${child.activeCourses > 0 ? `${child.activeCourses} khóa đang học` : 'Chưa có khóa đang học'}${finished(child.id) > 0 ? ` · ${finished(child.id)} khóa đã xong` : ''}`} />
         ))}
       </ul>
     </AccountCard>
@@ -61,10 +84,14 @@ export default function AccountHomePage() {
   const router = useRouter()
   const [summary, setSummary] = useState<MeSummary | null>(null)
   const [loading, setLoading] = useState(true)
+  const [tiers, setTiers] = useState<Map<number, LearnerTier>>(new Map())
 
   useEffect(() => {
     if (!token) return
     getMeSummary(token).then(data => { setSummary(data); setLoading(false) })
+    getLearnerTiers(token).then(data => {
+      if (data?.enabled) setTiers(new Map(data.learners.map(l => [l.learnerId, l])))
+    })
   }, [token])
 
   return (
@@ -83,13 +110,19 @@ export default function AccountHomePage() {
         </div>
       )}
 
+      <h1 className="m-0 hidden text-xl font-extrabold text-ink lg:block">Tổng quan tài khoản</h1>
+
+      <JourneyCard />
+
       <TierCard />
 
       <AccountCard title="Cần làm ngay">
         {loading ? <div className="p-5"><ListSkeleton showTitle={false} /></div> : summary ? <Todos summary={summary} /> : <p className="m-0 p-5 text-sm text-muted">Chưa tải được, vui lòng thử lại sau.</p>}
       </AccountCard>
 
-      {summary && <Children summary={summary} />}
+      {summary && user && <Learners self={{ id: user.id, name: user.name, image: user.image }} summary={summary} tiers={tiers} />}
+
+      <MyBricksCard />
 
       <div className="lg:hidden">
         <AccountCard title="Tài khoản">

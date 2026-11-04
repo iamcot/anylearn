@@ -8,6 +8,7 @@ import { MIN_PASSWORD_LENGTH } from '@/config/auth'
 import FormField from '@/components/FormField'
 import Alert from '@/components/Alert'
 import { afterRegisterPath, clearReferral, parseStoredReferral, readReferralRaw } from '@/lib/referral/store'
+import { clearSignupGame, readSignupGame } from '@/lib/guestQuiz/store'
 
 interface Props {
   // Gets the page a friend's link leads to (null for a normal registration, so the caller keeps its own destination).
@@ -42,11 +43,15 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: Props) {
     if (problem) { setError(problem); return }
     if (!agreedTerms) { setError('Vui lòng đồng ý với điều khoản sử dụng'); return }
     setLoading(true)
-    const { error: err } = await register(values.name.trim(), normalizeSignupPhone(values.phone), values.email, values.password, referral ? { ref: referral.code, game: referral.game, ach: referral.ach } : undefined)
+    // a referral link's game wins; else the guest quiz marker (plan 21) so the server pays its sign-up Leo Xu
+    const game = referral?.game ?? readSignupGame()
+    const { error: err } = await register(values.name.trim(), normalizeSignupPhone(values.phone), values.email, values.password,
+      referral ? { ref: referral.code, game, ach: referral.ach } : game ? { ref: '', game } : undefined)
     setLoading(false)
     if (err) { setError(err); return }
     const redirectTo = afterRegisterPath(referral)
     clearReferral()
+    clearSignupGame()
     onSuccess(redirectTo)
   }
 

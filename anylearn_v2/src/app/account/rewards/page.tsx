@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useAuth } from '@/context/AuthContext'
 import AccountCard from '@/components/account/AccountCard'
 import TierCard from '@/components/membership/TierCard'
+import CollectVouchers from '@/components/vouchers/CollectVouchers'
 import { CoinIcon, GiftIcon } from '@/components/icons'
 import { getMyRewards, type MyRewards } from '@/lib/api/rewards'
 import { getMyPointExpiry } from '@/lib/api/pointsExpiry'
@@ -57,6 +58,11 @@ export default function RewardsPage() {
       </AccountCard>
 
       <TierCard />
+
+      <div className="rounded-card border border-line bg-white p-4">
+        <CollectVouchers place="tier" title="Voucher dành cho thành viên" />
+        <Link href="/account/vouchers" className="mt-2 inline-block text-sm font-bold text-green-dark">Mở ví voucher</Link>
+      </div>
 
       {rewards?.family.enabled && (
         <div className="rounded-card border border-line bg-white p-4">

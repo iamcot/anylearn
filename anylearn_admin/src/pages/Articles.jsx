@@ -20,6 +20,7 @@ export default function Articles() {
   const qc = useQueryClient()
   const [q, setQ] = useState('')
   const [status, setStatus] = useState('')
+  const [type, setType] = useState('')
   const [page, setPage] = useState(1)
   const [sortDir, setSortDir] = useState('desc')
   const [selected, setSelected] = useState(null)
@@ -29,9 +30,17 @@ export default function Articles() {
   const watchType = Form.useWatch('type', form)
 
   const { data, isLoading } = useQuery({
-    queryKey: ['admin-articles', q, status, page, sortDir],
-    queryFn: () => client.get('/admin/articles', { params: { q, ...(status !== '' && { status }), page: page - 1, size: 20, sortDir } }).then(r => r.data?.data ?? r.data),
+    queryKey: ['admin-articles', q, status, type, page, sortDir],
+    queryFn: () => client.get('/admin/articles', { params: { q, ...(status !== '' && { status }), ...(type && { type }), page: page - 1, size: 20, sortDir } }).then(r => r.data?.data ?? r.data),
   })
+
+  // Voucher groups that can be attached to a promotion: the banner then shows "Lưu mã".
+  const { data: voucherGroups = [] } = useQuery({
+    queryKey: ['admin-voucher-groups-for-articles'],
+    queryFn: () => client.get('/admin/vouchers/groups').then(r => r.data?.data ?? []),
+    enabled: editing,
+  })
+  const groupLabel = g => `#${g.id} · ${g.title || `Giảm ${Number(g.value || 0).toLocaleString('vi-VN')}đ`}${g.status == 1 ? '' : ' (đang tắt)'}`
 
   const { data: articleDetail } = useQuery({
     queryKey: ['admin-article-detail', selected?.id],
@@ -42,7 +51,7 @@ export default function Articles() {
   const detailData = articleDetail || selected
 
   const mutation = useMutation({
-    mutationFn: (values) => client.put(`/admin/articles/${selected.id}`, { ...values, status: Number(values.status), isHot: Number(values.isHot) }),
+    mutationFn: (values) => client.put(`/admin/articles/${selected.id}`, { ...values, status: Number(values.status), isHot: Number(values.isHot), voucherGroupId: values.voucherGroupId ?? 0 }),
     onSuccess: () => { qc.invalidateQueries(['admin-articles']); qc.invalidateQueries(['admin-article-detail', selected?.id]); setEditing(false) },
   })
 
@@ -58,6 +67,7 @@ export default function Articles() {
         video: detailData?.video,
         tags: detailData?.tags ? String(detailData.tags).split(',').filter(Boolean).map(t => t.trim()) : [],
         content: detailData?.content,
+        voucherGroupId: detailData?.voucherGroupId ?? undefined,
       })
     }
   }, [selected, editing, articleDetail])
@@ -73,7 +83,12 @@ export default function Articles() {
       dataIndex: 'id', width: 70,
     },
     { title: 'Tiêu đề', dataIndex: 'title', ellipsis: true },
-    { title: 'Loại', dataIndex: 'type', render: v => <Tag color={typeColor[v] || 'default'}>{v}</Tag> },
+    { title: 'Loại', dataIndex: 'type', render: (v, r) => (
+      <Space size={4} wrap>
+        <Tag color={typeColor[v] || 'default'}>{TYPE_OPTIONS.find(o => o.value === v)?.label ?? v}</Tag>
+        {r.voucherGroupId && <Tag color="magenta">Voucher #{r.voucherGroupId}</Tag>}
+      </Space>
+    ) },
     { title: 'Tác giả', dataIndex: 'authorName' },
     { title: 'Lượt xem', dataIndex: 'view' },
     { title: 'Trạng thái', dataIndex: 'status', render: v => v == 1 ? <Tag color="green">Đã đăng</Tag> : <Tag>Ẩn</Tag> },
@@ -98,6 +113,9 @@ export default function Articles() {
             <Input.Search placeholder="Tìm tiêu đề" value={q} onChange={e => { setQ(e.target.value); setPage(1) }} onSearch={() => {}} allowClear style={{ width: 220 }} />
             <Select value={status} onChange={v => { setStatus(v); setPage(1) }} style={{ width: 150 }}
               options={[{ value: '', label: 'Tất cả' }, { value: '1', label: 'Đã đăng' }, { value: '0', label: 'Ẩn' }]}
+            />
+            <Select value={type} onChange={v => { setType(v); setPage(1) }} style={{ width: 160 }}
+              options={[{ value: '', label: 'Mọi loại' }, ...TYPE_OPTIONS]}
             />
           </Space>
           <Space>
@@ -171,6 +189,26 @@ export default function Articles() {
                 <Form.Item name="video" noStyle>
                   <Input size="small" placeholder={watchType === 'video' ? 'https://youtube.com/...' : 'VD: 20'} />
                 </Form.Item>
+              }
+              editing={editing}
+            />
+          )}
+          {(watchType === 'promotion' || (!editing && detailData?.type === 'promotion')) && (
+            <Field label="Voucher kèm banner"
+              viewValue={detailData?.voucherGroupId
+                ? <Tag color="magenta">{groupLabel(voucherGroups.find(g => g.id === detailData.voucherGroupId) ?? { id: detailData.voucherGroupId, title: detailData.voucherGroupTitle, status: 1 })}</Tag>
+                : '—'}
+              editContent={
+                <div style={{ width: '100%' }}>
+                  <Form.Item name="voucherGroupId" noStyle>
+                    <Select size="small" style={{ width: '100%' }} allowClear showSearch optionFilterProp="label"
+                      placeholder="Chọn nhóm voucher (để trống = không có nút Lưu mã)"
+                      options={voucherGroups.map(g => ({ value: g.id, label: groupLabel(g) }))} />
+                  </Form.Item>
+                  <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                    Banner trang chủ sẽ có thêm nút "Lưu mã": người xem lưu voucher của nhóm này vào ví (mỗi người 1 lần), kể cả khi nhóm không bật "cho người dùng tự lưu".
+                  </Typography.Text>
+                </div>
               }
               editing={editing}
             />
