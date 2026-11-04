@@ -11,6 +11,7 @@ import com.anylearn.backend.service.quiz.QuizRules;
 import com.anylearn.backend.service.sticker.StickerRules;
 import com.anylearn.backend.service.sticker.StickerService;
 import com.anylearn.backend.service.sticker.StickerSettings;
+import com.anylearn.backend.service.voucher.VoucherService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -41,11 +42,13 @@ public class ShopService {
     private final CoinService coins;
     private final FunSettings funSettings;
     private final GameEventService events;
+    private final VoucherService vouchers;
 
     private final Random random = new Random();
 
     private static final String QUIZ_LINK = "/fun/quiz";
     private static final String STICKER_LINK = "/fun/sticker";
+    private static final String WALLET_LINK = "/account/vouchers";
 
     private void requireOpen() {
         if (!funSettings.enabled() || !shop.enabled()) throw new IllegalStateException("Cửa hàng Leo Xu đang tạm đóng");
@@ -82,7 +85,7 @@ public class ShopService {
         Map<String, Object> m = new LinkedHashMap<>();
         m.put("key", key);
         m.put("game", game);
-        m.put("gameLabel", "quiz".equals(game) ? "Leo rank" : "Sticker");
+        m.put("gameLabel", switch (game) { case "quiz" -> "Leo rank"; case "voucher" -> "Voucher"; default -> "Sticker"; });
         m.put("kind", kind);
         m.put("label", label);
         m.put("description", description);
@@ -134,6 +137,33 @@ public class ShopService {
         out.add(entry(ShopRules.CHEST_RARE, "sticker", "chest", "Rương sticker hiếm", "Chắc chắn ra 1 sticker hiếm hoặc siêu hiếm",
                 shop.n("chest_rare_price"), shop.on(ShopRules.CHEST_RARE), shop.n("chest_rare_cap"),
                 ShopRules.left(shop.n("chest_rare_cap"), usedToday(userId, ShopRules.LOG_CHEST_RARE)), STICKER_LINK, "Mở album ›"));
+        out.addAll(voucherEntries(userId));
+        return out;
+    }
+
+    /** Vouchers on sale for Leo Xu (back office: voucher group > "Đổi bằng Leo Xu"), each with the person's state. */
+    public List<Map<String, Object>> voucherEntries(long userId) {
+        List<Map<String, Object>> out = new ArrayList<>();
+        long balance = coins.balance(userId);
+        boolean on = shop.on(ShopRules.VOUCHER);
+        for (VoucherService.GroupRow g : vouchers.coinGroups()) {
+            Map<String, Object> offer = vouchers.coinOffer(g, userId, balance, funSettings.coinName());
+            Map<String, Object> m = entry(ShopRules.voucherKey(g.id()), "voucher", "voucher", g.displayTitle(),
+                    "Voucher vào ví, dùng khi thanh toán khóa học", g.coinPrice(), on, null, null, WALLET_LINK, "Xem ví voucher ›");
+            m.put("voucher", offer);
+            out.add(m);
+        }
+        return out;
+    }
+
+    /** The Leo Xu vouchers alone, for the voucher wallet page. */
+    @Transactional(readOnly = true)
+    public Map<String, Object> voucherOffers(long userId) {
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("enabled", funSettings.enabled() && shop.enabled() && shop.on(ShopRules.VOUCHER));
+        out.put("coinName", funSettings.coinName());
+        out.put("coins", coins.balance(userId));
+        out.put("items", voucherEntries(userId));
         return out;
     }
 
@@ -208,6 +238,9 @@ public class ShopService {
         } else if (ShopRules.ENERGY.equals(key)) {
             requireOn(key, "Năng lượng");
             buyEnergy(userId, out);
+        } else if (ShopRules.voucherGroupOf(key) != null) {
+            requireOn(ShopRules.VOUCHER, "Voucher đổi bằng Leo Xu");
+            buyVoucher(userId, ShopRules.voucherGroupOf(key), out);
         } else if (ShopRules.CHEST_NORMAL.equals(key) || ShopRules.CHEST_RARE.equals(key)) {
             requireOn(key, ShopSettings.switchLabel(key));
             buyChest(userId, ShopRules.CHEST_RARE.equals(key), out);
@@ -241,6 +274,18 @@ public class ShopService {
         log(userId, ShopRules.LOG_ENERGY, null, price);
         events.record(userId, GameEventService.GAME_QUIZ, "buy_energy", String.valueOf(shop.n("energy_amount")), -price);
         out.put("message", "Đã nạp năng lượng");
+    }
+
+    private void buyVoucher(long userId, long groupId, Map<String, Object> out) {
+        String coinName = funSettings.coinName();
+        VoucherService.GroupRow g = vouchers.lockForCoinBuy(userId, groupId, coins.balance(userId), coinName);
+        charge(userId, g.coinPrice(), CoinService.SOURCE_SHOP_VOUCHER, "Đổi voucher " + g.displayTitle());
+        long walletId = vouchers.issueBought(userId, groupId);
+        log(userId, ShopRules.LOG_VOUCHER, String.valueOf(groupId), g.coinPrice());
+        events.record(userId, GameEventService.GAME_VOUCHER, "buy", g.displayTitle(), -g.coinPrice());
+        out.put("walletId", walletId);
+        out.put("voucher", vouchers.coinOffer(g, userId, coins.balance(userId), coinName));
+        out.put("message", "Đã đổi " + g.displayTitle() + ". Voucher đã vào ví của bạn");
     }
 
     private void buyChest(long userId, boolean rare, Map<String, Object> out) {

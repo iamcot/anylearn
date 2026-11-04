@@ -28,6 +28,9 @@ class VoucherFlowTest {
     @Autowired JdbcTemplate jdbc;
     @Autowired jakarta.persistence.EntityManager em;
     @Autowired com.anylearn.backend.service.partners.FollowService follows;
+    @Autowired com.anylearn.backend.service.shop.ShopService shop;
+    @Autowired com.anylearn.backend.service.fun.CoinService coins;
+    @Autowired com.anylearn.backend.service.journey.JourneyService journey;
 
     private long walletC(long id) {
         em.flush();
@@ -114,6 +117,64 @@ class VoucherFlowTest {
         assertEquals(150_000L, vouchers.discountOfOrder(orderId));
 
         assertThrows(IllegalArgumentException.class, () -> group(Map.of("type", "percent", "value", 120, "generateType", "manual")));
+    }
+
+    @Test
+    void aLeoXuVoucherIsBoughtOnceThenAgainOnlyAfterTheRebuyDaysFromItsUse() {
+        long me = member();
+        long a = course(300_000);
+        addToCart(me, a);
+        assertThrows(IllegalArgumentException.class, () -> group(Map.of("title", "Tĩnh", "value", 20_000, "generateType", "manual",
+                "coinExchange", true, "coinPrice", 100)), "a fixed code cannot be sold for coins");
+        assertThrows(IllegalArgumentException.class, () -> group(Map.of("title", "Không giá", "value", 20_000, "generateType", "auto",
+                "prefix", "LEO", "coinExchange", true)));
+        long g = group(Map.of("title", "Giảm 20k", "value", 20_000, "generateType", "auto", "prefix", "LEO",
+                "coinExchange", true, "coinPrice", 100, "coinRebuyDays", 30));
+        String key = "voucher:" + g;
+        coins.credit(me, 250, com.anylearn.backend.service.fun.CoinService.SOURCE_ADMIN, "test");
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> listed = vouchers.collectible(me, "home", null, null).stream()
+                .filter(v -> ((Number) v.get("groupId")).longValue() == g).findFirst().orElseThrow();
+        assertEquals(100, ((Number) ((Map<String, Object>) listed.get("coin")).get("price")).intValue(), "shown in the usual voucher spots");
+        assertThrows(IllegalArgumentException.class, () -> vouchers.collect(me, g), "not free to save");
+
+        Map<String, Object> offer = shopVoucher(me, g);
+        assertEquals(true, offer.get("canBuy"));
+        assertEquals(100, ((Number) offer.get("price")).intValue());
+
+        Map<String, Object> res = shop.buy(me, key, null);
+        assertEquals(150L, ((Number) res.get("coins")).longValue());
+        long walletId = ((Number) res.get("walletId")).longValue();
+        assertEquals("shop", jdbc.queryForObject("SELECT source FROM user_vouchers WHERE id = ?", String.class, walletId));
+        assertEquals(true, vouchers.wallet(me, null).get(0).get("leo"));
+        assertTrue(journey.done(me).contains("leo_voucher"));
+        // holding an unused copy: cannot buy a second one
+        IllegalStateException again = assertThrows(IllegalStateException.class, () -> shop.buy(me, key, null));
+        assertTrue(again.getMessage().contains("dùng xong"));
+        assertEquals(150L, coins.balance(me));
+
+        // used at checkout: the next copy opens 30 days after the use
+        long orderId = Long.parseLong((String) cart.checkout("bank_transfer", null, walletId, 0, user(me)).get("orderId"));
+        assertEquals(280_000L, jdbc.queryForObject("SELECT amount FROM orders WHERE id = ?", Long.class, orderId));
+        assertEquals(false, shopVoucher(me, g).get("canBuy"));
+        assertNotNull(shopVoucher(me, g).get("nextAt"));
+        assertTrue(assertThrows(IllegalStateException.class, () -> shop.buy(me, key, null)).getMessage().startsWith("Đổi lại được từ"));
+
+        jdbc.update("UPDATE user_vouchers SET used_at = DATE_SUB(used_at, INTERVAL 31 DAY) WHERE id = ?", walletId);
+        assertEquals(true, shopVoucher(me, g).get("canBuy"));
+        shop.buy(me, key, null);
+        assertEquals(50L, coins.balance(me));
+        // not enough coins for a third one (after using the second)
+        jdbc.update("UPDATE user_vouchers SET status = 'used', used_at = DATE_SUB(NOW(), INTERVAL 40 DAY) WHERE user_id = ? AND voucher_group_id = ?", me, g);
+        assertTrue(assertThrows(IllegalStateException.class, () -> shop.buy(me, key, null)).getMessage().contains("chưa đủ"));
+        assertEquals(50L, coins.balance(me));
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> shopVoucher(long me, long groupId) {
+        List<Map<String, Object>> items = (List<Map<String, Object>>) shop.voucherOffers(me).get("items");
+        return (Map<String, Object>) items.stream().filter(e -> ("voucher:" + groupId).equals(e.get("key"))).findFirst().orElseThrow().get("voucher");
     }
 
     @Test

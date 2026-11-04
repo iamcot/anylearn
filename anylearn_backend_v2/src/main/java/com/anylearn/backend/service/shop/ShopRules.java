@@ -20,6 +20,9 @@ public final class ShopRules {
     public static final String ENERGY = "energy";
     public static final String CHEST_NORMAL = "chest_normal";
     public static final String CHEST_RARE = "chest_rare";
+    /** Switch of every voucher sold for Leo Xu; a voucher entry's key is `voucher:{groupId}`. */
+    public static final String VOUCHER = "voucher";
+    public static final String VOUCHER_PREFIX = "voucher:";
 
     public static final List<String> PACK_KEYS = List.of(PACK_LEVEL, PACK_TOPIC, PACK_TOPIC_LEVEL);
     /** Keys that have an on/off switch in the back office. */
@@ -30,6 +33,7 @@ public final class ShopRules {
         SWITCHES.add(ENERGY);
         SWITCHES.add(CHEST_NORMAL);
         SWITCHES.add(CHEST_RARE);
+        SWITCHES.add(VOUCHER);
     }
 
     // kinds written in `shop_log`
@@ -39,6 +43,7 @@ public final class ShopRules {
     public static final String LOG_CHEST_RARE = "chest_rare";
     public static final String LOG_SELL_STICKER = "sell_sticker";
     public static final String LOG_SELL_ITEM = "sell_item";
+    public static final String LOG_VOUCHER = "voucher";
 
     // pack types stored in `quiz_packs.type`
     public static final String TYPE_LEVEL = "level";
@@ -46,6 +51,22 @@ public final class ShopRules {
     public static final String TYPE_TOPIC_LEVEL = "topic_level";
 
     public static final int[] DEFAULT_LEVEL_PRICES = {5, 7, 9, 12, 15};
+
+    /** Catalog key of a voucher group sold for Leo Xu. */
+    public static String voucherKey(long groupId) {
+        return VOUCHER_PREFIX + groupId;
+    }
+
+    /** The voucher group id of a `voucher:{id}` key, or null for any other key. */
+    public static Long voucherGroupOf(String key) {
+        if (key == null || !key.startsWith(VOUCHER_PREFIX)) return null;
+        try {
+            long id = Long.parseLong(key.substring(VOUCHER_PREFIX.length()).trim());
+            return id > 0 ? id : null;
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
 
     public static boolean isPackKey(String key) {
         return PACK_KEYS.contains(key);

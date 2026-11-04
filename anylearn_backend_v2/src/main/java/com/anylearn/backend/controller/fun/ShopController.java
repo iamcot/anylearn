@@ -36,7 +36,13 @@ public class ShopController {
         return guarded(user, () -> shop.overview(user.getId()));
     }
 
-    /** Body {key, difficulty?}: a quiz item key, pack_level / pack_topic / pack_topic_level (level for the first and last), energy, chest_normal, chest_rare. */
+    /** Vouchers on sale for Leo Xu with the person's state (the voucher wallet page). */
+    @GetMapping("/vouchers")
+    public ApiResponse<?> vouchers(@AuthenticationPrincipal User user) {
+        return guarded(user, () -> shop.voucherOffers(user.getId()));
+    }
+
+    /** Body {key, difficulty?}: a quiz item key, pack_level / pack_topic / pack_topic_level (level for the first and last), energy, chest_normal, chest_rare, voucher:{groupId}. */
     @PostMapping("/buy")
     public ApiResponse<?> buy(@AuthenticationPrincipal User user, @RequestBody Map<String, Object> body) {
         return guarded(user, () -> shop.buy(user.getId(), body.get("key") == null ? null : body.get("key").toString(),

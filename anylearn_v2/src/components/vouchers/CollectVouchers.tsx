@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/context/AuthContext'
 import VoucherTicket from '@/components/vouchers/VoucherTicket'
+import LeoVoucherCard from '@/components/vouchers/LeoVoucherCard'
+import { buyShopEntry, type ShopEntry } from '@/lib/api/shop'
 import { collectVoucher, getCollectibleVouchers, type CollectibleVoucher, type VoucherPlace } from '@/lib/api/vouchers'
 import { CheckIcon } from '@/components/icons'
 import { conditionLine, leftLabel } from '@/lib/vouchers/rules'
@@ -45,6 +47,32 @@ export default function CollectVouchers({ place, partnerId, itemId, title = 'Vou
     setMessage('Đã lưu vào ví voucher, dùng khi thanh toán.')
   }
 
+  // Leo Xu vouchers show here too, with the buy-for-coins button (a visitor gets the login form)
+  const leoEntry = (v: CollectibleVoucher): ShopEntry => ({
+    key: `voucher:${v.groupId}`, game: 'voucher', gameLabel: 'Voucher', kind: 'voucher', label: v.title, description: '',
+    price: v.coin!.price, enabled: true, dailyCap: null, left: null, link: '/account/vouchers', linkLabel: '',
+    voucher: {
+      groupId: v.groupId, title: v.title, kind: v.kind, value: v.value, maxDiscount: v.maxDiscount, minOrder: v.minOrder,
+      itemIds: v.itemIds, partnerId: v.partnerId, partnerName: v.partnerName, walletDays: v.walletDays, price: v.coin!.price,
+      rebuyDays: v.coin!.rebuyDays, left: v.left ?? null, holding: !!v.coin!.holding, nextAt: v.coin!.nextAt ?? null,
+      canBuy: v.coin!.canBuy ?? true, problem: v.coin!.problem ?? null,
+    },
+  })
+
+  const buyLeo = async (entry: ShopEntry): Promise<string | null> => {
+    if (!token) { openAuthModal('login'); return null }
+    const { data, error } = await buyShopEntry(token, entry.key)
+    if (error || !data) return error ?? 'Không đổi được'
+    if (data.voucher) {
+      const nv = data.voucher
+      setItems(list => list.map(x => (x.groupId === nv.groupId && x.coin
+        ? { ...x, left: nv.left, coin: { ...x.coin, holding: nv.holding, nextAt: nv.nextAt, canBuy: nv.canBuy, problem: nv.problem, balance: data.coins } }
+        : x.coin ? { ...x, coin: { ...x.coin, balance: data.coins } } : x)))
+    }
+    setMessage(data.message)
+    return null
+  }
+
   return (
     <section className={`min-w-0 ${className}`} aria-label={title}>
       <div className="mb-2 flex items-center justify-between gap-2">
@@ -55,6 +83,14 @@ export default function CollectVouchers({ place, partnerId, itemId, title = 'Vou
         {items.map(v => {
           const left = leftLabel(v)
           const soldOut = v.left != null && v.left <= 0
+          if (v.coin) {
+            return (
+              <div key={v.groupId} className="w-[300px] max-w-[85vw] shrink-0 snap-start">
+                <LeoVoucherCard as="div" entry={leoEntry(v)} coins={token ? (v.coin.balance ?? 0) : v.coin.price}
+                  coinName={v.coin.coinName} onBuy={buyLeo} />
+              </div>
+            )
+          }
           return (
             <div key={v.groupId} className="w-[300px] max-w-[85vw] shrink-0 snap-start">
               <VoucherTicket

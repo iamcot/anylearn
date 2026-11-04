@@ -1,9 +1,35 @@
 import { authFetch } from './client'
 import type { Energy, QuizPack } from './quiz'
 import type { StickerView } from './stickers'
+import type { VoucherKind } from './vouchers'
 
-export type ShopGame = 'quiz' | 'sticker'
-export type ShopKind = 'item' | 'pack' | 'energy' | 'chest'
+export type ShopGame = 'quiz' | 'sticker' | 'voucher'
+export type ShopKind = 'item' | 'pack' | 'energy' | 'chest' | 'voucher'
+
+/** A voucher sold for Leo Xu (`key` = `voucher:{groupId}`), with the person's state. */
+export interface LeoVoucher {
+  groupId: number
+  title: string
+  kind?: VoucherKind
+  value: number
+  maxDiscount?: number
+  minOrder: number
+  itemIds: number[]
+  partnerId?: number | null
+  partnerName?: string | null
+  walletDays?: number | null
+  price: number
+  /** Days after using a bought copy before the next one can be bought. */
+  rebuyDays: number
+  /** Copies the group can still hand out (null = no limit). */
+  left: number | null
+  /** A bought copy waits unused in the wallet. */
+  holding: boolean
+  /** When the rebuy wait ends (ISO local time), null when there is none. */
+  nextAt: string | null
+  canBuy: boolean
+  problem: string | null
+}
 
 /** One thing the Leo Xu shop sells. `price` is null for a pack that depends on the level (see `levelPrices`). */
 export interface ShopEntry {
@@ -25,6 +51,8 @@ export interface ShopEntry {
   stockCap?: number
   needsDifficulty?: boolean
   levelPrices?: number[]
+  /** Voucher entries only. */
+  voucher?: LeoVoucher
 }
 
 export interface SellSticker {
@@ -70,6 +98,16 @@ export interface BuyResult {
   pack?: QuizPack
   sticker?: StickerView
   energy?: Energy
+  /** A voucher bought: its new state and the wallet row. */
+  voucher?: LeoVoucher
+  walletId?: number
+}
+
+export interface LeoVoucherShop {
+  enabled: boolean
+  coinName: string
+  coins: number
+  items: ShopEntry[]
 }
 
 export interface SellResult {
@@ -87,3 +125,5 @@ export const buyShopEntry = (token: string, key: string, difficulty?: number | n
 
 export const sellToLeo = (token: string, kind: 'sticker' | 'item', id: string | number) =>
   authFetch<SellResult>('/shop/sell', token, { method: 'POST', body: JSON.stringify({ kind, id: String(id) }) })
+
+export const getLeoVouchers = (token: string) => authFetch<LeoVoucherShop>('/shop/vouchers', token)

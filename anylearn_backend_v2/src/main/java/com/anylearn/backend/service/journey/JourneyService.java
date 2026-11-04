@@ -128,6 +128,7 @@ public class JourneyService {
         if (favs != null && favs >= 3) d.add("fav3");
         if (exists("SELECT 1 FROM follows WHERE user_id = ?", u)) d.add("follow");
         if (exists("SELECT 1 FROM course_requests WHERE user_id = ?", u)) d.add("course_request");
+        if (exists("SELECT 1 FROM user_vouchers WHERE user_id = ? AND source = 'shop'", u)) d.add("leo_voucher");
         if (exists("SELECT 1 FROM item_video_lesson_user_links l JOIN item_video_lessons v ON v.id = l.item_video_lesson_id "
                 + "WHERE l.user_id = ? AND v.is_free = 1 AND COALESCE(l.watched_seconds, 0) > 0", u)) d.add("free_lesson");
         if (exists("SELECT 1 FROM item_activities WHERE user_id = ? AND type = 'trial'", u)) d.add("trial");

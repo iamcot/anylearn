@@ -22,6 +22,7 @@ public class GameEventService {
     public static final String GAME_BANNER = "banner";
     public static final String GAME_REF = "ref";
     public static final String GAME_COIN = "coin";
+    public static final String GAME_VOUCHER = "voucher";   // a voucher bought with Leo Xu
 
     private final JdbcTemplate jdbc;
 

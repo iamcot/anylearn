@@ -1,6 +1,10 @@
 package com.anylearn.backend.service.voucher;
 
 import com.anylearn.backend.service.NotificationService;
+import com.anylearn.backend.service.fun.CoinService;
+import com.anylearn.backend.service.fun.FunSettings;
+import com.anylearn.backend.service.shop.ShopRules;
+import com.anylearn.backend.service.shop.ShopSettings;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -32,6 +36,9 @@ public class VoucherService {
 
     private final JdbcTemplate jdbc;
     private final NotificationService notifications;
+    private final CoinService coins;
+    private final FunSettings funSettings;
+    private final ShopSettings shopSettings;
     private final Clock clock;
     private final SecureRandom random = new SecureRandom();
 
@@ -41,7 +48,7 @@ public class VoucherService {
 
     public record GroupRow(long id, String type, String generateType, String prefix, Integer length, Integer qtt,
                            long value, long minOrder, boolean active, String title, boolean collectible, Integer walletDays,
-                           Long partnerId, String showOn, long maxDiscount) {
+                           Long partnerId, String showOn, long maxDiscount, boolean coinExchange, int coinPrice, int coinRebuyDays) {
         public boolean dynamic() { return generateType != null && !"manual".equals(generateType); }
         public String displayTitle() {
             if (title != null && !title.isBlank()) return title;
@@ -75,12 +82,14 @@ public class VoucherService {
 
     public Optional<GroupRow> group(long id) {
         return jdbc.query("SELECT id, type, generate_type, prefix, length, qtt, value, rule_min, status, title, collectible, wallet_days, "
-                        + "partner_id, show_on, max_discount FROM voucher_groups WHERE id = ?",
+                        + "partner_id, show_on, max_discount, coin_exchange, coin_price, coin_rebuy_days FROM voucher_groups WHERE id = ?",
                 (rs, i) -> new GroupRow(rs.getLong(1), rs.getString(2), rs.getString(3), rs.getString(4),
                         (Integer) rs.getObject(5), (Integer) rs.getObject(6), VoucherRules.parseValue(rs.getString(7)),
                         rs.getObject(8) == null ? 0 : rs.getLong(8), rs.getInt(9) == 1, rs.getString(10),
                         rs.getInt(11) == 1, (Integer) rs.getObject(12), rs.getObject(13) == null ? null : rs.getLong(13),
-                        rs.getString(14), rs.getObject(15) == null ? 0 : rs.getLong(15)), id).stream().findFirst();
+                        rs.getString(14), rs.getObject(15) == null ? 0 : rs.getLong(15), rs.getInt(16) == 1,
+                        rs.getObject(17) == null ? 0 : rs.getInt(17), rs.getObject(18) == null ? VoucherRules.DEFAULT_COIN_REBUY_DAYS : rs.getInt(18)),
+                id).stream().findFirst();
     }
 
     public Set<Long> groupItems(long groupId) {
@@ -214,6 +223,7 @@ public class VoucherService {
             m.put("partnerId", g.partnerId());
             m.put("partnerName", partnerName(g.partnerId()));
             m.put("source", r.get("source"));
+            m.put("leo", SOURCE_SHOP.equals(r.get("source")));
             m.put("state", state);
             m.put("expiresAt", r.get("expires_at") != null ? r.get("expires_at").toString() : null);
             m.put("usedOrderId", r.get("used_order_id"));
@@ -253,6 +263,7 @@ public class VoucherService {
     @Transactional
     public Map<String, Object> collect(long userId, long groupId) {
         GroupRow g = group(groupId).orElseThrow(() -> new IllegalArgumentException("Không tìm thấy voucher"));
+        if (g.coinExchange()) throw new IllegalArgumentException("Voucher này đổi bằng " + funSettings.coinName() + " trong Cửa hàng Leo Xu");
         if (!g.active() || !(g.collectible() || onPublishedArticle(groupId))) throw new IllegalArgumentException("Voucher này không còn nhận được");
         if (holdsGroup(userId, groupId)) throw new IllegalArgumentException("Bạn đã nhận voucher này rồi");
         Long id = issue(userId, groupId, SOURCE_COLLECT, null);
@@ -297,11 +308,16 @@ public class VoucherService {
     public List<Map<String, Object>> collectible(Long userId, String place, Long partnerId, Long itemId) {
         Long itemPartner = itemId == null ? null
                 : jdbc.queryForList("SELECT user_id FROM items WHERE id = ?", Long.class, itemId).stream().findFirst().orElse(null);
-        List<Long> ids = jdbc.queryForList("SELECT id FROM voucher_groups WHERE collectible = 1 AND status = 1 ORDER BY id DESC LIMIT 100", Long.class);
+        // Leo Xu vouchers show in the same places, with a "buy for coins" button instead of "save"
+        boolean coinShop = coinShopOpen();
+        long balance = userId == null || !coinShop ? 0 : coins.balance(userId);
+        List<Long> ids = jdbc.queryForList("SELECT id FROM voucher_groups WHERE status = 1 AND (collectible = 1 OR (coin_exchange = 1 AND coin_price > 0)) "
+                + "ORDER BY id DESC LIMIT 100", Long.class);
         List<Map<String, Object>> out = new ArrayList<>();
         for (Long id : ids) {
             GroupRow g = group(id).orElse(null);
             if (g == null) continue;
+            if (g.coinExchange() && !coinShop) continue;
             Set<Long> itemIds = groupItems(g.id());
             VoucherRules.Group rg = new VoucherRules.Group(g.type(), g.value(), g.minOrder(), itemIds, g.partnerId(), g.maxDiscount());
             if (!VoucherRules.showsAt(VoucherRules.parsePlaces(g.showOn()), place)) continue;
@@ -321,7 +337,19 @@ public class VoucherService {
             m.put("partnerName", partnerName(g.partnerId()));
             m.put("left", left);
             m.put("walletDays", g.walletDays());
-            m.put("collected", userId != null && holdsGroup(userId, g.id()));
+            m.put("collected", !g.coinExchange() && userId != null && holdsGroup(userId, g.id()));
+            if (g.coinExchange()) {
+                Map<String, Object> coin = new LinkedHashMap<>();
+                coin.put("price", g.coinPrice());
+                coin.put("coinName", funSettings.coinName());
+                coin.put("rebuyDays", g.coinRebuyDays());
+                if (userId != null) {
+                    Map<String, Object> offer = coinOffer(g, userId, balance, funSettings.coinName());
+                    for (String k : List.of("holding", "nextAt", "canBuy", "problem")) coin.put(k, offer.get(k));
+                    coin.put("balance", balance);
+                }
+                m.put("coin", coin);
+            }
             out.add(m);
             if (out.size() >= 20) break;
         }
@@ -438,6 +466,84 @@ public class VoucherService {
                 userId, code.id(), g.id(), source, eventId, exp == null ? null : Timestamp.valueOf(exp), Timestamp.valueOf(now));
         if (n == 0) return null;
         return jdbc.queryForObject("SELECT id FROM user_vouchers WHERE user_id = ? AND voucher_id = ?", Long.class, userId, code.id());
+    }
+
+    // ── bought with Leo Xu (the shop charges the coins, see ShopService) ──
+
+    /** Where a person stands with one Leo Xu group: an unused bought copy in the wallet, and when the last bought copy was used. */
+    public record CoinState(boolean holdsUnused, LocalDateTime lastUsedAt) {}
+
+    public CoinState coinState(long userId, long groupId) {
+        Long unused = jdbc.queryForObject("SELECT COUNT(*) FROM user_vouchers WHERE user_id = ? AND voucher_group_id = ? AND source = ? "
+                + "AND status = 'active' AND (expires_at IS NULL OR expires_at > ?)", Long.class, userId, groupId, SOURCE_SHOP, Timestamp.valueOf(now()));
+        Timestamp last = jdbc.queryForObject("SELECT MAX(used_at) FROM user_vouchers WHERE user_id = ? AND voucher_group_id = ? AND source = ? AND status = 'used'",
+                Timestamp.class, userId, groupId, SOURCE_SHOP);
+        return new CoinState(unused != null && unused > 0, last == null ? null : last.toLocalDateTime());
+    }
+
+    /** Vouchers can be bought with coins: Vui học and the shop are open and the voucher switch of the shop is on. */
+    public boolean coinShopOpen() {
+        return funSettings.enabled() && shopSettings.enabled() && shopSettings.on(ShopRules.VOUCHER);
+    }
+
+    /** Groups on sale for Leo Xu (switched on, with a price), newest first. */
+    public List<GroupRow> coinGroups() {
+        List<Long> ids = jdbc.queryForList("SELECT id FROM voucher_groups WHERE coin_exchange = 1 AND status = 1 AND coin_price > 0 "
+                + "ORDER BY coin_price, id DESC LIMIT 50", Long.class);
+        List<GroupRow> out = new ArrayList<>();
+        for (Long id : ids) group(id).ifPresent(out::add);
+        return out;
+    }
+
+    /** One Leo Xu voucher as the shop and the wallet page show it, with the person's state (canBuy, problem, nextAt). */
+    public Map<String, Object> coinOffer(GroupRow g, long userId, long balance, String coinName) {
+        CoinState st = coinState(userId, g.id());
+        Long left = copiesLeft(g);
+        LocalDateTime next = VoucherRules.nextCoinBuyAt(st.lastUsedAt(), g.coinRebuyDays(), now());
+        String problem = VoucherRules.coinBuyProblem(g.coinExchange(), g.coinPrice(), g.active(), left, st.holdsUnused(),
+                st.lastUsedAt(), g.coinRebuyDays(), now(), balance, coinName);
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("groupId", g.id());
+        m.put("title", g.displayTitle());
+        m.put("kind", VoucherRules.kind(g.type()));
+        m.put("value", g.value());
+        m.put("maxDiscount", g.maxDiscount());
+        m.put("minOrder", g.minOrder());
+        m.put("itemIds", groupItems(g.id()));
+        m.put("partnerId", g.partnerId());
+        m.put("partnerName", partnerName(g.partnerId()));
+        m.put("walletDays", g.walletDays());
+        m.put("price", g.coinPrice());
+        m.put("rebuyDays", g.coinRebuyDays());
+        m.put("left", left);
+        m.put("holding", st.holdsUnused());
+        m.put("nextAt", next == null ? null : next.toString());
+        m.put("canBuy", problem == null);
+        m.put("problem", problem);
+        return m;
+    }
+
+    /**
+     * Checks a Leo Xu purchase with the group row locked (two quick taps buy once) and returns the group; the caller then
+     * charges the coins and calls {@link #issueBought}. Throws the Vietnamese reason when it cannot be bought.
+     */
+    @Transactional
+    public GroupRow lockForCoinBuy(long userId, long groupId, long balance, String coinName) {
+        jdbc.queryForList("SELECT id FROM voucher_groups WHERE id = ? FOR UPDATE", groupId);
+        GroupRow g = group(groupId).orElseThrow(() -> new IllegalArgumentException("Không tìm thấy voucher"));
+        CoinState st = coinState(userId, groupId);
+        String problem = VoucherRules.coinBuyProblem(g.coinExchange(), g.coinPrice(), g.active(), copiesLeft(g), st.holdsUnused(),
+                st.lastUsedAt(), g.coinRebuyDays(), now(), balance, coinName);
+        if (problem != null) throw new IllegalStateException(problem);
+        return g;
+    }
+
+    /** Puts the bought copy in the wallet (source shop). Throws when the group has nothing left, so the coins roll back. */
+    @Transactional
+    public long issueBought(long userId, long groupId) {
+        Long id = issue(userId, groupId, SOURCE_SHOP, null);
+        if (id == null) throw new IllegalStateException("Voucher này đã hết lượt đổi");
+        return id;
     }
 
     // ── events ───────────────────────────────────────────────────────────

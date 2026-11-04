@@ -1,4 +1,5 @@
 import type { CollectibleVoucher, WalletVoucher } from '@/lib/api/vouchers'
+import type { LeoVoucher } from '@/lib/api/shop'
 
 export function formatVnd(v: number): string {
   return `${Math.round(v).toLocaleString('vi-VN').replace(/,/g, '.')}đ`
@@ -68,4 +69,33 @@ export function walletTab(items: WalletVoucher[], tab: 'active' | 'used' | 'expi
 export function leftLabel(v: Pick<CollectibleVoucher, 'left'>): string | null {
   if (v.left === null || v.left === undefined) return null
   return v.left <= 0 ? 'Đã hết' : `Còn ${v.left} mã`
+}
+
+/** dd/MM/yyyy of an ISO local time ("2026-12-04T10:00"), or null. */
+function dayOf(iso: string | null | undefined): string | null {
+  if (!iso) return null
+  const d = new Date(iso.replace(' ', 'T'))
+  if (Number.isNaN(d.getTime())) return null
+  return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`
+}
+
+/** The line under a Leo Xu voucher: why it cannot be bought now, else how long it lasts and when it can be bought again. */
+export function leoVoucherNote(v: Pick<LeoVoucher, 'holding' | 'nextAt' | 'rebuyDays' | 'walletDays' | 'left'>): string {
+  if (v.holding) return 'Đang có trong ví, dùng xong mới đổi tiếp'
+  const next = dayOf(v.nextAt)
+  if (next) return `Đổi lại được từ ${next}`
+  if (v.left !== null && v.left <= 0) return 'Đã hết lượt đổi'
+  const parts: string[] = []
+  if (v.walletDays) parts.push(`Dùng trong ${v.walletDays} ngày`)
+  parts.push(v.rebuyDays > 0 ? `Đổi lại ${v.rebuyDays} ngày sau khi dùng` : 'Dùng xong đổi lại ngay')
+  return parts.join(' · ')
+}
+
+/** Leo Xu vouchers first that can be bought, then the rest, cheapest first inside each. */
+export function sortLeoVouchers<T extends { voucher?: LeoVoucher }>(entries: T[]): T[] {
+  return [...entries].sort((a, b) => {
+    const ca = a.voucher?.canBuy ? 0 : 1
+    const cb = b.voucher?.canBuy ? 0 : 1
+    return ca - cb || (a.voucher?.price ?? 0) - (b.voucher?.price ?? 0)
+  })
 }

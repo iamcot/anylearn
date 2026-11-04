@@ -16,11 +16,11 @@ export function shopTabFromQuery(value: string | null | undefined): ShopTab {
 
 /** `?game=` narrows the buy tab to one game (the shortcut inside a game); anything else shows every game. */
 export function gameFromQuery(value: string | null | undefined): ShopGame | null {
-  return value === 'quiz' || value === 'sticker' ? value : null
+  return value === 'quiz' || value === 'sticker' || value === 'voucher' ? value : null
 }
 
-const GAME_ORDER: ShopGame[] = ['quiz', 'sticker']
-const GAME_TITLE: Record<ShopGame, string> = { quiz: 'Leo rank', sticker: 'Sticker' }
+const GAME_ORDER: ShopGame[] = ['voucher', 'quiz', 'sticker']
+const GAME_TITLE: Record<ShopGame, string> = { voucher: 'Voucher giảm học phí', quiz: 'Leo rank', sticker: 'Sticker' }
 
 export interface ShopGroup { game: ShopGame; title: string; entries: ShopEntry[] }
 
