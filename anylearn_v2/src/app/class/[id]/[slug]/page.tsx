@@ -1,5 +1,6 @@
-import { getPdpData, getPointsPreview, getCourseUrl, PdpData, Item, ItemSchedule } from '@/lib/api'
+import { getPdpData, getPointsPreview, getCourseUrl, searchItems, PdpData, Item, ItemSchedule } from '@/lib/api'
 import Link from 'next/link'
+import ScrollRow from '@/components/ScrollRow'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import BackButton from '@/components/BackButton'
@@ -45,7 +46,7 @@ const SCHEDULE_BADGE_CLASS: Record<string, string> = {
   open: 'bg-green-soft text-green-dark',
 }
 const PANEL = 'rounded-[26px] border border-line bg-white p-5 lg:p-7'
-const RELATED_LIMIT = 5
+const SAME_FIELD_LIMIT = 5
 
 const FEATURE_LABELS = [
   { key: 'activiyTrial', label: 'Có học thử' },
@@ -87,6 +88,12 @@ export default async function PdpPage({ params }: Props) {
   const origin = siteOrigin()
   const coursePath = getCourseUrl(item)
   const firstCategory = categories[0]
+  // Same field = the visitors' search for the first category (visible courses, max 2 per partner); not logged
+  // as a search because no `ref` is sent.
+  const sameField = firstCategory
+    ? (await searchItems('', 0, SAME_FIELD_LIMIT + 1, { category: firstCategory.url })).items
+        .filter(it => it.id !== item.id).slice(0, SAME_FIELD_LIMIT)
+    : []
 
   return (
     <>
@@ -104,9 +111,10 @@ export default async function PdpPage({ params }: Props) {
         ]),
       ]} />
       {/* ── Hero ──
-          Desktop: two columns. Left = picture, video outline, partner, course description; right = buy card, related
-          courses of the partner, reviews (the right column follows the scroll). Phone: one column, the order-* classes
-          put the blocks as picture, buy card, video, partner, related, reviews, description. */}
+          Desktop: two columns. Left = picture, video outline, partner, its other courses, course description; right =
+          buy card, reviews, courses of the same field (the right column follows the scroll). Phone: one column, the
+          order-* classes put the blocks as picture, buy card, video, partner, other courses, reviews, description,
+          same field. */}
       <section className="section--soft pb-10 pt-6 lg:pt-10">
         <div className="container">
           <BackButton />
@@ -146,8 +154,30 @@ export default async function PdpPage({ params }: Props) {
                 </div>
               )}
 
+              {authorItems.length > 0 && (
+                <div className={`${PANEL} order-4 lg:order-none`}>
+                  <h3 className="section-kicker mb-4">Các khóa học khác</h3>
+                  <ScrollRow>
+                    {(authorItems as Item[]).map(it => (
+                      <Link key={it.id} href={getCourseUrl(it)} className="w-[150px] shrink-0 no-underline sm:w-[170px]">
+                        <div className="relative mb-2.5 aspect-square overflow-hidden rounded-[14px] bg-gradient-to-br from-green-soft to-blue-soft">
+                          {it.image
+                            // eslint-disable-next-line @next/next/no-img-element
+                            ? <img src={it.image} alt={it.title} className="absolute inset-0 size-full object-cover" />
+                            : <div className="grid size-full place-items-center text-blue/40"><BookIcon className="size-8" /></div>
+                          }
+                        </div>
+                        <div className="mb-1.5 line-clamp-2 text-sm font-extrabold leading-[1.3] text-green-dark">{it.title}</div>
+                        <div className="text-[15px] font-extrabold text-red">{formatPrice(it.price)}</div>
+                        <CompareWhenActive itemId={it.id} title={it.title} image={it.image} className="mt-1" />
+                      </Link>
+                    ))}
+                  </ScrollRow>
+                </div>
+              )}
+
               {hasContent && (
-                <div className={`${PANEL} order-7 lg:order-none`}>
+                <div className={`${PANEL} order-6 lg:order-none`}>
                   <h2 className="section-kicker mb-5">Thông tin khóa học</h2>
                   <CollapsibleContent>
                     <div className="cms-content" dangerouslySetInnerHTML={{ __html: content.content_advantage }} />
@@ -274,11 +304,16 @@ export default async function PdpPage({ params }: Props) {
                 <div className="mt-3"><ReportPriceButton itemId={item.id} /></div>
               </div>
 
-              {authorItems.length > 0 && (
-                <div className={`${PANEL} order-5 lg:order-none`}>
-                  <h2 className="section-kicker mb-4">Các khóa học khác{author ? ` của ${author.name}` : ''}</h2>
+              <div className={`${PANEL} order-5 lg:order-none`} id="reviews-section">
+                <h2 className="section-kicker mb-5">Đánh giá từ học viên</h2>
+                <ReviewsSection itemId={item.id} authorId={author?.id} authorName={author?.name} initialReviews={reviews} />
+              </div>
+
+              {firstCategory && sameField.length > 0 && (
+                <div className={`${PANEL} order-7 lg:order-none`}>
+                  <h2 className="section-kicker mb-4">Khóa học cùng lĩnh vực {firstCategory.title}</h2>
                   <div className="flex flex-col gap-3">
-                    {(authorItems as Item[]).slice(0, RELATED_LIMIT).map(it => (
+                    {sameField.map(it => (
                       <Link key={it.id} href={getCourseUrl(it)} className="flex items-center gap-3 rounded-2xl p-1.5 no-underline hover:bg-bg">
                         <div className="relative size-16 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-green-soft to-blue-soft">
                           {it.image
@@ -295,18 +330,11 @@ export default async function PdpPage({ params }: Props) {
                       </Link>
                     ))}
                   </div>
-                  {author && authorItems.length > RELATED_LIMIT && (
-                    <Link href={`/partner/${author.id}`} className="mt-3 inline-block text-sm font-bold text-green-dark">
-                      <ChevronLabel>Xem thêm {authorItems.length - RELATED_LIMIT} khóa học</ChevronLabel>
-                    </Link>
-                  )}
+                  <Link href={`/search?category=${encodeURIComponent(firstCategory.url)}`} className="btn btn--outline mt-4 w-full justify-center text-sm">
+                    <ChevronLabel>Xem thêm khóa {firstCategory.title}</ChevronLabel>
+                  </Link>
                 </div>
               )}
-
-              <div className={`${PANEL} order-6 lg:order-none`} id="reviews-section">
-                <h2 className="section-kicker mb-5">Đánh giá từ học viên</h2>
-                <ReviewsSection itemId={item.id} authorId={author?.id} authorName={author?.name} initialReviews={reviews} />
-              </div>
             </StickyAside>
           </div>
         </div>
