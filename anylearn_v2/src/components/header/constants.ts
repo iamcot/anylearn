@@ -1,7 +1,7 @@
 import { TODAY_NAV } from '@/lib/today/nav'
 
 export const NAV_LINKS = [
-  { href: '/info', label: 'Giới thiệu' },
+  { href: '/info', label: 'Giới thiệu', icon: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 11v5M12 7.5h.01' },
   { href: '/search?mode=school', label: 'anySCHOOL' },
   { href: '/search?mode=teacher', label: 'anyPROFESSOR' },
 ]

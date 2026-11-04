@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useAuth } from '@/context/AuthContext'
 import VoucherTicket from '@/components/vouchers/VoucherTicket'
 import { collectVoucher, getCollectibleVouchers, type CollectibleVoucher, type VoucherPlace } from '@/lib/api/vouchers'
+import { CheckIcon } from '@/components/icons'
 import { conditionLine, leftLabel } from '@/lib/vouchers/rules'
 
 interface Props {
@@ -62,14 +63,19 @@ export default function CollectVouchers({ place, partnerId, itemId, title = 'Vou
                 condition={conditionLine(v)}
                 note={left}
                 warn={v.left != null && v.left > 0 && v.left <= 10}
-                action={(
+                vivid
+                action={v.collected ? (
+                  <span className="inline-flex shrink-0 items-center gap-1 text-xs font-extrabold text-green-dark"><CheckIcon className="size-4" />Đã lưu</span>
+                ) : soldOut ? (
+                  <span className="shrink-0 text-xs font-bold text-muted">Đã hết</span>
+                ) : (
                   <button
                     type="button"
-                    disabled={v.collected || soldOut || busy === v.groupId}
+                    disabled={busy === v.groupId}
                     onClick={() => collect(v)}
-                    className="min-h-9 shrink-0 cursor-pointer rounded-full border-0 bg-green px-3 font-[inherit] text-xs font-black text-white hover:bg-green-dark disabled:cursor-default disabled:bg-slate-200 disabled:text-muted"
+                    className="min-h-9 shrink-0 cursor-pointer rounded-full border-0 bg-gradient-to-r from-[#ff8a3d] to-[#e8336d] px-3.5 font-[inherit] text-xs font-black text-white shadow-[0_2px_8px_rgba(232,51,109,.35)] hover:brightness-105 disabled:opacity-70"
                   >
-                    {v.collected ? 'Đã lưu' : soldOut ? 'Hết' : busy === v.groupId ? '...' : 'Lưu'}
+                    {busy === v.groupId ? '...' : 'Lưu ngay'}
                   </button>
                 )}
               />

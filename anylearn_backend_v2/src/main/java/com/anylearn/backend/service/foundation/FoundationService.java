@@ -52,6 +52,8 @@ public class FoundationService {
                 .field("house_value", "Giá trị một căn nhà vệ sinh (đ)", "Chung", 80_000_000, 1_000_000, 5_000_000_000L)
                 .field("first_order_multiplier", "Đơn đầu tiên góp gấp mấy lần", "Chung", 2, 1, 10)
                 .field("bucket_min", "Từ số tiền này là \"1 xô gạch\" (đ)", "Chữ hiển thị", 10_000, 1, 100_000_000)
+                .field("paint_min", "Từ số tiền này là \"1 thùng sơn\" (đ)", "Chữ hiển thị", 20_000, 1, 100_000_000)
+                .field("cement_min", "Từ số tiền này là \"1 bao xi măng\" (đ)", "Chữ hiển thị", 30_000, 1, 100_000_000)
                 .field("barrow_min", "Từ số tiền này là \"1 xe rùa gạch\" (đ)", "Chữ hiển thị", 50_000, 1, 100_000_000)
                 .field("truck_min", "Từ số tiền này là \"1 xe tải gạch\" (đ)", "Chữ hiển thị", 200_000, 1, 1_000_000_000)
                 .field("brick_value", "Một viên gạch trong \"Gạch của tôi\" là (đ)", "Chữ hiển thị", 1_000, 1, 1_000_000);
@@ -141,7 +143,7 @@ public class FoundationService {
     // ── reads ────────────────────────────────────────────────────────────
 
     public String label(long amount) {
-        return FoundationRules.brickLabel(amount, settings.get("bucket_min"), settings.get("barrow_min"), settings.get("truck_min"));
+        return FoundationRules.brickLabel(amount, settings.get("bucket_min"), settings.get("paint_min"), settings.get("cement_min"), settings.get("barrow_min"), settings.get("truck_min"));
     }
 
     /** Public page and home strip: progress, finished houses, the latest contributions (names shortened, no amounts). */

@@ -4,7 +4,7 @@ import { getFoundation } from '@/lib/api/gamification'
 import { shareMeta } from '@/lib/seo/shareMeta'
 import { houseOrdinal, houseTitle } from '@/lib/foundation/rules'
 import FoundationBar from '@/components/foundation/FoundationBar'
-import { BrickIcon, HouseIcon } from '@/components/foundation/icons'
+import { ContributionIcon, HouseIcon } from '@/components/foundation/icons'
 
 export const metadata: Metadata = shareMeta('foundation')
 export const revalidate = 60
@@ -67,7 +67,7 @@ export default async function FoundationPage() {
           <ul className="m-0 mt-3 flex list-none flex-col p-0">
             {state.recent.map(r => (
               <li key={r.id} className="flex items-center gap-2 border-t border-line py-2 text-sm first:border-t-0">
-                <BrickIcon className="size-5 shrink-0" />
+                <ContributionIcon label={r.label} className="size-6 shrink-0" />
                 <span className="min-w-0 flex-1"><b>{r.name}</b> góp {r.label} <span className="text-muted">({SOURCE_LABEL[r.source] ?? r.source})</span></span>
                 <span className="text-xs text-muted">{when(r.at)}</span>
               </li>

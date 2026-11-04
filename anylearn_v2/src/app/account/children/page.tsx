@@ -23,6 +23,7 @@ export default function ChildrenPage() {
   const [draft, setDraft] = useState<ChildDraft | null>(null)
   const [saving, setSaving] = useState(false)
   const [interestsFor, setInterestsFor] = useState<ChildUser | null>(null)
+  const [selfInterests, setSelfInterests] = useState(false)
   const [confirmingDeleteId, setConfirmingDeleteId] = useState<number | null>(null)
   const [tiers, setTiers] = useState<Map<number, LearnerTier>>(new Map())
 
@@ -79,6 +80,17 @@ export default function ChildrenPage() {
         />
       )}
 
+      {selfInterests && token && user && (
+        <ChildInterestsModal
+          childId={user.id}
+          childName={user.name}
+          token={token}
+          isSelf
+          onClose={() => setSelfInterests(false)}
+          onSaved={() => { setSelfInterests(false); toast({ kind: 'success', text: 'Đã lưu sở thích' }) }}
+        />
+      )}
+
       <div className="p-4 sm:p-5">
         {loading ? (
           <ListSkeleton showTitle={false} />
@@ -97,7 +109,10 @@ export default function ChildrenPage() {
                   </div>
                   {(tiers.get(user.id)?.finished ?? 0) > 0 && <div className="text-xs text-muted">{tiers.get(user.id)!.finished} khóa đã xong</div>}
                 </div>
-                <Link href="/account/profile" className={`${TEXT_BUTTON} inline-flex items-center text-blue no-underline`}>Sửa</Link>
+                <div className="flex shrink-0 gap-1">
+                  <button type="button" onClick={() => setSelfInterests(true)} className={`${TEXT_BUTTON} text-green-dark`}>Sở thích</button>
+                  <Link href="/account/profile" className={`${TEXT_BUTTON} inline-flex items-center text-blue no-underline`}>Sửa</Link>
+                </div>
               </div>
             )}
             {children.length === 0 && <p className="m-0 py-4 text-center text-sm text-muted">Chưa có bé nào. Nhấn &quot;+ Thêm bé&quot; để tạo.</p>}

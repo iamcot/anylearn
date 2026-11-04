@@ -258,3 +258,11 @@ export const SparkleIcon = (props: IconProps) => (
     <path d="M19 15l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7.7-2z" />
   </Icon>
 )
+
+/** Zalo chat, drawn as a line icon like search and cart: a speech bubble with a "Z". */
+export const ZaloIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M12 3.5c-5 0-9 3.3-9 7.5 0 2.2 1.1 4.2 2.9 5.6L5 20.5l4.2-2a10.6 10.6 0 0 0 2.8.4c5 0 9-3.4 9-7.5s-4-7.9-9-7.9Z" />
+    <path d="M9 8.8h5.5L9 14.2h5.5" />
+  </Icon>
+)

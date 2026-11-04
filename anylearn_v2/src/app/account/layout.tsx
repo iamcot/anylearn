@@ -57,7 +57,7 @@ function DesktopSidebar({ pathname, user, onLogout }: {
                   active ? 'border-blue bg-blue-soft font-bold text-blue' : 'border-transparent font-medium text-text hover:bg-bg'
                 }`}>
                 <Icon className="size-[18px] shrink-0" />
-                <span className="flex-1">{label}</span>
+                <span className="min-w-0 flex-1 truncate" title={label}>{label}</span>
                 {isPoint && <PointBadge points={user.walletC ?? 0} active={active} />}
                 {href === ORDERS_HREF && <PendingOrdersPill />}
               </Link>
@@ -97,7 +97,7 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
   return (
     <div className="min-h-[80vh] bg-bg py-3 lg:py-10">
       <div className="container">
-        <div className="grid grid-cols-1 gap-3 lg:grid-cols-[260px_1fr] lg:gap-6">
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-[300px_1fr] lg:gap-6">
           <MobileBackBar pathname={pathname} />
           <DesktopSidebar pathname={pathname} user={user} onLogout={handleLogout} />
           <main className="min-w-0">
