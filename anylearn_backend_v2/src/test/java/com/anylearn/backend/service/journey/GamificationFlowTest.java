@@ -144,6 +144,17 @@ class GamificationFlowTest {
         assertEquals(totalBefore + ((Number) done.get("added")).longValue(), jdbc.queryForObject("SELECT total_amount FROM foundation_state WHERE id = 1", Long.class));
 
         assertEquals(0L, ((Number) foundation.importOldOrders(true, true).get("added")).longValue(), "an order is imported once");
+
+        // "Gỡ" takes it back out, keeps the row, and the order is not imported again.
+        long id = jdbc.queryForObject("SELECT id FROM foundation_contributions WHERE dedup_key = ?", Long.class, "order:" + portalOrder);
+        long total = jdbc.queryForObject("SELECT total_amount FROM foundation_state WHERE id = 1", Long.class);
+        long current = jdbc.queryForObject("SELECT current_amount FROM foundation_state WHERE id = 1", Long.class);
+        assertEquals(24000L, foundation.remove(id));
+        assertEquals(total - 24000, jdbc.queryForObject("SELECT total_amount FROM foundation_state WHERE id = 1", Long.class));
+        assertEquals(current - 24000, jdbc.queryForObject("SELECT current_amount FROM foundation_state WHERE id = 1", Long.class));
+        assertThrows(IllegalArgumentException.class, () -> foundation.remove(id), "removed once");
+        assertEquals(0L, ((Number) foundation.importOldOrders(true, true).get("added")).longValue(), "a removed order is not imported again");
+        assertNull(foundation.ofOrder(portalOrder));
     }
 
     @Test

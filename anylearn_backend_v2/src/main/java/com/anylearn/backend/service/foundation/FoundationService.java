@@ -184,7 +184,7 @@ public class FoundationService {
     }
 
     private void announceHouse(int houseNo) {
-        List<Long> people = jdbc.queryForList("SELECT DISTINCT user_id FROM foundation_contributions WHERE house_no = ? AND user_id IS NOT NULL",
+        List<Long> people = jdbc.queryForList("SELECT DISTINCT user_id FROM foundation_contributions WHERE house_no = ? AND user_id IS NOT NULL AND removed_at IS NULL",
                 Long.class, houseNo);
         for (Long u : people) {
             try {
@@ -220,12 +220,12 @@ public class FoundationService {
         out.put("percent", FoundationRules.percent(current, value));
         out.put("remaining", FoundationRules.remaining(current, value));
         out.put("totalAmount", ((Number) s.get("total_amount")).longValue());
-        Long people = jdbc.queryForObject("SELECT COUNT(DISTINCT user_id) FROM foundation_contributions WHERE user_id IS NOT NULL", Long.class);
+        Long people = jdbc.queryForObject("SELECT COUNT(DISTINCT user_id) FROM foundation_contributions WHERE user_id IS NOT NULL AND removed_at IS NULL", Long.class);
         out.put("contributors", people == null ? 0 : people);
         out.put("recent", jdbc.query(
                 "SELECT c.id, c.user_id, c.source, c.amount, c.house_no, c.created_at, u.name, COALESCE(m.hide_name, 0) AS hide_name "
                         + "FROM foundation_contributions c LEFT JOIN users u ON u.id = c.user_id LEFT JOIN foundation_members m ON m.user_id = c.user_id "
-                        + "ORDER BY c.id DESC LIMIT ?",
+                        + "WHERE c.removed_at IS NULL ORDER BY c.id DESC LIMIT ?",
                 (rs, i) -> {
                     Map<String, Object> r = new LinkedHashMap<>();
                     long uid = rs.getLong("user_id");
@@ -246,7 +246,7 @@ public class FoundationService {
 
     /** What a paid order gave the fund: amount, its brick label and the house state after it (null when nothing). */
     public Map<String, Object> ofOrder(long orderId) {
-        List<Map<String, Object>> rows = jdbc.queryForList("SELECT amount, house_no FROM foundation_contributions WHERE order_id = ? AND source = 'order'", orderId);
+        List<Map<String, Object>> rows = jdbc.queryForList("SELECT amount, house_no FROM foundation_contributions WHERE order_id = ? AND source = 'order' AND removed_at IS NULL", orderId);
         if (rows.isEmpty()) return null;
         long amount = ((Number) rows.get(0).get("amount")).longValue();
         Map<String, Object> s = jdbc.queryForMap("SELECT houses_built, current_amount FROM foundation_state WHERE id = 1");
@@ -263,13 +263,13 @@ public class FoundationService {
     /** "Gạch của tôi". */
     public Map<String, Object> mine(long userId) {
         Map<String, Object> t = jdbc.queryForMap(
-                "SELECT COALESCE(SUM(amount), 0) AS total, COUNT(*) AS times FROM foundation_contributions WHERE user_id = ?", userId);
+                "SELECT COALESCE(SUM(amount), 0) AS total, COUNT(*) AS times FROM foundation_contributions WHERE user_id = ? AND removed_at IS NULL", userId);
         long total = ((Number) t.get("total")).longValue();
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("total", total);
         out.put("times", ((Number) t.get("times")).intValue());
         out.put("bricks", FoundationRules.bricks(total, settings.get("brick_value")));
-        out.put("houses", jdbc.queryForList("SELECT DISTINCT house_no FROM foundation_contributions WHERE user_id = ? ORDER BY house_no", Integer.class, userId));
+        out.put("houses", jdbc.queryForList("SELECT DISTINCT house_no FROM foundation_contributions WHERE user_id = ? AND removed_at IS NULL ORDER BY house_no", Integer.class, userId));
         List<Integer> hide = jdbc.queryForList("SELECT hide_name FROM foundation_members WHERE user_id = ?", Integer.class, userId);
         out.put("hideName", !hide.isEmpty() && hide.get(0) == 1);
         return out;
@@ -302,8 +302,36 @@ public class FoundationService {
     public Map<String, Object> adminState() {
         Map<String, Object> out = new LinkedHashMap<>(publicState(50));
         out.put("settings", settings.asMap());
-        out.put("bySource", jdbc.queryForList("SELECT source, COUNT(*) AS times, COALESCE(SUM(amount), 0) AS amount FROM foundation_contributions GROUP BY source"));
+        out.put("contributions", jdbc.queryForList(
+                "SELECT c.id, c.user_id AS userId, u.name, u.phone, c.source, c.amount, c.order_id AS orderId, c.house_no AS houseNo, c.note, "
+                        + "c.created_at AS at, c.removed_at AS removedAt FROM foundation_contributions c LEFT JOIN users u ON u.id = c.user_id "
+                        + "ORDER BY c.id DESC LIMIT 200"));
+        out.put("bySource", jdbc.queryForList("SELECT source, COUNT(*) AS times, COALESCE(SUM(amount), 0) AS amount FROM foundation_contributions WHERE removed_at IS NULL GROUP BY source"));
         return out;
+    }
+
+    /**
+     * "Gỡ" in the back office: takes a contribution back out of the current house. The row stays with removed_at set,
+     * so the same order is never imported again. Refused once a house was finished after it (the built count would change).
+     */
+    @Transactional
+    public long remove(long contributionId) {
+        Map<String, Object> state = jdbc.queryForMap("SELECT houses_built, current_amount FROM foundation_state WHERE id = 1 FOR UPDATE");
+        List<Map<String, Object>> rows = jdbc.queryForList(
+                "SELECT amount, house_no, removed_at FROM foundation_contributions WHERE id = ? FOR UPDATE", contributionId);
+        if (rows.isEmpty()) throw new IllegalArgumentException("Không tìm thấy khoản góp");
+        Map<String, Object> row = rows.get(0);
+        if (row.get("removed_at") != null) throw new IllegalArgumentException("Khoản này đã gỡ rồi");
+        long amount = ((Number) row.get("amount")).longValue();
+        int houseNo = ((Number) row.get("house_no")).intValue();
+        int built = ((Number) state.get("houses_built")).intValue();
+        long current = ((Number) state.get("current_amount")).longValue();
+        String problem = FoundationRules.removeProblem(houseNo, built, current, amount);
+        if (problem != null) throw new IllegalArgumentException(problem);
+        jdbc.update("UPDATE foundation_contributions SET removed_at = ? WHERE id = ?", now(), contributionId);
+        jdbc.update("UPDATE foundation_state SET current_amount = current_amount - ?, total_amount = total_amount - ?, updated_at = ? WHERE id = 1",
+                amount, amount, now());
+        return amount;
     }
 
     public long seed(long amount, String note) {

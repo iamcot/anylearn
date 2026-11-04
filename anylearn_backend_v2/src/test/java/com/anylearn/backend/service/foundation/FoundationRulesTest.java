@@ -61,4 +61,11 @@ class FoundationRulesTest {
         assertEquals("căn thứ 2", FoundationRules.houseOrdinal(2));
         assertEquals("Căn thứ 7", FoundationRules.houseTitle(7));
     }
+
+    @Test
+    void onlyAContributionOfTheHouseBeingBuiltCanBeRemoved() {
+        org.junit.jupiter.api.Assertions.assertNull(FoundationRules.removeProblem(3, 2, 50_000, 20_000));
+        org.junit.jupiter.api.Assertions.assertNotNull(FoundationRules.removeProblem(2, 2, 50_000, 20_000), "its house is finished");
+        org.junit.jupiter.api.Assertions.assertNotNull(FoundationRules.removeProblem(3, 2, 10_000, 20_000), "more than the house has");
+    }
 }

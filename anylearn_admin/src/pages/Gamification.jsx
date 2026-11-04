@@ -1,4 +1,4 @@
-import { Alert, Button, Card, Checkbox, Descriptions, Drawer, Form, Input, InputNumber, Modal, Progress, Select, Space, Statistic, Table, Tabs, Tag, Typography, message } from 'antd'
+import { Alert, Button, Card, Checkbox, Descriptions, Drawer, Form, Input, InputNumber, Modal, Popconfirm, Progress, Select, Space, Statistic, Table, Tabs, Tag, Typography, message } from 'antd'
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import client from '../api/client'
@@ -157,6 +157,11 @@ function FoundationTab() {
   const [seedOpen, setSeedOpen] = useState(false)
   const [seedForm] = Form.useForm()
   const [oldOpen, setOldOpen] = useState(false)
+  const remove = useMutation({
+    mutationFn: id => post(`/admin/foundation/contributions/${id}/remove`, {}),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['gm-foundation'] }); message.success('Đã gỡ') },
+    onError: e => message.error(e.message),
+  })
   if (isLoading || !data) return <Card loading />
   return (
     <Space direction="vertical" style={{ width: '100%' }} size={16}>
@@ -195,13 +200,23 @@ function FoundationTab() {
           { title: '', key: 'a', render: (_, r) => <Button size="small" onClick={() => setHouse(r)}>Sửa thông tin</Button> },
         ]} />
       </Card>
-      <Card size="small" title="Đóng góp gần đây (tên như khách thấy)">
-        <Table size="small" rowKey="id" pagination={{ pageSize: 10 }} dataSource={data.recent ?? []} columns={[
-          { title: 'Tên', dataIndex: 'name' },
-          { title: 'Góp', dataIndex: 'label' },
+      <Card size="small" title="Các khoản góp (200 khoản gần nhất)"
+        extra={<Typography.Text type="secondary">Gỡ: trừ lại khỏi căn đang xây, khoản đó không hiện cho khách và đơn không bị nhập lại</Typography.Text>}>
+        <Table size="small" rowKey="id" pagination={{ pageSize: 10 }} dataSource={data.contributions ?? []} columns={[
+          { title: 'Người góp', key: 'who', render: (_, r) => (r.userId ? `${r.name ?? ''} · ${r.phone ?? `#${r.userId}`}` : 'anyLEARN') },
+          { title: 'Số tiền', dataIndex: 'amount', align: 'right', render: fmtVND },
           { title: 'Nguồn', dataIndex: 'source', render: s => SOURCE_LABELS[s] ?? s },
+          { title: 'Đơn', dataIndex: 'orderId', render: v => v ?? '—' },
           { title: 'Căn', dataIndex: 'houseNo' },
+          { title: 'Ghi chú', dataIndex: 'note', render: v => v ?? '' },
           { title: 'Lúc', dataIndex: 'at', render: fmtDateTime },
+          { title: '', key: 'a', render: (_, r) => (r.removedAt
+            ? <Tag>Đã gỡ {fmtDateTime(r.removedAt)}</Tag>
+            : r.houseNo === data.currentHouse
+              ? <Popconfirm title={`Gỡ khoản ${fmtVND(r.amount)}?`} description="Số tiền được trừ khỏi căn đang xây." okText="Gỡ" okButtonProps={{ danger: true }} onConfirm={() => remove.mutateAsync(r.id)}>
+                  <Button size="small" danger>Gỡ</Button>
+                </Popconfirm>
+              : <Typography.Text type="secondary" style={{ fontSize: 12 }}>Căn đã đủ tiền</Typography.Text>) },
         ]} />
       </Card>
       <NumberSettingsForm settings={data.settings} saving={save.isPending} onSave={numbers => save.mutateAsync({ numbers })} />

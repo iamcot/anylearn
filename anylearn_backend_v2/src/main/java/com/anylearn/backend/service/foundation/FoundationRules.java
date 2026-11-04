@@ -31,6 +31,16 @@ public final class FoundationRules {
         return new Added(new State(built, current), finished);
     }
 
+    /**
+     * Why a contribution cannot be taken back (null = it can): only one that went into the house still being built,
+     * and never more than that house has, because the built count is never lowered.
+     */
+    public static String removeProblem(int contributionHouse, int housesBuilt, long currentAmount, long amount) {
+        if (contributionHouse <= housesBuilt || currentAmount < amount)
+            return "Khoản này đã nằm trong một căn đủ tiền, không gỡ được (số căn đã xây không giảm)";
+        return null;
+    }
+
     /** Percent of the house being built, 0 to 100 (100 = "Sắp hoàn thành" after the value was lowered). */
     public static int percent(long current, long houseValue) {
         if (houseValue <= 0) return 0;
