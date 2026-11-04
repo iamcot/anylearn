@@ -80,20 +80,25 @@ public class FoundationService {
      */
     @Transactional
     public long contribute(Long userId, String source, long amount, Long orderId, String dedupKey, String note) {
+        return contribute(userId, source, amount, orderId, dedupKey, note, now(), true);
+    }
+
+    private long contribute(Long userId, String source, long amount, Long orderId, String dedupKey, String note,
+                            Object at, boolean announce) {
         if (!enabled() || amount <= 0) return 0;
         Map<String, Object> state = jdbc.queryForMap("SELECT houses_built, current_amount FROM foundation_state WHERE id = 1 FOR UPDATE");
         FoundationRules.State before = new FoundationRules.State(((Number) state.get("houses_built")).intValue(),
                 ((Number) state.get("current_amount")).longValue());
         int houseNo = before.housesBuilt() + 1;
         int rows = jdbc.update("INSERT IGNORE INTO foundation_contributions (user_id, source, amount, order_id, house_no, dedup_key, note, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                userId, source, amount, orderId, houseNo, dedupKey, note, now());
+                userId, source, amount, orderId, houseNo, dedupKey, note, at);
         if (rows != 1) return 0;
         FoundationRules.Added added = FoundationRules.add(before, settings.get("house_value"), amount);
         jdbc.update("UPDATE foundation_state SET houses_built = ?, current_amount = ?, total_amount = total_amount + ?, updated_at = ? WHERE id = 1",
                 added.state().housesBuilt(), added.state().currentAmount(), amount, now());
         for (Integer no : added.finished()) {
             jdbc.update("INSERT IGNORE INTO foundation_houses (house_no, completed_at) VALUES (?, ?)", no, now());
-            announceHouse(no);
+            if (announce) announceHouse(no);
         }
         return amount;
     }
@@ -111,6 +116,61 @@ public class FoundationService {
             log.warn("[foundation] order {} not counted: {}", orderId, e.getMessage());
             return 0;
         }
+    }
+
+    // ── orders from before the Foundation existed ───────────────────────
+
+    /** An order with `foundation` transactions written before V78: `era` v2 (anyPoint, buyer = user_id) or portal (VND, buyer = ref_user_id). */
+    public record OldOrder(long orderId, Long buyerId, long amount, Timestamp at, String era) {}
+
+    private static final String OLD_NOT_COUNTED = "AND NOT EXISTS (SELECT 1 FROM foundation_contributions c WHERE c.dedup_key = CONCAT('order:', d.order_id)) ";
+
+    /** Delivered orders whose foundation share was never added to the Foundation, oldest first. */
+    public List<OldOrder> oldOrders(boolean includePortal) {
+        double rate = vndPerPoint();
+        List<OldOrder> out = new ArrayList<>(jdbc.query(
+                "SELECT d.order_id, MAX(o.user_id), SUM(t.amount), MIN(t.created_at) FROM transactions t "
+                        + "JOIN order_details d ON d.id = t.order_id JOIN orders o ON o.id = d.order_id "
+                        + "WHERE t.type = 'foundation' AND t.pay_method = 'wallet_c' AND o.status = 'delivered' " + OLD_NOT_COUNTED
+                        + "GROUP BY d.order_id",
+                (rs, i) -> new OldOrder(rs.getLong(1), (Long) rs.getObject(2, Long.class),
+                        FoundationRules.orderAmount(rs.getLong(3), rate, 1), rs.getTimestamp(4), "v2")));
+        if (includePortal) out.addAll(jdbc.query(
+                "SELECT d.order_id, MAX(t.ref_user_id), SUM(t.amount), MIN(t.created_at) FROM transactions t "
+                        + "JOIN order_details d ON d.id = t.order_id JOIN orders o ON o.id = d.order_id "
+                        + "WHERE t.type = 'foundation' AND t.pay_method = 'wallet_m' AND t.status = 1 AND o.status = 'delivered' " + OLD_NOT_COUNTED
+                        + "GROUP BY d.order_id",
+                (rs, i) -> new OldOrder(rs.getLong(1), (Long) rs.getObject(2, Long.class), Math.max(0, rs.getLong(3)),
+                        rs.getTimestamp(4), "portal")));
+        out.removeIf(o -> o.amount() <= 0);
+        out.sort(Comparator.comparing(OldOrder::at, Comparator.nullsFirst(Comparator.naturalOrder())));
+        return out;
+    }
+
+    /**
+     * Adds the old orders to the Foundation in the buyer's name with their own date (once per order, same key as a
+     * new order). apply = false only counts. No house announcements for these.
+     */
+    @Transactional
+    public Map<String, Object> importOldOrders(boolean includePortal, boolean apply) {
+        List<OldOrder> list = oldOrders(includePortal);
+        long v2 = 0, portal = 0, added = 0;
+        int v2n = 0, portaln = 0;
+        for (OldOrder o : list) {
+            if ("v2".equals(o.era())) { v2 += o.amount(); v2n++; } else { portal += o.amount(); portaln++; }
+            if (apply) added += contribute(o.buyerId() != null && o.buyerId() > 0 ? o.buyerId() : null, SOURCE_ORDER, o.amount(),
+                    o.orderId(), "order:" + o.orderId(), "Đơn trước khi có chương trình", o.at() != null ? o.at() : now(), false);
+        }
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("v2Orders", v2n);
+        out.put("v2Amount", v2);
+        out.put("portalOrders", portaln);
+        out.put("portalAmount", portal);
+        out.put("orders", list.size());
+        out.put("amount", v2 + portal);
+        out.put("applied", apply);
+        out.put("added", added);
+        return out;
     }
 
     /** A milestone gift in the person's name (never throws). */

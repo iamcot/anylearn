@@ -40,6 +40,13 @@ public class AdminFoundationController {
         return ApiResponse.ok(foundation.adminState());
     }
 
+    /** Foundation shares of orders paid before the Foundation existed: {portal, apply}; apply false = preview. */
+    @PostMapping("/import-old")
+    public ApiResponse<?> importOld(@AuthenticationPrincipal User user, @RequestBody Map<String, Object> body) {
+        if (!admin(user)) return ApiResponse.fail("Forbidden");
+        return ApiResponse.ok(foundation.importOldOrders(Boolean.TRUE.equals(body.get("portal")), Boolean.TRUE.equals(body.get("apply"))));
+    }
+
     @PutMapping("/houses/{no}")
     public ApiResponse<?> house(@AuthenticationPrincipal User user, @PathVariable int no, @RequestBody Map<String, Object> body) {
         if (!admin(user)) return ApiResponse.fail("Forbidden");

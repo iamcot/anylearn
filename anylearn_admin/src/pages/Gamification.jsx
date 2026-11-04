@@ -1,4 +1,4 @@
-import { Alert, Button, Card, Descriptions, Drawer, Form, Input, InputNumber, Modal, Progress, Select, Space, Statistic, Table, Tabs, Tag, Typography, message } from 'antd'
+import { Alert, Button, Card, Checkbox, Descriptions, Drawer, Form, Input, InputNumber, Modal, Progress, Select, Space, Statistic, Table, Tabs, Tag, Typography, message } from 'antd'
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import client from '../api/client'
@@ -110,6 +110,44 @@ function HouseDrawer({ house, onClose }) {
   )
 }
 
+// Orders paid before the Foundation existed still have their `foundation` transactions: this adds them once, in the
+// buyer's name, with the order's date. "Xem trước" only counts; orders already added are skipped.
+function ImportOldModal({ onClose }) {
+  const qc = useQueryClient()
+  const [portal, setPortal] = useState(false)
+  const [preview, setPreview] = useState(null)
+  const run = useMutation({
+    mutationFn: apply => post('/admin/foundation/import-old', { portal, apply }),
+    onSuccess: (r) => {
+      setPreview(r)
+      if (r.applied) { qc.invalidateQueries({ queryKey: ['gm-foundation'] }); message.success(`Đã nhập ${r.orders} đơn, ${fmtVND(r.added)}`) }
+    },
+    onError: e => message.error(e.message),
+  })
+  return (
+    <Modal open title="Nhập phần quỹ của đơn cũ" onCancel={onClose} footer={[
+      <Button key="p" loading={run.isPending} onClick={() => run.mutate(false)}>Xem trước</Button>,
+      <Button key="a" type="primary" danger disabled={!preview || preview.applied || preview.orders === 0} loading={run.isPending}
+        onClick={() => run.mutate(true)}>Nhập {preview && !preview.applied ? `${preview.orders} đơn` : ''}</Button>,
+    ]}>
+      <Typography.Paragraph>
+        Các đơn đã thanh toán trước khi có chương trình vẫn có dòng quỹ trong giao dịch. Nhập một lần để tính vào tiến độ, ghi tên người mua và ngày của đơn.
+        Đơn đã nhập rồi sẽ không bị tính lại. Không gửi thông báo cho khách.
+      </Typography.Paragraph>
+      <Checkbox checked={portal} onChange={e => { setPortal(e.target.checked); setPreview(null) }}>
+        Gồm cả đơn từ hệ thống cũ (2025, quỹ ghi bằng tiền)
+      </Checkbox>
+      {preview && (
+        <Space size={32} wrap style={{ marginTop: 16 }}>
+          <Statistic title="Đơn app mới" value={preview.v2Orders} suffix={`· ${fmtVND(preview.v2Amount)}`} />
+          <Statistic title="Đơn hệ thống cũ" value={preview.portalOrders} suffix={`· ${fmtVND(preview.portalAmount)}`} />
+          <Statistic title={preview.applied ? 'Đã nhập' : 'Sẽ nhập'} value={fmtVND(preview.applied ? preview.added : preview.amount)} />
+        </Space>
+      )}
+    </Modal>
+  )
+}
+
 function FoundationTab() {
   const qc = useQueryClient()
   const { data, isLoading } = useQuery({ queryKey: ['gm-foundation'], queryFn: () => get('/admin/foundation') })
@@ -118,6 +156,7 @@ function FoundationTab() {
   const [house, setHouse] = useState(null)
   const [seedOpen, setSeedOpen] = useState(false)
   const [seedForm] = Form.useForm()
+  const [oldOpen, setOldOpen] = useState(false)
   if (isLoading || !data) return <Card loading />
   return (
     <Space direction="vertical" style={{ width: '100%' }} size={16}>
@@ -134,7 +173,10 @@ function FoundationTab() {
         <Typography.Paragraph type="secondary" style={{ marginTop: 8, marginBottom: 0 }}>
           Đổi giá trị một căn chỉ đổi phần trăm của căn đang xây, không đổi số căn đã xong. Hạ giá trị xuống dưới số đã có: căn đang xây xong ở lần góp tiếp theo.
         </Typography.Paragraph>
-        <Button style={{ marginTop: 12 }} onClick={() => setSeedOpen(true)}>anyLEARN góp thêm</Button>
+        <Space style={{ marginTop: 12 }}>
+          <Button onClick={() => setSeedOpen(true)}>anyLEARN góp thêm</Button>
+          <Button onClick={() => setOldOpen(true)}>Nhập đơn cũ</Button>
+        </Space>
       </Card>
       <Card size="small" title="Theo nguồn">
         <Table size="small" rowKey="source" pagination={false} dataSource={data.bySource ?? []} columns={[
@@ -164,6 +206,7 @@ function FoundationTab() {
       </Card>
       <NumberSettingsForm settings={data.settings} saving={save.isPending} onSave={numbers => save.mutateAsync({ numbers })} />
       {house && <HouseDrawer house={house} onClose={() => setHouse(null)} />}
+      {oldOpen && <ImportOldModal onClose={() => setOldOpen(false)} />}
       <Modal open={seedOpen} title="anyLEARN góp thêm" onCancel={() => setSeedOpen(false)} confirmLoading={seed.isPending}
         onOk={() => seedForm.validateFields().then(v => seed.mutateAsync(v)).then(() => { setSeedOpen(false); seedForm.resetFields() }).catch(e => e?.message && message.error(e.message))}>
         <Form form={seedForm} layout="vertical">
