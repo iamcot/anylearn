@@ -4,10 +4,19 @@ export function formatVnd(v: number): string {
   return `${Math.round(v).toLocaleString('vi-VN').replace(/,/g, '.')}đ`
 }
 
+/** Short amount for a voucher ticket: 200000 → "200K", 25500 → "25,5K", 1500000 → "1,5TR"; under 1000 stays "500đ". */
+export function shortVnd(v: number): string {
+  const n = Math.round(v)
+  const fmt = (x: number) => (Math.round(x * 10) / 10).toString().replace('.', ',')
+  if (n >= 1_000_000) return `${fmt(n / 1_000_000)}TR`
+  if (n >= 1_000) return `${fmt(n / 1_000)}K`
+  return `${n}đ`
+}
+
 /** One line under a voucher: minimum order, course or partner limit. */
 export function conditionLine(v: Pick<WalletVoucher, 'minOrder' | 'itemIds' | 'partnerName'>): string {
   const parts: string[] = []
-  if (v.minOrder > 0) parts.push(`Đơn từ ${formatVnd(v.minOrder)}`)
+  if (v.minOrder > 0) parts.push(`Đơn từ ${shortVnd(v.minOrder)}`)
   if (v.partnerName) parts.push(`Khóa của ${v.partnerName}`)
   else if (v.itemIds.length > 0) parts.push(v.itemIds.length === 1 ? 'Áp dụng cho 1 khóa học' : `Áp dụng cho ${v.itemIds.length} khóa học`)
   if (parts.length === 0) parts.push('Mọi khóa học')

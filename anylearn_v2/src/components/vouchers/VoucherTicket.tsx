@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { TagIcon } from '@/components/icons'
-import { formatVnd } from '@/lib/vouchers/rules'
+import { shortVnd } from '@/lib/vouchers/rules'
 
 interface Props {
   value: number
@@ -22,7 +22,7 @@ export default function VoucherTicket({ value, title, condition, note, warn, dim
         <div className="relative flex w-24 shrink-0 flex-col items-center justify-center gap-1 border-r-2 border-dashed border-white/70 bg-gradient-to-br from-[#ff8a3d] via-[#ff5a5f] to-[#e8336d] px-2 py-3 text-center text-white">
           <span aria-hidden className="pointer-events-none absolute -left-6 -top-6 size-14 rounded-full bg-white/20" />
           <TagIcon className="size-5" />
-          <div className="text-[15px] font-black leading-tight drop-shadow-sm">-{formatVnd(value)}</div>
+          <div className="text-[15px] font-black leading-tight drop-shadow-sm">-{shortVnd(value)}</div>
         </div>
         <div className="flex min-w-0 flex-1 items-center gap-3 px-3 py-2.5">
           <div className="min-w-0 flex-1">
@@ -39,7 +39,7 @@ export default function VoucherTicket({ value, title, condition, note, warn, dim
     <div className={`flex min-w-0 items-stretch overflow-hidden rounded-xl border border-line bg-white ${dim ? 'opacity-60' : ''}`}>
       <div className="flex w-24 shrink-0 flex-col items-center justify-center gap-1 border-r-2 border-dashed border-line bg-green-soft px-2 py-3 text-center">
         <TagIcon className="size-5 text-green-dark" />
-        <div className="text-sm font-black leading-tight text-green-dark">-{formatVnd(value)}</div>
+        <div className="text-sm font-black leading-tight text-green-dark">-{shortVnd(value)}</div>
       </div>
       <div className="flex min-w-0 flex-1 items-center gap-3 px-3 py-2.5">
         <div className="min-w-0 flex-1">
