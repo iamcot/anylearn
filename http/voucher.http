@@ -58,6 +58,14 @@ Content-Type: application/json
  "value": 50000, "ruleMin": 500000, "status": true, "collectible": true, "walletDays": 30,
  "showOn": ["home", "pdp"], "itemIds": [123, 124]}
 
+### Percent group: 10% off every course, at most 200.000đ, collectible everywhere
+POST {{baseUrl}}/admin/vouchers/groups
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{"title": "Giảm 10% mọi khóa", "type": "percent", "value": 10, "maxDiscount": 200000, "generateType": "auto", "prefix": "PCT",
+ "length": 6, "qtt": 0, "status": true, "collectible": true, "walletDays": 14}
+
 ### Static code with 100 uses until a date
 POST {{baseUrl}}/admin/vouchers/groups/1/codes
 Authorization: Bearer {{adminToken}}

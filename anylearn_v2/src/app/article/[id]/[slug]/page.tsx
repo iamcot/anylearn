@@ -103,8 +103,9 @@ export default async function ArticleDetailPage({ params }: Props) {
           <VoucherTicket
             vivid
             value={article.voucher.value}
+            kind={article.voucher.kind}
             title={article.voucher.title}
-            condition={conditionLine({ minOrder: article.voucher.minOrder, itemIds: article.voucher.itemIds ?? [], partnerName: article.voucher.partnerName ?? null })}
+            condition={conditionLine({ kind: article.voucher.kind, maxDiscount: article.voucher.maxDiscount, minOrder: article.voucher.minOrder, itemIds: article.voucher.itemIds ?? [], partnerName: article.voucher.partnerName ?? null })}
             action={<SaveVoucherButton groupId={article.voucher.groupId} onLight />}
           />
         </section>

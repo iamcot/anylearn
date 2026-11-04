@@ -39,7 +39,7 @@ public class VoucherAdminService {
         String like = q == null || q.isBlank() ? null : "%" + q.trim() + "%";
         List<Map<String, Object>> rows = jdbc.queryForList(
                 "SELECT g.id, g.title, g.type, g.generate_type, g.prefix, g.length, g.qtt, g.value, g.rule_min, g.status, g.collectible, g.wallet_days, g.created_at, "
-                        + "g.partner_id, g.show_on, (SELECT name FROM users p WHERE p.id = g.partner_id) AS partner_name, "
+                        + "g.max_discount, g.partner_id, g.show_on, (SELECT name FROM users p WHERE p.id = g.partner_id) AS partner_name, "
                         + "(SELECT COUNT(*) FROM vouchers v WHERE v.voucher_group_id = g.id) AS codes, "
                         + "(SELECT COUNT(*) FROM vouchers_used u JOIN vouchers v ON v.id = u.voucher_id WHERE v.voucher_group_id = g.id) AS used, "
                         + "(SELECT COALESCE(SUM(u.discount), 0) FROM vouchers_used u JOIN vouchers v ON v.id = u.voucher_id WHERE v.voucher_group_id = g.id) AS discount, "
@@ -60,10 +60,13 @@ public class VoucherAdminService {
 
     @Transactional
     public long saveGroup(Long id, Map<String, Object> b) {
-        String type = str(b.get("type"), "money");
+        String type = VoucherRules.isPercent(str(b.get("type"), "money")) ? VoucherRules.TYPE_PERCENT : VoucherRules.TYPE_MONEY;
         String generate = str(b.get("generateType"), "manual");
         long value = num(b.get("value"));
-        if (value <= 0) throw new IllegalArgumentException("Nhập số tiền giảm");
+        boolean percent = VoucherRules.TYPE_PERCENT.equals(type);
+        if (value <= 0) throw new IllegalArgumentException(percent ? "Nhập phần trăm giảm" : "Nhập số tiền giảm");
+        if (percent && value > 100) throw new IllegalArgumentException("Phần trăm giảm từ 1 đến 100");
+        long maxDiscount = percent && b.get("maxDiscount") != null && !String.valueOf(b.get("maxDiscount")).isBlank() ? num(b.get("maxDiscount")) : 0;
         String prefix = str(b.get("prefix"), null);
         if (!"manual".equals(generate) && (prefix == null || prefix.isBlank())) throw new IllegalArgumentException("Mã động cần tiền tố (prefix)");
         Object[] args = {str(b.get("title"), null), type, generate, prefix == null ? null : prefix.trim().toUpperCase(),
@@ -73,16 +76,17 @@ public class VoucherAdminService {
                 b.get("walletDays") == null || String.valueOf(b.get("walletDays")).isBlank() ? null : (int) num(b.get("walletDays")),
                 b.get("partnerId") == null || String.valueOf(b.get("partnerId")).isBlank() ? null : num(b.get("partnerId")),
                 b.get("showOn") == null ? null : String.join(",", VoucherRules.parsePlaces(b.get("showOn") instanceof Collection<?> c
-                        ? String.join(",", c.stream().map(String::valueOf).toList()) : String.valueOf(b.get("showOn"))))};
+                        ? String.join(",", c.stream().map(String::valueOf).toList()) : String.valueOf(b.get("showOn")))),
+                maxDiscount > 0 ? maxDiscount : null};
         long gid;
         if (id == null) {
             jdbc.update("INSERT INTO voucher_groups (title, type, generate_type, prefix, length, qtt, value, rule_min, status, collectible, wallet_days, "
-                    + "partner_id, show_on, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", concat(args, now(), now()));
+                    + "partner_id, show_on, max_discount, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", concat(args, now(), now()));
             gid = jdbc.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
         } else {
             gid = id;
             jdbc.update("UPDATE voucher_groups SET title = ?, type = ?, generate_type = ?, prefix = ?, length = ?, qtt = ?, value = ?, rule_min = ?, "
-                    + "status = ?, collectible = ?, wallet_days = ?, partner_id = ?, show_on = ?, updated_at = ? WHERE id = ?", concat(args, now(), id));
+                    + "status = ?, collectible = ?, wallet_days = ?, partner_id = ?, show_on = ?, max_discount = ?, updated_at = ? WHERE id = ?", concat(args, now(), id));
         }
         if (b.containsKey("itemIds")) {
             jdbc.update("DELETE FROM voucher_group_items WHERE voucher_group_id = ?", gid);

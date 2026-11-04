@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { bestVoucher, conditionLine, expiresSoon, expiryLabel, leftLabel, shortVnd, sortForCheckout, walletTab } from './rules'
+import { amountLabel, bestVoucher, conditionLine, expiresSoon, expiryLabel, leftLabel, shortVnd, sortForCheckout, walletTab } from './rules'
 import type { WalletVoucher } from '@/lib/api/vouchers'
 
 const v = (over: Partial<WalletVoucher>): WalletVoucher => ({
@@ -11,6 +11,14 @@ describe('voucher rules', () => {
     expect(conditionLine(v({}))).toBe('Mọi khóa học')
     expect(conditionLine(v({ minOrder: 300000, itemIds: [1, 2] }))).toBe('Đơn từ 300K · Áp dụng cho 2 khóa học')
     expect(conditionLine(v({ partnerName: 'Trung tâm A', itemIds: [3] }))).toBe('Khóa của Trung tâm A')
+    expect(conditionLine(v({ kind: 'percent', value: 10, maxDiscount: 200000, minOrder: 1000000 }))).toBe('Tối đa 200K · Đơn từ 1TR')
+    expect(conditionLine(v({ kind: 'money', maxDiscount: 200000 }))).toBe('Mọi khóa học')
+  })
+
+  it('labels the amount of money and percent vouchers', () => {
+    expect(amountLabel({ value: 50000 })).toBe('50K')
+    expect(amountLabel({ kind: 'money', value: 1500000 })).toBe('1,5TR')
+    expect(amountLabel({ kind: 'percent', value: 10 })).toBe('10%')
   })
 
   it('labels the expiry', () => {

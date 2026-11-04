@@ -26,6 +26,39 @@ class VoucherRulesTest {
     }
 
     @Test
+    void percentVoucherTakesItsShareOfTheCoveredLinesUpToTheCap() {
+        var ev = VoucherRules.evaluate(new VoucherRules.Group("percent", 10, 0, Set.of(), null, 0), CART);
+        assertTrue(ev.ok());
+        assertEquals(80_000, ev.discount());
+
+        var onlyB = VoucherRules.evaluate(new VoucherRules.Group("percent", 15, 0, Set.of(2L), null, 0), CART);
+        assertEquals(75_000, onlyB.discount());
+
+        var capped = VoucherRules.evaluate(new VoucherRules.Group("percent", 20, 0, Set.of(), null, 100_000), CART);
+        assertEquals(100_000, capped.discount());
+
+        var odd = VoucherRules.evaluate(new VoucherRules.Group("PERCENT", 7, 0, Set.of(), null, 0), List.of(new VoucherRules.Line(1, 7, 99_999)));
+        assertEquals(6_999, odd.discount()); // rounded down, never more than the share
+
+        var full = VoucherRules.evaluate(new VoucherRules.Group("percent", 150, 0, Set.of(), null, 0), CART);
+        assertEquals(800_000, full.discount()); // a bad value never goes past 100%
+
+        var min = VoucherRules.evaluate(new VoucherRules.Group("percent", 10, 900_000, Set.of(), null, 0), CART);
+        assertFalse(min.ok());
+        assertEquals(100_000, min.shortBy());
+    }
+
+    @Test
+    void labelsAndKinds() {
+        assertEquals("Giảm 50.000đ", VoucherRules.label("money", 50_000, 0));
+        assertEquals("Giảm 10%", VoucherRules.label("percent", 10, 0));
+        assertEquals("Giảm 10% (tối đa 200.000đ)", VoucherRules.label("percent", 10, 200_000));
+        assertEquals("money", VoucherRules.kind(null));
+        assertEquals("percent", VoucherRules.kind("Percent"));
+        assertEquals("class", VoucherRules.kind("class"));
+    }
+
+    @Test
     void aVoucherLimitedToSomeCoursesOnlyCountsThoseLines() {
         var ev = VoucherRules.evaluate(new VoucherRules.Group("money", 50_000, 400_000, Set.of(1L)), CART);
         assertFalse(ev.ok());

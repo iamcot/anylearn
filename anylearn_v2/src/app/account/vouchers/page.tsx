@@ -101,6 +101,7 @@ export default function VoucherWalletPage() {
               <VoucherTicket
                 key={v.id}
                 value={v.value}
+                kind={v.kind}
                 title={v.title}
                 condition={conditionLine(v)}
                 note={soon ? `Sắp hết hạn · ${note}` : note}

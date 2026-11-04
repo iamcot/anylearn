@@ -38,13 +38,20 @@ function PartnerSelect({ value, onChange, placeholder = 'Mọi đối tác' }) {
 // ── Groups ─────────────────────────────────────────────────────────────
 
 // Old portal groups may carry another type (e.g. a free class); only "money" works at checkout (VoucherRules.isMoney).
-const isMoneyType = (t) => !t || String(t).trim().toLowerCase() === 'money'
+const isPercentType = (t) => String(t ?? '').trim().toLowerCase() === 'percent'
+// Types the checkout can use: a fixed amount ("money", or empty on old rows) or a percentage.
+const isMoneyType = (t) => !t || String(t).trim().toLowerCase() === 'money' || isPercentType(t)
+// "50.000đ", "10%", "10% (tối đa 200.000đ)"
+const fmtDiscount = (type, value, max) => (isPercentType(type)
+  ? `${Number(value) || 0}%${Number(max) > 0 ? ` (tối đa ${fmtVND(max)})` : ''}`
+  : fmtVND(value))
 
 function GroupDrawer({ group, onClose }) {
   const qc = useQueryClient()
   const [form] = Form.useForm()
   const [courses, setCourses] = useState(group?.items ?? [])
   const generate = Form.useWatch('generateType', form)
+  const kind = Form.useWatch('type', form)
   const save = useMutation({
     mutationFn: (body) => (group?.id
       ? client.put(`/admin/vouchers/groups/${group.id}`, body)
@@ -53,12 +60,12 @@ function GroupDrawer({ group, onClose }) {
     onError: (e) => message.error(e.message),
   })
   const initial = group ? {
-    title: group.title, generateType: group.generate_type === 'manual' ? 'manual' : 'auto', prefix: group.prefix, length: group.length,
+    title: group.title, type: isPercentType(group.type) ? 'percent' : 'money', maxDiscount: group.max_discount || undefined, generateType: group.generate_type === 'manual' ? 'manual' : 'auto', prefix: group.prefix, length: group.length,
     qtt: group.qtt, value: Number(group.value) || 0, ruleMin: group.rule_min, status: group.status === 1, collectible: group.collectible === 1,
     walletDays: group.wallet_days, partnerId: group.partner_id, showOn: group.show_on ? String(group.show_on).split(',') : [],
-  } : { generateType: 'auto', length: 6, qtt: 0, status: true, collectible: false, showOn: [] }
+  } : { type: 'money', generateType: 'auto', length: 6, qtt: 0, status: true, collectible: false, showOn: [] }
 
-  const submit = (v) => save.mutate({ ...v, type: 'money', itemIds: courses.map(c => c.id) })
+  const submit = (v) => save.mutate({ ...v, maxDiscount: v.type === 'percent' ? (v.maxDiscount || 0) : 0, itemIds: courses.map(c => c.id) })
 
   return (
     <Drawer open width={760} title={group?.id ? `Sửa bộ voucher #${group.id}` : 'Tạo bộ voucher'} onClose={onClose}
@@ -66,15 +73,31 @@ function GroupDrawer({ group, onClose }) {
       {group && !isMoneyType(group.type) && (
         <Alert type="warning" showIcon style={{ marginBottom: 16 }}
           message={`Bộ này từ hệ thống cũ, loại "${group.type}", nên khách chưa dùng được khi thanh toán.`}
-          description="Kiểm tra số tiền ở ô Giảm rồi bấm Lưu: bộ sẽ chuyển thành voucher giảm tiền và dùng được ngay." />
+          description="Chọn kiểu giảm, kiểm tra ô Giảm rồi bấm Lưu: bộ sẽ dùng được ngay khi thanh toán." />
       )}
       <Form form={form} layout="vertical" initialValues={initial} onFinish={submit}>
         <Form.Item name="title" label="Tên hiển thị cho khách" rules={[{ required: true, message: 'Nhập tên' }]}
-          extra="Ví dụ: Giảm 50.000đ cho đơn đầu tiên"><Input maxLength={150} /></Form.Item>
+          extra="Ví dụ: Giảm 50.000đ cho đơn đầu tiên, hoặc Giảm 10% khóa hè"><Input maxLength={150} /></Form.Item>
+        <Form.Item name="type" label="Kiểu giảm">
+          <Radio.Group options={[{ value: 'money', label: 'Số tiền cố định' }, { value: 'percent', label: 'Theo phần trăm' }]}
+            onChange={() => form.setFieldValue('value', undefined)} />
+        </Form.Item>
         <Space size={16} wrap align="start">
-          <Form.Item name="value" label="Số tiền giảm (đ)" rules={[{ required: true }]}>
-            <InputNumber min={1000} step={10000} style={{ width: 160 }} formatter={v => fmtVND(v)} parser={v => String(v).replace(/\D/g, '')} />
-          </Form.Item>
+          {kind === 'percent' ? (
+            <>
+              <Form.Item name="value" label="Phần trăm giảm (%)" rules={[{ required: true, message: 'Nhập %' }]}
+                extra="Tính trên các khóa được áp dụng">
+                <InputNumber min={1} max={100} style={{ width: 160 }} addonAfter="%" />
+              </Form.Item>
+              <Form.Item name="maxDiscount" label="Giảm tối đa (đ)" extra="Trống = không giới hạn">
+                <InputNumber min={0} step={50000} style={{ width: 160 }} formatter={v => (v ? fmtVND(v) : '')} parser={v => String(v).replace(/\D/g, '')} />
+              </Form.Item>
+            </>
+          ) : (
+            <Form.Item name="value" label="Số tiền giảm (đ)" rules={[{ required: true }]}>
+              <InputNumber min={1000} step={10000} style={{ width: 160 }} formatter={v => fmtVND(v)} parser={v => String(v).replace(/\D/g, '')} />
+            </Form.Item>
+          )}
           <Form.Item name="ruleMin" label="Đơn tối thiểu (đ)" extra="Tính trên các khóa được áp dụng; trống = không cần">
             <InputNumber min={0} step={100000} style={{ width: 160 }} formatter={v => (v ? fmtVND(v) : '')} parser={v => String(v).replace(/\D/g, '')} />
           </Form.Item>
@@ -228,7 +251,7 @@ function GroupsTab() {
               )}
             </div>
           ) },
-          { title: 'Giảm', dataIndex: 'value', width: 100, align: 'right', render: v => fmtVND(v) },
+          { title: 'Giảm', dataIndex: 'value', width: 120, align: 'right', render: (v, r) => fmtDiscount(r.type, v, r.max_discount) },
           { title: 'Đơn từ', dataIndex: 'rule_min', width: 100, align: 'right', render: v => (v ? fmtVND(v) : '—') },
           { title: 'Tự lưu', dataIndex: 'collectible', width: 80, render: c => (c === 1 ? <Tag color="purple">Có</Tag> : '—') },
           { title: 'Mã / trong ví / đã dùng', key: 'n', width: 170, render: (_, r) => `${r.codes} / ${r.held} / ${r.used}` },
@@ -308,7 +331,7 @@ function EventDrawer({ event, types, groups, onClose }) {
         )}
         <Form.Item name="groupIds" label="Bộ voucher được phát" rules={[{ required: true, message: 'Chọn bộ voucher' }]}>
           <Select mode="multiple" optionFilterProp="label"
-            options={(groups ?? []).map(g => ({ value: g.id, label: `${g.title || `#${g.id}`} (-${fmtVND(g.value)})${g.status === 1 ? '' : ' · đang tắt'}` }))} />
+            options={(groups ?? []).map(g => ({ value: g.id, label: `${g.title || `#${g.id}`} (-${fmtDiscount(g.type, g.value, g.max_discount)})${g.status === 1 ? '' : ' · đang tắt'}` }))} />
         </Form.Item>
         <Form.Item name="qtt" label="Số voucher mỗi bộ cho mỗi người"><InputNumber min={1} max={10} /></Form.Item>
         <Form.Item name="notifTemplate" label="Lời nhắn trong thông báo" extra="Trống = “Bạn nhận được voucher …”"><Input.TextArea rows={2} maxLength={300} /></Form.Item>
@@ -381,7 +404,7 @@ function WalletTab() {
         columns={[
           { title: 'Voucher', dataIndex: 'title' },
           { title: 'Mã', dataIndex: 'code', render: c => <Typography.Text code>{c}</Typography.Text> },
-          { title: 'Giảm', dataIndex: 'value', align: 'right', render: fmtVND },
+          { title: 'Giảm', dataIndex: 'value', align: 'right', render: (v, r) => fmtDiscount(r.kind, v, r.maxDiscount) },
           { title: 'Nguồn', dataIndex: 'source', render: s => SOURCE_LABELS[s] ?? s },
           { title: 'Trạng thái', dataIndex: 'state', render: s => STATE_LABELS[s] ?? s },
           { title: 'Hạn', dataIndex: 'expiresAt', render: v => (v ? fmtDateTime(v) : '—') },

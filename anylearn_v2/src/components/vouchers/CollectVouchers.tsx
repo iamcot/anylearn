@@ -59,6 +59,7 @@ export default function CollectVouchers({ place, partnerId, itemId, title = 'Vou
             <div key={v.groupId} className="w-[300px] max-w-[85vw] shrink-0 snap-start">
               <VoucherTicket
                 value={v.value}
+                kind={v.kind}
                 title={v.title}
                 condition={conditionLine(v)}
                 note={left}

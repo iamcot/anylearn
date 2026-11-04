@@ -162,7 +162,7 @@ function WalletSheet({ items, selectedId, onPick, onClose }: {
                       selected ? 'border-green bg-green-soft' : 'border-line bg-white'
                     } disabled:cursor-not-allowed disabled:opacity-60`}>
                     <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-green text-xs font-extrabold text-white">
-                      {Math.round(v.value / 1000)}K
+                      {v.kind === 'percent' ? `${Math.round(v.value)}%` : `${Math.round(v.value / 1000)}K`}
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm font-bold text-ink">{v.title}</span>

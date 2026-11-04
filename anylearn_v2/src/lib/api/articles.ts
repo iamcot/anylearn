@@ -10,7 +10,7 @@ export interface Article {
   like?: number
   createdAt?: string
   /** Promotions only: the voucher group people can save from the banner. */
-  voucher?: { groupId: number; title: string; value: number; minOrder: number; itemIds?: number[]; partnerName?: string | null } | null
+  voucher?: { groupId: number; title: string; kind?: 'money' | 'percent'; value: number; maxDiscount?: number; minOrder: number; itemIds?: number[]; partnerName?: string | null } | null
 }
 
 export interface ArticleDetail extends Article {
