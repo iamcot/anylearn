@@ -107,7 +107,8 @@ export function UserResultCard({ user, mode }: { user: UserResult; mode: 'school
       </div>
       <div className="flex flex-col gap-1.5 p-3 md:p-4">
         <h3 className="m-0 text-sm font-extrabold leading-snug text-ink md:text-base">{user.name}</h3>
-        {user.title && <div className="text-xs font-bold text-blue">{user.title}</div>}
+        {/* A school's title is its internal contact person: never shown (same rule as the partner page). */}
+        {user.title && mode !== 'school' && user.role !== 'school' && <div className="text-xs font-bold text-blue">{user.title}</div>}
         {user.rating != null && user.rating > 0 && (
           <div className="inline-flex items-center gap-1 text-xs text-muted"><StarIcon filled className="size-3.5 text-star" />{user.rating.toFixed(1)}</div>
         )}
