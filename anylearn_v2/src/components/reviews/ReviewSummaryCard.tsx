@@ -10,8 +10,8 @@ export default function ReviewSummaryCard({ summary }: { summary: ReviewSummary 
   const criteria = REVIEW_CRITERIA.filter(criterion => summary.criteria[criterion.id] !== undefined)
 
   return (
-    <div className="mb-5 rounded-[18px] border border-line bg-white p-5">
-      <div className="grid gap-5 md:grid-cols-[180px_1fr_1fr]">
+    <div className="@container mb-5 rounded-[18px] border border-line bg-white p-5">
+      <div className="grid gap-5 @2xl:grid-cols-[180px_1fr_1fr]">
         <div>
           <div className="text-4xl font-extrabold text-ink">{summary.average.toFixed(1)}</div>
           <StarRating value={summary.average} className="size-4" />

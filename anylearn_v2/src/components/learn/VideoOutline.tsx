@@ -70,14 +70,14 @@ export function VideoHeroCta({ itemId }: { itemId: number }) {
 }
 
 /** "Nội dung khóa học": every chapter and lesson, "Học thử" on free lessons, a lock on paid ones, ✓ on finished ones. */
-export default function VideoOutline({ itemId }: { itemId: number }) {
+/** `embedded`: drawn inside a page column (course page on a desktop) instead of as its own full-width section. */
+export default function VideoOutline({ itemId, embedded = false }: { itemId: number; embedded?: boolean }) {
   const outline = useOutline(itemId)
   const [closed, setClosed] = useState<Record<number, boolean>>({})
   if (!outline || outline.totalLessons === 0) return null
   let no = 0
-  return (
-    <section className="section" id="video-outline">
-      <div className="container max-w-3xl">
+  const body = (
+    <>
         <span className="section-kicker">Khóa học video</span>
         <h2 className="section-title mb-2">Nội dung khóa học</h2>
         <p className="mb-5 text-sm text-muted">
@@ -133,7 +133,12 @@ export default function VideoOutline({ itemId }: { itemId: number }) {
             )
           })}
         </div>
-      </div>
+    </>
+  )
+  if (embedded) return <div id="video-outline">{body}</div>
+  return (
+    <section className="section" id="video-outline">
+      <div className="container max-w-3xl">{body}</div>
     </section>
   )
 }
