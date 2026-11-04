@@ -1,4 +1,5 @@
-import { Alert, Button, Card, Col, Form, Input, InputNumber, Popconfirm, Row, Segmented, Select, Space, Statistic, Switch, Table, Tabs, Tag, Typography, message } from 'antd'
+import { Alert, Button, Card, Col, Form, Input, Popconfirm, Row, Segmented, Select, Space, Statistic, Switch, Table, Tabs, Tag, Typography, message } from 'antd'
+import SettingInput, { settingHint, settingLabel } from '../components/SettingInput'
 import { ArrowLeftOutlined } from '@ant-design/icons'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -60,8 +61,8 @@ function SettingsTab() {
           <Row gutter={12}>
             {g.fields.map(f => (
               <Col xs={24} md={12} key={f.key}>
-                <Form.Item name={['numbers', f.key]} label={f.label} extra={`Mặc định ${f.def}, từ ${f.min} đến ${f.max}`}>
-                  <InputNumber min={f.min} max={f.max} style={{ width: '100%' }} />
+                <Form.Item name={['numbers', f.key]} label={settingLabel(f)} extra={settingHint(f)}>
+                  <SettingInput field={f} />
                 </Form.Item>
               </Col>
             ))}

@@ -1,4 +1,5 @@
-import { Button, Card, Form, InputNumber, Space, Typography, message } from 'antd'
+import { Button, Card, Form, Space, Typography, message } from 'antd'
+import SettingInput, { settingHint, settingLabel } from './SettingInput'
 import { useEffect } from 'react'
 
 // One form for a table of number settings (backend `NumberSettings`: {numbers, fields[{key,label,group,def,min,max}]}).
@@ -23,10 +24,10 @@ export default function NumberSettingsForm({ settings, onSave, saving, extra }) 
           <Card key={g.name} size="small" title={g.name}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '0 16px' }}>
               {g.fields.map(f => (
-                <Form.Item key={f.key} name={f.key} label={f.label}
-                  extra={<Typography.Text type="secondary" style={{ fontSize: 12 }}>Mặc định {Number(f.def).toLocaleString('vi-VN')} · từ {Number(f.min).toLocaleString('vi-VN')} đến {Number(f.max).toLocaleString('vi-VN')}</Typography.Text>}
+                <Form.Item key={f.key} name={f.key} label={settingLabel(f)}
+                  extra={<Typography.Text type="secondary" style={{ fontSize: 12 }}>{settingHint(f)}</Typography.Text>}
                   rules={[{ required: true, message: 'Nhập số' }]}>
-                  <InputNumber min={f.min} max={f.max} style={{ width: '100%' }} />
+                  <SettingInput field={f} />
                 </Form.Item>
               ))}
             </div>
