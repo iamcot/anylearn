@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import ApplyRow from '@/components/cart/ApplyRow'
 import { ChevronRightIcon, CloseIcon, TagIcon } from '@/components/icons'
 import { getVouchersForCart, quoteVoucher, type WalletVoucher } from '@/lib/api/vouchers'
@@ -36,6 +36,9 @@ export default function VoucherPicker({ token, cartKey, value, onChange }: Props
   const [sheetOpen, setSheetOpen] = useState(false)
   // The code field stays a short text link until the person opens it (as in the old checkout).
   const [codeOpen, setCodeOpen] = useState(false)
+  // The person chose "Không dùng voucher": a later cart change does not pick the best one again.
+  const declined = useRef(false)
+  const [noVoucher, setNoVoucher] = useState(false)
 
   useEffect(() => {
     let alive = true
@@ -47,7 +50,7 @@ export default function VoucherPicker({ token, cartKey, value, onChange }: Props
       // Keep a typed code; otherwise follow the cart: the best wallet voucher, or none when the chosen one stopped fitting.
       if (value?.code && !value.walletId) return
       const still = value?.walletId ? list.find(v => v.id === value.walletId && !v.problem && (v.discount ?? 0) > 0) : null
-      const pick = still ?? best
+      const pick = still ?? (declined.current ? null : best)
       onChange(pick ? { walletId: pick.id, label: pick.title, discount: pick.discount ?? 0 } : null)
     })
     return () => { alive = false }
@@ -77,14 +80,19 @@ export default function VoucherPicker({ token, cartKey, value, onChange }: Props
         <TagIcon className="size-5 shrink-0 text-green" />
         <span className="min-w-0 flex-1">
           <span className="block text-sm font-bold text-ink">Ví voucher{loaded ? ` (${sorted.length})` : ''}</span>
-          <span className="block truncate text-xs text-muted">{chosen ? chosen.title : sorted.length > 0 ? 'Chọn voucher' : 'Chưa có voucher'}</span>
+          <span className="block truncate text-xs text-muted">{chosen ? chosen.title : sorted.length === 0 ? 'Chưa có voucher' : noVoucher ? 'Không dùng voucher' : 'Chọn voucher'}</span>
         </span>
         {chosen && <span className="shrink-0 text-sm font-bold text-green-dark">−{formatVnd(value?.discount ?? 0)}</span>}
         <ChevronRightIcon className="size-4 shrink-0 text-muted" />
       </button>
       {sheetOpen && (
         <WalletSheet items={sorted} selectedId={value?.walletId ?? null} onClose={() => setSheetOpen(false)}
-          onPick={v => { onChange(v ? { walletId: v.id, label: v.title, discount: v.discount ?? 0 } : null); setSheetOpen(false) }} />
+          onPick={v => {
+            declined.current = !v
+            setNoVoucher(!v)
+            onChange(v ? { walletId: v.id, label: v.title, discount: v.discount ?? 0 } : null)
+            setSheetOpen(false)
+          }} />
       )}
       {value?.code && !value.walletId && (
         <div className="flex items-center justify-between rounded-xl border border-green bg-green-soft p-3 text-sm">
@@ -151,6 +159,16 @@ function WalletSheet({ items, selectedId, onPick, onClose }: {
           </div>
         ) : (
           <ul className="m-0 flex flex-1 list-none flex-col gap-2 overflow-y-auto p-4" aria-label="Voucher trong ví">
+            <li>
+              <button type="button" aria-pressed={selectedId === null} onClick={() => onPick(null)}
+                className={`flex w-full cursor-pointer items-center gap-3 rounded-xl border p-3 text-left font-[inherit] ${
+                  selectedId === null ? 'border-green bg-green-soft' : 'border-line bg-white'
+                }`}>
+                <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-bg text-muted"><CloseIcon /></span>
+                <span className="min-w-0 flex-1 text-sm font-bold text-ink">Không dùng voucher</span>
+                {selectedId === null && <span className="shrink-0 text-xs font-bold text-green-dark">Đang chọn</span>}
+              </button>
+            </li>
             {items.map(v => {
               const usable = !v.problem && (v.discount ?? 0) > 0
               const selected = selectedId === v.id
@@ -162,7 +180,7 @@ function WalletSheet({ items, selectedId, onPick, onClose }: {
                       selected ? 'border-green bg-green-soft' : 'border-line bg-white'
                     } disabled:cursor-not-allowed disabled:opacity-60`}>
                     <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-green text-xs font-extrabold text-white">
-                      {Math.round(v.value / 1000)}K
+                      {v.kind === 'percent' ? `${Math.round(v.value)}%` : `${Math.round(v.value / 1000)}K`}
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm font-bold text-ink">{v.title}</span>

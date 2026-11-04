@@ -16,11 +16,38 @@ public final class VoucherRules {
     private VoucherRules() {}
 
     public static final String TYPE_MONEY = "money";
+    public static final String TYPE_PERCENT = "percent";
 
-    /** A group that takes money off the cart: "money" in any case, or no type at all (old rows). Other portal types
+    /** A fixed-amount group: "money" in any case, or no type at all (old rows). Other portal types
      *  (e.g. a free class) are not usable at checkout; saving the group in the back office turns it into "money". */
     public static boolean isMoney(String type) {
         return type == null || type.isBlank() || TYPE_MONEY.equalsIgnoreCase(type.trim());
+    }
+
+    /** A group that takes `value` percent off the covered lines (capped by maxDiscount when set). */
+    public static boolean isPercent(String type) {
+        return type != null && TYPE_PERCENT.equalsIgnoreCase(type.trim());
+    }
+
+    /** "money" or "percent" for the API; other portal types are reported as they are. */
+    public static String kind(String type) {
+        return isPercent(type) ? TYPE_PERCENT : isMoney(type) ? TYPE_MONEY : type.trim();
+    }
+
+    /** The discount a group gives on a covered subtotal, before the "not more than the lines" cut. */
+    public static long rawDiscount(String type, long value, long maxDiscount, long covered) {
+        if (isPercent(type)) {
+            long pct = Math.min(100, Math.max(0, value));
+            long d = Math.max(0, covered) * pct / 100;
+            return maxDiscount > 0 ? Math.min(d, maxDiscount) : d;
+        }
+        return Math.max(0, value);
+    }
+
+    /** Short label: "Giảm 50.000đ", "Giảm 10%", "Giảm 10% (tối đa 200.000đ)". */
+    public static String label(String type, long value, long maxDiscount) {
+        if (isPercent(type)) return "Giảm " + value + "%" + (maxDiscount > 0 ? " (tối đa " + money(maxDiscount) + ")" : "");
+        return "Giảm " + money(value);
     }
     public static final String CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no 0/O, 1/I
 
@@ -31,8 +58,9 @@ public final class VoucherRules {
      * What a voucher group allows: a money value, a minimum on the covered lines, an optional course list
      * (empty = all) and an optional partner (only that partner's courses).
      */
-    public record Group(String type, long value, long minOrder, Set<Long> itemIds, Long partnerId) {
-        public Group(String type, long value, long minOrder, Set<Long> itemIds) { this(type, value, minOrder, itemIds, null); }
+    public record Group(String type, long value, long minOrder, Set<Long> itemIds, Long partnerId, long maxDiscount) {
+        public Group(String type, long value, long minOrder, Set<Long> itemIds, Long partnerId) { this(type, value, minOrder, itemIds, partnerId, 0); }
+        public Group(String type, long value, long minOrder, Set<Long> itemIds) { this(type, value, minOrder, itemIds, null, 0); }
     }
 
     /** Whether a group covers a course. */
@@ -72,7 +100,7 @@ public final class VoucherRules {
 
     public static Evaluation evaluate(Group g, List<Line> lines) {
         if (g == null) return new Evaluation(0, 0, 0, "Mã khuyến mãi không hợp lệ");
-        if (!isMoney(g.type()))
+        if (!isMoney(g.type()) && !isPercent(g.type()))
             return new Evaluation(0, 0, 0, "Mã này thuộc loại voucher cũ, chưa dùng được khi thanh toán trực tuyến, vui lòng liên hệ anyLEARN");
         if (lines == null || lines.isEmpty()) return new Evaluation(0, 0, 0, "Giỏ hàng trống");
         boolean limited = (g.itemIds() != null && !g.itemIds().isEmpty()) || (g.partnerId() != null && g.partnerId() > 0);
@@ -89,7 +117,7 @@ public final class VoucherRules {
             String scope = limited ? " (tính trên các khóa được áp dụng)" : "";
             return new Evaluation(0, covered, shortBy, "Áp dụng cho đơn từ " + money(g.minOrder()) + scope + ", còn thiếu " + money(shortBy));
         }
-        long discount = Math.min(Math.max(0, g.value()), covered);
+        long discount = Math.min(rawDiscount(g.type(), g.value(), g.maxDiscount(), covered), covered);
         if (discount <= 0) return new Evaluation(0, covered, 0, "Mã khuyến mãi không hợp lệ");
         return new Evaluation(discount, covered, 0, null);
     }

@@ -4,12 +4,16 @@ import { authFetch } from './client'
 // Voucher wallet (plan 20). The server checks every voucher again at checkout and lowers the order amount.
 
 export type VoucherState = 'active' | 'used' | 'expired'
+export type VoucherKind = 'money' | 'percent'
 
 export interface WalletVoucher {
   id: number
   code: string
   title: string
+  // money: `value` VND off; percent: `value` % off the covered lines, at most `maxDiscount` VND (0 = no cap)
+  kind?: VoucherKind
   value: number
+  maxDiscount?: number
   minOrder: number
   itemIds: number[]
   partnerId?: number | null
@@ -27,7 +31,9 @@ export interface WalletVoucher {
 export interface CollectibleVoucher {
   groupId: number
   title: string
+  kind?: VoucherKind
   value: number
+  maxDiscount?: number
   minOrder: number
   itemIds: number[]
   partnerId?: number | null

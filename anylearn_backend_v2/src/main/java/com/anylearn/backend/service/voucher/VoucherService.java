@@ -41,11 +41,11 @@ public class VoucherService {
 
     public record GroupRow(long id, String type, String generateType, String prefix, Integer length, Integer qtt,
                            long value, long minOrder, boolean active, String title, boolean collectible, Integer walletDays,
-                           Long partnerId, String showOn) {
+                           Long partnerId, String showOn, long maxDiscount) {
         public boolean dynamic() { return generateType != null && !"manual".equals(generateType); }
         public String displayTitle() {
             if (title != null && !title.isBlank()) return title;
-            return "Giảm " + VoucherRules.money(value);
+            return VoucherRules.label(type, value, maxDiscount);
         }
     }
 
@@ -75,12 +75,12 @@ public class VoucherService {
 
     public Optional<GroupRow> group(long id) {
         return jdbc.query("SELECT id, type, generate_type, prefix, length, qtt, value, rule_min, status, title, collectible, wallet_days, "
-                        + "partner_id, show_on FROM voucher_groups WHERE id = ?",
+                        + "partner_id, show_on, max_discount FROM voucher_groups WHERE id = ?",
                 (rs, i) -> new GroupRow(rs.getLong(1), rs.getString(2), rs.getString(3), rs.getString(4),
                         (Integer) rs.getObject(5), (Integer) rs.getObject(6), VoucherRules.parseValue(rs.getString(7)),
                         rs.getObject(8) == null ? 0 : rs.getLong(8), rs.getInt(9) == 1, rs.getString(10),
                         rs.getInt(11) == 1, (Integer) rs.getObject(12), rs.getObject(13) == null ? null : rs.getLong(13),
-                        rs.getString(14)), id).stream().findFirst();
+                        rs.getString(14), rs.getObject(15) == null ? 0 : rs.getLong(15)), id).stream().findFirst();
     }
 
     public Set<Long> groupItems(long groupId) {
@@ -98,7 +98,7 @@ public class VoucherService {
     }
 
     private VoucherRules.Group rulesGroup(GroupRow g) {
-        return new VoucherRules.Group(g.type(), g.value(), g.minOrder(), groupItems(g.id()), g.partnerId());
+        return new VoucherRules.Group(g.type(), g.value(), g.minOrder(), groupItems(g.id()), g.partnerId(), g.maxDiscount());
     }
 
     // ── quote and checkout ───────────────────────────────────────────────
@@ -206,7 +206,9 @@ public class VoucherService {
             m.put("id", r.get("id"));
             m.put("code", r.get("code"));
             m.put("title", g.displayTitle());
+            m.put("kind", VoucherRules.kind(g.type()));
             m.put("value", g.value());
+            m.put("maxDiscount", g.maxDiscount());
             m.put("minOrder", g.minOrder());
             m.put("itemIds", itemIds);
             m.put("partnerId", g.partnerId());
@@ -217,7 +219,7 @@ public class VoucherService {
             m.put("usedOrderId", r.get("used_order_id"));
             m.put("receivedAt", r.get("created_at") != null ? r.get("created_at").toString() : null);
             if (lines != null && "active".equals(state)) {
-                VoucherRules.Evaluation ev = VoucherRules.evaluate(new VoucherRules.Group(g.type(), g.value(), g.minOrder(), itemIds, g.partnerId()), lines);
+                VoucherRules.Evaluation ev = VoucherRules.evaluate(new VoucherRules.Group(g.type(), g.value(), g.minOrder(), itemIds, g.partnerId(), g.maxDiscount()), lines);
                 m.put("discount", ev.discount());
                 m.put("problem", ev.problem());
             }
@@ -265,7 +267,9 @@ public class VoucherService {
             Map<String, Object> v = new java.util.LinkedHashMap<>();
             v.put("groupId", g.id());
             v.put("title", g.displayTitle());
+            v.put("kind", VoucherRules.kind(g.type()));
             v.put("value", g.value());
+            v.put("maxDiscount", g.maxDiscount());
             v.put("minOrder", g.minOrder());
             v.put("itemIds", groupItems(g.id()));
             v.put("partnerName", g.partnerId() == null ? null
@@ -299,7 +303,7 @@ public class VoucherService {
             GroupRow g = group(id).orElse(null);
             if (g == null) continue;
             Set<Long> itemIds = groupItems(g.id());
-            VoucherRules.Group rg = new VoucherRules.Group(g.type(), g.value(), g.minOrder(), itemIds, g.partnerId());
+            VoucherRules.Group rg = new VoucherRules.Group(g.type(), g.value(), g.minOrder(), itemIds, g.partnerId(), g.maxDiscount());
             if (!VoucherRules.showsAt(VoucherRules.parsePlaces(g.showOn()), place)) continue;
             if (partnerId != null && !VoucherRules.relatesToPartner(rg, partnerId, partnerOfItems(itemIds))) continue;
             if (itemId != null && !VoucherRules.covers(rg, itemId, itemPartner == null ? 0 : itemPartner)) continue;
@@ -308,7 +312,9 @@ public class VoucherService {
             Map<String, Object> m = new LinkedHashMap<>();
             m.put("groupId", g.id());
             m.put("title", g.displayTitle());
+            m.put("kind", VoucherRules.kind(g.type()));
             m.put("value", g.value());
+            m.put("maxDiscount", g.maxDiscount());
             m.put("minOrder", g.minOrder());
             m.put("itemIds", itemIds);
             m.put("partnerId", g.partnerId());

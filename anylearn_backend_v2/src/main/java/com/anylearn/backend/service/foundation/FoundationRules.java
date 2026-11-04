@@ -31,6 +31,16 @@ public final class FoundationRules {
         return new Added(new State(built, current), finished);
     }
 
+    /**
+     * Why a contribution cannot be taken back (null = it can): only one that went into the house still being built,
+     * and never more than that house has, because the built count is never lowered.
+     */
+    public static String removeProblem(int contributionHouse, int housesBuilt, long currentAmount, long amount) {
+        if (contributionHouse <= housesBuilt || currentAmount < amount)
+            return "Khoản này đã nằm trong một căn đủ tiền, không gỡ được (số căn đã xây không giảm)";
+        return null;
+    }
+
     /** Percent of the house being built, 0 to 100 (100 = "Sắp hoàn thành" after the value was lowered). */
     public static int percent(long current, long houseValue) {
         if (houseValue <= 0) return 0;
@@ -42,15 +52,14 @@ public final class FoundationRules {
     }
 
     /**
-     * "1 viên gạch" / "1 xô gạch" / "1 thùng sơn" / "1 bao xi măng" / "1 xe rùa gạch" / "1 xe tải gạch"
+     * "1 viên gạch" / "1 bao gạch" / "1 thùng sơn" / "1 bao xi măng" / "1 xe tải gạch"
      * by the amount and the thresholds (the highest one reached wins, so their order in the settings does not matter).
      */
-    public static String brickLabel(long amount, long bucketMin, long paintMin, long cementMin, long barrowMin, long truckMin) {
+    public static String brickLabel(long amount, long bucketMin, long paintMin, long cementMin, long truckMin) {
         if (amount >= truckMin) return "1 xe tải gạch";
-        if (amount >= barrowMin) return "1 xe rùa gạch";
         if (amount >= cementMin) return "1 bao xi măng";
         if (amount >= paintMin) return "1 thùng sơn";
-        if (amount >= bucketMin) return "1 xô gạch";
+        if (amount >= bucketMin) return "1 bao gạch";
         return "1 viên gạch";
     }
 

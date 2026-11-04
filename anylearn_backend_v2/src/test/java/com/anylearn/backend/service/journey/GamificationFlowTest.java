@@ -110,6 +110,54 @@ class GamificationFlowTest {
     }
 
     @Test
+    void ordersPaidBeforeTheFoundationAreImportedOnceInTheBuyersName() {
+        long me = member(null);
+        long portalBuyer = member(null);
+        long v2Order = buyAndPay(me, course(500_000));
+        long portalOrder = buyAndPay(portalBuyer, course(2_400_000));
+        // Make them look like orders from before V78: no contribution yet, foundation rows written the old ways.
+        jdbc.update("DELETE FROM foundation_contributions WHERE dedup_key IN (?, ?)", "order:" + v2Order, "order:" + portalOrder);
+        jdbc.update("DELETE FROM transactions WHERE type = 'foundation' AND order_id IN (SELECT id FROM order_details WHERE order_id IN (?, ?))", v2Order, portalOrder);
+        long v2Line = jdbc.queryForObject("SELECT MIN(id) FROM order_details WHERE order_id = ?", Long.class, v2Order);
+        long portalLine = jdbc.queryForObject("SELECT MIN(id) FROM order_details WHERE order_id = ?", Long.class, portalOrder);
+        jdbc.update("INSERT INTO transactions (user_id, type, amount, pay_method, order_id, content, status, created_at, updated_at) VALUES (?, 'foundation', 8, 'wallet_c', ?, 'Quỹ vận hành', 99, '2026-10-31 02:43:57', NOW())", me, v2Line);
+        jdbc.update("INSERT INTO transactions (user_id, ref_user_id, type, amount, ref_amount, pay_method, order_id, content, status, created_at, updated_at) VALUES (0, ?, 'foundation', 24000, 2400000, 'wallet_m', ?, 'Nhận quỹ', 1, '2025-09-20 22:37:53', NOW())", portalBuyer, portalLine);
+
+        Map<String, Object> onlyV2 = foundation.importOldOrders(false, false);
+        assertEquals(0, onlyV2.get("portalOrders"));
+        assertTrue(((Number) onlyV2.get("v2Orders")).intValue() >= 1);
+        Map<String, Object> preview = foundation.importOldOrders(true, false);
+        assertTrue(((Number) preview.get("portalOrders")).intValue() >= 1);
+        assertEquals(0, jdbc.queryForObject("SELECT COUNT(*) FROM foundation_contributions WHERE dedup_key = ?", Integer.class, "order:" + v2Order), "preview writes nothing");
+
+        long totalBefore = jdbc.queryForObject("SELECT total_amount FROM foundation_state WHERE id = 1", Long.class);
+        Map<String, Object> done = foundation.importOldOrders(true, true);
+        assertEquals(done.get("amount"), done.get("added"));
+        Map<String, Object> v2Row = jdbc.queryForMap("SELECT user_id, amount, created_at FROM foundation_contributions WHERE dedup_key = ?", "order:" + v2Order);
+        assertEquals(me, ((Number) v2Row.get("user_id")).longValue());
+        long rate = Math.round(Double.parseDouble(jdbc.queryForList("SELECT value FROM configurations WHERE `key` = 'bonus_rate'", String.class).stream().findFirst().orElse("1000")));
+        assertEquals(8 * rate, ((Number) v2Row.get("amount")).longValue(), "anyPoint × bonus_rate");
+        assertTrue(String.valueOf(v2Row.get("created_at")).startsWith("2026-10-31"), "keeps the order's date");
+        Map<String, Object> portalRow = jdbc.queryForMap("SELECT user_id, amount FROM foundation_contributions WHERE dedup_key = ?", "order:" + portalOrder);
+        assertEquals(portalBuyer, ((Number) portalRow.get("user_id")).longValue());
+        assertEquals(24000L, ((Number) portalRow.get("amount")).longValue(), "portal rows are already VND");
+        assertEquals(totalBefore + ((Number) done.get("added")).longValue(), jdbc.queryForObject("SELECT total_amount FROM foundation_state WHERE id = 1", Long.class));
+
+        assertEquals(0L, ((Number) foundation.importOldOrders(true, true).get("added")).longValue(), "an order is imported once");
+
+        // "Gỡ" takes it back out, keeps the row, and the order is not imported again.
+        long id = jdbc.queryForObject("SELECT id FROM foundation_contributions WHERE dedup_key = ?", Long.class, "order:" + portalOrder);
+        long total = jdbc.queryForObject("SELECT total_amount FROM foundation_state WHERE id = 1", Long.class);
+        long current = jdbc.queryForObject("SELECT current_amount FROM foundation_state WHERE id = 1", Long.class);
+        assertEquals(24000L, foundation.remove(id));
+        assertEquals(total - 24000, jdbc.queryForObject("SELECT total_amount FROM foundation_state WHERE id = 1", Long.class));
+        assertEquals(current - 24000, jdbc.queryForObject("SELECT current_amount FROM foundation_state WHERE id = 1", Long.class));
+        assertThrows(IllegalArgumentException.class, () -> foundation.remove(id), "removed once");
+        assertEquals(0L, ((Number) foundation.importOldOrders(true, true).get("added")).longValue(), "a removed order is not imported again");
+        assertNull(foundation.ofOrder(portalOrder));
+    }
+
+    @Test
     void firstPaidOrderRewardsTheBuyerAndTheInviterAndOpensChapterFour() {
         long inviter = member(null);
         long me = member(inviter);

@@ -90,6 +90,33 @@ class VoucherFlowTest {
     }
 
     @Test
+    void aPercentVoucherTakesItsShareOfTheCoveredLinesUpToItsCap() {
+        long me = member();
+        long a = course(300_000), b = course(2_000_000);
+        addToCart(me, a);
+        addToCart(me, b);
+        long capped = group(Map.of("title", "Giảm 10%", "type", "percent", "value", 10, "maxDiscount", 150_000,
+                "generateType", "auto", "prefix", "PCT"));
+        long onlyA = group(Map.of("type", "percent", "value", 20, "generateType", "auto", "prefix", "PCA", "itemIds", List.of(a)));
+        Long w1 = vouchers.issue(me, capped, VoucherService.SOURCE_ADMIN, null);
+        Long w2 = vouchers.issue(me, onlyA, VoucherService.SOURCE_ADMIN, null);
+        Map<Long, Map<String, Object>> byId = new java.util.HashMap<>();
+        for (Map<String, Object> v : vouchers.wallet(me, cart.voucherLines(user(me)))) byId.put(((Number) v.get("id")).longValue(), v);
+        assertEquals(150_000L, ((Number) byId.get(w1).get("discount")).longValue(), "10% of 2.3M is 230K, capped at 150K");
+        assertEquals("percent", byId.get(w1).get("kind"));
+        assertEquals(150_000L, ((Number) byId.get(w1).get("maxDiscount")).longValue());
+        assertEquals("Giảm 10%", byId.get(w1).get("title"));
+        assertEquals(60_000L, ((Number) byId.get(w2).get("discount")).longValue(), "20% of course A only");
+
+        Map<String, Object> res = cart.checkout("bank_transfer", null, w1, 0, user(me));
+        long orderId = Long.parseLong((String) res.get("orderId"));
+        assertEquals(2_150_000L, jdbc.queryForObject("SELECT amount FROM orders WHERE id = ?", Long.class, orderId));
+        assertEquals(150_000L, vouchers.discountOfOrder(orderId));
+
+        assertThrows(IllegalArgumentException.class, () -> group(Map.of("type", "percent", "value", 120, "generateType", "manual")));
+    }
+
+    @Test
     void anyPointNeverPaysMoreThanTheAmountAndOnlyWhatIsNeededIsTaken() {
         long me = member();
         addToCart(me, course(20_000));

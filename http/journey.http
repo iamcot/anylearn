@@ -117,6 +117,14 @@ Content-Type: application/json
 
 {"amount": 5000000, "note": "anyLEARN góp khởi động"}
 
+
+### Orders paid before the Foundation existed: preview (apply false), then apply; portal = also 2025 portal orders
+POST {{baseUrl}}/admin/foundation/import-old
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{"portal": true, "apply": false}
+
 ###
 PUT {{baseUrl}}/admin/foundation/houses/1
 Authorization: Bearer {{adminToken}}

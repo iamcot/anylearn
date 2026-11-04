@@ -40,6 +40,25 @@ public class AdminFoundationController {
         return ApiResponse.ok(foundation.adminState());
     }
 
+    /** Foundation shares of orders paid before the Foundation existed: {portal, apply}; apply false = preview. */
+    @PostMapping("/import-old")
+    public ApiResponse<?> importOld(@AuthenticationPrincipal User user, @RequestBody Map<String, Object> body) {
+        if (!admin(user)) return ApiResponse.fail("Forbidden");
+        return ApiResponse.ok(foundation.importOldOrders(Boolean.TRUE.equals(body.get("portal")), Boolean.TRUE.equals(body.get("apply"))));
+    }
+
+    /** "Gỡ": takes one contribution back out of the house being built. */
+    @PostMapping("/contributions/{id}/remove")
+    public ApiResponse<?> remove(@AuthenticationPrincipal User user, @PathVariable long id) {
+        if (!admin(user)) return ApiResponse.fail("Forbidden");
+        try {
+            foundation.remove(id);
+            return ApiResponse.ok(foundation.adminState());
+        } catch (IllegalArgumentException e) {
+            return ApiResponse.fail(e.getMessage());
+        }
+    }
+
     @PutMapping("/houses/{no}")
     public ApiResponse<?> house(@AuthenticationPrincipal User user, @PathVariable int no, @RequestBody Map<String, Object> body) {
         if (!admin(user)) return ApiResponse.fail("Forbidden");

@@ -13,9 +13,15 @@ export function shortVnd(v: number): string {
   return `${n}đ`
 }
 
-/** One line under a voucher: minimum order, course or partner limit. */
-export function conditionLine(v: Pick<WalletVoucher, 'minOrder' | 'itemIds' | 'partnerName'>): string {
+/** What a voucher takes off, for its stub: "200K" or "10%". */
+export function amountLabel(v: { kind?: string | null; value: number }): string {
+  return v.kind === 'percent' ? `${Math.round(v.value)}%` : shortVnd(v.value)
+}
+
+/** One line under a voucher: cap of a percent voucher, minimum order, course or partner limit. */
+export function conditionLine(v: Pick<WalletVoucher, 'minOrder' | 'itemIds' | 'partnerName'> & { kind?: string | null; maxDiscount?: number | null }): string {
   const parts: string[] = []
+  if (v.kind === 'percent' && (v.maxDiscount ?? 0) > 0) parts.push(`Tối đa ${shortVnd(v.maxDiscount!)}`)
   if (v.minOrder > 0) parts.push(`Đơn từ ${shortVnd(v.minOrder)}`)
   if (v.partnerName) parts.push(`Khóa của ${v.partnerName}`)
   else if (v.itemIds.length > 0) parts.push(v.itemIds.length === 1 ? 'Áp dụng cho 1 khóa học' : `Áp dụng cho ${v.itemIds.length} khóa học`)

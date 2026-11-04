@@ -33,16 +33,17 @@ export function BrickIcon({ className = 'size-5' }: { className?: string }) {
   )
 }
 
-/** A bucket of bricks. */
-export function BucketIcon({ className = 'size-5' }: { className?: string }) {
+/** A sack of bricks, tied at the top with bricks showing. */
+export function SackIcon({ className = 'size-5' }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" className={className} aria-hidden>
-      <path d="M6 8.5h12" stroke="#7a8794" strokeWidth="1.4" strokeLinecap="round" />
-      <path d="M6.5 6.5c0-3 11-3 11 0" fill="none" stroke="#7a8794" strokeWidth="1.3" />
-      <rect x="7" y="5.8" width="4.5" height="2.8" rx=".4" fill="#c8643b" />
-      <rect x="12" y="5.4" width="4.5" height="3.2" rx=".4" fill="#e08a5f" />
-      <path d="M5 8.5h14l-1.6 12a1.2 1.2 0 0 1-1.2 1H7.8a1.2 1.2 0 0 1-1.2-1Z" fill="#9aa7b4" />
-      <path d="M5.6 12.5h12.8" stroke="#7a8794" strokeWidth=".8" />
+      <rect x="7.2" y="3.2" width="4.4" height="2.8" rx=".4" fill="#c8643b" />
+      <rect x="12" y="2.8" width="4.4" height="3.2" rx=".4" fill="#e08a5f" />
+      <path d="M8 6.5h8l-1.2 1.6c3.4 1.6 5.2 5 5.2 8.6 0 3-2.6 4.8-8 4.8s-8-1.8-8-4.8c0-3.6 1.8-7 5.2-8.6Z" fill="#c9a77a" />
+      <path d="M9.2 8.1h5.6" stroke="#8a6a42" strokeWidth="1.3" strokeLinecap="round" />
+      <path d="M7.5 13.5c1.5.8 7.5.8 9 0" fill="none" stroke="#a88757" strokeWidth=".9" strokeLinecap="round" />
+      <rect x="9" y="15" width="6" height="3.6" rx=".5" fill="#c8643b" />
+      <path d="M9 16.8h6M12 15v1.8" stroke="#a44d2a" strokeWidth=".6" />
     </svg>
   )
 }
@@ -73,21 +74,6 @@ export function CementIcon({ className = 'size-5' }: { className?: string }) {
   )
 }
 
-/** A wheelbarrow of bricks. */
-export function BarrowIcon({ className = 'size-5' }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} aria-hidden>
-      <rect x="5.5" y="6.5" width="4.5" height="3" rx=".4" fill="#c8643b" />
-      <rect x="10.5" y="6" width="4.5" height="3.5" rx=".4" fill="#e08a5f" />
-      <path d="M3 9.5h14l-2.5 6H6Z" fill="#00a551" />
-      <path d="m17 9.5 4-3" stroke="#5b6672" strokeWidth="1.4" strokeLinecap="round" />
-      <path d="M8 15.5 7 20M13 15.5l1.5 2" stroke="#5b6672" strokeWidth="1.2" strokeLinecap="round" />
-      <circle cx="15.5" cy="18.5" r="2.2" fill="#3a4450" />
-      <circle cx="15.5" cy="18.5" r=".8" fill="#c9ced6" />
-    </svg>
-  )
-}
-
 /** A truck loaded with bricks. */
 export function TruckIcon({ className = 'size-5' }: { className?: string }) {
   return (
@@ -105,13 +91,12 @@ export function TruckIcon({ className = 'size-5' }: { className?: string }) {
   )
 }
 
-/** The picture of a contribution label ("1 xô gạch", "1 thùng sơn"...): brick by default. */
+/** The picture of a contribution label ("1 bao gạch", "1 thùng sơn"...): brick by default. */
 export function ContributionIcon({ label, className = 'size-5' }: { label?: string | null; className?: string }) {
   const l = (label ?? '').toLowerCase()
   if (l.includes('xe tải')) return <TruckIcon className={className} />
-  if (l.includes('xe rùa')) return <BarrowIcon className={className} />
   if (l.includes('xi măng')) return <CementIcon className={className} />
   if (l.includes('sơn')) return <PaintIcon className={className} />
-  if (l.includes('xô')) return <BucketIcon className={className} />
+  if (l.includes('bao gạch') || l.includes('xô')) return <SackIcon className={className} />
   return <BrickIcon className={className} />
 }

@@ -51,10 +51,9 @@ public class FoundationService {
                 .field("enabled", "Bật chương trình (1 = bật, 0 = tắt)", "Chung", 1, 0, 1)
                 .field("house_value", "Giá trị một căn nhà vệ sinh (đ)", "Chung", 80_000_000, 1_000_000, 5_000_000_000L)
                 .field("first_order_multiplier", "Đơn đầu tiên góp gấp mấy lần", "Chung", 2, 1, 10)
-                .field("bucket_min", "Từ số tiền này là \"1 xô gạch\" (đ)", "Chữ hiển thị", 10_000, 1, 100_000_000)
+                .field("bucket_min", "Từ số tiền này là \"1 bao gạch\" (đ)", "Chữ hiển thị", 10_000, 1, 100_000_000)
                 .field("paint_min", "Từ số tiền này là \"1 thùng sơn\" (đ)", "Chữ hiển thị", 20_000, 1, 100_000_000)
                 .field("cement_min", "Từ số tiền này là \"1 bao xi măng\" (đ)", "Chữ hiển thị", 30_000, 1, 100_000_000)
-                .field("barrow_min", "Từ số tiền này là \"1 xe rùa gạch\" (đ)", "Chữ hiển thị", 50_000, 1, 100_000_000)
                 .field("truck_min", "Từ số tiền này là \"1 xe tải gạch\" (đ)", "Chữ hiển thị", 200_000, 1, 1_000_000_000)
                 .field("brick_value", "Một viên gạch trong \"Gạch của tôi\" là (đ)", "Chữ hiển thị", 1_000, 1, 1_000_000);
     }
@@ -80,20 +79,25 @@ public class FoundationService {
      */
     @Transactional
     public long contribute(Long userId, String source, long amount, Long orderId, String dedupKey, String note) {
+        return contribute(userId, source, amount, orderId, dedupKey, note, now(), true);
+    }
+
+    private long contribute(Long userId, String source, long amount, Long orderId, String dedupKey, String note,
+                            Object at, boolean announce) {
         if (!enabled() || amount <= 0) return 0;
         Map<String, Object> state = jdbc.queryForMap("SELECT houses_built, current_amount FROM foundation_state WHERE id = 1 FOR UPDATE");
         FoundationRules.State before = new FoundationRules.State(((Number) state.get("houses_built")).intValue(),
                 ((Number) state.get("current_amount")).longValue());
         int houseNo = before.housesBuilt() + 1;
         int rows = jdbc.update("INSERT IGNORE INTO foundation_contributions (user_id, source, amount, order_id, house_no, dedup_key, note, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                userId, source, amount, orderId, houseNo, dedupKey, note, now());
+                userId, source, amount, orderId, houseNo, dedupKey, note, at);
         if (rows != 1) return 0;
         FoundationRules.Added added = FoundationRules.add(before, settings.get("house_value"), amount);
         jdbc.update("UPDATE foundation_state SET houses_built = ?, current_amount = ?, total_amount = total_amount + ?, updated_at = ? WHERE id = 1",
                 added.state().housesBuilt(), added.state().currentAmount(), amount, now());
         for (Integer no : added.finished()) {
             jdbc.update("INSERT IGNORE INTO foundation_houses (house_no, completed_at) VALUES (?, ?)", no, now());
-            announceHouse(no);
+            if (announce) announceHouse(no);
         }
         return amount;
     }
@@ -113,6 +117,61 @@ public class FoundationService {
         }
     }
 
+    // ── orders from before the Foundation existed ───────────────────────
+
+    /** An order with `foundation` transactions written before V78: `era` v2 (anyPoint, buyer = user_id) or portal (VND, buyer = ref_user_id). */
+    public record OldOrder(long orderId, Long buyerId, long amount, Timestamp at, String era) {}
+
+    private static final String OLD_NOT_COUNTED = "AND NOT EXISTS (SELECT 1 FROM foundation_contributions c WHERE c.dedup_key = CONCAT('order:', d.order_id)) ";
+
+    /** Delivered orders whose foundation share was never added to the Foundation, oldest first. */
+    public List<OldOrder> oldOrders(boolean includePortal) {
+        double rate = vndPerPoint();
+        List<OldOrder> out = new ArrayList<>(jdbc.query(
+                "SELECT d.order_id, MAX(o.user_id), SUM(t.amount), MIN(t.created_at) FROM transactions t "
+                        + "JOIN order_details d ON d.id = t.order_id JOIN orders o ON o.id = d.order_id "
+                        + "WHERE t.type = 'foundation' AND t.pay_method = 'wallet_c' AND o.status = 'delivered' " + OLD_NOT_COUNTED
+                        + "GROUP BY d.order_id",
+                (rs, i) -> new OldOrder(rs.getLong(1), (Long) rs.getObject(2, Long.class),
+                        FoundationRules.orderAmount(rs.getLong(3), rate, 1), rs.getTimestamp(4), "v2")));
+        if (includePortal) out.addAll(jdbc.query(
+                "SELECT d.order_id, MAX(t.ref_user_id), SUM(t.amount), MIN(t.created_at) FROM transactions t "
+                        + "JOIN order_details d ON d.id = t.order_id JOIN orders o ON o.id = d.order_id "
+                        + "WHERE t.type = 'foundation' AND t.pay_method = 'wallet_m' AND t.status = 1 AND o.status = 'delivered' " + OLD_NOT_COUNTED
+                        + "GROUP BY d.order_id",
+                (rs, i) -> new OldOrder(rs.getLong(1), (Long) rs.getObject(2, Long.class), Math.max(0, rs.getLong(3)),
+                        rs.getTimestamp(4), "portal")));
+        out.removeIf(o -> o.amount() <= 0);
+        out.sort(Comparator.comparing(OldOrder::at, Comparator.nullsFirst(Comparator.naturalOrder())));
+        return out;
+    }
+
+    /**
+     * Adds the old orders to the Foundation in the buyer's name with their own date (once per order, same key as a
+     * new order). apply = false only counts. No house announcements for these.
+     */
+    @Transactional
+    public Map<String, Object> importOldOrders(boolean includePortal, boolean apply) {
+        List<OldOrder> list = oldOrders(includePortal);
+        long v2 = 0, portal = 0, added = 0;
+        int v2n = 0, portaln = 0;
+        for (OldOrder o : list) {
+            if ("v2".equals(o.era())) { v2 += o.amount(); v2n++; } else { portal += o.amount(); portaln++; }
+            if (apply) added += contribute(o.buyerId() != null && o.buyerId() > 0 ? o.buyerId() : null, SOURCE_ORDER, o.amount(),
+                    o.orderId(), "order:" + o.orderId(), "Đơn trước khi có chương trình", o.at() != null ? o.at() : now(), false);
+        }
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("v2Orders", v2n);
+        out.put("v2Amount", v2);
+        out.put("portalOrders", portaln);
+        out.put("portalAmount", portal);
+        out.put("orders", list.size());
+        out.put("amount", v2 + portal);
+        out.put("applied", apply);
+        out.put("added", added);
+        return out;
+    }
+
     /** A milestone gift in the person's name (never throws). */
     public long milestone(long userId, long amount, String dedupKey, String note) {
         try {
@@ -124,7 +183,7 @@ public class FoundationService {
     }
 
     private void announceHouse(int houseNo) {
-        List<Long> people = jdbc.queryForList("SELECT DISTINCT user_id FROM foundation_contributions WHERE house_no = ? AND user_id IS NOT NULL",
+        List<Long> people = jdbc.queryForList("SELECT DISTINCT user_id FROM foundation_contributions WHERE house_no = ? AND user_id IS NOT NULL AND removed_at IS NULL",
                 Long.class, houseNo);
         for (Long u : people) {
             try {
@@ -143,7 +202,7 @@ public class FoundationService {
     // ── reads ────────────────────────────────────────────────────────────
 
     public String label(long amount) {
-        return FoundationRules.brickLabel(amount, settings.get("bucket_min"), settings.get("paint_min"), settings.get("cement_min"), settings.get("barrow_min"), settings.get("truck_min"));
+        return FoundationRules.brickLabel(amount, settings.get("bucket_min"), settings.get("paint_min"), settings.get("cement_min"), settings.get("truck_min"));
     }
 
     /** Public page and home strip: progress, finished houses, the latest contributions (names shortened, no amounts). */
@@ -160,12 +219,12 @@ public class FoundationService {
         out.put("percent", FoundationRules.percent(current, value));
         out.put("remaining", FoundationRules.remaining(current, value));
         out.put("totalAmount", ((Number) s.get("total_amount")).longValue());
-        Long people = jdbc.queryForObject("SELECT COUNT(DISTINCT user_id) FROM foundation_contributions WHERE user_id IS NOT NULL", Long.class);
+        Long people = jdbc.queryForObject("SELECT COUNT(DISTINCT user_id) FROM foundation_contributions WHERE user_id IS NOT NULL AND removed_at IS NULL", Long.class);
         out.put("contributors", people == null ? 0 : people);
         out.put("recent", jdbc.query(
                 "SELECT c.id, c.user_id, c.source, c.amount, c.house_no, c.created_at, u.name, COALESCE(m.hide_name, 0) AS hide_name "
                         + "FROM foundation_contributions c LEFT JOIN users u ON u.id = c.user_id LEFT JOIN foundation_members m ON m.user_id = c.user_id "
-                        + "ORDER BY c.id DESC LIMIT ?",
+                        + "WHERE c.removed_at IS NULL ORDER BY c.id DESC LIMIT ?",
                 (rs, i) -> {
                     Map<String, Object> r = new LinkedHashMap<>();
                     long uid = rs.getLong("user_id");
@@ -186,7 +245,7 @@ public class FoundationService {
 
     /** What a paid order gave the fund: amount, its brick label and the house state after it (null when nothing). */
     public Map<String, Object> ofOrder(long orderId) {
-        List<Map<String, Object>> rows = jdbc.queryForList("SELECT amount, house_no FROM foundation_contributions WHERE order_id = ? AND source = 'order'", orderId);
+        List<Map<String, Object>> rows = jdbc.queryForList("SELECT amount, house_no FROM foundation_contributions WHERE order_id = ? AND source = 'order' AND removed_at IS NULL", orderId);
         if (rows.isEmpty()) return null;
         long amount = ((Number) rows.get(0).get("amount")).longValue();
         Map<String, Object> s = jdbc.queryForMap("SELECT houses_built, current_amount FROM foundation_state WHERE id = 1");
@@ -203,13 +262,13 @@ public class FoundationService {
     /** "Gạch của tôi". */
     public Map<String, Object> mine(long userId) {
         Map<String, Object> t = jdbc.queryForMap(
-                "SELECT COALESCE(SUM(amount), 0) AS total, COUNT(*) AS times FROM foundation_contributions WHERE user_id = ?", userId);
+                "SELECT COALESCE(SUM(amount), 0) AS total, COUNT(*) AS times FROM foundation_contributions WHERE user_id = ? AND removed_at IS NULL", userId);
         long total = ((Number) t.get("total")).longValue();
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("total", total);
         out.put("times", ((Number) t.get("times")).intValue());
         out.put("bricks", FoundationRules.bricks(total, settings.get("brick_value")));
-        out.put("houses", jdbc.queryForList("SELECT DISTINCT house_no FROM foundation_contributions WHERE user_id = ? ORDER BY house_no", Integer.class, userId));
+        out.put("houses", jdbc.queryForList("SELECT DISTINCT house_no FROM foundation_contributions WHERE user_id = ? AND removed_at IS NULL ORDER BY house_no", Integer.class, userId));
         List<Integer> hide = jdbc.queryForList("SELECT hide_name FROM foundation_members WHERE user_id = ?", Integer.class, userId);
         out.put("hideName", !hide.isEmpty() && hide.get(0) == 1);
         return out;
@@ -242,8 +301,36 @@ public class FoundationService {
     public Map<String, Object> adminState() {
         Map<String, Object> out = new LinkedHashMap<>(publicState(50));
         out.put("settings", settings.asMap());
-        out.put("bySource", jdbc.queryForList("SELECT source, COUNT(*) AS times, COALESCE(SUM(amount), 0) AS amount FROM foundation_contributions GROUP BY source"));
+        out.put("contributions", jdbc.queryForList(
+                "SELECT c.id, c.user_id AS userId, u.name, u.phone, c.source, c.amount, c.order_id AS orderId, c.house_no AS houseNo, c.note, "
+                        + "c.created_at AS at, c.removed_at AS removedAt FROM foundation_contributions c LEFT JOIN users u ON u.id = c.user_id "
+                        + "ORDER BY c.id DESC LIMIT 200"));
+        out.put("bySource", jdbc.queryForList("SELECT source, COUNT(*) AS times, COALESCE(SUM(amount), 0) AS amount FROM foundation_contributions WHERE removed_at IS NULL GROUP BY source"));
         return out;
+    }
+
+    /**
+     * "Gỡ" in the back office: takes a contribution back out of the current house. The row stays with removed_at set,
+     * so the same order is never imported again. Refused once a house was finished after it (the built count would change).
+     */
+    @Transactional
+    public long remove(long contributionId) {
+        Map<String, Object> state = jdbc.queryForMap("SELECT houses_built, current_amount FROM foundation_state WHERE id = 1 FOR UPDATE");
+        List<Map<String, Object>> rows = jdbc.queryForList(
+                "SELECT amount, house_no, removed_at FROM foundation_contributions WHERE id = ? FOR UPDATE", contributionId);
+        if (rows.isEmpty()) throw new IllegalArgumentException("Không tìm thấy khoản góp");
+        Map<String, Object> row = rows.get(0);
+        if (row.get("removed_at") != null) throw new IllegalArgumentException("Khoản này đã gỡ rồi");
+        long amount = ((Number) row.get("amount")).longValue();
+        int houseNo = ((Number) row.get("house_no")).intValue();
+        int built = ((Number) state.get("houses_built")).intValue();
+        long current = ((Number) state.get("current_amount")).longValue();
+        String problem = FoundationRules.removeProblem(houseNo, built, current, amount);
+        if (problem != null) throw new IllegalArgumentException(problem);
+        jdbc.update("UPDATE foundation_contributions SET removed_at = ? WHERE id = ?", now(), contributionId);
+        jdbc.update("UPDATE foundation_state SET current_amount = current_amount - ?, total_amount = total_amount - ?, updated_at = ? WHERE id = 1",
+                amount, amount, now());
+        return amount;
     }
 
     public long seed(long amount, String note) {
