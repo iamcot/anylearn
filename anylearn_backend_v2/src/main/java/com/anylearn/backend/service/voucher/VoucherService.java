@@ -251,11 +251,33 @@ public class VoucherService {
     @Transactional
     public Map<String, Object> collect(long userId, long groupId) {
         GroupRow g = group(groupId).orElseThrow(() -> new IllegalArgumentException("Không tìm thấy voucher"));
-        if (!g.active() || !g.collectible()) throw new IllegalArgumentException("Voucher này không còn nhận được");
+        if (!g.active() || !(g.collectible() || onPublishedArticle(groupId))) throw new IllegalArgumentException("Voucher này không còn nhận được");
         if (holdsGroup(userId, groupId)) throw new IllegalArgumentException("Bạn đã nhận voucher này rồi");
         Long id = issue(userId, groupId, SOURCE_COLLECT, null);
         if (id == null) throw new IllegalArgumentException("Voucher này đã hết lượt nhận");
         return Map.of("id", id, "title", g.displayTitle());
+    }
+
+    /** What a promotion article shows for its voucher group ("Lưu mã"): null when there is none or it is switched off. */
+    public Map<String, Object> articleVoucher(Long groupId) {
+        if (groupId == null) return null;
+        return group(groupId).filter(GroupRow::active).<Map<String, Object>>map(g -> {
+            Map<String, Object> v = new java.util.LinkedHashMap<>();
+            v.put("groupId", g.id());
+            v.put("title", g.displayTitle());
+            v.put("value", g.value());
+            v.put("minOrder", g.minOrder());
+            v.put("itemIds", groupItems(g.id()));
+            v.put("partnerName", g.partnerId() == null ? null
+                    : jdbc.queryForList("SELECT name FROM users WHERE id = ?", String.class, g.partnerId()).stream().findFirst().orElse(null));
+            return v;
+        }).orElse(null);
+    }
+
+    /** A group attached to a published article can be saved from its banner even when it is not "collectible". */
+    boolean onPublishedArticle(long groupId) {
+        Long n = jdbc.queryForObject("SELECT COUNT(*) FROM articles WHERE voucher_group_id = ? AND status = 1", Long.class, groupId);
+        return n != null && n > 0;
     }
 
     public boolean holdsGroup(long userId, long groupId) {

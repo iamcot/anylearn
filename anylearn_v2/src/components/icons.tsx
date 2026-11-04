@@ -266,3 +266,12 @@ export const ZaloIcon = (props: IconProps) => (
     <path d="M9 8.8h5.5L9 14.2h5.5" />
   </Icon>
 )
+
+/** A voucher ticket: notched sides, dashed tear line and a percent sign. */
+export const TicketIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2.5a2.5 2.5 0 0 0 0 5V17a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2.5a2.5 2.5 0 0 0 0-5Z" />
+    <path d="M15 5.5v2M15 11v2M15 16.5v2" />
+    <path d="m7.5 14.5 4-5" /><circle cx="8" cy="9.8" r=".6" /><circle cx="11" cy="14.2" r=".6" />
+  </Icon>
+)

@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useRef, useState } from 'react'
 import { getArticleUrl } from '@/lib/api'
+import SaveVoucherButton from '@/components/vouchers/SaveVoucherButton'
 import { ChevronLeftIcon, ChevronRightIcon, GiftIcon } from '@/components/icons'
 
 interface Promo {
@@ -10,6 +11,7 @@ interface Promo {
   title: string
   short_content?: string
   image?: string
+  voucher?: { groupId: number } | null
 }
 
 const SWIPE_THRESHOLD_PX = 40
@@ -51,11 +53,14 @@ export default function PromoSlider({ promos }: { promos: Promo[] }) {
                 key={promo.id}
                 className="grid min-h-[300px] shrink-0 basis-full grid-cols-1 overflow-hidden bg-linear-[100deg] from-blue-dark/95 to-green/80 text-white shadow-card md:grid-cols-[1.2fr_0.8fr]"
               >
-                <div className="p-6 md:p-10">
+                <div className="p-6 md:py-10 md:pl-20 md:pr-10">
                   <span className="mb-4 inline-flex rounded-full bg-white/15 px-3 py-1.5 text-sm font-medium">Chương trình nổi bật</span>
                   <h2 className="m-0 mb-3 text-[clamp(26px,4vw,44px)] font-medium leading-[1.1]">{promo.title}</h2>
                   {promo.short_content && <p className="mb-5 max-w-[630px] text-white/90">{promo.short_content}</p>}
-                  <Link href={getArticleUrl(promo)} className="btn btn--yellow">Tìm hiểu chương trình</Link>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <Link href={getArticleUrl(promo)} className="btn btn--yellow">Tìm hiểu thêm</Link>
+                    {promo.voucher?.groupId ? <SaveVoucherButton groupId={promo.voucher.groupId} /> : null}
+                  </div>
                 </div>
                 <div className="hidden place-items-center overflow-hidden p-7 md:grid">
                   {promo.image ? (

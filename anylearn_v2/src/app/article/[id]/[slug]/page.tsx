@@ -10,6 +10,9 @@ import { detailMeta } from '@/lib/seo/shareMeta'
 import JsonLd from '@/components/seo/JsonLd'
 import { breadcrumbLd } from '@/lib/seo/jsonLd'
 import { siteOrigin } from '@/lib/achievements/share'
+import VoucherTicket from '@/components/vouchers/VoucherTicket'
+import SaveVoucherButton from '@/components/vouchers/SaveVoucherButton'
+import { conditionLine } from '@/lib/vouchers/rules'
 
 interface Props {
   params: Promise<{ id: string; slug: string }>
@@ -94,6 +97,19 @@ export default async function ArticleDetailPage({ params }: Props) {
       ) : null}
 
       {/* Tags */}
+      {article.voucher && (
+        <section className="my-6 rounded-card bg-[#fff6ef] p-4" aria-label="Voucher của chương trình">
+          <h2 className="m-0 mb-3 text-base font-extrabold text-ink">Lưu mã để dùng khi thanh toán</h2>
+          <VoucherTicket
+            vivid
+            value={article.voucher.value}
+            title={article.voucher.title}
+            condition={conditionLine({ minOrder: article.voucher.minOrder, itemIds: article.voucher.itemIds ?? [], partnerName: article.voucher.partnerName ?? null })}
+            action={<SaveVoucherButton groupId={article.voucher.groupId} onLight />}
+          />
+        </section>
+      )}
+
       {article.tags && (
         <div className="mt-8 pt-6 border-t border-line flex gap-2 flex-wrap">
           {article.tags.split(',').map(tag => tag.trim()).filter(Boolean).map(tag => (

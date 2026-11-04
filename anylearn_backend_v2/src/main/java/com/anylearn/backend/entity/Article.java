@@ -42,6 +42,10 @@ public class Article {
 
     private String tags;
 
+    /** Voucher group people can save from this article's banner (null = none). */
+    @Column(name = "voucher_group_id")
+    private Long voucherGroupId;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 

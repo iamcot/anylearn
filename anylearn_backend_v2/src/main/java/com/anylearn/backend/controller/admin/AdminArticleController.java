@@ -43,7 +43,7 @@ public class AdminArticleController {
                   (q != null && !q.isBlank() ? " AND a.title LIKE '%" + q.replace("'","''") + "%'" : "");
 
         var sql = "SELECT a.id, a.title, a.type, a.status, a.is_hot, a.view, a.created_at, " +
-                  "u.name AS authorName, a.image " +
+                  "u.name AS authorName, a.image, a.voucher_group_id, (SELECT g.title FROM voucher_groups g WHERE g.id = a.voucher_group_id) " +
                   "FROM articles a LEFT JOIN users u ON a.user_id = u.id WHERE 1=1" +
                   conditions + " ORDER BY a.id " + safeSort + " LIMIT " + size + " OFFSET " + (long) page * size;
 
@@ -58,6 +58,8 @@ public class AdminArticleController {
             m.put("createdAt", r[6] != null ? r[6].toString() : "");
             m.put("authorName", r[7] != null ? r[7] : "");
             m.put("image", r[8] != null ? r[8] : "");
+            m.put("voucherGroupId", r[9]);
+            m.put("voucherGroupTitle", r[10]);
             return m;
         }).toList();
 
@@ -80,6 +82,7 @@ public class AdminArticleController {
             m.put("content", a.getContent());
             m.put("image", a.getImage()); m.put("video", a.getVideo());
             m.put("tags", a.getTags());
+            m.put("voucherGroupId", a.getVoucherGroupId());
             m.put("createdAt", a.getCreatedAt() != null ? a.getCreatedAt().toString() : null);
             return ApiResponse.ok(m);
         }).orElse(ApiResponse.fail("Not found"));
@@ -101,6 +104,10 @@ public class AdminArticleController {
             if (body.get("image") != null) a.setImage(String.valueOf(body.get("image")));
             if (body.get("video") != null) a.setVideo(String.valueOf(body.get("video")));
             if (body.get("tags") != null) a.setTags(String.valueOf(body.get("tags")));
+            if (body.containsKey("voucherGroupId")) {
+                Object g = body.get("voucherGroupId");
+                a.setVoucherGroupId(g instanceof Number n && n.longValue() > 0 ? n.longValue() : null);
+            }
             articleRepository.save(a);
             return ApiResponse.ok(a);
         }).orElse(ApiResponse.fail("Not found"));
