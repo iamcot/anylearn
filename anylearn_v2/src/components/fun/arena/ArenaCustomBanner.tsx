@@ -1,7 +1,6 @@
 'use client'
 
 import Link from 'next/link'
-import { Roboto_Condensed } from 'next/font/google'
 import { useCallback, useEffect, useState } from 'react'
 import { getArenaBanner, type ArenaCustomBanner as Custom } from '@/lib/api/arena'
 import { clockText, dayLabel, timeText, type ArenaTiming } from '@/lib/arena/timeline'
@@ -11,7 +10,6 @@ import LeoArena from './LeoArena'
 import { useArenaClock } from './useArenaClock'
 import { useMyRankKey } from './useMyRankKey'
 
-const tight = Roboto_Condensed({ subsets: ['vietnamese', 'latin'], weight: ['400', '600', '700', '800'] })
 
 function timingOf(c: Custom): ArenaTiming | null {
   if (c.waiting || c.startsAt == null || c.openAt == null) return null
@@ -77,7 +75,7 @@ export default function ArenaCustomBanner({ token }: { token: string }) {
 
   return (
     <>
-      <section aria-label={custom.title} className={`${tight.className} relative mt-4 grid grid-cols-[minmax(0,1fr)_84px] overflow-hidden rounded-[20px] text-white shadow-[0_12px_26px_-14px_rgba(60,20,120,.8)]`}
+      <section aria-label={custom.title} className={`relative mt-4 tracking-[-0.02em] grid grid-cols-[minmax(0,1fr)_84px] overflow-hidden rounded-[20px] text-white shadow-[0_12px_26px_-14px_rgba(60,20,120,.8)]`}
         style={{ background: 'radial-gradient(120px 160px at 82% 10%, rgba(255,235,150,.35), transparent 70%), conic-gradient(from 200deg at 78% -10%, transparent 0 12deg, rgba(255,255,255,.1) 14deg 20deg, transparent 22deg 40deg, rgba(255,255,255,.08) 42deg 47deg, transparent 49deg), linear-gradient(160deg, #8b5cf6, #4c1d95 75%)' }}>
         <div className="relative flex min-w-0 flex-col justify-center gap-1 py-[10px] pl-[60px] pr-2">
           <div className="max-w-full overflow-x-clip"><ArenaTitle text={custom.title} tone="orange" className="[font-family:var(--font-be-vietnam-pro),system-ui,sans-serif]" style={{ fontSize: titleSize }} /></div>
