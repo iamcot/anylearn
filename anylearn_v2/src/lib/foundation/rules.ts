@@ -25,7 +25,7 @@ export function housesBadge(built: number): string | null {
   return built > 0 ? `X${built}` : null
 }
 
-/** The line under a course: "Đăng ký khóa này góp 1 xô gạch cho anyLEARN Foundation". */
+/** The line under a course: "Đăng ký khóa này góp 1 bao gạch cho anyLEARN Foundation". */
 export function itemLine(label: string | null | undefined): string | null {
   return label ? `Đăng ký khóa này góp ${label} cho anyLEARN Foundation` : null
 }

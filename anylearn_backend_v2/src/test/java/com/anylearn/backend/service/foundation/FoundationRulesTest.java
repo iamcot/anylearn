@@ -35,12 +35,12 @@ class FoundationRulesTest {
 
     @Test
     void brickLabels() {
-        assertEquals("1 viên gạch", FoundationRules.brickLabel(5_000, 10_000, 20_000, 30_000, 50_000, 200_000));
-        assertEquals("1 xô gạch", FoundationRules.brickLabel(15_000, 10_000, 20_000, 30_000, 50_000, 200_000));
-        assertEquals("1 thùng sơn", FoundationRules.brickLabel(20_000, 10_000, 20_000, 30_000, 50_000, 200_000));
-        assertEquals("1 bao xi măng", FoundationRules.brickLabel(45_000, 10_000, 20_000, 30_000, 50_000, 200_000));
-        assertEquals("1 xe rùa gạch", FoundationRules.brickLabel(50_000, 10_000, 20_000, 30_000, 50_000, 200_000));
-        assertEquals("1 xe tải gạch", FoundationRules.brickLabel(900_000, 10_000, 20_000, 30_000, 50_000, 200_000));
+        assertEquals("1 viên gạch", FoundationRules.brickLabel(5_000, 10_000, 20_000, 30_000, 200_000));
+        assertEquals("1 bao gạch", FoundationRules.brickLabel(15_000, 10_000, 20_000, 30_000, 200_000));
+        assertEquals("1 thùng sơn", FoundationRules.brickLabel(20_000, 10_000, 20_000, 30_000, 200_000));
+        assertEquals("1 bao xi măng", FoundationRules.brickLabel(45_000, 10_000, 20_000, 30_000, 200_000));
+        assertEquals("1 bao xi măng", FoundationRules.brickLabel(150_000, 10_000, 20_000, 30_000, 200_000));
+        assertEquals("1 xe tải gạch", FoundationRules.brickLabel(900_000, 10_000, 20_000, 30_000, 200_000));
     }
 
     @Test

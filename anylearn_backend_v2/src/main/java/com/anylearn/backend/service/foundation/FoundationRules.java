@@ -52,15 +52,14 @@ public final class FoundationRules {
     }
 
     /**
-     * "1 viên gạch" / "1 xô gạch" / "1 thùng sơn" / "1 bao xi măng" / "1 xe rùa gạch" / "1 xe tải gạch"
+     * "1 viên gạch" / "1 bao gạch" / "1 thùng sơn" / "1 bao xi măng" / "1 xe tải gạch"
      * by the amount and the thresholds (the highest one reached wins, so their order in the settings does not matter).
      */
-    public static String brickLabel(long amount, long bucketMin, long paintMin, long cementMin, long barrowMin, long truckMin) {
+    public static String brickLabel(long amount, long bucketMin, long paintMin, long cementMin, long truckMin) {
         if (amount >= truckMin) return "1 xe tải gạch";
-        if (amount >= barrowMin) return "1 xe rùa gạch";
         if (amount >= cementMin) return "1 bao xi măng";
         if (amount >= paintMin) return "1 thùng sơn";
-        if (amount >= bucketMin) return "1 xô gạch";
+        if (amount >= bucketMin) return "1 bao gạch";
         return "1 viên gạch";
     }
 
