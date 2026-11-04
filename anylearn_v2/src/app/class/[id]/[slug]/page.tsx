@@ -15,6 +15,7 @@ import ReviewsSection from '@/components/ReviewsSection'
 import PathwayBlock from '@/components/recommendations/PathwayBlock'
 import ItemCollections from '@/components/pdp/ItemCollections'
 import TrackItemView from '@/components/pdp/TrackItemView'
+import StickyAside from '@/components/pdp/StickyAside'
 import ActivityButton from '@/components/ActivityButton'
 import ChevronLabel from '@/components/ChevronLabel'
 import StarRating from '@/components/StarRating'
@@ -78,6 +79,7 @@ export default async function PdpPage({ params }: Props) {
   const hasDiscount = !!(item.orgPrice && item.orgPrice > item.price)
   const discountPct = hasDiscount ? Math.round((1 - item.price / item.orgPrice!) * 100) : null
   const features = FEATURE_LABELS.filter(f => item[f.key] === 1)
+  const hasContent = !!content.content_advantage
 
   const origin = siteOrigin()
   const coursePath = getCourseUrl(item)
@@ -102,8 +104,10 @@ export default async function PdpPage({ params }: Props) {
       <section className="section--soft pb-10 pt-6 lg:pt-10">
         <div className="container">
           <BackButton />
-          <div className="grid items-start gap-6 lg:grid-cols-[1fr_480px] lg:gap-10">
-            <div className="relative aspect-[4/3] overflow-hidden rounded-card bg-gradient-to-br from-green-soft to-blue-soft lg:aspect-square">
+          {/* Desktop: the buy card spans both rows and follows the scroll; the left column gets the picture and,
+              when there is one, the course description, so it is no longer an empty space under the picture. */}
+          <div className="grid items-start gap-6 lg:grid-cols-[1fr_480px] lg:grid-rows-[auto_1fr] lg:gap-x-10 lg:gap-y-8">
+            <div className={`relative aspect-[4/3] overflow-hidden rounded-card bg-gradient-to-br from-green-soft to-blue-soft lg:col-start-1 lg:row-start-1 ${hasContent ? '' : 'lg:aspect-square'}`}>
               {item.image
                 // eslint-disable-next-line @next/next/no-img-element
                 ? <img src={item.image} alt={item.title} className="absolute inset-0 size-full object-cover" />
@@ -111,7 +115,7 @@ export default async function PdpPage({ params }: Props) {
               }
             </div>
 
-            <div className="rounded-[26px] border border-line bg-white p-5 shadow-card lg:sticky lg:top-20 lg:p-7">
+            <StickyAside className="rounded-[26px] border border-line bg-white p-5 shadow-card lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:p-7">
               <div className="mb-3 flex flex-wrap gap-2">
                 {item.subtype && (
                   <span className="rounded-full bg-green-soft px-3 py-1 text-xs font-extrabold text-green-dark">
@@ -226,7 +230,14 @@ export default async function PdpPage({ params }: Props) {
               <div className="mt-3"><FoundationItemLine itemId={item.id} /></div>
               <CollectVouchers place="pdp" itemId={item.id} title="Voucher dùng cho khóa này" className="mt-4" />
               <div className="mt-3"><ReportPriceButton itemId={item.id} /></div>
-            </div>
+            </StickyAside>
+
+            {hasContent && (
+              <div className="hidden min-w-0 lg:col-start-1 lg:row-start-2 lg:block">
+                <h2 className="section-kicker mb-5">Thông tin khóa học</h2>
+                <div className="cms-content" dangerouslySetInnerHTML={{ __html: content.content_advantage }} />
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -296,8 +307,9 @@ export default async function PdpPage({ params }: Props) {
       </section>
 
       {/* ── Nội dung ── */}
-      {content.content_advantage && (
-        <section className="section">
+      {/* Phone: the description stays here; on a desktop it is shown under the picture (hero above). */}
+      {hasContent && (
+        <section className="section lg:hidden">
           <div className="container">
             <h2 className="section-kicker mb-5">Thông tin khóa học</h2>
             <div className="cms-content"
