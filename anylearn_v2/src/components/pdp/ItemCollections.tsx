@@ -14,5 +14,5 @@ export default function ItemCollections({ itemId }: { itemId: number }) {
     return () => { cancelled = true }
   }, [itemId])
 
-  return <CollectionsRow collections={collections} title="Khóa học này thuộc bộ sưu tập" />
+  return <CollectionsRow collections={collections} title="Khóa học này thuộc bộ sưu tập" embedded />
 }

@@ -47,6 +47,7 @@ const SCHEDULE_BADGE_CLASS: Record<string, string> = {
 }
 const PANEL = 'rounded-[26px] border border-line bg-white p-5 lg:p-7'
 const SAME_FIELD_LIMIT = 5
+const EXPLORE_LIMIT = 6
 
 const FEATURE_LABELS = [
   { key: 'activiyTrial', label: 'Có học thử' },
@@ -94,6 +95,7 @@ export default async function PdpPage({ params }: Props) {
     ? (await searchItems('', 0, SAME_FIELD_LIMIT + 1, { category: firstCategory.url })).items
         .filter(it => it.id !== item.id).slice(0, SAME_FIELD_LIMIT)
     : []
+  const exploreItems = (hotItems as Item[]).slice(0, EXPLORE_LIMIT)
 
   return (
     <>
@@ -111,10 +113,11 @@ export default async function PdpPage({ params }: Props) {
         ]),
       ]} />
       {/* ── Hero ──
-          Desktop: two columns. Left = picture, video outline, partner, its other courses, course description; right =
+          Desktop: two columns. Left = picture, video outline, partner, its other courses, course description, pathway, collections,
+          "Khám phá thêm"; right =
           buy card, reviews, courses of the same field (the right column follows the scroll). Phone: one column, the
           order-* classes put the blocks as picture, buy card, video, partner, other courses, reviews, description,
-          same field. */}
+          same field, then pathway, collections and "Khám phá thêm". */}
       <section className="section--soft pb-10 pt-6 lg:pt-10">
         <div className="container">
           <BackButton />
@@ -182,6 +185,36 @@ export default async function PdpPage({ params }: Props) {
                   <CollapsibleContent>
                     <div className="cms-content" dangerouslySetInnerHTML={{ __html: content.content_advantage }} />
                   </CollapsibleContent>
+                </div>
+              )}
+
+              {/* Client blocks that may render nothing: empty:hidden keeps the column gap away. */}
+              <div className="order-8 empty:hidden lg:order-none"><PathwayBlock itemId={item.id} /></div>
+              <div className="order-8 empty:hidden lg:order-none"><ItemCollections itemId={item.id} /></div>
+
+              {exploreItems.length > 0 && (
+                <div className="order-8 lg:order-none">
+                  <h2 className="section-kicker mb-5">Khám phá thêm</h2>
+                  <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+                    {exploreItems.map(it => (
+                      <Link key={it.id} href={getCourseUrl(it)} className="no-underline">
+                        <article className="overflow-hidden rounded-2xl border border-line bg-white shadow-card">
+                          <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-green-soft to-blue-soft">
+                            {it.image
+                              // eslint-disable-next-line @next/next/no-img-element
+                              ? <img src={it.image} alt={it.title} className="absolute inset-0 size-full object-cover" />
+                              : <div className="grid size-full place-items-center text-blue/40"><BookIcon className="size-8" /></div>
+                            }
+                          </div>
+                          <div className="px-3.5 py-3">
+                            <div className="mb-1.5 line-clamp-2 text-xs font-extrabold leading-[1.3] text-green-dark">{it.title}</div>
+                            <div className="text-sm font-extrabold text-red">{formatPrice(it.price)}</div>
+                          </div>
+                          <CompareWhenActive itemId={it.id} title={it.title} image={it.image} />
+                        </article>
+                      </Link>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
@@ -340,40 +373,8 @@ export default async function PdpPage({ params }: Props) {
         </div>
       </section>
 
-      <PathwayBlock itemId={item.id} />
-      <ItemCollections itemId={item.id} />
       <TrackItemView itemId={item.id} />
 
-      {/* ── Khóa học tương tự ── */}
-      {hotItems.length > 0 && (
-        <section className="section section--soft">
-          <div className="container">
-            <span className="section-kicker">Khám phá thêm</span>
-            <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-5">
-              {(hotItems as Item[]).map(it => (
-                <Link key={it.id} href={getCourseUrl(it)} className="no-underline">
-                  <article className="overflow-hidden rounded-2xl border border-line bg-white shadow-card">
-                    <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-green-soft to-blue-soft">
-                      {it.image
-                        // eslint-disable-next-line @next/next/no-img-element
-                        ? <img src={it.image} alt={it.title} className="absolute inset-0 size-full object-cover" />
-                        : <div className="grid size-full place-items-center text-blue/40"><BookIcon className="size-8" /></div>
-                      }
-                    </div>
-                    <div className="px-3.5 py-3">
-                      <div className="mb-1.5 line-clamp-2 text-xs font-extrabold leading-[1.3] text-green-dark">
-                        {it.title}
-                      </div>
-                      <div className="text-sm font-extrabold text-red">{formatPrice(it.price)}</div>
-                    </div>
-                    <CompareWhenActive itemId={it.id} title={it.title} image={it.image} />
-                  </article>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
     </>
   )
 }
