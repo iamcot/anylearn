@@ -9,6 +9,7 @@ export const COIN_SOURCE_LABEL: Record<string, string> = {
   shop_energy: 'Nạp năng lượng',
   shop_chest: 'Mua rương sticker',
   shop_sell: 'Bán cho Leo',
+  shop_voucher: 'Đổi voucher',
   mission: 'Thưởng nhiệm vụ tuần',
   share: 'Thưởng chia sẻ thành tích',
   invite: 'Thưởng mời bạn',

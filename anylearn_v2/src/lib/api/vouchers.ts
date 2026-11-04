@@ -19,6 +19,8 @@ export interface WalletVoucher {
   partnerId?: number | null
   partnerName?: string | null
   source: string
+  /** Bought with Leo Xu: drawn with Leo on the ticket. */
+  leo?: boolean
   state: VoucherState
   expiresAt?: string | null
   usedOrderId?: number | null
@@ -41,6 +43,17 @@ export interface CollectibleVoucher {
   left?: number | null
   walletDays?: number | null
   collected: boolean
+  /** Sold for Leo Xu (not saved for free): price, and for a signed-in person the state and the coin balance. */
+  coin?: {
+    price: number
+    coinName: string
+    rebuyDays: number
+    holding?: boolean
+    nextAt?: string | null
+    canBuy?: boolean
+    problem?: string | null
+    balance?: number
+  }
 }
 
 export interface VoucherQuote {

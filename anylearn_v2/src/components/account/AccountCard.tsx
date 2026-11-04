@@ -1,6 +1,6 @@
 export default function AccountCard({ title, subtitle, action, children }: {
   title: React.ReactNode
-  subtitle?: string
+  subtitle?: React.ReactNode
   action?: React.ReactNode
   children: React.ReactNode
 }) {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { amountLabel, bestVoucher, conditionLine, expiresSoon, expiryLabel, leftLabel, shortVnd, sortForCheckout, walletTab } from './rules'
+import { amountLabel, bestVoucher, conditionLine, expiresSoon, expiryLabel, leftLabel, leoVoucherNote, shortVnd, sortForCheckout, sortLeoVouchers, walletTab } from './rules'
 import type { WalletVoucher } from '@/lib/api/vouchers'
 
 const v = (over: Partial<WalletVoucher>): WalletVoucher => ({
@@ -57,5 +57,21 @@ describe('shortVnd', () => {
     expect(shortVnd(1500000)).toBe('1,5TR')
     expect(shortVnd(2000000)).toBe('2TR')
     expect(shortVnd(500)).toBe('500đ')
+  })
+})
+
+describe('Leo Xu vouchers', () => {
+  const base = { holding: false, nextAt: null, rebuyDays: 30, walletDays: 14, left: null }
+  it('says why a voucher cannot be bought, or how long it lasts', () => {
+    expect(leoVoucherNote(base)).toBe('Dùng trong 14 ngày · Đổi lại 30 ngày sau khi dùng')
+    expect(leoVoucherNote({ ...base, walletDays: null, rebuyDays: 0 })).toBe('Dùng xong đổi lại ngay')
+    expect(leoVoucherNote({ ...base, holding: true })).toBe('Đang có trong ví, dùng xong mới đổi tiếp')
+    expect(leoVoucherNote({ ...base, nextAt: '2026-12-04T10:00:00' })).toBe('Đổi lại được từ 04/12/2026')
+    expect(leoVoucherNote({ ...base, left: 0 })).toBe('Đã hết lượt đổi')
+  })
+  it('puts buyable vouchers first, cheapest first', () => {
+    const e = (price: number, canBuy: boolean) => ({ voucher: { price, canBuy } as never })
+    const sorted = sortLeoVouchers([e(300, true), e(50, false), e(100, true)])
+    expect(sorted.map(x => (x.voucher as { price: number }).price)).toEqual([100, 300, 50])
   })
 })

@@ -193,4 +193,41 @@ public final class VoucherRules {
     public static String money(long v) {
         return String.format("%,d", v).replace(',', '.') + "đ";
     }
+
+    // ── bought with Leo Xu ───────────────────────────────────────────────
+
+    public static final int DEFAULT_COIN_REBUY_DAYS = 30;
+
+    /**
+     * When a person may buy a Leo Xu voucher of a group again: `rebuyDays` after the last bought copy was used
+     * (`lastUsedAt` null = never used one). Returns null when the rebuy wait is over.
+     */
+    public static LocalDateTime nextCoinBuyAt(LocalDateTime lastUsedAt, int rebuyDays, LocalDateTime now) {
+        if (lastUsedAt == null) return null;
+        LocalDateTime next = lastUsedAt.plusDays(Math.max(0, rebuyDays));
+        return next.isAfter(now) ? next : null;
+    }
+
+    /** Why a Leo Xu voucher cannot be bought now (Vietnamese, shown as it is), or null when it can. */
+    public static String coinBuyProblem(boolean exchangeOn, int price, boolean groupActive, Long copiesLeft, boolean holdsUnused,
+                                        LocalDateTime lastUsedAt, int rebuyDays, LocalDateTime now, long balance, String coinName) {
+        if (!exchangeOn || price <= 0 || !groupActive) return "Voucher này không còn đổi được";
+        if (copiesLeft != null && copiesLeft <= 0) return "Voucher này đã hết lượt đổi";
+        if (holdsUnused) return "Bạn đang có voucher này trong ví, dùng xong mới đổi được tiếp";
+        LocalDateTime next = nextCoinBuyAt(lastUsedAt, rebuyDays, now);
+        if (next != null) return "Đổi lại được từ " + String.format("%02d/%02d/%d", next.getDayOfMonth(), next.getMonthValue(), next.getYear());
+        if (balance < price) return "Bạn chưa đủ " + coinName + " (cần " + price + ")";
+        return null;
+    }
+
+    /** Why a group's Leo Xu settings cannot be saved, or null. Only dynamic groups (one new code per copy) can be sold. */
+    public static String coinSettingsProblem(boolean exchangeOn, Integer price, Integer rebuyDays, boolean dynamic, boolean collectible) {
+        if (!exchangeOn) return null;
+        if (!dynamic) return "Đổi bằng Leo Xu cần bộ mã động (mỗi lần đổi là một mã mới)";
+        if (price == null || price <= 0) return "Nhập giá voucher (Leo Xu)";
+        if (price > 1_000_000) return "Giá voucher tối đa 1.000.000 Leo Xu";
+        if (rebuyDays == null || rebuyDays < 0 || rebuyDays > 3650) return "Thời gian mua lại từ 0 đến 3650 ngày";
+        if (collectible) return "Voucher đổi bằng Leo Xu không thể đồng thời cho khách tự lưu miễn phí";
+        return null;
+    }
 }

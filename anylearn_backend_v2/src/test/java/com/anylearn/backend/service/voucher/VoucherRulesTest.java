@@ -153,4 +153,32 @@ class VoucherRulesTest {
         assertFalse(VoucherRules.isMoney("class"));
         assertFalse(VoucherRules.evaluate(new VoucherRules.Group("class", 50_000, 0, Set.of()), CART).ok());
     }
+
+    @Test
+    void leoXuPurchaseWaitsForTheRebuyDaysAfterUse() {
+        LocalDateTime now = LocalDateTime.of(2026, 11, 4, 10, 0);
+        assertNull(VoucherRules.coinBuyProblem(true, 200, true, null, false, null, 30, now, 500, "Leo Xu"));
+        assertEquals("Bạn chưa đủ Leo Xu (cần 200)", VoucherRules.coinBuyProblem(true, 200, true, null, false, null, 30, now, 199, "Leo Xu"));
+        assertTrue(VoucherRules.coinBuyProblem(true, 200, true, null, true, null, 30, now, 500, "Leo Xu").contains("dùng xong"));
+        // used 10 days ago with a 30-day wait: opens on 24/11/2026
+        LocalDateTime used = now.minusDays(10);
+        assertEquals("Đổi lại được từ 24/11/2026", VoucherRules.coinBuyProblem(true, 200, true, null, false, used, 30, now, 500, "Leo Xu"));
+        assertEquals(used.plusDays(30), VoucherRules.nextCoinBuyAt(used, 30, now));
+        assertNull(VoucherRules.nextCoinBuyAt(now.minusDays(31), 30, now));
+        assertNull(VoucherRules.nextCoinBuyAt(used, 0, now));
+        assertTrue(VoucherRules.coinBuyProblem(true, 200, true, 0L, false, null, 30, now, 500, "Leo Xu").contains("hết lượt"));
+        assertTrue(VoucherRules.coinBuyProblem(false, 200, true, null, false, null, 30, now, 500, "Leo Xu").contains("không còn"));
+        assertTrue(VoucherRules.coinBuyProblem(true, 200, false, null, false, null, 30, now, 500, "Leo Xu").contains("không còn"));
+    }
+
+    @Test
+    void leoXuSettingsNeedADynamicGroupAndAPrice() {
+        assertNull(VoucherRules.coinSettingsProblem(false, null, null, false, true));
+        assertNull(VoucherRules.coinSettingsProblem(true, 200, 30, true, false));
+        assertTrue(VoucherRules.coinSettingsProblem(true, 200, 30, false, false).contains("mã động"));
+        assertTrue(VoucherRules.coinSettingsProblem(true, null, 30, true, false).contains("giá"));
+        assertTrue(VoucherRules.coinSettingsProblem(true, 0, 30, true, false).contains("giá"));
+        assertTrue(VoucherRules.coinSettingsProblem(true, 200, -1, true, false).contains("mua lại"));
+        assertTrue(VoucherRules.coinSettingsProblem(true, 200, 30, true, true).contains("tự lưu"));
+    }
 }

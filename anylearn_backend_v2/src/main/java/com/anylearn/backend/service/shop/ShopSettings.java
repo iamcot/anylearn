@@ -63,6 +63,7 @@ public class ShopSettings {
             case ShopRules.ENERGY -> "năng lượng";
             case ShopRules.CHEST_NORMAL -> "rương sticker thường";
             case ShopRules.CHEST_RARE -> "rương sticker hiếm";
+            case ShopRules.VOUCHER -> "voucher đổi bằng Leo Xu";
             default -> key;
         };
     }

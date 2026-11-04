@@ -179,8 +179,10 @@ function WalletSheet({ items, selectedId, onPick, onClose }: {
                     className={`flex w-full cursor-pointer items-center gap-3 rounded-xl border p-3 text-left font-[inherit] ${
                       selected ? 'border-green bg-green-soft' : 'border-line bg-white'
                     } disabled:cursor-not-allowed disabled:opacity-60`}>
-                    <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-green text-xs font-extrabold text-white">
-                      {v.kind === 'percent' ? `${Math.round(v.value)}%` : `${Math.round(v.value / 1000)}K`}
+                    <span className={`relative grid size-10 shrink-0 place-items-center overflow-hidden rounded-lg text-xs font-extrabold text-white ${v.leo ? 'bg-gradient-to-b from-[#fbbf24] to-[#d97706]' : 'bg-green'}`}>
+                      <span className="relative z-[1]">{v.kind === 'percent' ? `${Math.round(v.value)}%` : `${Math.round(v.value / 1000)}K`}</span>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      {v.leo && <img src="/fun/leo_voucher.png" alt="" aria-hidden className="absolute -bottom-1.5 -right-1.5 w-6 opacity-90" />}
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm font-bold text-ink">{v.title}</span>

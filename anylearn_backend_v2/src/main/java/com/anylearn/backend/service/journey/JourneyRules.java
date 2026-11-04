@@ -34,6 +34,7 @@ public final class JourneyRules {
             new Def("compare", 2, "So sánh 2 khóa học", "Bấm \"+ So sánh\" trên 2 khóa rồi xem bảng", "/search", 30, false, false),
             new Def("fav3", 2, "Thích 3 khóa học", "Bấm tim trên khóa bạn quan tâm", "/search", 30, false, false),
             new Def("follow", 2, "Theo dõi 1 trường", "Theo dõi để biết khi trường mở lớp mới", "/search?mode=school", 30, false, false),
+            new Def("leo_voucher", 2, "Đổi 1 voucher bằng Leo Xu", "Chơi Vui học lấy Leo Xu rồi đổi voucher giảm học phí", "/fun/shop?tab=buy&game=voucher", 20, true, false),
             new Def("course_request", 2, "Nhờ anyLEARN \"Tìm giúp tôi\"", "Chưa thấy lớp hợp? Nhờ anyLEARN tìm", "/search", 30, true, false),
             new Def("free_lesson", 3, "Học 1 bài video miễn phí", "Xem bài \"Học thử miễn phí\" của một khóa video", "/search", 50, false, false),
             new Def("trial", 3, "Đăng ký 1 buổi học thử", "Chọn khóa có học thử và đăng ký", "/search?freeTrial=1", 50, true, false),

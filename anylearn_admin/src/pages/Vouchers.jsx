@@ -52,6 +52,7 @@ function GroupDrawer({ group, onClose }) {
   const [courses, setCourses] = useState(group?.items ?? [])
   const generate = Form.useWatch('generateType', form)
   const kind = Form.useWatch('type', form)
+  const coinOn = Form.useWatch('coinExchange', form)
   const save = useMutation({
     mutationFn: (body) => (group?.id
       ? client.put(`/admin/vouchers/groups/${group.id}`, body)
@@ -63,7 +64,8 @@ function GroupDrawer({ group, onClose }) {
     title: group.title, type: isPercentType(group.type) ? 'percent' : 'money', maxDiscount: group.max_discount || undefined, generateType: group.generate_type === 'manual' ? 'manual' : 'auto', prefix: group.prefix, length: group.length,
     qtt: group.qtt, value: Number(group.value) || 0, ruleMin: group.rule_min, status: group.status === 1, collectible: group.collectible === 1,
     walletDays: group.wallet_days, partnerId: group.partner_id, showOn: group.show_on ? String(group.show_on).split(',') : [],
-  } : { type: 'money', generateType: 'auto', length: 6, qtt: 0, status: true, collectible: false, showOn: [] }
+    coinExchange: group.coin_exchange === 1, coinPrice: group.coin_price || undefined, coinRebuyDays: group.coin_rebuy_days ?? 30,
+  } : { type: 'money', generateType: 'auto', length: 6, qtt: 0, status: true, collectible: false, showOn: [], coinExchange: false, coinRebuyDays: 30 }
 
   const submit = (v) => save.mutate({ ...v, maxDiscount: v.type === 'percent' ? (v.maxDiscount || 0) : 0, itemIds: courses.map(c => c.id) })
 
@@ -147,9 +149,26 @@ function GroupDrawer({ group, onClose }) {
           <Form.Item name="status" label="Đang bật" valuePropName="checked" extra="Tắt thì không phát và không dùng được nữa."><Switch /></Form.Item>
           <Form.Item name="collectible" label="Cho khách tự lưu" valuePropName="checked" extra='Hiện ở ô "Voucher cho bạn" để khách bấm Lưu (mỗi người 1 lần).'><Switch /></Form.Item>
         </Space>
-        <Form.Item name="showOn" label="Hiện ở đâu (khi cho tự lưu)" extra="Không chọn = mọi nơi. Trang khóa học chỉ hiện voucher dùng được cho khóa đó.">
+        <Form.Item name="showOn" label="Hiện ở đâu (khi cho tự lưu hoặc đổi Leo Xu)" extra="Không chọn = mọi nơi. Trang khóa học chỉ hiện voucher dùng được cho khóa đó.">
           <Checkbox.Group options={PLACES} />
         </Form.Item>
+
+        <Typography.Title level={5} style={{ marginTop: 16 }}>Đổi bằng Leo Xu</Typography.Title>
+        <Form.Item name="coinExchange" label="Cho đổi voucher bằng Leo Xu" valuePropName="checked"
+          extra="Bật thì voucher hiện trong Cửa hàng Leo Xu và Ví voucher, thẻ có hình Leo. Mỗi lần đổi là một mã mới (cần mã động), không dùng cùng lúc với Cho khách tự lưu.">
+          <Switch checkedChildren="Bật" unCheckedChildren="Tắt" />
+        </Form.Item>
+        {coinOn && (
+          <Space size={16} wrap align="start">
+            <Form.Item name="coinPrice" label="Giá voucher (Leo Xu)" rules={[{ required: true, message: 'Nhập giá' }]}>
+              <InputNumber min={1} max={1000000} style={{ width: 160 }} addonAfter="xu" />
+            </Form.Item>
+            <Form.Item name="coinRebuyDays" label="Mua lại sau khi đã dùng (ngày)" rules={[{ required: true, message: 'Nhập số ngày' }]}
+              extra="Mặc định 30. Chưa dùng voucher đã đổi thì chưa đổi tiếp được.">
+              <InputNumber min={0} max={3650} style={{ width: 160 }} addonAfter="ngày" />
+            </Form.Item>
+          </Space>
+        )}
       </Form>
     </Drawer>
   )
@@ -254,6 +273,8 @@ function GroupsTab() {
           { title: 'Giảm', dataIndex: 'value', width: 120, align: 'right', render: (v, r) => fmtDiscount(r.type, v, r.max_discount) },
           { title: 'Đơn từ', dataIndex: 'rule_min', width: 100, align: 'right', render: v => (v ? fmtVND(v) : '—') },
           { title: 'Tự lưu', dataIndex: 'collectible', width: 80, render: c => (c === 1 ? <Tag color="purple">Có</Tag> : '—') },
+          { title: 'Leo Xu', key: 'coin', width: 110, render: (_, r) => (r.coin_exchange === 1
+            ? <Tag color="gold" title={`Mua lại sau ${r.coin_rebuy_days} ngày · đã đổi ${r.bought}`}>{Number(r.coin_price || 0).toLocaleString('vi-VN')} xu</Tag> : '—') },
           { title: 'Mã / trong ví / đã dùng', key: 'n', width: 170, render: (_, r) => `${r.codes} / ${r.held} / ${r.used}` },
           { title: 'Đã giảm', dataIndex: 'discount', width: 110, align: 'right', render: v => fmtVND(v) },
           { title: 'Bật', dataIndex: 'status', width: 70, render: (s, r) => <Switch size="small" checked={s === 1} onChange={on => toggle.mutate({ id: r.id, on })} /> },

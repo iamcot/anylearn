@@ -6,8 +6,13 @@ import { useAuth } from '@/context/AuthContext'
 import AccountCard from '@/components/account/AccountCard'
 import VoucherTicket from '@/components/vouchers/VoucherTicket'
 import CollectVouchers from '@/components/vouchers/CollectVouchers'
+import LeoVoucherCard from '@/components/vouchers/LeoVoucherCard'
+import BrandText from '@/components/fun/BrandText'
+import CoinIcon from '@/components/fun/CoinIcon'
+import { useToast } from '@/components/ToastProvider'
+import { buyShopEntry, getLeoVouchers, type LeoVoucherShop, type ShopEntry } from '@/lib/api/shop'
 import { addVoucherCode, getVoucherWallet, type VoucherState, type WalletVoucher } from '@/lib/api/vouchers'
-import { conditionLine, expiresSoon, expiryLabel, walletTab } from '@/lib/vouchers/rules'
+import { conditionLine, expiresSoon, expiryLabel, sortLeoVouchers, walletTab } from '@/lib/vouchers/rules'
 
 const TABS: { key: VoucherState; label: string }[] = [
   { key: 'active', label: 'Còn dùng' },
@@ -18,7 +23,9 @@ const TABS: { key: VoucherState; label: string }[] = [
 /** Voucher wallet (plan 20): vouchers the system gave, the person collected or typed; used at checkout. */
 export default function VoucherWalletPage() {
   const { token } = useAuth()
+  const toast = useToast()
   const [items, setItems] = useState<WalletVoucher[]>([])
+  const [leo, setLeo] = useState<LeoVoucherShop | null>(null)
   const [loaded, setLoaded] = useState(false)
   const [tab, setTab] = useState<VoucherState>('active')
   const [code, setCode] = useState('')
@@ -28,7 +35,18 @@ export default function VoucherWalletPage() {
   const load = useCallback(() => {
     if (!token) return
     getVoucherWallet(token).then(res => { setItems(res.items); setLoaded(true) })
+    getLeoVouchers(token).then(res => setLeo(res.data ?? null))
   }, [token])
+
+  const buyLeo = async (entry: ShopEntry): Promise<string | null> => {
+    if (!token) return 'Cần đăng nhập'
+    const { data, error } = await buyShopEntry(token, entry.key)
+    if (error || !data) return error ?? 'Không đổi được'
+    toast({ kind: 'success', text: data.message })
+    setTab('active')
+    load()
+    return null
+  }
 
   useEffect(() => { load() }, [load])
 
@@ -107,6 +125,7 @@ export default function VoucherWalletPage() {
                 note={soon ? `Sắp hết hạn · ${note}` : note}
                 warn={soon}
                 dim={tab !== 'active'}
+                leo={v.leo}
                 action={tab === 'used' && v.usedOrderId
                   ? <Link href={`/order/${v.usedOrderId}`} className="shrink-0 text-xs font-bold text-green-dark">Xem đơn</Link>
                   : <code className="shrink-0 rounded-md bg-slate-100 px-2 py-1 text-xs font-bold text-ink">{v.code}</code>}
@@ -115,6 +134,19 @@ export default function VoucherWalletPage() {
           })}
         </div>
       </AccountCard>
+
+      {leo?.enabled && leo.items.length > 0 && (
+        <AccountCard
+          title={<span className="inline-flex items-center gap-1.5">Đổi voucher bằng <BrandText text={leo.coinName} coinName={leo.coinName} /></span>}
+          subtitle={<span className="inline-flex flex-wrap items-center gap-1">Bạn đang có <CoinIcon className="size-4" /><b className="text-[#b45309]">{leo.coins}</b> <BrandText text={leo.coinName} coinName={leo.coinName} />. Chơi Vui học để có thêm.</span>}
+        >
+          <ul className="m-0 grid gap-2 px-5 py-4 lg:grid-cols-2">
+            {sortLeoVouchers(leo.items).map(entry => (
+              <LeoVoucherCard key={entry.key} entry={entry} coins={leo.coins} coinName={leo.coinName} onBuy={buyLeo} />
+            ))}
+          </ul>
+        </AccountCard>
+      )}
 
       <CollectVouchers place="tier" title="Voucher đang phát" />
     </div>

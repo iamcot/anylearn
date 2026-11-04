@@ -98,3 +98,21 @@ Authorization: Bearer {{adminToken}}
 ###
 GET {{baseUrl}}/admin/vouchers/report?months=6
 Authorization: Bearer {{adminToken}}
+
+### Leo Xu vouchers (group with coinExchange): list for the wallet page, then buy one in the shop
+GET {{baseUrl}}/api/shop/vouchers
+Authorization: Bearer {{jwtToken}}
+
+###
+POST {{baseUrl}}/api/shop/buy
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{"key": "voucher:12"}
+
+### Admin: sell a dynamic group for 300 Leo Xu, rebuy 30 days after use
+PUT {{baseUrl}}/admin/vouchers/groups/12
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{"title": "Quà Leo: giảm 100K", "value": 100000, "generateType": "auto", "prefix": "LEO", "coinExchange": true, "coinPrice": 300, "coinRebuyDays": 30}
