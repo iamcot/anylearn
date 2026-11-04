@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Roboto_Condensed } from 'next/font/google'
+import { arenaFont as tight } from '@/lib/fonts/arenaFont'
 import { useCallback, useEffect, useState } from 'react'
 import { getArenaBanner, type ArenaCustomBanner as Custom } from '@/lib/api/arena'
 import { clockText, dayLabel, timeText, type ArenaTiming } from '@/lib/arena/timeline'
@@ -11,7 +11,6 @@ import LeoArena from './LeoArena'
 import { useArenaClock } from './useArenaClock'
 import { useMyRankKey } from './useMyRankKey'
 
-const tight = Roboto_Condensed({ subsets: ['vietnamese', 'latin'], weight: ['400', '600', '700', '800'] })
 
 function timingOf(c: Custom): ArenaTiming | null {
   if (c.waiting || c.startsAt == null || c.openAt == null) return null

@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Roboto_Condensed } from 'next/font/google'
+import { arenaFont as tight } from '@/lib/fonts/arenaFont'
 import { useCallback, useEffect, useState } from 'react'
 import { getArenaBanner, registerArena, unregisterArena, type ArenaBanner as Banner } from '@/lib/api/arena'
 import { clockText, dayLabel, timeText, type ArenaTiming } from '@/lib/arena/timeline'
@@ -12,7 +12,6 @@ import { useArenaClock } from './useArenaClock'
 import { useMyRankKey } from './useMyRankKey'
 
 // narrow letters keep the three lines of the card short; used in this banner only
-const tight = Roboto_Condensed({ subsets: ['vietnamese', 'latin'], weight: ['400', '600', '700', '800'] })
 
 function timingOf(b: Banner): ArenaTiming | null {
   if (!b.sessionId || b.startsAt == null || b.openAt == null) return null
