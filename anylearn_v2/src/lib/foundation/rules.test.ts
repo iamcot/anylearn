@@ -20,7 +20,7 @@ describe('foundation rules', () => {
     expect(vnd(12500000)).toMatch(/^12.500.000đ$/)
     expect(housesBadge(0)).toBeNull()
     expect(housesBadge(3)).toBe('X3')
-    expect(itemLine('1 bao gạch')).toBe('Đăng ký khóa này góp 1 bao gạch cho anyLEARN Foundation')
+    expect(itemLine('1 bao gạch')).toBe('Đăng ký khóa này, anyLEARN trích góp 1 bao gạch cho chương trình từ thiện anyLEARN Foundation')
     expect(itemLine(null)).toBeNull()
   })
 })
