@@ -61,13 +61,26 @@ export default function Orders() {
 
   const confirm = useMutation({
     mutationFn: (ids) => client.post('/admin/orders/confirm', { ids }),
-    onSuccess: () => { qc.invalidateQueries(['admin-orders']); setSelectedKeys([]); message.success('Đã xác nhận') },
+    onSuccess: (_, ids) => { afterAction(ids, 'delivered'); message.success('Đã xác nhận') },
   })
 
   const cancel = useMutation({
     mutationFn: (ids) => client.post('/admin/orders/cancel', { ids }),
-    onSuccess: () => { qc.invalidateQueries(['admin-orders']); setSelectedKeys([]); message.success('Đã huỷ') },
+    onSuccess: (_, ids) => { afterAction(ids, 'cancel_system'); message.success('Đã huỷ') },
   })
+
+  // After approve / cancel: refresh the list, and the open drawer when it shows one of these orders.
+  function afterAction(ids, nextStatus) {
+    qc.invalidateQueries({ queryKey: ['admin-orders'] })
+    setSelectedKeys([])
+    if (drawerOrder && ids.includes(drawerOrder.id)) {
+      setDrawerOrder(o => (o ? { ...o, status: nextStatus } : o))
+      qc.invalidateQueries({ queryKey: ['admin-order', drawerOrder.id] })
+    }
+  }
+
+  const drawerStatus = orderDetail?.order?.status ?? drawerOrder?.status
+  const drawerActionable = drawerStatus === 'new' || drawerStatus === 'pay_pending'
 
   const columns = [
     {
@@ -156,12 +169,22 @@ export default function Orders() {
         onRow={row => ({ onClick: () => setDrawerOrder(row), style: { cursor: 'pointer' } })}
       />
       </div>
-      <Drawer title={`Đơn hàng #${drawerOrder?.id}`} open={!!drawerOrder} onClose={() => setDrawerOrder(null)} size="large">
+      <Drawer title={`Đơn hàng #${drawerOrder?.id}`} open={!!drawerOrder} onClose={() => setDrawerOrder(null)} size="large"
+        extra={drawerActionable && (
+          <Space>
+            <Popconfirm title={`Huỷ đơn #${drawerOrder?.id}?`} onConfirm={() => cancel.mutate([drawerOrder.id])} okButtonProps={{ danger: true }}>
+              <Button danger loading={cancel.isPending}>Huỷ đơn</Button>
+            </Popconfirm>
+            <Popconfirm title={`Duyệt đơn #${drawerOrder?.id}? Đơn sẽ chuyển sang Hoàn thành.`} onConfirm={() => confirm.mutate([drawerOrder.id])}>
+              <Button type="primary" loading={confirm.isPending}>Duyệt đơn</Button>
+            </Popconfirm>
+          </Space>
+        )}>
         <Field label="Người mua" viewValue={orderDetail?.order?.deliveryName || drawerOrder?.buyerName} />
         <Field label="SĐT" viewValue={drawerOrder?.buyerPhone} />
         <Field label="Thanh toán" viewValue={drawerOrder?.payment} />
         <Field label="Tổng tiền" viewValue={`${Number(drawerOrder?.amount ?? 0).toLocaleString()}đ`} />
-        <Field label="Trạng thái" viewValue={statusTag(drawerOrder?.status)} />
+        <Field label="Trạng thái" viewValue={statusTag(drawerStatus)} />
         <Field label="Ngày đặt" viewValue={fmtDateTime(drawerOrder?.createdAt)} />
         {orderDetail?.items?.length > 0 && (
           <div style={{ marginTop: 16 }}>
