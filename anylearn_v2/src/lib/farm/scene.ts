@@ -16,9 +16,9 @@ export const kindOf = (w: number): SceneKind => (w >= 1024 ? 'desktop' : 'mobile
 /** The free part of the screen: what is left once the signboard, the coin chest, the tab column and the action row are taken out. */
 export function fieldRegion(size: Size): Region {
   const kind = kindOf(size.w)
-  const left = kind === 'desktop' ? 24 : 8
-  const right = kind === 'desktop' ? 120 : 76
-  const top = kind === 'desktop' ? 104 : 96
+  const left = kind === 'desktop' ? Math.max(24, size.w * 0.2) : 8
+  const right = kind === 'desktop' ? Math.max(120, size.w * 0.1) : 76
+  const top = kind === 'desktop' ? Math.max(104, size.h * 0.26) : 96
   const bottom = kind === 'desktop' ? 112 : 108
   const x0 = left
   const x1 = Math.max(size.w - right, x0 + 50)
