@@ -129,6 +129,11 @@ public class FarmController {
         return run(user, () -> progress.skipOrder(user.getId(), id));
     }
 
+    @PostMapping("/gift")
+    public ApiResponse<?> gift(@AuthenticationPrincipal User user) {
+        return run(user, () -> progress.gift(user.getId()));
+    }
+
     @PostMapping("/level-up")
     public ApiResponse<?> levelUp(@AuthenticationPrincipal User user) {
         return run(user, () -> farm.levelUp(user.getId()));

@@ -85,4 +85,6 @@ export const debugAdvance = (token: string, minutes: number, slot?: number) => a
 export const debugFillOrders = (token: string) => authFetch<{ added: number }>('/farm/debug/advance', token, { method: 'POST', body: JSON.stringify({ kind: 'orders' }) })
 export const debugNewOrders = (token: string) => authFetch<{ removed: number }>('/farm/debug/advance', token, { method: 'POST', body: JSON.stringify({ kind: 'new-orders' }) })
 
+export const farmGift = (token: string) => authFetch<{ given: boolean }>('/farm/gift', token, { method: 'POST' })
+
 export const levelUpFarm = (token: string) => authFetch<{ levelUp: boolean; level: number; levelCoins: number }>('/farm/level-up', token, { method: 'POST' })

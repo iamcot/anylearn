@@ -5,7 +5,8 @@ import { usePathname } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { claimJourney, getJourney, sendJourneyEvent } from '@/lib/api/gamification'
 import { claimDue } from '@/lib/journey/rules'
-import { claimNudge, enqueueRewards, journeyStore } from '@/lib/journey/store'
+import { farmGift } from '@/lib/api/farm'
+import { claimNudge, enqueueRewards, farmGiftNudge, journeyStore } from '@/lib/journey/store'
 
 const PWA_KEY = 'journey:pwa-sent'
 
@@ -24,6 +25,8 @@ export default function JourneyHost() {
   const { token } = useAuth()
   const pathname = usePathname()
   const nudge = useSyncExternalStore(claimNudge.subscribe, claimNudge.get, () => 0)
+  const giftNudge = useSyncExternalStore(farmGiftNudge.subscribe, farmGiftNudge.get, () => 0)
+  const lastGiftNudge = useRef(0)
   const lastAt = useRef<number | null>(null)
   const lastNudge = useRef(0)
 
@@ -49,6 +52,20 @@ export default function JourneyHost() {
     })()
     return () => { alive = false }
   }, [token, pathname, nudge])
+
+  // Leo's farm gift: once per browser tab session after login, and again right after an order (nudge).
+  useEffect(() => {
+    if (!token) return
+    const forced = giftNudge !== lastGiftNudge.current
+    lastGiftNudge.current = giftNudge
+    const key = 'farm-gift:asked'
+    try { if (!forced && sessionStorage.getItem(key)) return; sessionStorage.setItem(key, '1') } catch { /* private mode */ }
+    void farmGift(token).then(res => {
+      if (res.data?.given) {
+        enqueueRewards([{ kind: 'order', key: `farm-gift:${Date.now()}`, label: 'Leo có quà cho bạn!', extra: ['1 Hạt Tri thức cho Nông trại anyLEARN', 'Vào Vui học > Nông trại để gieo nhé'] }])
+      }
+    }).catch(() => { /* farm closed or off */ })
+  }, [token, giftNudge])
 
   useEffect(() => {
     if (!token) return

@@ -80,22 +80,33 @@ public class FarmProgressService {
 
     // ---------------------------------------------------------------- Knowledge seed
 
-    /** Gives today's Knowledge seed when the account has a delivered order (ever), or a learner attended a class or finished a video lesson today. */
-    private void grantKnowledgeSeed(long userId) {
+    /** Gives today's Knowledge seed when the account has an order (placed or delivered, ever), or a learner attended a class or finished a video lesson today. */
+    private boolean grantKnowledgeSeed(long userId) {
         int max = settings.n("knowledge_seeds_daily");
-        if (max <= 0) return;
+        if (max <= 0) return false;
         Integer given = jdbc.query("SELECT knowledge_seed FROM farm_day_stats WHERE user_id = ? AND day = ?", rs -> rs.next() ? rs.getInt(1) : 0, userId, FarmService.Date(farm.today()));
-        if (given != null && given >= max) return;
+        if (given != null && given >= max) return false;
         Integer attended = jdbc.queryForObject("SELECT COUNT(*) FROM session_attendances sa JOIN users u ON u.id = sa.learner_id WHERE (u.id = ? OR u.user_id = ?) AND sa.session_date = ? AND sa.status = 'attended'",
                 Integer.class, userId, userId, FarmService.Date(farm.today()));
         Integer watched = jdbc.queryForObject("SELECT COUNT(*) FROM item_video_lesson_user_links l JOIN users u ON u.id = l.learner_id WHERE (u.id = ? OR u.user_id = ?) AND l.completed_at >= ?",
                 Integer.class, userId, userId, (farm.today().atStartOfDay()));
-        // A buyer (any delivered order, however old) is also a learner: the seed pulls them back into the game.
-        Integer bought = jdbc.queryForObject("SELECT COUNT(*) FROM orders WHERE user_id = ? AND status = 'delivered'", Integer.class, userId);
-        if ((attended == null ? 0 : attended) + (watched == null ? 0 : watched) + (bought == null ? 0 : bought) == 0) return;
+        // A buyer (any placed or delivered order, however old) is also a learner: the seed pulls them back into the game.
+        Integer bought = jdbc.queryForObject("SELECT COUNT(*) FROM orders WHERE user_id = ? AND status IN ('new','pay_pending','delivered')", Integer.class, userId);
+        if ((attended == null ? 0 : attended) + (watched == null ? 0 : watched) + (bought == null ? 0 : bought) == 0) return false;
         farm.addInventory(userId, "seed:" + KNOWLEDGE_CROP, 1, false);
         jdbc.update("INSERT INTO farm_day_stats (user_id, day, knowledge_seed) VALUES (?, ?, 1) ON DUPLICATE KEY UPDATE knowledge_seed = knowledge_seed + 1", userId, FarmService.Date(farm.today()));
         events.record(userId, GameEventService.GAME_FARM, "knowledge_seed", null, 0);
+        return true;
+    }
+
+    /** Leo's welcome gift (login, or right after an order): gives today's Knowledge seed if due. {given} tells the app whether to show Leo. */
+    @Transactional
+    public Map<String, Object> gift(long userId) {
+        farm.checkOpen();
+        farm.lockProfile(userId);
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("given", grantKnowledgeSeed(userId));
+        return out;
     }
 
     // ---------------------------------------------------------------- the whole progress view
