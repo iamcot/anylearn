@@ -4,6 +4,8 @@
 import Link from 'next/link'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
+import NotificationBell from '@/components/header/NotificationBell'
+import { useNotifications } from '@/components/header/useNotifications'
 import { ChevronLeftIcon } from '@/components/icons'
 import BrandText from '@/components/fun/BrandText'
 import {
@@ -32,6 +34,7 @@ function ActionButton({ icon, label, count, disabled, onClick }: { icon: string;
 
 export default function FarmPage() {
   const { token } = useAuth()
+  const { unreadCount, setUnreadCount } = useNotifications()
   const [view, setView] = useState<FarmView | null>(null)
   const [progress, setProgress] = useState<FarmProgress | null>(null)
   const [panel, setPanel] = useState<'orders' | 'quests' | 'neighbors' | 'market' | null>(null)
@@ -188,9 +191,12 @@ export default function FarmPage() {
             </div>
           </div>
         </div>
-        <div className="flex flex-col items-center gap-0.5" title={view.coinName}>
-          <span className="text-lg font-black leading-none text-white lg:text-xl [text-shadow:-1px_-1px_0_#4a2a10,1px_-1px_0_#4a2a10,-1px_1px_0_#4a2a10,1px_1px_0_#4a2a10,0_2px_3px_rgba(0,0,0,.4)]">{view.balance}</span>
-          <img src={farmImg('ui_coin_chest')} alt="" className="size-10 object-contain lg:size-12" draggable={false} />
+        <div className="pointer-events-auto flex flex-col items-end gap-0.5" title={view.coinName}>
+          <div className="flex items-center gap-1">
+            <div className="rounded-full bg-white/80 shadow"><NotificationBell token={token} unreadCount={unreadCount} onUnreadChange={setUnreadCount} /></div>
+            <img src={farmImg('ui_coin_chest')} alt="" className="size-10 object-contain lg:size-12" draggable={false} />
+          </div>
+          <span className="text-lg font-black leading-none text-white lg:text-xl [text-shadow:-1px_-1px_0_#4a2a10,1px_-1px_0_#4a2a10,-1px_1px_0_#4a2a10,1px_1px_0_#4a2a10,0_2px_3px_rgba(0,0,0,.4)]">{view.balance.toLocaleString('vi-VN')}</span>
         </div>
       </div>
 
