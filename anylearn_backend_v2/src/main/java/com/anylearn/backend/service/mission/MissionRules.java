@@ -29,7 +29,8 @@ public final class MissionRules {
             new Def("explore_view", "Xem bài ở Khám phá", "explore", List.of("view"), null, false, 5, 10),
             new Def("sticker_swap", "Đổi hoặc bán sticker trùng", "sticker", List.of("trade", "sell"), null, false, 1, 15),
             new Def("share", "Chia sẻ thành tích", "banner", List.of("share"), null, false, 1, 15),
-            new Def("arena_join", "Tham gia Đấu trường Leo", "arena", List.of("play"), null, false, 3, 30));
+            new Def("arena_join", "Tham gia Đấu trường Leo", "arena", List.of("play"), null, false, 3, 30),
+            new Def("farm_harvest", "Thu hoạch ở Nông trại", "farm", List.of("harvest"), null, false, 10, 15));
 
     public static final int DEFAULT_BONUS_NEEDED = 5;
 

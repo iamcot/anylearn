@@ -31,6 +31,7 @@ public final class NotificationTopics {
             Map.entry("achievement", "fun"),
             Map.entry("quiz_board_reward", "fun"),
             Map.entry("arena_reminder", "fun"),
+            Map.entry("farm_ripe", "fun"),
             Map.entry("arena_result", "fun"),
             Map.entry("arena_reward", "fun"),
             Map.entry("video_study_reminder", "schedule"),

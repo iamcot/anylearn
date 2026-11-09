@@ -39,12 +39,12 @@ public class FarmService {
     private final GameEventService events;
     private final ObjectMapper mapper;
 
-    private LocalDateTime now() { return LocalDateTime.now(clock); }
+    LocalDateTime now() { return LocalDateTime.now(clock); }
 
     // ---------------------------------------------------------------- profile
 
     /** Creates the profile on the first visit (with the starter seeds and fertilizer) and locks the row for the rest of the transaction. */
-    private Map<String, Object> lockProfile(long userId) {
+    Map<String, Object> lockProfile(long userId) {
         int created = jdbc.update("INSERT IGNORE INTO farm_profiles (user_id, last_visit_at) VALUES (?, ?)", userId, Timestamp.valueOf(now()));
         if (created == 1) {
             addInventory(userId, "seed:rau_mam", settings.n("starter_seeds"), false);
@@ -55,18 +55,18 @@ public class FarmService {
         return jdbc.queryForMap("SELECT level, xp, plots, allow_steal FROM farm_profiles WHERE user_id = ? FOR UPDATE", userId);
     }
 
-    private void addInventory(long userId, String key, int qty, boolean received) {
+    void addInventory(long userId, String key, int qty, boolean received) {
         if (qty <= 0) return;
         String column = received ? "qty_received" : "qty_own";
         jdbc.update("INSERT INTO farm_inventory (user_id, item_key, " + column + ") VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE " + column + " = " + column + " + VALUES(" + column + ")", userId, key, qty);
     }
 
-    private int ownOf(long userId, String key) {
+    int ownOf(long userId, String key) {
         List<Integer> rows = jdbc.query("SELECT qty_own FROM farm_inventory WHERE user_id = ? AND item_key = ?", (rs, i) -> rs.getInt(1), userId, key);
         return rows.isEmpty() ? 0 : rows.get(0);
     }
 
-    private boolean takeOwn(long userId, String key, int qty) {
+    boolean takeOwn(long userId, String key, int qty) {
         return jdbc.update("UPDATE farm_inventory SET qty_own = qty_own - ? WHERE user_id = ? AND item_key = ? AND qty_own >= ?", qty, userId, key, qty) == 1;
     }
 
@@ -76,12 +76,36 @@ public class FarmService {
         jdbc.update("INSERT INTO farm_day_stats (user_id, day, coins_spent) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE coins_spent = coins_spent + VALUES(coins_spent)", userId, Date(today()), amount);
     }
 
-    private static java.sql.Date Date(LocalDate d) { return java.sql.Date.valueOf(d); }
+    static java.sql.Date Date(LocalDate d) { return java.sql.Date.valueOf(d); }
 
-    private LocalDate today() { return LocalDate.now(clock); }
+    LocalDate today() { return LocalDate.now(clock); }
 
-    private void checkOpen() {
+    void checkOpen() {
         if (!settings.enabled()) throw new IllegalStateException("Nông trại đang tạm đóng.");
+    }
+
+    /** Adds to today's counter of a kind (drives daily tasks and chapter quests). */
+    void bump(long userId, String kind, int n) {
+        if (n <= 0) return;
+        jdbc.update("INSERT INTO farm_counters (user_id, day, kind, n) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE n = n + VALUES(n)", userId, Date(today()), kind, n);
+    }
+
+    /** Adds XP, moves the level and pays the Leo Xu of every even level reached (a one-time reward, outside the profit cap). */
+    Map<String, Object> gainXp(long userId, long xp) {
+        Map<String, Object> out = new LinkedHashMap<>();
+        Map<String, Object> p = jdbc.queryForMap("SELECT level, xp FROM farm_profiles WHERE user_id = ?", userId);
+        int level = ((Number) p.get("level")).intValue();
+        long total = ((Number) p.get("xp")).longValue() + Math.max(xp, 0);
+        int newLevel = FarmRules.levelFor(total, settings.params());
+        jdbc.update("UPDATE farm_profiles SET xp = ?, level = ? WHERE user_id = ?", total, newLevel, userId);
+        long reward = 0;
+        for (int l = level + 1; l <= newLevel; l++) if (l % 2 == 0) reward += (long) settings.n("level_coins") * l;
+        if (reward > 0) coins.credit(userId, reward, CoinService.SOURCE_FARM_REWARD, "Lên cấp vườn " + newLevel);
+        if (newLevel > level) events.record(userId, GameEventService.GAME_FARM, "level", String.valueOf(newLevel), (int) reward);
+        out.put("levelUp", newLevel > level);
+        out.put("level", newLevel);
+        out.put("levelCoins", reward);
+        return out;
     }
 
     // ---------------------------------------------------------------- read
@@ -143,6 +167,9 @@ public class FarmService {
         out.put("crops", cropList(crops.values(), level));
         out.put("market", market(userId, crops, level));
         out.put("fertilizerPrice", settings.n("fertilizer_price"));
+        out.put("allowSteal", ((Number) profile.get("allow_steal")).intValue() == 1);
+        out.put("nextPlotPrice", FarmGameRules.plotPrice(plotCount));
+        out.put("nextPlotLevel", FarmGameRules.plotLevel(plotCount));
         return out;
     }
 
@@ -152,7 +179,7 @@ public class FarmService {
         return Math.max(left, 0);
     }
 
-    private FarmRules.Plot plotOf(Map<String, Object> row, Map<String, Map<String, Object>> crops) {
+    FarmRules.Plot plotOf(Map<String, Object> row, Map<String, Map<String, Object>> crops) {
         if (row == null || row.get("crop_key") == null || row.get("planted_at") == null) return null;
         Map<String, Object> crop = crops.get((String) row.get("crop_key"));
         int baseYield = crop == null ? 4 : ((Number) crop.get("base_yield")).intValue();
@@ -196,7 +223,7 @@ public class FarmService {
         return v == null ? 0 : v;
     }
 
-    private int room(long userId, int level) {
+    int room(long userId, int level) {
         LocalDate day = today();
         int dayCap = FarmRules.dailyProfitCap(settings.n("profit_cap_base"), settings.n("profit_cap_per_2_levels"), settings.n("profit_cap_max"), level);
         int dayNet = netOn(userId, day, day.plusDays(1));
@@ -230,13 +257,13 @@ public class FarmService {
 
     // ---------------------------------------------------------------- actions
 
-    private Map<String, Map<String, Object>> cropMap() {
+    Map<String, Map<String, Object>> cropMap() {
         Map<String, Map<String, Object>> crops = new LinkedHashMap<>();
         for (Map<String, Object> c : jdbc.queryForList("SELECT * FROM farm_crops")) crops.put((String) c.get("crop_key"), c);
         return crops;
     }
 
-    private Map<String, Object> plotRow(long userId, int slot) {
+    Map<String, Object> plotRow(long userId, int slot) {
         List<Map<String, Object>> rows = jdbc.queryForList("SELECT * FROM farm_plots WHERE user_id = ? AND slot = ?", userId, slot);
         return rows.isEmpty() ? null : rows.get(0);
     }
@@ -252,10 +279,13 @@ public class FarmService {
         Map<String, Object> existing = plotRow(userId, slot);
         if (existing != null && existing.get("crop_key") != null) throw new IllegalStateException("Ô đất đang có cây.");
         boolean free = takeOwn(userId, "seed:" + cropKey, 1);
+        if (!free && !"shop".equals(crop.get("seed_source"))) throw new IllegalStateException("Cây này chỉ trồng được từ Hạt Tri thức, nhận khi bé đi học hoặc học video.");
         if (!free) spend(userId, ((Number) crop.get("seed_price")).intValue(), "Hạt " + crop.get("name"));
         jdbc.update("INSERT INTO farm_plots (user_id, slot, crop_key, planted_at, grow_minutes, water_needs, waters_done, missed_waters, lost_seconds, fertilized) VALUES (?, ?, ?, ?, ?, ?, 0, 0, 0, 0) "
-                        + "ON DUPLICATE KEY UPDATE crop_key = VALUES(crop_key), planted_at = VALUES(planted_at), grow_minutes = VALUES(grow_minutes), water_needs = VALUES(water_needs), waters_done = 0, missed_waters = 0, lost_seconds = 0, fertilized = 0",
+                        + "ON DUPLICATE KEY UPDATE crop_key = VALUES(crop_key), planted_at = VALUES(planted_at), grow_minutes = VALUES(grow_minutes), water_needs = VALUES(water_needs), waters_done = 0, missed_waters = 0, lost_seconds = 0, fertilized = 0, stolen = 0",
                 userId, slot, cropKey, Timestamp.valueOf(now()), crop.get("grow_minutes"), crop.get("water_needs"));
+        bump(userId, "plant", 1);
+        if ("knowledge".equals(crop.get("seed_source"))) bump(userId, "plant_magic", 1);
         events.record(userId, GameEventService.GAME_FARM, "plant", cropKey, 0);
         return Map.of("planted", cropKey, "free", free);
     }
@@ -264,23 +294,31 @@ public class FarmService {
     public Map<String, Object> water(long userId, List<Integer> slots) {
         checkOpen();
         lockProfile(userId);
+        int watered = waterFor(userId, slots);
+        bump(userId, "water", watered);
+        if (watered > 0) events.record(userId, GameEventService.GAME_FARM, "water", String.valueOf(watered), 0);
+        return Map.of("watered", watered);
+    }
+
+    /** Waters the thirsty plots of {@code ownerId} among {@code slots}; the update is conditional so two people never water the same time twice. */
+    int waterFor(long ownerId, List<Integer> slots) {
         FarmRules.Params params = settings.params();
         LocalDateTime now = now();
         Map<String, Map<String, Object>> crops = cropMap();
         int watered = 0;
         for (int slot : slots) {
-            Map<String, Object> row = plotRow(userId, slot);
+            Map<String, Object> row = plotRow(ownerId, slot);
             FarmRules.Plot plot = plotOf(row, crops);
             if (plot == null) continue;
             int next = plot.watersDone() + 1;
             if (next > plot.waterNeeds() || now.isBefore(FarmRules.checkpoint(plot, next))) continue;
             int lost = FarmRules.lostWhenWatered(plot, next, now, params);
             int missed = FarmRules.tooLate(plot, next, now, params) ? 1 : 0;
-            jdbc.update("UPDATE farm_plots SET waters_done = waters_done + 1, lost_seconds = lost_seconds + ?, missed_waters = missed_waters + ? WHERE user_id = ? AND slot = ?", lost, missed, userId, slot);
-            watered++;
+            int rows = jdbc.update("UPDATE farm_plots SET waters_done = waters_done + 1, lost_seconds = lost_seconds + ?, missed_waters = missed_waters + ? WHERE user_id = ? AND slot = ? AND waters_done = ?",
+                    lost, missed, ownerId, slot, plot.watersDone());
+            if (rows == 1) watered++;
         }
-        if (watered > 0) events.record(userId, GameEventService.GAME_FARM, "water", String.valueOf(watered), 0);
-        return Map.of("watered", watered);
+        return watered;
     }
 
     @Transactional
@@ -296,6 +334,7 @@ public class FarmService {
         if (plot.fertilized()) throw new IllegalStateException("Cây này đã được bón rồi.");
         if (!takeOwn(userId, FERTILIZER, 1)) throw new IllegalStateException("Bạn hết phân bón.");
         jdbc.update("UPDATE farm_plots SET fertilized = 1 WHERE user_id = ? AND slot = ?", userId, slot);
+        bump(userId, "fertilize", 1);
         events.record(userId, GameEventService.GAME_FARM, "fertilize", null, 0);
         return Map.of("fertilized", true);
     }
@@ -319,6 +358,7 @@ public class FarmService {
         Map<String, Map<String, Object>> crops = cropMap();
         Map<String, Integer> got = new LinkedHashMap<>();
         long xp = 0;
+        int harvested = 0;
         for (int slot : slots) {
             Map<String, Object> row = plotRow(userId, slot);
             FarmRules.Plot plot = plotOf(row, crops);
@@ -326,24 +366,23 @@ public class FarmService {
             FarmRules.View v = FarmRules.view(plot, now, params);
             if (v.phase() != FarmRules.Phase.RIPE && v.phase() != FarmRules.Phase.WILTING) continue;
             String key = (String) row.get("crop_key");
-            got.merge(key, v.yieldNow(), Integer::sum);
+            int stolen = ((Number) row.get("stolen")).intValue();
+            got.merge(key, Math.max(v.yieldNow() - stolen, 1), Integer::sum);
+            harvested++;
             xp += ((Number) crops.get(key).get("xp")).intValue();
-            jdbc.update("UPDATE farm_plots SET crop_key = NULL, planted_at = NULL, grow_minutes = NULL, water_needs = 0, waters_done = 0, missed_waters = 0, lost_seconds = 0, fertilized = 0 WHERE user_id = ? AND slot = ?", userId, slot);
+            jdbc.update("UPDATE farm_plots SET crop_key = NULL, planted_at = NULL, grow_minutes = NULL, water_needs = 0, waters_done = 0, missed_waters = 0, lost_seconds = 0, fertilized = 0, stolen = 0 WHERE user_id = ? AND slot = ?", userId, slot);
         }
         for (Map.Entry<String, Integer> e : got.entrySet()) addInventory(userId, e.getKey(), e.getValue(), false);
-        int level = ((Number) profile.get("level")).intValue();
-        int newLevel = level;
-        if (xp > 0) {
-            long total = ((Number) profile.get("xp")).longValue() + xp;
-            newLevel = FarmRules.levelFor(total, params);
-            jdbc.update("UPDATE farm_profiles SET xp = ?, level = ? WHERE user_id = ?", total, newLevel, userId);
-            events.record(userId, GameEventService.GAME_FARM, "harvest", got.toString(), 0);
-        }
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("harvested", got);
         out.put("xp", xp);
-        out.put("levelUp", newLevel > level);
-        out.put("level", newLevel);
+        out.put("levelUp", false);
+        out.put("level", ((Number) profile.get("level")).intValue());
+        if (harvested > 0) {
+            bump(userId, "harvest", harvested);
+            events.record(userId, GameEventService.GAME_FARM, "harvest", got.toString(), 0);
+            out.putAll(gainXp(userId, xp));
+        }
         return out;
     }
 
@@ -388,6 +427,7 @@ public class FarmService {
             String json;
             try { json = mapper.writeValueAsString(sold); } catch (Exception ex) { json = "{}"; }
             jdbc.update("INSERT INTO farm_day_stats (user_id, day, coins_in, sold_json) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE coins_in = coins_in + VALUES(coins_in), sold_json = VALUES(sold_json)", userId, Date(today()), (int) paid, json);
+            bump(userId, "sell", 1);
             events.record(userId, GameEventService.GAME_FARM, "sell", soldNow.toString(), (int) paid);
         }
         Map<String, Object> out = new LinkedHashMap<>();
