@@ -52,7 +52,14 @@ public class FarmService {
             addInventory(userId, FERTILIZER, settings.n("starter_fertilizer"), false);
             events.record(userId, GameEventService.GAME_FARM, "start", null, 0);
         }
-        return jdbc.queryForMap("SELECT level, xp, plots, allow_steal FROM farm_profiles WHERE user_id = ? FOR UPDATE", userId);
+        return jdbc.queryForMap("SELECT level, xp, plots, allow_steal, has_dog, push_ignored FROM farm_profiles WHERE user_id = ? FOR UPDATE", userId);
+    }
+
+    /** A DATETIME read through queryForList is a LocalDateTime with the MySQL driver and a Timestamp with some others. */
+    static LocalDateTime time(Object value) {
+        if (value instanceof LocalDateTime t) return t;
+        if (value instanceof Timestamp t) return t.toLocalDateTime();
+        throw new IllegalStateException("Not a date time: " + value);
     }
 
     void addInventory(long userId, String key, int qty, boolean received) {
@@ -183,7 +190,7 @@ public class FarmService {
         if (row == null || row.get("crop_key") == null || row.get("planted_at") == null) return null;
         Map<String, Object> crop = crops.get((String) row.get("crop_key"));
         int baseYield = crop == null ? 4 : ((Number) crop.get("base_yield")).intValue();
-        return new FarmRules.Plot(((Timestamp) row.get("planted_at")).toLocalDateTime(), ((Number) row.get("grow_minutes")).intValue(),
+        return new FarmRules.Plot(time(row.get("planted_at")), ((Number) row.get("grow_minutes")).intValue(),
                 ((Number) row.get("water_needs")).intValue(), ((Number) row.get("waters_done")).intValue(), ((Number) row.get("missed_waters")).intValue(),
                 ((Number) row.get("lost_seconds")).intValue(), ((Number) row.get("fertilized")).intValue() == 1, baseYield);
     }

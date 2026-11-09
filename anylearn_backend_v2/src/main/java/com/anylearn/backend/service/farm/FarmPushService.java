@@ -49,7 +49,7 @@ public class FarmPushService {
         int sent = 0;
         for (Map<String, Object> p : candidates) {
             long userId = ((Number) p.get("user_id")).longValue();
-            LocalDateTime lastVisit = ((Timestamp) p.get("last_visit_at")).toLocalDateTime();
+            LocalDateTime lastVisit = FarmService.time(p.get("last_visit_at"));
             int plots = ((Number) p.get("plots")).intValue();
             int ignored = ((Number) p.get("push_ignored")).intValue();
             Timestamp lastPush = jdbc.query("SELECT MAX(sent_at) FROM farm_push_log WHERE user_id = ?", rs -> rs.next() ? rs.getTimestamp(1) : null, userId);

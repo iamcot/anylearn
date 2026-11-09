@@ -129,7 +129,7 @@ public class FarmProgressService {
         out.put("minutes", settings.n("compost_minutes"));
         if (rows.isEmpty()) { out.put("active", null); return out; }
         Map<String, Object> r = new LinkedHashMap<>();
-        LocalDateTime ready = ((Timestamp) rows.get(0).get("ready_at")).toLocalDateTime();
+        LocalDateTime ready = FarmService.time(rows.get(0).get("ready_at"));
         r.put("id", rows.get(0).get("id"));
         r.put("readyAt", ready.toString());
         r.put("ready", !farm.now().isBefore(ready));
@@ -157,7 +157,7 @@ public class FarmProgressService {
         farm.lockProfile(userId);
         List<Map<String, Object>> rows = jdbc.queryForList("SELECT id, ready_at FROM farm_compost WHERE user_id = ? AND collected_at IS NULL ORDER BY id LIMIT 1", userId);
         if (rows.isEmpty()) throw new IllegalStateException("Chưa có mẻ phân nào.");
-        if (farm.now().isBefore(((Timestamp) rows.get(0).get("ready_at")).toLocalDateTime())) throw new IllegalStateException("Phân chưa ủ xong.");
+        if (farm.now().isBefore(FarmService.time(rows.get(0).get("ready_at")))) throw new IllegalStateException("Phân chưa ủ xong.");
         jdbc.update("UPDATE farm_compost SET collected_at = ? WHERE id = ?", Timestamp.valueOf(farm.now()), rows.get(0).get("id"));
         farm.addInventory(userId, FarmService.FERTILIZER, 1, false);
         return Map.of("fertilizer", 1);
