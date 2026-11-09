@@ -257,3 +257,86 @@ Wide story illustration for chapter {N} of a children's farming game, same chara
 | 22.8 | cây mùa, đồ mùa, vật nuôi |
 
 Đặt ảnh vào `assets/farm/<nhóm>/<file>` (bản gốc 1024) và để code xuất bản nhẹ vào `anylearn_v2/public/farm/` (WebP, đúng kích thước bảng mục 1), như cách `public/fun/leo_*.png` được cắt từ `assets/icons`. Ảnh cây cũng tải được lên từ admin (tab Cây trồng) để thêm cây mới không cần deploy.
+
+## 12. Âm thanh và nhạc (làm theo `gunb/plan/11-prompt-am-thanh.md`)
+
+Công cụ gợi ý: **ElevenLabs** (Music → "Instrumental"; Sound Effects → tắt Loop, đặt đúng Duration, Prompt influence ≈ 0.6, tạo 4 bản chọn bản gọn nhất). Không đưa tên game, bài hát, nghệ sĩ vào prompt. Đặt file đúng tên cột "Tên file", gửi cả thư mục hoặc một file zip; Claude sẽ cắt khoảng lặng, chuẩn hóa −1 dBFS, làm vòng lặp liền, xuất `.ogg` và ghi `CREDITS.json`. Thiếu file nào thì game im lặng ở chỗ đó (không lỗi), nên gửi dần được. Âm thanh mặc định **tắt tiếng** cho tới khi người chơi bật (công tắc trong vườn, nhớ ở `localStorage`), và luôn tôn trọng chế độ giảm chuyển động.
+
+Đuôi chung cho mọi hiệu ứng: `Cute cozy farming game sound effect, soft and friendly, crisp, clean studio quality, dry mix, no music, no voice, no ambience.`
+
+### 12.1 Nhạc nền (loop, không lời)
+
+| Tên file | Dùng ở | Độ dài |
+|---|---|---|
+| `farm_music_day` | Vườn ban ngày | 90-120 s |
+| `farm_music_night` | Vườn ban đêm (sau 19:00) | 90-120 s |
+| `farm_music_market` | Chợ, bảng đơn hàng | 60-90 s |
+| `farm_music_season` | Sự kiện mùa (làm bản biến thể sau) | 60-90 s |
+
+```
+farm_music_day:
+Cheerful cozy farm music for a children's game, bright sunny morning on a hillside. Acoustic guitar plucks, ukulele, soft marimba, light whistle melody, gentle shaker and brushed snare, a little glockenspiel sparkle. Relaxed medium tempo around 96 BPM, major key, warm and playful, makes you smile while gardening. Steady energy from start to end with no big intro, no fade out and no final ending chord so it can loop seamlessly. Instrumental only, no vocals.
+
+farm_music_night:
+Calm cozy night-time farm music for a children's game, fireflies and stars. Soft music-box melody, warm felt piano, slow harp arpeggios, very light cello pad, tiny celesta sparkles. Slow tempo around 70 BPM, gentle major key, sleepy and safe, never scary. Steady and quiet with no intro, no fade out and no final ending chord so it can loop seamlessly. Instrumental only, no vocals.
+
+farm_music_market:
+Lively friendly village market music for a children's game. Bouncy pizzicato strings, accordion, clarinet melody, light hand percussion and tambourine, happy walking bass. Tempo around 110 BPM, major key, busy but never stressful. Steady energy with no intro, no fade out and no final ending chord so it can loop seamlessly. Instrumental only, no vocals.
+
+farm_music_season:
+Festive seasonal variation of a cozy farm theme for a children's game: same warm acoustic instruments plus sleigh-like bells and glockenspiel, tempo around 100 BPM, joyful. Seamless loop, instrumental only, no vocals.
+```
+
+### 12.2 Hiệu ứng trong vườn (đuôi chung ở trên, mọi câu dưới đây dán thêm đuôi)
+
+| Tên file | Khi nào | Độ dài | Prompt |
+|---|---|---|---|
+| `sfx_farm_plant` | Gieo hạt | 0.6 s | `Soft pat of fingers pressing a seed into loose soil, a tiny cute pop at the end.` |
+| `sfx_farm_water` | Tưới cây | 1.2 s | `Gentle water pouring from a small watering can onto soil, a few bubbly droplets, soft and calm.` |
+| `sfx_farm_water_all` | Tưới tất cả | 1.8 s | `Longer gentle shower of water droplets and a happy rising sparkle at the end.` |
+| `sfx_farm_fertilize` | Bón phân | 0.8 s | `Soft sprinkle of tiny pellets falling on soil with a small magical twinkle.` |
+| `sfx_farm_harvest` | Thu hoạch | 0.8 s | `Cute pluck of a fresh vegetable from the ground with a juicy little pop and a short cheerful chime.` |
+| `sfx_farm_harvest_all` | Thu tất cả | 1.6 s | `Several quick plucks in a row, a basket rustle, ending in a bright rising arpeggio.` |
+| `sfx_farm_coin` | Bán, nhận xu | 0.7 s | `Two or three cheerful gold coin clinks with a tiny sparkle.` |
+| `sfx_farm_cap` | Chợ chạm trần lãi | 0.8 s | `Soft friendly low wooden knock followed by a gentle descending two-note bell, polite not harsh.` |
+| `sfx_farm_ripe` | Cây chín (nhẹ, dùng ít) | 0.8 s | `A tiny ripening ding with a shimmer, like a small bell on a plant.` |
+| `sfx_farm_order_done` | Giao đơn xong | 1.2 s | `Paper stamp thump, a satisfied bell and a short happy fanfare of three notes.` |
+| `sfx_farm_levelup` | Lên cấp | 2.0 s | `Bright magical ascending glockenspiel and harp run with sparkles and a soft whoosh, triumphant but cute.` |
+| `sfx_farm_unlock` | Mở ô, cây mới | 1.0 s | `Wooden gate creak followed by a twinkling reveal chime.` |
+| `sfx_farm_compost` | Ủ phân, nhận phân | 0.9 s | `Soft squishy earthy rustle and a small bubbling pop, then a tiny sparkle.` |
+| `sfx_farm_wilt` | Cây héo (rất nhẹ) | 0.7 s | `A soft sad little descending two-note, like a leaf drooping, gentle and not scary.` |
+| `sfx_farm_help` | Tưới giúp hàng xóm | 1.0 s | `Water pour followed by a warm friendly heart-like chime.` |
+| `sfx_farm_steal` | Hái trộm | 0.9 s | `Sneaky tiptoe plucks on a cartoon pizzicato, a quick quiet snip and a mischievous giggle-like xylophone flick.` |
+| `sfx_farm_dog_bark` | Chó Bông bắt được | 1.0 s | `Two small cute puppy barks, playful and friendly, not aggressive.` |
+| `sfx_farm_caught` | Bị bắt khi hái | 1.0 s | `Comic surprise sting: a quick slide-whistle drop and a bonk, funny not scary.` |
+| `sfx_farm_gift` | Tặng / nhận quà | 0.9 s | `Paper rustle, ribbon pull and a sweet sparkly chime.` |
+| `sfx_farm_tap` | Chạm nút | 0.2 s | `Tiny soft wooden click, friendly and quiet.` |
+| `sfx_farm_error` | Không làm được | 0.4 s | `Soft low wooden tock, short and polite.` |
+| `sfx_farm_ambient_day` | Nền ban ngày (loop, 20 s) | 20 s | `Peaceful daytime countryside ambience: soft breeze, a few distant birds, tiny rustling leaves. Loopable, very quiet, no music.` |
+| `sfx_farm_ambient_night` | Nền ban đêm (loop, 20 s) | 20 s | `Peaceful night countryside ambience: crickets, a distant owl hoot, very soft breeze. Loopable, very quiet, no music.` |
+
+(Với hai file ambient bỏ đuôi chung "no ambience".)
+
+### 12.3 Âm thanh dùng chung có sẵn
+
+Tặng xu bay vào ví dùng lại tiếng của `LeoReward`; chuông thông báo dùng của app. Không cần tạo mới.
+
+## 13. Background (nền cảnh) và biến thể
+
+Ngoài các nền ở mục 5, thêm các biến thể sau, dùng **cùng bố cục** với `bg_farm_day_*` (đính kèm ảnh nền ngày làm tham chiếu và nhắn `Same composition and camera as the attached day background, only change {X}`):
+
+| File | {X} |
+|---|---|
+| `bg_farm_dawn_mobile.png` / `_desktop.png` | `the time of day to early dawn: soft pink and pale gold sky, long mist over the hills, a rooster on the farmhouse fence` |
+| `bg_farm_rain_mobile.png` | `to a gentle rainy day: soft grey-blue sky with friendly puffy clouds, light rain streaks, puddles with ripples, everything fresh and cozy (used when a plot is watered by the rain event)` |
+| `bg_farm_spring_mobile.png` | `to spring: pink blossom petals floating, fresh light green hills, baby ducks near the pond` |
+| `bg_farm_autumn_mobile.png` | `to autumn: warm orange and gold leaves, a harvest moon rising, straw bales` |
+| `bg_farm_tet_mobile.png` | `to Lunar New Year: red-orange lanterns hanging along the path, golden apricot blossoms, small firecracker-free festive banners without writing` |
+| `bg_farm_christmas_mobile.png` | `to a snowy Christmas: soft snow on the hills, string lights on the farmhouse, a candy-cane pine tree` |
+| `bg_visit_neighbor_mobile.png` | `to a neighbor's farm: a different farmhouse color, a green mailbox with a heart and a fence gate, same meadow area left empty` |
+| `bg_market_mobile.png` (1080×1920) | `Vertical background of a small village market square on a sunny day: cobbled cream path, wooden stalls with striped awnings at the edges, string of paper bunting, open central area left empty for the shop list` |
+| `bg_orders_mobile.png` | `Vertical background of a cozy wooden notice-board corner by the scarecrow, hay bales and flower boxes, open center left empty for order cards` |
+| `bg_book_mobile.png` | `Vertical soft cream paper background with a hand-drawn vine border and tiny leaves, open center left empty (used for the crop book)` |
+| `bg_quest_mobile.png` | `Vertical storybook background: rolling hills path winding upward with six small signposts without writing, open center left empty for chapter cards` |
+
+Các nền sự kiện mùa chỉ là gợi ý; admin gắn nền vào mùa ở tab "Chương & mùa".
