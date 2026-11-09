@@ -20,6 +20,8 @@ import { farmImg, timeOfDay } from '@/lib/farm/art'
 import type { SceneKind, Size } from '@/lib/farm/scene'
 import { capUsedPercent, formatWait, isRipe, sellable, seedCount, slotsToHarvest, slotsToWater } from '@/lib/farm/rules'
 
+const PANEL_TITLES = { orders: 'Đơn hàng', quests: 'Nhiệm vụ', neighbors: 'Hàng xóm', market: 'Chợ' } as const
+
 function ActionButton({ icon, label, count, disabled, onClick }: { icon: string; label: string; count: number; disabled: boolean; onClick: () => void }) {
   return (
     <button type="button" disabled={disabled} onClick={onClick} className="flex min-h-12 cursor-pointer flex-col items-center gap-0.5 border-0 bg-transparent p-1 text-center transition-transform active:scale-95 disabled:cursor-default disabled:opacity-45 lg:flex-row lg:gap-2">
@@ -219,8 +221,9 @@ export default function FarmPage() {
       </div>
 
       {panel && (
-        <div className="absolute inset-y-14 left-2 right-[72px] z-[750] mx-auto max-w-[680px] overflow-y-auto rounded-2xl bg-white/95 p-3 shadow-2xl lg:inset-y-20" role="region" aria-label="Bảng">
-          <button type="button" className="sticky top-0 float-right grid size-9 cursor-pointer place-items-center rounded-full border-0 bg-slate-100 text-lg font-black" aria-label="Đóng" onClick={() => setPanel(null)}>×</button>
+        <div className="fixed inset-0 z-[1000] flex items-end bg-black/40 lg:items-center lg:justify-center" role="dialog" aria-modal="true" aria-label={PANEL_TITLES[panel]} onClick={() => setPanel(null)}>
+        <div className="max-h-[80vh] w-full overflow-y-auto rounded-t-3xl bg-white p-4 lg:max-w-lg lg:rounded-3xl" onClick={e => e.stopPropagation()}>
+          <div className="flex items-center justify-between"><h2 className="m-0 text-lg font-black">{PANEL_TITLES[panel]}</h2><button type="button" className="min-h-11 cursor-pointer border-0 bg-transparent text-sm font-bold" onClick={() => setPanel(null)}>Đóng</button></div>
           {panel === 'orders' && <OrdersTab token={token} view={view} progress={progress} busy={busy} run={act} setNote={setNote} />}
           {panel === 'quests' && <QuestsTab token={token} view={view} progress={progress} busy={busy} run={act} setNote={setNote} />}
           {panel === 'neighbors' && <NeighborsTab token={token} view={view} onChanged={load} />}
@@ -281,10 +284,11 @@ export default function FarmPage() {
             </div>
           )}
         </div>
+        </div>
       )}
 
       {confirmExpand && (
-        <div className="fixed inset-0 z-50 flex items-end bg-black/40 lg:items-center lg:justify-center" role="dialog" aria-modal="true" aria-label="Mở thêm ô đất" onClick={() => setConfirmExpand(false)}>
+        <div className="fixed inset-0 z-[1000] flex items-end bg-black/40 lg:items-center lg:justify-center" role="dialog" aria-modal="true" aria-label="Mở thêm ô đất" onClick={() => setConfirmExpand(false)}>
           <div className="w-full rounded-t-3xl bg-white p-5 text-center lg:max-w-sm lg:rounded-3xl" onClick={e => e.stopPropagation()}>
             <img src={farmImg('plot_locked')} alt="" className="mx-auto h-24 w-36 object-contain" />
             <h2 className="m-0 mt-1 text-lg font-black">Mở thêm ô đất?</h2>
@@ -319,7 +323,7 @@ export default function FarmPage() {
       )}
 
       {pick !== null && (
-        <div className="fixed inset-0 z-50 flex items-end bg-black/40 lg:items-center lg:justify-center" role="dialog" aria-modal="true" aria-label="Chọn hạt">
+        <div className="fixed inset-0 z-[1000] flex items-end bg-black/40 lg:items-center lg:justify-center" role="dialog" aria-modal="true" aria-label="Chọn hạt">
           <div className="max-h-[80vh] w-full overflow-y-auto rounded-t-3xl bg-white p-4 lg:max-w-md lg:rounded-3xl">
             <div className="flex items-center justify-between"><h2 className="m-0 flex items-center gap-2 text-lg font-black"><img src={farmImg('item_seed_packet')} alt="" className="size-8 object-contain" />Chọn hạt giống</h2><button type="button" className="min-h-11 cursor-pointer border-0 bg-transparent text-sm font-bold" onClick={() => setPick(null)}>Đóng</button></div>
             <ul className="m-0 mt-2 list-none space-y-2 p-0">

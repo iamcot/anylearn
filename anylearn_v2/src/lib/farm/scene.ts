@@ -59,10 +59,11 @@ export function cellCenters(cells: number, region: Region, maxTile = MAX_TILE): 
 
 export interface Spot { x: number; y: number; w: number }
 
-/** Where the compost bin stands: in the empty upper right corner of the free region (a diamond field leaves it free). */
+/** Where the compost bin stands: on the open grass in the lower right, clear of the path and the house. */
 export function compostSpot(size: Size, region: Region): Spot {
-  const w = Math.min(Math.max(size.w * 0.11, 64), 120)
-  return { x: region.cx + region.aw * 0.34, y: region.y0 + region.ah * 0.14, w }
+  const w = Math.min(Math.max(size.w * 0.17, 84), 150)
+  const x = Math.min(region.cx + region.aw * 0.36, region.x1 - w * 0.5)
+  return { x, y: region.y1 - region.ah * 0.2, w }
 }
 
 /** The three slots for perennial trees: the empty lower left corner. */

@@ -50,6 +50,7 @@ export default function FarmScene({ view, progress, size, kind, tod, elapsed, se
   const canFeed = (view.inventory.fertilizer ?? 0) > 0
   const bin = compostSpot(size, region)
   const binH = bin.w * 0.75
+  const labelStroke = '[text-shadow:-1px_-1px_0_#4a2a10,1px_-1px_0_#4a2a10,-1px_1px_0_#4a2a10,1px_1px_0_#4a2a10]'
   const active = progress.compost.active
   const binLeft = active && !active.ready ? secondsUntil(active.readyAt, progress.serverNow, elapsed) : 0
   const trees = treeSpots(region, tw)
@@ -68,8 +69,9 @@ export default function FarmScene({ view, progress, size, kind, tod, elapsed, se
       <button type="button" aria-label="Thùng ủ phân" onClick={onCompost} className="absolute block cursor-pointer border-0 bg-transparent p-0" style={{ left: px(bin.x), top: px(bin.y), width: px(bin.w), height: px(binH), transform: 'translate(-50%, -50%)', zIndex: 90 }}>
         <img src={farmImg('compost_bin')} alt="" className="size-full object-contain drop-shadow" draggable={false} />
       </button>
+      <span className={`pointer-events-none absolute -translate-x-1/2 whitespace-nowrap text-[11px] font-extrabold text-white ${labelStroke}`} style={{ left: px(bin.x), top: px(bin.y + binH * 0.5 - 2), zIndex: 91 }}>Thùng ủ phân</span>
       {active && (
-        <span className={`pointer-events-none absolute -translate-x-1/2 ${pill} ${active.ready ? 'bg-green/90 text-white' : 'bg-white/50 text-ink'}`} style={{ left: px(bin.x), top: px(bin.y + binH * 0.5), zIndex: OVERLAY_Z }}>
+        <span className={`pointer-events-none absolute -translate-x-1/2 ${pill} ${active.ready ? 'bg-green/90 text-white' : 'bg-white/50 text-ink'}`} style={{ left: px(bin.x), top: px(bin.y - binH * 0.5 - 4), transform: 'translate(-50%, -100%)', zIndex: OVERLAY_Z }}>
           {active.ready ? 'Nhận phân' : formatWait(binLeft)}
         </span>
       )}
