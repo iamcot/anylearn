@@ -4,7 +4,7 @@ import type { FarmCrop, FarmPlot } from '@/lib/api/farm'
 export const farmImg = (name: string) => `/farm/${name}.webp`
 
 /** Crops that already have the 4 stage pictures. Add a key here after dropping its files into assets/farm and running the script. */
-export const CROPS_WITH_ART = new Set(['ca_rot_cau_vong'])
+export const CROPS_WITH_ART = new Set(['ca_rot_cau_vong', 'rau_mam', 'bap_rang', 'khoai_cuoi', 'hoa_nang_mai', 'hoa_not_nhac', 'cay_chu_cai', 'ca_chua_bong_bay', 'cay_tri_thuc', 'day_so_dem', 'huong_duong_cuoi', 'ot_tia_lua', 'tulip_anh_trang', 'bi_den_long'])
 
 export type TimeOfDay = 'day' | 'sunset' | 'night'
 

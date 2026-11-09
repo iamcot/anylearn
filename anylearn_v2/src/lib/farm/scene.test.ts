@@ -36,3 +36,21 @@ describe('farm screen layout', () => {
     expect(spot.x + spot.w / 2).toBeLessThanOrEqual(size.w)
   })
 })
+
+import { worldSize, worldOffset, MIN_TILE, fieldRegion as fr, cellCenters as cc } from './scene'
+describe('pannable world', () => {
+  it('equals the screen while tiles are big enough', () => {
+    expect(worldSize({ w: 390, h: 800 }, 6)).toEqual({ w: 390, h: 800 })
+    expect(worldOffset({ w: 390, h: 800 }, { w: 390, h: 800 })).toEqual({ x: 0, y: 0 })
+  })
+  it('grows (at most 3x) when many plots would shrink the tiles', () => {
+    const size = { w: 360, h: 640 }
+    const w = worldSize(size, 60)
+    expect(w.w).toBeGreaterThan(size.w)
+    expect(w.w).toBeLessThanOrEqual(size.w * 3)
+    expect(cc(60, fr(w)).tw).toBeGreaterThanOrEqual(Math.min(MIN_TILE, cc(60, fr({ w: size.w * 3, h: size.h * 3 })).tw) - 1)
+    const o = worldOffset(size, w)
+    expect(o.x).toBeLessThanOrEqual(0)
+    expect(o.x).toBeGreaterThanOrEqual(size.w - w.w)
+  })
+})

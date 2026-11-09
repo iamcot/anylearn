@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Cut a crop sheet (one picture with all the growth stages of a plant) into the single pictures the game uses.
 
-Put the sheet at assets/farm/sheets/<cropKey>_sheet.png (see plans/22-nong-trai-leo-crop-prompts.md), then run:
+Put the sheet at assets/farm/<name>_sheet.png (or assets/farm/sheets/) (see plans/22-nong-trai-leo-crop-prompts.md), then run:
     python3 scripts/farm_split_sheet.py            # every sheet that is there
     python3 scripts/farm_split_sheet.py ot_tia_lua # one crop
     python3 scripts/farm_split_sheet.py --force    # also overwrite pictures that already exist
@@ -20,6 +20,11 @@ from farm_assets import clear_background  # noqa: E402
 
 ROOT = os.path.join(os.path.dirname(__file__), '..', 'assets', 'farm')
 SHEETS = os.path.join(ROOT, 'sheets')
+# Perennial sheets (3 x 2 cells); every other sheet is 2 x 2. The picture size is the same for both, so the name decides.
+PERENNIAL_KEYS = {'bui_dau_sao_bang', 'cay_cam_mat_troi', 'cay_tao_ngoi_sao', 'hoa_mai_vang', 'buoi_mat_cuoi', 'cay_thong_keo_gay', 'cam_tu_cau_khai_giang'}
+# Sheet name -> crop_key in farm_crops, when they differ.
+ALIAS = {'rau_mam_suong_mai': 'rau_mam', 'bap_rang_no': 'bap_rang', 'khoai_lang_tim_mat_cuoi': 'khoai_cuoi',
+         'day_leo_so_dem': 'day_so_dem', 'huong_duong_mat_cuoi': 'huong_duong_cuoi', 'bi_ngo_den_long': 'bi_den_long'}
 ANNUAL = ['seedling', 'growing', 'ripe', 'product']
 PERENNIAL = ['sapling', 'grown', 'fruiting', 'resting', 'product']
 
@@ -34,7 +39,8 @@ def alpha_box(img, margin=0):
 
 def cut(sheet, key, force):
     img = Image.open(sheet).convert('RGBA')
-    wide = img.width / img.height > 1.3
+    wide = key in PERENNIAL_KEYS
+    key = ALIAS.get(key, key)
     stages, cols = (PERENNIAL, 3) if wide else (ANNUAL, 2)
     cw, ch = img.width // cols, img.height // 2
     cells = {}
@@ -70,15 +76,16 @@ def cut(sheet, key, force):
 def main():
     args = [a for a in sys.argv[1:] if not a.startswith('--')]
     force = '--force' in sys.argv
-    os.makedirs(SHEETS, exist_ok=True)
     total = 0
-    for f in sorted(os.listdir(SHEETS)):
-        if not f.endswith('_sheet.png'):
-            continue
+    found = []
+    for d in (ROOT, SHEETS):
+        if os.path.isdir(d):
+            found += [(f, os.path.join(d, f)) for f in sorted(os.listdir(d)) if f.endswith('_sheet.png')]
+    for f, path in found:
         key = f[:-len('_sheet.png')]
         if args and key not in args:
             continue
-        n = cut(os.path.join(SHEETS, f), key, force)
+        n = cut(path, key, force)
         print(key, ':', n, 'pictures written')
         total += n
     if total:

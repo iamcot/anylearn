@@ -16,8 +16,9 @@ import OrdersTab from '@/components/fun/farm/OrdersTab'
 import QuestsTab from '@/components/fun/farm/QuestsTab'
 import NeighborsTab from '@/components/fun/farm/NeighborsTab'
 import FarmScene from '@/components/fun/farm/FarmScene'
+import PanWorld from '@/components/fun/farm/PanWorld'
 import { CROPS_WITH_ART, farmImg, timeOfDay } from '@/lib/farm/art'
-import { cellCenters, fieldRegion, type SceneKind, type Size } from '@/lib/farm/scene'
+import { worldSize, type SceneKind, type Size } from '@/lib/farm/scene'
 import { capUsedPercent, formatWait, isRipe, sellable, seedCount, slotsToHarvest, slotsToWater } from '@/lib/farm/rules'
 
 const PANEL_TITLES = { storage: 'Kho', orders: 'Đơn hàng', quests: 'Nhiệm vụ', neighbors: 'Hàng xóm', market: 'Chợ', compost: 'Thùng ủ phân' } as const
@@ -166,13 +167,12 @@ export default function FarmPage() {
     if (!view || !size) return
     const target = document.querySelector('[data-tab="storage"]')?.getBoundingClientRect()
     if (!target) return
-    const cells = view.plots.length + (view.nextPlotPrice > 0 ? 1 : 0)
-    const { centers } = cellCenters(cells, fieldRegion(size))
     const made: Fly[] = []
     slots.slice(0, 12).forEach((slot, n) => {
       const i = view.plots.findIndex(p => p.slot === slot)
       const p = view.plots[i]
-      const c = centers[i]
+      const r = document.querySelector(`[aria-label^="Ô ${slot + 1},"]`)?.getBoundingClientRect()
+      const c = r ? { x: r.left + r.width / 2, y: r.top + r.height / 2 } : null
       if (!p || !c) return
       const crop = cropOf(p.cropKey)
       const art = crop && CROPS_WITH_ART.has(crop.cropKey) ? farmImg(`${crop.cropKey}_ripe`) : null
@@ -219,14 +219,15 @@ export default function FarmPage() {
     return `còn ${formatWait((p.secondsToRipe ?? 0) - elapsed / 1000)}`
   }
 
+  const world = size && view ? worldSize(size, view.plots.length + (view.nextPlotPrice > 0 ? 1 : 0)) : null
   const tod = todPick === 'auto' ? timeOfDay(new Date(now).getHours()) : todPick
   const waiting = progress.orders.length > 0
-  const tabs = [['garden', 'Vườn', 'ui_tab_garden'], ['storage', 'Kho', 'item_basket'], ['orders', 'Đơn hàng', 'ui_tab_orders'], ['quests', 'Nhiệm vụ', 'ui_tab_quests'], ['neighbors', 'Hàng xóm', 'ui_tab_neighbors'], ['market', 'Chợ', 'ui_tab_market_alt']] as const
+  const tabs = [['storage', 'Kho', 'item_basket'], ['orders', 'Đơn hàng', 'ui_tab_orders'], ['quests', 'Nhiệm vụ', 'ui_tab_quests'], ['neighbors', 'Hàng xóm', 'ui_tab_neighbors'], ['market', 'Chợ', 'ui_tab_market_alt']] as const
   const active = panel ?? 'garden'
 
   return (
     <div ref={rootRef} className="fixed inset-0 z-[90] overflow-hidden bg-[#9be15d]">
-      {size && <FarmScene view={view} progress={progress} size={size} kind={kind} tod={tod} elapsed={elapsed} selected={selected} onTile={tapTile} onExpand={() => setConfirmExpand(true)} onCompost={tapCompost} />}
+      {size && <PanWorld size={size} world={world!}><FarmScene view={view} progress={progress} size={world!} kind={kind} tod={tod} elapsed={elapsed} selected={selected} onTile={tapTile} onExpand={() => setConfirmExpand(true)} onCompost={tapCompost} /></PanWorld>}
 
       <div className="pointer-events-none absolute inset-x-0 top-0 z-[700] flex items-start justify-between p-2">
         <div className="pointer-events-auto flex items-start gap-1">
@@ -259,7 +260,7 @@ export default function FarmPage() {
 
       <div className="absolute right-1 top-1/2 z-[800] flex -translate-y-1/2 flex-col gap-1" role="tablist">
         {tabs.map(([k, l, ic]) => (
-          <button key={k} data-tab={k} type="button" role="tab" aria-selected={active === k} aria-label={l} title={l} onClick={() => setPanel(k === 'garden' || panel === k ? null : k)} className={`relative flex w-16 cursor-pointer flex-col items-center gap-0 rounded-xl border-0 px-0 py-1 ${active === k ? 'bg-white/45 shadow-[0_0_10px_rgba(255,255,255,.9)]' : 'bg-transparent'}`}>
+          <button key={k} data-tab={k} type="button" role="tab" aria-selected={active === k} aria-label={l} title={l} onClick={() => setPanel(panel === k ? null : k)} className={`relative flex w-16 cursor-pointer flex-col items-center gap-0 rounded-xl border-0 px-0 py-1 ${active === k ? 'bg-white/45 shadow-[0_0_10px_rgba(255,255,255,.9)]' : 'bg-transparent'}`}>
             <img src={farmImg(ic)} alt="" className="h-9 w-11 object-contain drop-shadow" draggable={false} />
             <span className="text-[10px] font-extrabold leading-tight text-white [text-shadow:-1px_-1px_0_#4a2a10,1px_-1px_0_#4a2a10,-1px_1px_0_#4a2a10,1px_1px_0_#4a2a10,0_2px_3px_rgba(0,0,0,.4)]">{l}</span>
             {((k === 'orders' && waiting) || (k === 'quests' && (view.levelReady || [progress.path, ...(progress.olderPaths ?? [])].some(pt => pt.steps.some(x => x.claimable)) || progress.tasks.items.some(x => x.claimable) || progress.tasks.boxReady || progress.challenges.some(x => x.claimable))) || (k === 'market' && progress.compost.active?.ready)) && <span className="absolute right-1.5 top-0.5 size-2.5 rounded-full bg-red-500 ring-2 ring-white" aria-hidden />}
@@ -288,7 +289,7 @@ export default function FarmPage() {
       {panel && (
         <div className="fixed inset-0 z-[1000] flex items-end bg-black/40 lg:items-center lg:justify-center" role="dialog" aria-modal="true" aria-label={PANEL_TITLES[panel]} onClick={() => setPanel(null)}>
         <div className="max-h-[80vh] w-full overflow-y-auto rounded-t-3xl bg-white p-4 lg:max-w-lg lg:rounded-3xl" onClick={e => e.stopPropagation()}>
-          <div className="sticky top-0 z-10 -mx-4 -mt-4 flex items-center justify-between bg-white px-4 pt-4"><h2 className="m-0 text-lg font-black">{PANEL_TITLES[panel]}</h2><button type="button" className="min-h-11 cursor-pointer border-0 bg-transparent text-sm font-bold" onClick={() => setPanel(null)}>Đóng</button></div>
+          <div className="sticky -top-4 z-10 -mx-4 -mt-4 flex items-center justify-between bg-white px-4 pb-2 pt-4"><h2 className="m-0 text-lg font-black">{PANEL_TITLES[panel]}</h2><button type="button" className="min-h-11 cursor-pointer border-0 bg-transparent text-sm font-bold" onClick={() => setPanel(null)}>Đóng</button></div>
           {panel === 'orders' && <OrdersTab token={token} view={view} progress={progress} busy={busy} run={act} setNote={setNote} />}
           {panel === 'quests' && <QuestsTab token={token} view={view} progress={progress} busy={busy} run={act} setNote={setNote} />}
           {panel === 'neighbors' && <NeighborsTab token={token} view={view} onChanged={load} />}
@@ -412,7 +413,7 @@ export default function FarmPage() {
       {pick !== null && (
         <div className="fixed inset-0 z-[1000] flex items-end bg-black/40 lg:items-center lg:justify-center" role="dialog" aria-modal="true" aria-label="Chọn hạt" onClick={() => setPick(null)}>
           <div className="max-h-[80vh] w-full overflow-y-auto rounded-t-3xl bg-white p-4 lg:max-w-md lg:rounded-3xl" onClick={e => e.stopPropagation()}>
-            <div className="sticky top-0 z-10 -mx-4 -mt-4 flex items-center justify-between bg-white px-4 pt-4"><h2 className="m-0 flex items-center gap-2 text-lg font-black"><img src={farmImg('item_seed_packet')} alt="" className="size-8 object-contain" />Chọn hạt giống</h2><button type="button" className="min-h-11 cursor-pointer border-0 bg-transparent text-sm font-bold" onClick={() => setPick(null)}>Đóng</button></div>
+            <div className="sticky -top-4 z-10 -mx-4 -mt-4 flex items-center justify-between bg-white px-4 pb-2 pt-4"><h2 className="m-0 flex items-center gap-2 text-lg font-black"><img src={farmImg('item_seed_packet')} alt="" className="size-8 object-contain" />Chọn hạt giống</h2><button type="button" className="min-h-11 cursor-pointer border-0 bg-transparent text-sm font-bold" onClick={() => setPick(null)}>Đóng</button></div>
             <ul className="m-0 mt-2 list-none space-y-2 p-0">
               {view.crops.map(c => {
                 const have = seedCount(view, c.cropKey)

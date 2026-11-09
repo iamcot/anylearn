@@ -57,6 +57,13 @@ export default function FarmScene({ view, progress, size, kind, tod, elapsed, se
   const active = progress.compost.active
   const binLeft = active && !active.ready ? secondsUntil(active.readyAt, progress.serverNow, elapsed) : 0
   const trees = treeSpots(region, tw)
+  const npcW = Math.min(Math.max(size.w * 0.09, 44), 84)
+  const npcs = [
+    { img: 'npc_bu_nhin', x: region.x0 + region.aw * 0.3, delay: 0 },
+    { img: 'npc_co_tho', x: region.x0 + region.aw * 0.5, delay: 0.7 },
+    { img: 'npc_be_mam', x: region.x0 + region.aw * 0.68, delay: 1.4 },
+    ...(progress.hasDog ? [{ img: 'npc_cho_bong', x: region.x0 + region.aw * 0.84, delay: 0.3 }] : []),
+  ]
   const pill = 'whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-extrabold shadow'
 
   return (
@@ -78,6 +85,12 @@ export default function FarmScene({ view, progress, size, kind, tod, elapsed, se
           {active.ready ? 'Nhận phân' : formatWait(binLeft)}
         </span>
       )}
+
+      {/* friends of the farm stand on the grass strip under the field (no taps, only company) */}
+      {npcs.map(n => (
+        <img key={n.img} src={farmImg(n.img)} alt="" draggable={false} className="pointer-events-none absolute animate-bounce object-contain drop-shadow [animation-duration:3.2s]"
+          style={{ left: px(n.x), top: px(region.y1 + 4), width: px(npcW), transform: 'translate(-50%, -100%)', zIndex: 95, animationDelay: `${n.delay}s` }} />
+      ))}
 
       {centers.map((c, i) => {
         const p = view.plots[i]

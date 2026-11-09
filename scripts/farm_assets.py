@@ -63,7 +63,7 @@ def main():
     os.makedirs(OUT, exist_ok=True)
     total = 0
     for f in sorted(os.listdir(SRC)):
-        if not f.endswith('.png'):
+        if not f.endswith('.png') or f.endswith('_sheet.png'):
             continue
         name = f[:-4]
         img = Image.open(os.path.join(SRC, f))

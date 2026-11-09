@@ -71,3 +71,26 @@ export function treeSpots(region: Region, tw: number): Spot[] {
   const w = Math.min(Math.max(tw * 0.55, 40), 90)
   return [0, 1, 2].map(i => ({ x: region.x0 + w * 0.6 + i * w * 1.05, y: region.y1 - w * 0.35 - (i === 1 ? w * 0.05 : 0), w }))
 }
+
+/** The smallest a soil tile may get before the garden grows past the screen (the player then pans around it). */
+export const MIN_TILE = 58
+const MAX_WORLD_FACTOR = 3
+
+/** The size of the garden "world". It equals the screen while the tiles stay big enough, and grows (up to 3 x) when many plots would shrink them under MIN_TILE. */
+export function worldSize(size: Size, cells: number): Size {
+  let f = 1
+  for (let i = 0; i < 4; i++) {
+    const { tw } = cellCenters(cells, fieldRegion({ w: size.w * f, h: size.h * f }))
+    if (tw >= MIN_TILE || f >= MAX_WORLD_FACTOR) break
+    f = Math.min(f * (MIN_TILE / tw), MAX_WORLD_FACTOR)
+  }
+  return { w: Math.round(size.w * f), h: Math.round(size.h * f) }
+}
+
+/** Where to put the world on the screen so its field sits in the free part of the screen (never leaves an empty edge). */
+export function worldOffset(size: Size, world: Size): { x: number; y: number } {
+  const target = fieldRegion(size)
+  const mine = fieldRegion(world)
+  const clamp = (v: number, min: number, max: number) => Math.min(Math.max(v, min), max)
+  return { x: clamp(target.cx - mine.cx, Math.min(size.w - world.w, 0), 0), y: clamp(target.cy - mine.cy, Math.min(size.h - world.h, 0), 0) }
+}
