@@ -47,6 +47,7 @@ public class FarmController {
     @PostMapping("/debug/advance")
     public ApiResponse<?> debugAdvance(@AuthenticationPrincipal User user, @RequestBody Map<String, Object> body) {
         if (user == null || !"admin".equals(user.getRole())) return ApiResponse.fail("Chỉ dành cho admin");
+        if ("new-orders".equals(body.get("kind"))) return run(user, () -> farm.debugNewOrders(user.getId()));
         if ("orders".equals(body.get("kind"))) return run(user, () -> farm.debugFillOrders(user.getId()));
         Integer slot = body.get("slot") instanceof Number n ? n.intValue() : null;
         int minutes = ((Number) body.getOrDefault("minutes", 10)).intValue();

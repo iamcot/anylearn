@@ -75,3 +75,4 @@ export const setAllowSteal = (token: string, allowSteal: boolean) => authFetch<{
 /** Admins only: age the planted crops by some minutes (one slot, or all) to test the growth stages. */
 export const debugAdvance = (token: string, minutes: number, slot?: number) => authFetch<{ plots: number }>('/farm/debug/advance', token, { method: 'POST', body: JSON.stringify({ minutes, slot }) })
 export const debugFillOrders = (token: string) => authFetch<{ added: number }>('/farm/debug/advance', token, { method: 'POST', body: JSON.stringify({ kind: 'orders' }) })
+export const debugNewOrders = (token: string) => authFetch<{ removed: number }>('/farm/debug/advance', token, { method: 'POST', body: JSON.stringify({ kind: 'new-orders' }) })

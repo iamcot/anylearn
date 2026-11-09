@@ -9,7 +9,7 @@ import { useNotifications } from '@/components/header/useNotifications'
 import { ChevronLeftIcon } from '@/components/icons'
 import BrandText from '@/components/fun/BrandText'
 import {
-  buyFertilizer, collectCompost, debugAdvance, debugFillOrders, expandPlots, fertilizePlot, getFarm, getProgress, harvestPlots, plantCrop, sellCrops, startCompost, waterPlots,
+  buyFertilizer, collectCompost, debugAdvance, debugFillOrders, debugNewOrders, expandPlots, fertilizePlot, getFarm, getProgress, harvestPlots, plantCrop, sellCrops, startCompost, waterPlots,
   type FarmCrop, type FarmPlot, type FarmProgress, type FarmView,
 } from '@/lib/api/farm'
 import OrdersTab from '@/components/fun/farm/OrdersTab'
@@ -279,7 +279,8 @@ export default function FarmPage() {
         <div className="absolute left-2 top-[88px] z-[700] flex max-w-[calc(100%-90px)] flex-wrap items-center gap-1 rounded-2xl bg-black/55 px-2 py-1 text-[11px] font-bold text-white">
           <span>Debug</span>
           {[[10, '+10p'], [60, '+1g'], [1440, '+1ng']].map(([m, l]) => <button key={m} type="button" className="cursor-pointer rounded-full border-0 bg-white/90 px-2 py-0.5 text-[11px] font-extrabold text-ink" onClick={async () => { await debugAdvance(token, m as number); await load() }}>{l}</button>)}
-          <button type="button" className="cursor-pointer rounded-full border-0 bg-amber-200 px-2 py-0.5 text-[11px] font-extrabold text-ink" onClick={async () => { await debugFillOrders(token); await load(); setNote('Đã nạp nông sản cho đơn hàng') }}>Nạp đơn</button>
+          <button type="button" className="cursor-pointer rounded-full border-0 bg-amber-200 px-2 py-0.5 text-[11px] font-extrabold text-ink" onClick={async () => { await debugFillOrders(token); await load(); setNote('Đã bỏ nông sản của các đơn vào Kho') }}>Nạp đơn</button>
+          <button type="button" className="cursor-pointer rounded-full border-0 bg-amber-200 px-2 py-0.5 text-[11px] font-extrabold text-ink" onClick={async () => { await debugNewOrders(token); await load(); setNote('Đã đổi đơn hàng mới') }}>Đơn mới</button>
           {(['auto', 'day', 'sunset', 'night'] as const).map(k => <button key={k} type="button" className={`cursor-pointer rounded-full border-0 px-2 py-0.5 text-[11px] font-extrabold ${todPick === k ? 'bg-green text-white' : 'bg-white/90 text-ink'}`} onClick={() => setTodPick(k)}>{{ auto: 'Auto', day: 'Ngày', sunset: 'Chiều', night: 'Đêm' }[k]}</button>)}
         </div>
       )}

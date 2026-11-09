@@ -456,6 +456,13 @@ public class FarmService {
         return Map.of("plots", n, "bins", bins, "minutes", m);
     }
 
+    /** Testing aid for admins: throw the open orders away and let the cooldown pass, so the next look draws new ones. */
+    public Map<String, Object> debugNewOrders(long userId) {
+        int gone = jdbc.update("DELETE FROM farm_orders WHERE user_id = ? AND status = 'open'", userId);
+        jdbc.update("UPDATE farm_orders SET done_at = DATE_SUB(done_at, INTERVAL 7 DAY) WHERE user_id = ? AND done_at IS NOT NULL", userId);
+        return Map.of("removed", gone);
+    }
+
     /** Testing aid for admins: put the crops of every open order into the storage, so the orders can be delivered at once. */
     public Map<String, Object> debugFillOrders(long userId) {
         int added = 0;
