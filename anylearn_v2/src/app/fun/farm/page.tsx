@@ -17,6 +17,7 @@ import QuestsTab from '@/components/fun/farm/QuestsTab'
 import FarmScene from '@/components/fun/farm/FarmScene'
 import NpcSays from '@/components/fun/farm/NpcSays'
 import PanWorld from '@/components/fun/farm/PanWorld'
+import SeedBag from '@/components/fun/farm/SeedBag'
 import { CROPS_WITH_ART, farmImg, timeOfDay } from '@/lib/farm/art'
 import { worldSize, type SceneKind, type Size } from '@/lib/farm/scene'
 import { capUsedPercent, formatWait, isRipe, sellable, seedCount, slotsToHarvest, slotsToWater } from '@/lib/farm/rules'
@@ -318,7 +319,7 @@ export default function FarmPage() {
               <div>
                 <h3 className="m-0 mb-1 text-sm font-black">Hạt giống</h3>
                 {view.crops.filter(c => seedCount(view, c.cropKey) > 0).length === 0 ? <p className="m-0 text-xs text-muted">Chưa có hạt dự trữ. Hạt mua khi gieo.</p> : (
-                  <ul className="m-0 grid list-none grid-cols-2 gap-2 p-0">{view.crops.filter(c => seedCount(view, c.cropKey) > 0).map(c => <li key={c.cropKey} className="flex items-center gap-2 rounded-xl bg-slate-50 p-2 text-sm font-bold"><span className="text-2xl">{c.emoji}</span><span className="flex-1">{c.name}</span><span>× {seedCount(view, c.cropKey)}</span></li>)}</ul>
+                  <ul className="m-0 grid list-none grid-cols-2 gap-2 p-0">{view.crops.filter(c => seedCount(view, c.cropKey) > 0).map(c => <li key={c.cropKey} className="flex items-center gap-2 rounded-xl bg-slate-50 p-2 text-sm font-bold"><SeedBag cropKey={c.cropKey} emoji={c.emoji} className="size-10" /><span className="flex-1">{c.name}</span><span>× {seedCount(view, c.cropKey)}</span></li>)}</ul>
                 )}
               </div>
               <div>
@@ -440,7 +441,7 @@ export default function FarmPage() {
               {view.crops.filter(c => c.category === 'tree').map(c => (
                 <li key={c.cropKey}>
                   <button type="button" disabled={busy} onClick={() => plantTreeAt(c)} className="flex min-h-14 w-full cursor-pointer items-center gap-3 rounded-xl border-0 bg-slate-50 p-2 text-left ring-1 ring-line disabled:opacity-50">
-                    <img src={farmImg(`${c.cropKey}_product`)} alt="" className="size-12 shrink-0 object-contain" draggable={false} />
+                    <SeedBag cropKey={c.cropKey} emoji={c.emoji} className="size-14" />
                     <span className="flex-1"><b className="block text-sm">{c.name}</b><span className="text-xs text-muted">{c.description}</span>
                       <span className="block text-xs font-bold text-green-dark">Lớn {formatWait(c.growMinutes * 60)} · {c.baseYield} quả mỗi lần · bán ~{view.market.prices.find(x => x.cropKey === c.cropKey)?.price ?? '?'} xu/quả</span></span>
                     <span className="text-xs font-extrabold">{c.seedPrice} xu</span>
@@ -462,7 +463,7 @@ export default function FarmPage() {
                 return (
                   <li key={c.cropKey}>
                     <button type="button" disabled={c.locked || busy} onClick={() => plant(c)} className="flex min-h-14 w-full cursor-pointer items-center gap-3 rounded-xl border-0 bg-slate-50 p-2 text-left ring-1 ring-line disabled:opacity-50">
-                      <span className="text-3xl" aria-hidden>{c.emoji}</span>
+                      <SeedBag cropKey={c.cropKey} emoji={c.emoji} className="size-14" />
                       <span className="flex-1"><b className="block text-sm">{c.name}</b><span className="text-xs text-muted">{formatWait(c.growMinutes * 60)} · tưới {c.waterNeeds} lần · {c.baseYield} quả</span>
 <span className="block text-xs font-bold text-green-dark">Bán ~{view.market.prices.find(x => x.cropKey === c.cropKey)?.price ?? '?'} xu/quả · +{c.xp} XP</span></span>
                       <span className="text-xs font-extrabold">{c.locked ? `Cấp ${c.unlockLevel}` : have > 0 ? `Có ${have} hạt` : `${c.seedPrice} xu`}</span>
