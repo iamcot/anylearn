@@ -10,7 +10,7 @@ import { ChevronLeftIcon } from '@/components/icons'
 import BrandText from '@/components/fun/BrandText'
 import {
   buyFertilizer, collectCompost, debugAdvance, debugFillOrders, debugNewOrders, expandPlots, fertilizePlot, getFarm, getProgress, harvestPlots, plantCrop, sellCrops, startCompost, waterPlots,
-  type FarmCrop, type FarmPlot, type FarmProgress, type FarmView,
+  plantTree, harvestTree, removeTree, type FarmCrop, type FarmPlot, type FarmProgress, type FarmView,
 } from '@/lib/api/farm'
 import OrdersTab from '@/components/fun/farm/OrdersTab'
 import QuestsTab from '@/components/fun/farm/QuestsTab'
@@ -75,6 +75,7 @@ export default function FarmPage() {
   const [error, setError] = useState('')
   const [note, setNote] = useState('')
   const [pick, setPick] = useState<number | null>(null)
+  const [treePick, setTreePick] = useState<number | null>(null)
   const [selected, setSelected] = useState<number | null>(null)
   const [confirmExpand, setConfirmExpand] = useState(false)
   const [kind, setKind] = useState<SceneKind>('mobile')
@@ -205,6 +206,24 @@ export default function FarmPage() {
     else setNote(`${cropOf(p.cropKey)?.name ?? 'Cây'}: ${plotLabel(p)}`)
   }
 
+  /** A tap on a tree slot: pick fruit, uproot a rested tree, plant in an empty slot, or say how long is left. */
+  function tapTree(slot: number) {
+    if (!token || !progress) return
+    const t = progress.trees?.[slot]
+    if (!t || !t.unlocked) return
+    if (!t.cropKey) setTreePick(slot)
+    else if (t.phase === 'fruiting') act(() => harvestTree(token, slot), `Đã hái quả ${cropOf(t.cropKey)?.name ?? ''}`, 'harvest')
+    else if (t.phase === 'resting') act(() => removeTree(token, slot), 'Đã nhổ cây, nhận 1 phân bón')
+    else setNote(`${cropOf(t.cropKey)?.name ?? 'Cây'}: ${t.phase === 'sapling' ? 'ra quả đầu tiên' : 'ra quả tiếp'} sau ${formatWait(t.secondsLeft ?? 0)}`)
+  }
+
+  async function plantTreeAt(crop: FarmCrop) {
+    if (treePick === null || !token) return
+    const slot = treePick
+    setTreePick(null)
+    await act(() => plantTree(token, slot, crop.cropKey), `Đã trồng ${crop.name}`, 'water')
+  }
+
   function tapCompost() {
     if (!token || !progress) return
     if (progress.compost.active?.ready) act(() => collectCompost(token), 'Đã nhận phân bón')
@@ -227,7 +246,7 @@ export default function FarmPage() {
 
   return (
     <div ref={rootRef} className="fixed inset-0 z-[90] overflow-hidden bg-[#9be15d]">
-      {size && <PanWorld size={size} world={world!}><FarmScene view={view} progress={progress} size={world!} kind={kind} tod={tod} elapsed={elapsed} selected={selected} onTile={tapTile} onExpand={() => setConfirmExpand(true)} onCompost={tapCompost} /></PanWorld>}
+      {size && <PanWorld size={size} world={world!}><FarmScene view={view} progress={progress} size={world!} kind={kind} tod={tod} elapsed={elapsed} selected={selected} onTile={tapTile} onExpand={() => setConfirmExpand(true)} onCompost={tapCompost} onTree={tapTree} /></PanWorld>}
 
       <div className="pointer-events-none absolute inset-x-0 top-0 z-[700] flex items-start justify-between p-2">
         <div className="pointer-events-auto flex items-start gap-1">
@@ -412,12 +431,33 @@ export default function FarmPage() {
         </div>
       )}
 
+      {treePick !== null && (
+        <div className="fixed inset-0 z-[1000] flex items-end bg-black/40 lg:items-center lg:justify-center" role="dialog" aria-modal="true" aria-label="Chọn cây lâu năm" onClick={() => setTreePick(null)}>
+          <div className="max-h-[80vh] w-full overflow-y-auto rounded-t-3xl bg-white p-4 lg:max-w-md lg:rounded-3xl" onClick={e => e.stopPropagation()}>
+            <div className="sticky -top-4 z-10 -mx-4 -mt-4 flex items-center justify-between bg-white px-4 pb-2 pt-4"><h2 className="m-0 text-lg font-black">Chọn cây lâu năm</h2><button type="button" className="min-h-11 cursor-pointer border-0 bg-transparent text-sm font-bold" onClick={() => setTreePick(null)}>Đóng</button></div>
+            <p className="m-0 text-xs text-muted">Trồng một lần, lớn lên rồi ra quả nhiều lần. Hết lượt thì cây nghỉ, nhổ đi nhận 1 phân bón.</p>
+            <ul className="m-0 mt-2 list-none space-y-2 p-0">
+              {view.crops.filter(c => c.category === 'tree').map(c => (
+                <li key={c.cropKey}>
+                  <button type="button" disabled={busy} onClick={() => plantTreeAt(c)} className="flex min-h-14 w-full cursor-pointer items-center gap-3 rounded-xl border-0 bg-slate-50 p-2 text-left ring-1 ring-line disabled:opacity-50">
+                    <img src={farmImg(`${c.cropKey}_product`)} alt="" className="size-12 shrink-0 object-contain" draggable={false} />
+                    <span className="flex-1"><b className="block text-sm">{c.name}</b><span className="text-xs text-muted">{c.description}</span>
+                      <span className="block text-xs font-bold text-green-dark">Lớn {formatWait(c.growMinutes * 60)} · {c.baseYield} quả mỗi lần · bán ~{view.market.prices.find(x => x.cropKey === c.cropKey)?.price ?? '?'} xu/quả</span></span>
+                    <span className="text-xs font-extrabold">{c.seedPrice} xu</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+
       {pick !== null && (
         <div className="fixed inset-0 z-[1000] flex items-end bg-black/40 lg:items-center lg:justify-center" role="dialog" aria-modal="true" aria-label="Chọn hạt" onClick={() => setPick(null)}>
           <div className="max-h-[80vh] w-full overflow-y-auto rounded-t-3xl bg-white p-4 lg:max-w-md lg:rounded-3xl" onClick={e => e.stopPropagation()}>
             <div className="sticky -top-4 z-10 -mx-4 -mt-4 flex items-center justify-between bg-white px-4 pb-2 pt-4"><h2 className="m-0 flex items-center gap-2 text-lg font-black"><img src={farmImg('item_seed_packet')} alt="" className="size-8 object-contain" />Chọn hạt giống</h2><button type="button" className="min-h-11 cursor-pointer border-0 bg-transparent text-sm font-bold" onClick={() => setPick(null)}>Đóng</button></div>
             <ul className="m-0 mt-2 list-none space-y-2 p-0">
-              {view.crops.map(c => {
+              {view.crops.filter(c => c.category !== 'tree').map(c => {
                 const have = seedCount(view, c.cropKey)
                 return (
                   <li key={c.cropKey}>

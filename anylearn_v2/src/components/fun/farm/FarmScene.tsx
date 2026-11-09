@@ -17,6 +17,7 @@ interface Props {
   onTile: (slot: number) => void
   onExpand: () => void
   onCompost: () => void
+  onTree: (slot: number) => void
 }
 
 const DIAMOND = 'polygon(50% 3%, 97% 50%, 50% 97%, 3% 50%)'
@@ -44,7 +45,7 @@ function Hint({ img, x, y, w }: { img: string; x: number; y: number; w: number }
 }
 
 /** The garden as a game screen: the background fills the viewport and the tiles lie on the grass, nothing else around them. */
-export default function FarmScene({ view, progress, size, kind, tod, elapsed, selected, onTile, onExpand, onCompost }: Props) {
+export default function FarmScene({ view, progress, size, kind, tod, elapsed, selected, onTile, onExpand, onCompost, onTree }: Props) {
   const region = fieldRegion(size)
   const cells = view.plots.length + (view.nextPlotPrice > 0 ? 1 : 0)
   const { tw, th, centers } = cellCenters(cells, region)
@@ -63,14 +64,22 @@ export default function FarmScene({ view, progress, size, kind, tod, elapsed, se
     <div className="absolute inset-0 select-none overflow-hidden bg-[#9be15d]">
       <img src={backgroundFor(tod, kind)} alt="" className={`absolute inset-0 size-full object-cover ${kind === 'mobile' ? 'object-[72%_top]' : ''}`} draggable={false} />
 
-      {trees.map((t, i) => (
-        <div key={i} className="pointer-events-none absolute" style={{ left: px(t.x), top: px(t.y), width: px(t.w), transform: 'translate(-50%, -100%)', zIndex: 50 + i }}>
-          <img src={farmImg('tree_slot_empty')} alt="" className={`block h-auto w-full ${view.level < TREE_SLOT_LEVELS[i] ? 'opacity-50 grayscale' : ''}`} draggable={false} />
-          {view.level < TREE_SLOT_LEVELS[i] && (
-            <span className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 ${pill} bg-white/70 text-ink`}>Cấp {TREE_SLOT_LEVELS[i]}</span>
-          )}
-        </div>
-      ))}
+      {trees.map((t, i) => {
+        const slot = progress.trees?.[i]
+        const locked = view.level < TREE_SLOT_LEVELS[i]
+        const img = slot?.cropKey && slot.phase ? farmImg(`${slot.cropKey}_${slot.phase}`) : farmImg('tree_slot_empty')
+        return (
+          <div key={i} className="absolute" style={{ left: px(t.x), top: px(t.y), width: px(t.w), transform: 'translate(-50%, -100%)', zIndex: 50 + i }}>
+            <button type="button" disabled={locked} aria-label={locked ? `Chỗ cây, mở ở cấp ${TREE_SLOT_LEVELS[i]}` : slot?.cropKey ? 'Cây lâu năm' : 'Chỗ cây trống'} onClick={() => onTree(i)} className="block w-full cursor-pointer border-0 bg-transparent p-0 disabled:cursor-default">
+              <img src={img} alt="" className={`block h-auto w-full ${locked ? 'opacity-50 grayscale' : ''} ${slot?.phase === 'fruiting' ? 'animate-bounce [animation-duration:2.4s]' : ''}`} draggable={false} />
+            </button>
+            {locked && <span className={`pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 ${pill} bg-white/70 text-ink`}>Cấp {TREE_SLOT_LEVELS[i]}</span>}
+            {slot?.phase === 'fruiting' && <span className={`pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 ${pill} bg-green/80 text-white`}>Thu quả</span>}
+            {(slot?.phase === 'sapling' || slot?.phase === 'grown') && <span className={`pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 ${pill} bg-white/60 text-ink`}>{formatWait((slot.secondsLeft ?? 0) - elapsed / 1000)}</span>}
+            {slot?.phase === 'resting' && <span className={`pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 ${pill} bg-amber-500/80 text-white`}>Nhổ cây</span>}
+          </div>
+        )
+      })}
 
       <button type="button" aria-label="Thùng ủ phân" onClick={onCompost} className="absolute block cursor-pointer border-0 bg-transparent p-0" style={{ left: px(bin.x), top: px(bin.y), width: px(bin.w), height: px(binH), transform: 'translate(-50%, -50%)', zIndex: 90 }}>
         <img src={farmImg('compost_bin')} alt="" className="size-full object-contain drop-shadow" draggable={false} />

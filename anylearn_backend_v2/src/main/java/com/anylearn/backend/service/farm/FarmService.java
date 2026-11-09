@@ -77,7 +77,7 @@ public class FarmService {
         return jdbc.update("UPDATE farm_inventory SET qty_own = qty_own - ? WHERE user_id = ? AND item_key = ? AND qty_own >= ?", qty, userId, key, qty) == 1;
     }
 
-    private void spend(long userId, int amount, String detail) {
+    void spend(long userId, int amount, String detail) {
         if (amount <= 0) return;
         if (!coins.debit(userId, amount, CoinService.SOURCE_FARM_SEED, detail)) throw new IllegalStateException("Bạn chưa đủ " + funSettings.coinName() + ".");
         jdbc.update("INSERT INTO farm_day_stats (user_id, day, coins_spent) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE coins_spent = coins_spent + VALUES(coins_spent)", userId, Date(today()), amount);
@@ -306,6 +306,7 @@ public class FarmService {
         if (slot < 0 || slot >= ((Number) profile.get("plots")).intValue()) throw new IllegalStateException("Ô đất này chưa mở.");
         Map<String, Object> crop = cropMap().get(cropKey);
         if (crop == null || ((Number) crop.get("active")).intValue() != 1) throw new IllegalStateException("Cây này chưa có.");
+        if ("tree".equals(crop.get("category"))) throw new IllegalStateException("Cây lâu năm trồng ở chỗ cây riêng.");
         if (((Number) crop.get("unlock_level")).intValue() > ((Number) profile.get("level")).intValue()) throw new IllegalStateException("Cần đạt cấp " + crop.get("unlock_level") + " để trồng cây này.");
         Map<String, Object> existing = plotRow(userId, slot);
         if (existing != null && existing.get("crop_key") != null) throw new IllegalStateException("Ô đất đang có cây.");

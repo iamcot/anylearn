@@ -35,6 +35,7 @@ public class FarmProgressService {
     private final FunSettings funSettings;
     private final GameEventService events;
     private final ObjectMapper mapper;
+    private final FarmTreeService trees;
 
     // ---------------------------------------------------------------- numbers
 
@@ -132,6 +133,7 @@ public class FarmProgressService {
         out.put("challenges", challenges(userId, life));
         out.put("chapters", chapters(userId, level, plots, life));
         out.put("compost", compost(userId));
+        out.put("trees", trees.slots(userId, level));
         out.put("neighbors", neighbors(userId));
         return out;
     }
@@ -202,7 +204,7 @@ public class FarmProgressService {
         LocalDateTime now = farm.now();
         List<Map<String, Object>> open = jdbc.queryForList("SELECT * FROM farm_orders WHERE user_id = ? AND status = 'open' ORDER BY slot", userId);
         List<FarmGameRules.CropInfo> unlocked = new ArrayList<>();
-        for (Map<String, Object> c : jdbc.queryForList("SELECT crop_key, unit_price, xp, base_yield FROM farm_crops WHERE active = 1 AND unlock_level <= ?", level)) {
+        for (Map<String, Object> c : jdbc.queryForList("SELECT crop_key, unit_price, xp, base_yield FROM farm_crops WHERE active = 1 AND category <> 'tree' AND unlock_level <= ?", level)) {
             unlocked.add(new FarmGameRules.CropInfo((String) c.get("crop_key"), ((Number) c.get("unit_price")).intValue(), ((Number) c.get("xp")).intValue(), ((Number) c.get("base_yield")).intValue()));
         }
         for (int slot = 0; slot < slots && !unlocked.isEmpty(); slot++) {
@@ -283,7 +285,7 @@ public class FarmProgressService {
         Map<String, Object> best = null;
         Map<String, Object> exact = null;
         for (Map<String, Object> c : farm.cropMap().values()) {
-            if (((Number) c.get("active")).intValue() != 1 || !"shop".equals(c.get("seed_source"))) continue;
+            if (((Number) c.get("active")).intValue() != 1 || !"shop".equals(c.get("seed_source")) || "tree".equals(c.get("category"))) continue;
             int unlock = ((Number) c.get("unlock_level")).intValue();
             if (unlock > level) continue;
             if (best == null || unlock >= ((Number) best.get("unlock_level")).intValue()) best = c;

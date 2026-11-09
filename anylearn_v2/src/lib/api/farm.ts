@@ -42,6 +42,8 @@ export interface FarmChapter {
 export interface FarmPathStep { index: number; label: string; progress: number; target: number; xp: number; claimed: boolean; locked: boolean; claimable: boolean }
 export interface FarmPath { level: number; steps: FarmPathStep[]; allDone: boolean; percent: number }
 export interface FarmChallenge { key: string; group: 'knowledge' | 'social' | 'habit'; label: string; progress: number; target: number; coins: number; fertilizer: number; claimed: boolean; claimable: boolean }
+export interface FarmTree { slot: number; levelNeeded: number; unlocked: boolean; cropKey?: string; phase?: 'sapling' | 'grown' | 'fruiting' | 'resting'; secondsLeft?: number; harvestsDone?: number; cycles?: number }
+
 export interface FarmProgress {
   serverNow: string; hasDog: boolean; neighbors: number
   orders: FarmOrder[]
@@ -50,6 +52,7 @@ export interface FarmProgress {
   challenges: FarmChallenge[]
   tasks: { items: FarmTaskRow[]; xp: number; boxClaimed: boolean; boxReady: boolean; boxMin: number; boxMax: number }
   chapters: FarmChapter[]
+  trees?: FarmTree[]
   compost: { units: number; minutes: number; active: { id: number; readyAt: string; ready: boolean } | null }
 }
 
@@ -88,3 +91,7 @@ export const debugNewOrders = (token: string) => authFetch<{ removed: number }>(
 export const farmGift = (token: string) => authFetch<{ given: boolean }>('/farm/gift', token, { method: 'POST' })
 
 export const levelUpFarm = (token: string) => authFetch<{ levelUp: boolean; level: number; levelCoins: number }>('/farm/level-up', token, { method: 'POST' })
+
+export const plantTree = (token: string, slot: number, cropKey: string) => authFetch<{ planted: string }>('/farm/tree/plant', token, { method: 'POST', body: JSON.stringify({ slot, cropKey }) })
+export const harvestTree = (token: string, slot: number) => authFetch<{ harvested: Record<string, number>; xp: number }>('/farm/tree/harvest', token, { method: 'POST', body: JSON.stringify({ slot }) })
+export const removeTree = (token: string, slot: number) => authFetch<{ removed: boolean }>('/farm/tree/remove', token, { method: 'POST', body: JSON.stringify({ slot }) })

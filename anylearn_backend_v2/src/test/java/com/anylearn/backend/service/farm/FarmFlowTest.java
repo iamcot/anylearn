@@ -20,6 +20,7 @@ class FarmFlowTest {
     @Autowired FarmProgressService progress;
     @Autowired FarmSocialService social;
     @Autowired FarmPushService push;
+    @Autowired FarmTreeService trees;
 
     private long user() {
         String phone = "09" + (long) (Math.random() * 100000000L);
@@ -117,5 +118,28 @@ class FarmFlowTest {
         farm.view(u);
         jdbc.update("UPDATE farm_profiles SET last_visit_at = NOW() - INTERVAL 1 DAY WHERE user_id = ?", u);
         push.run();
+    }
+
+    @Test
+    void treeIsPlantedPickedAndUprooted() {
+        long u = user();
+        farm.view(u);
+        jdbc.update("UPDATE farm_profiles SET level = 10 WHERE user_id = ?", u);
+        jdbc.update("UPDATE fun_wallets SET balance = 500 WHERE user_id = ?", u);
+        jdbc.update("INSERT IGNORE INTO fun_wallets (user_id, balance) VALUES (?, 500)", u);
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalStateException.class, () -> farm.plant(u, 0, "bui_dau_sao_bang"));   // a tree is not a plot crop
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalStateException.class, () -> trees.plant(u, 1, "bui_dau_sao_bang")); // slot 2 opens at level 11
+        trees.plant(u, 0, "bui_dau_sao_bang");
+        assertEquals("sapling", trees.slots(u, 10).get(0).get("phase"));
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalStateException.class, () -> trees.harvest(u, 0));
+        jdbc.update("UPDATE farm_trees SET next_ready_at = NOW() - INTERVAL 1 HOUR");
+        assertEquals("fruiting", trees.slots(u, 10).get(0).get("phase"));
+        assertNotNull(trees.harvest(u, 0));
+        assertEquals("grown", trees.slots(u, 10).get(0).get("phase"));
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalStateException.class, () -> trees.remove(u, 0));
+        jdbc.update("UPDATE farm_trees SET harvests_done = cycles");
+        assertEquals("resting", trees.slots(u, 10).get(0).get("phase"));
+        trees.remove(u, 0);
+        assertNotNull(progress.progress(u).get("trees"));
     }
 }

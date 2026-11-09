@@ -5,6 +5,7 @@ import com.anylearn.backend.entity.User;
 import com.anylearn.backend.service.farm.FarmProgressService;
 import com.anylearn.backend.service.farm.FarmService;
 import com.anylearn.backend.service.farm.FarmSettings;
+import com.anylearn.backend.service.farm.FarmTreeService;
 import com.anylearn.backend.service.farm.FarmSocialService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -24,6 +25,7 @@ public class FarmController {
     private final FarmProgressService progress;
     private final FarmSocialService social;
     private final FarmSettings settings;
+    private final FarmTreeService trees;
 
     /** Player-to-player features (neighbours, helping, stealing) are paused unless the admin switches `social_enabled` on. */
     private ApiResponse<?> runSocial(User user, Supplier<Object> action) {
@@ -140,6 +142,21 @@ public class FarmController {
     @PostMapping("/gift")
     public ApiResponse<?> gift(@AuthenticationPrincipal User user) {
         return run(user, () -> progress.gift(user.getId()));
+    }
+
+    @PostMapping("/tree/plant")
+    public ApiResponse<?> plantTree(@AuthenticationPrincipal User user, @RequestBody Map<String, Object> body) {
+        return run(user, () -> trees.plant(user.getId(), (int) num(body, "slot"), String.valueOf(body.get("cropKey"))));
+    }
+
+    @PostMapping("/tree/harvest")
+    public ApiResponse<?> harvestTree(@AuthenticationPrincipal User user, @RequestBody Map<String, Object> body) {
+        return run(user, () -> trees.harvest(user.getId(), (int) num(body, "slot")));
+    }
+
+    @PostMapping("/tree/remove")
+    public ApiResponse<?> removeTree(@AuthenticationPrincipal User user, @RequestBody Map<String, Object> body) {
+        return run(user, () -> trees.remove(user.getId(), (int) num(body, "slot")));
     }
 
     @PostMapping("/level-up")
