@@ -39,7 +39,7 @@ export default function FarmScene({ view, kind, tod, elapsed, selected, onTile, 
   const box = (xPct: number, yPct: number, w: number): CSSProperties => ({ left: `${xPct}%`, top: `${yPct}%`, width: cq(w), transform: 'translate(-50%, -50%)' })
 
   return (
-    <div className="relative mx-auto w-full select-none overflow-hidden bg-[#9be15d] lg:rounded-3xl lg:shadow-lg" style={{ containerType: 'inline-size', aspectRatio: layout.aspect, fontSize }}>
+    <div className="relative isolate mx-auto w-full select-none overflow-hidden bg-[#9be15d] lg:rounded-3xl lg:shadow-lg" style={{ containerType: 'inline-size', aspectRatio: layout.aspect, fontSize }}>
       <img src={backgroundFor(tod, kind)} alt="" className="absolute inset-0 size-full object-cover" draggable={false} />
 
       {layout.decor.map(d => (
@@ -74,17 +74,21 @@ export default function FarmScene({ view, kind, tod, elapsed, selected, onTile, 
           <div key={p.slot} className="absolute" style={{ left: cq(left), top: cq(top), width: cq(tw), height: cq(th), zIndex: z }}>
             <img src={plotImage(p)} alt="" className={`absolute inset-0 size-full object-contain transition-[filter] ${sel ? 'drop-shadow-[0_0_6px_rgba(255,255,255,1)]' : ''}`} draggable={false} />
             {p.phase !== 'empty' && (
-              <div className={`pointer-events-none absolute left-1/2 ${p.phase === 'ripe' ? 'animate-bounce [animation-duration:2.4s]' : ''}`} style={{ width: cq(spriteW), top: cq(th * 0.62 - spriteH), transform: 'translateX(-50%)' }}>
+              <div className="pointer-events-none absolute left-1/2" style={{ width: cq(spriteW), top: cq(th * 0.62 - spriteH), transform: 'translateX(-50%)' }}><div className={p.phase === 'ripe' ? 'animate-bounce [animation-duration:2.4s]' : ''}>
                 {art
                   ? <img src={art} alt={crop?.name ?? ''} className={`block h-auto w-full ${p.phase === 'wilting' ? 'grayscale sepia' : p.phase === 'thirsty' ? 'saturate-50' : ''}`} draggable={false} />
                   : <div className="text-center leading-none" style={{ fontSize: cq(tw * 0.3) }} aria-hidden>{p.phase === 'ripe' ? crop?.emoji ?? '🌾' : p.phase === 'wilting' ? '🍂' : '🌱'}</div>}
-              </div>
+              </div></div>
             )}
             {p.phase === 'empty' && (
-              <img src={farmImg('item_seed_packet')} alt="" className="pointer-events-none absolute left-1/2 animate-bounce object-contain drop-shadow [animation-duration:2.2s]" style={{ width: cq(tw * 0.3), top: cq(th * 0.2), transform: 'translateX(-50%)' }} draggable={false} />
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                <img src={farmImg('item_seed_packet')} alt="" className="animate-bounce object-contain drop-shadow [animation-duration:2.2s]" style={{ width: cq(tw * 0.15), marginTop: cq(-th * 0.08) }} draggable={false} />
+              </div>
             )}
             {p.phase === 'thirsty' && (
-              <img src={farmImg('icon_thirsty')} alt="Khát nước" className="pointer-events-none absolute left-1/2 animate-bounce object-contain" style={{ width: cq(tw * 0.2), top: cq(th * 0.04), transform: 'translateX(-50%)' }} draggable={false} />
+              <div className="pointer-events-none absolute left-1/2" style={{ width: cq(tw * 0.2), top: cq(th * 0.04), transform: 'translateX(-50%)' }}>
+                <img src={farmImg('icon_thirsty')} alt="Khát nước" className="block w-full animate-bounce object-contain" draggable={false} />
+              </div>
             )}
             {tag && (
               <span className={`pointer-events-none absolute left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full px-2 py-0.5 text-[0.85em] font-extrabold shadow ${tag.tone}`} style={{ top: cq(th * 0.66) }}>{tag.text}</span>

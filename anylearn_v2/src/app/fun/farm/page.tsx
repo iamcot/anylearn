@@ -39,6 +39,7 @@ export default function FarmPage() {
   const [note, setNote] = useState('')
   const [pick, setPick] = useState<number | null>(null)
   const [selected, setSelected] = useState<number | null>(null)
+  const [confirmExpand, setConfirmExpand] = useState(false)
   const [kind, setKind] = useState<SceneKind>('mobile')
   const [busy, setBusy] = useState(false)
   const [loadedAt, setLoadedAt] = useState(0)
@@ -170,7 +171,7 @@ export default function FarmPage() {
         {tab === 'garden' && (
           <>
             <div className="mt-2">
-              <FarmScene view={view} kind={kind} tod={tod} elapsed={elapsed} selected={selected} onTile={tapTile} onExpand={() => act(() => expandPlots(token), 'Đã mở thêm ô đất')} />
+              <FarmScene view={view} kind={kind} tod={tod} elapsed={elapsed} selected={selected} onTile={tapTile} onExpand={() => setConfirmExpand(true)} />
             </div>
             <div className="mx-auto mt-2 max-w-[720px] px-3 lg:px-0">
               {plot && plot.phase !== 'empty' && (
@@ -257,6 +258,25 @@ export default function FarmPage() {
     </div>
         </section>
         </div>
+        </div>
+      )}
+
+      {confirmExpand && (
+        <div className="fixed inset-0 z-50 flex items-end bg-black/40 lg:items-center lg:justify-center" role="dialog" aria-modal="true" aria-label="Mở thêm ô đất" onClick={() => setConfirmExpand(false)}>
+          <div className="w-full rounded-t-3xl bg-white p-5 text-center lg:max-w-sm lg:rounded-3xl" onClick={e => e.stopPropagation()}>
+            <img src={farmImg('plot_locked')} alt="" className="mx-auto h-24 w-36 object-contain" />
+            <h2 className="m-0 mt-1 text-lg font-black">Mở thêm ô đất?</h2>
+            {view.level < view.nextPlotLevel
+              ? <p className="mt-1 text-sm text-muted">Ô đất này mở ở cấp {view.nextPlotLevel}. Bạn đang ở cấp {view.level}, chơi thêm để lên cấp nhé.</p>
+              : view.balance < view.nextPlotPrice
+                ? <p className="mt-1 text-sm text-muted">Cần {view.nextPlotPrice} {view.coinName} để mở ô đất mới, bạn đang có {view.balance}.</p>
+                : <p className="mt-1 text-sm text-muted">Mở ô đất mới cần <b>{view.nextPlotPrice} {view.coinName}</b>. Bạn có muốn mua không?</p>}
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <button type="button" className="min-h-11 cursor-pointer rounded-xl border-0 bg-white text-sm font-extrabold text-ink ring-1 ring-line" onClick={() => setConfirmExpand(false)}>Để sau</button>
+              <button type="button" className="btn btn--green min-h-11" disabled={busy || view.level < view.nextPlotLevel || view.balance < view.nextPlotPrice}
+                onClick={async () => { setConfirmExpand(false); await act(() => expandPlots(token), 'Đã mở thêm ô đất') }}>Mua · {view.nextPlotPrice} xu</button>
+            </div>
+          </div>
         </div>
       )}
 
