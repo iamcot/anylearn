@@ -1,8 +1,9 @@
 'use client'
 
+import { useState } from 'react'
 import type { FarmProgress, FarmView } from '@/lib/api/farm'
 import { enqueueRewards } from '@/lib/journey/store'
-import { claimChapter, claimTask, claimTaskBox } from '@/lib/api/farm'
+import { claimChallenge, claimChapter, claimPath, claimTask, claimTaskBox } from '@/lib/api/farm'
 
 interface Props { token: string; view: FarmView; progress: FarmProgress; busy: boolean; run: (action: () => Promise<{ error?: string; data?: unknown }>, ok: string) => Promise<void>; setNote: (s: string) => void }
 
@@ -10,13 +11,51 @@ function Bar({ value, max }: { value: number; max: number }) {
   return <div className="h-2 overflow-hidden rounded-full bg-slate-200"><div className="h-full bg-green" style={{ width: `${Math.min(100, Math.round((value / Math.max(max, 1)) * 100))}%` }} /></div>
 }
 
+const GROUPS = { knowledge: 'Cây Tri thức', social: 'Hàng xóm', habit: 'Chăm chỉ' } as const
+
 export default function QuestsTab({ token, view, progress, busy, run, setNote }: Props) {
   const t = progress.tasks
+  const [branch, setBranch] = useState<'path' | 'daily' | 'challenge'>('path')
+  const path = progress.path
+  const need = Math.max(view.xpForNext - view.xpIntoLevel, 0)
+  const branches = [['path', 'Lên cấp', path.steps.some(x => x.claimable)], ['daily', 'Hằng ngày', t.items.some(x => x.claimable) || t.boxReady], ['challenge', 'Thử thách', progress.challenges.some(x => x.claimable) || progress.chapters.some(x => x.claimable)]] as const
   return (
-    <div className="mt-4 space-y-5">
-      <section aria-label="Việc hôm nay" className="rounded-2xl bg-white p-4 ring-1 ring-line">
+    <div className="mt-4 space-y-4">
+      <div className="grid grid-cols-3 gap-1 rounded-xl bg-slate-100 p-1" role="tablist">
+        {branches.map(([k, l, dot]) => (
+          <button key={k} type="button" role="tab" aria-selected={branch === k} onClick={() => setBranch(k)} className={`relative min-h-10 cursor-pointer rounded-lg border-0 text-sm font-extrabold ${branch === k ? 'bg-white text-green-dark shadow-sm' : 'bg-transparent text-muted'}`}>
+            {l}{dot && <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-red-500" aria-hidden />}
+          </button>
+        ))}
+      </div>
+
+      {branch === 'path' && (
+        <section aria-label="Nhiệm vụ lên cấp" className="rounded-2xl bg-white p-4 ring-1 ring-line">
+          <h2 className="m-0 text-lg font-black">Lên cấp {path.level + 1}</h2>
+          <p className="mt-1 text-xs text-muted">Làm lần lượt từng bước. Nhiệm vụ cho khoảng {path.percent}% XP cần để lên cấp, phần còn lại đến từ thu hoạch cây. Còn thiếu <b>{need} XP</b>.</p>
+          <ul className="m-0 mt-3 list-none space-y-3 p-0">
+            {path.steps.map(st => (
+              <li key={st.index} className={st.locked ? 'opacity-50' : ''}>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-bold">{st.index + 1}. {st.label} ({st.progress}/{st.target})<span className="ml-2 whitespace-nowrap rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-extrabold text-amber-800">+{st.xp} XP</span></span>
+                  {st.claimed ? <span className="text-xs font-extrabold text-green-dark">✓ Xong</span>
+                    : <button type="button" className="min-h-9 cursor-pointer rounded-lg border-0 bg-green px-3 text-xs font-extrabold text-white disabled:opacity-40" disabled={busy || !st.claimable} onClick={() => run(async () => {
+                      const r = await claimPath(token, st.index)
+                      if (!r.error) enqueueRewards([{ kind: 'mission', key: `farm:path:${path.level}:${st.index}`, label: st.label, extra: [`+${st.xp} XP`] }], view.coinName)
+                      return r
+                    }, '')}>Nhận</button>}
+                </div>
+                <div className="mt-1"><Bar value={st.progress} max={st.target} /></div>
+              </li>
+            ))}
+          </ul>
+          {path.allDone && <p className="mt-3 rounded-xl bg-green-soft px-3 py-2 text-sm font-bold text-green-dark">Bạn đã xong chuỗi nhiệm vụ của cấp này. Thu hoạch thêm cây để đủ XP lên cấp {path.level + 1}, nhiệm vụ mới sẽ mở ngay.</p>}
+        </section>
+      )}
+
+      {branch === 'daily' && <section aria-label="Việc hôm nay" className="rounded-2xl bg-white p-4 ring-1 ring-line">
         <h2 className="m-0 text-lg font-black">Việc hôm nay</h2>
-        <p className="mt-1 text-xs text-muted">Mỗi việc nhận {t.xp} XP và 1 phân bón. Xong cả 3 việc mở hộp quà {t.boxMin}-{t.boxMax} {view.coinName}. Việc không dồn sang ngày mai.</p>
+        <p className="mt-1 text-xs text-muted">Việc nhẹ, mỗi việc nhận {t.xp} XP và 1 phân bón. Xong cả 3 việc mở hộp quà {t.boxMin}-{t.boxMax} {view.coinName}. Việc không dồn sang ngày mai.</p>
         <ul className="m-0 mt-3 list-none space-y-3 p-0">
           {t.items.map(it => (
             <li key={it.index}>
@@ -41,7 +80,31 @@ export default function QuestsTab({ token, view, progress, busy, run, setNote }:
           }
           return r
         }, '')}>{t.boxClaimed ? 'Đã mở hộp quà hôm nay' : '🎁 Mở hộp quà'}</button>
-      </section>
+      </section>}
+
+      {branch === 'challenge' && <>
+      {(['knowledge', 'social', 'habit'] as const).map(g => (
+        <section key={g} aria-label={GROUPS[g]} className="rounded-2xl bg-white p-4 ring-1 ring-line">
+          <h2 className="m-0 text-lg font-black">{GROUPS[g]}</h2>
+          {g === 'knowledge' && <p className="mt-1 text-xs text-muted">Hạt Tri thức nhận khi bé đi học hoặc học video. Thử thách không cộng XP lên cấp, chỉ thưởng xu và phân bón.</p>}
+          <ul className="m-0 mt-3 list-none space-y-3 p-0">
+            {progress.challenges.filter(c => c.group === g).map(c => (
+              <li key={c.key}>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-bold">{c.label} ({c.progress}/{c.target})<span className="ml-2 whitespace-nowrap rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-extrabold text-amber-800">+{c.coins} xu · +{c.fertilizer} phân</span></span>
+                  {c.claimed ? <span className="text-xs font-extrabold text-green-dark">✓ Đã nhận</span>
+                    : <button type="button" className="min-h-9 cursor-pointer rounded-lg border-0 bg-green px-3 text-xs font-extrabold text-white disabled:opacity-40" disabled={busy || !c.claimable} onClick={() => run(async () => {
+                      const r = await claimChallenge(token, c.key)
+                      if (!r.error) enqueueRewards([{ kind: 'mission', key: `farm:chal:${c.key}`, label: c.label, coins: c.coins, extra: [`+${c.fertilizer} phân bón`] }], view.coinName)
+                      return r
+                    }, '')}>Nhận</button>}
+                </div>
+                <div className="mt-1"><Bar value={c.progress} max={c.target} /></div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
 
       <section aria-label="Khu vườn của Leo">
         <h2 className="m-0 text-lg font-black">Khu vườn của Leo</h2>
@@ -74,6 +137,7 @@ export default function QuestsTab({ token, view, progress, busy, run, setNote }:
           ))}
         </div>
       </section>
+      </>}
     </div>
   )
 }

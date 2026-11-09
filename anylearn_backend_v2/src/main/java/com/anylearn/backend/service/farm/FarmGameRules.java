@@ -78,19 +78,71 @@ public final class FarmGameRules {
             new TaskDef("order1", "Giao 1 đơn hàng", "order", 1),
             new TaskDef("sell1", "Bán nông sản ở chợ 1 lần", "sell", 1),
             new TaskDef("compost1", "Ủ 1 mẻ phân", "compost", 1),
-            new TaskDef("help2", "Giúp hàng xóm 2 lần", "help", 2));
+            new TaskDef("fert2", "Bón phân 2 lần", "fertilize", 2));
 
-    public static final int TASK_XP = 20;
+    /** Small on purpose: the main path pays most of the XP to the next level (see {@link #PATH_PERCENT}). */
+    public static final int TASK_XP = 6;
     public static final int TASK_COUNT = 3;
 
-    /** The three tasks of a day for a player: the same all day, different from day to day. "help" only when the player has neighbours. */
+    /** The three tasks of a day for a player: the same all day, different from day to day. Only things anyone can do alone (visits and helping are challenges). */
     public static List<TaskDef> tasksFor(long userId, LocalDate day, boolean hasNeighbors) {
         List<TaskDef> pool = new ArrayList<>(TASKS);
-        if (!hasNeighbors) pool.removeIf(t -> t.kind().equals("help"));
         Random rnd = new Random(userId * 1_000_003L + day.toEpochDay());
         List<TaskDef> out = new ArrayList<>();
         while (out.size() < TASK_COUNT && !pool.isEmpty()) out.add(pool.remove(rnd.nextInt(pool.size())));
         return out;
+    }
+
+    // ---- main path: the quests that carry the player to the next level ----
+
+    /** Share of the XP needed for the next level that the main path pays; the rest comes from the crops themselves. */
+    public static final int PATH_PERCENT = 75;
+
+    public record PathStep(String key, String label, String kind, int target, int xp) {}
+
+    private static final int[] PATH_WEIGHT = {20, 25, 20, 20, 15};
+
+    /**
+     * The chain of quests for a player standing at some level: sow and harvest the newest crop, deliver orders, open a new plot
+     * (or feed the plants when none can be bought yet) and sell once. The XP of the steps adds up to {@code percent}% of
+     * {@code xpNeed}, the XP to reach the next level. Progress is counted from the moment the level was reached (the service keeps that).
+     */
+    public static List<PathStep> pathFor(long xpNeed, int percent, String cropKey, String cropName, boolean plotStep, int plotNo) {
+        int budget = (int) Math.round(xpNeed * percent / 100.0);
+        String[] keys = {"plant", "harvest", "order", plotStep ? "plot" : "fert", "sell"};
+        String[] labels = {"Gieo " + cropName + " 3 lần", "Thu hoạch " + cropName + " 3 ô", "Giao 2 đơn hàng",
+                plotStep ? "Mở ô đất thứ " + plotNo : "Bón phân 2 lần", "Bán nông sản ở chợ 1 lần"};
+        String[] kinds = {"p:" + cropKey, "h:" + cropKey, "order", plotStep ? "plots" : "fertilize", "sell"};
+        int[] targets = {3, 3, 2, plotStep ? 1 : 2, 1};
+        List<PathStep> out = new ArrayList<>();
+        int left = budget;
+        for (int i = 0; i < keys.length; i++) {
+            int xp = i == keys.length - 1 ? left : (int) Math.round(budget * PATH_WEIGHT[i] / 100.0);
+            xp = Math.max(Math.min(xp, left), 0);
+            left -= xp;
+            out.add(new PathStep(keys[i], labels[i], kinds[i], targets[i], xp));
+        }
+        return out;
+    }
+
+    // ---- challenges: optional, hard or social quests that pay no level XP ----
+
+    public record Challenge(String key, String group, String label, String kind, int target, int coins, int fertilizer) {}
+
+    public static final List<Challenge> CHALLENGES = List.of(
+            new Challenge("magic1", "knowledge", "Trồng 1 Cây Tri thức", "plant_magic", 1, 20, 2),
+            new Challenge("magic3", "knowledge", "Trồng Cây Tri thức 3 lần", "plant_magic", 3, 40, 3),
+            new Challenge("magic10", "knowledge", "Trồng Cây Tri thức 10 lần", "plant_magic", 10, 80, 5),
+            new Challenge("friend1", "social", "Kết bạn với 1 hàng xóm", "neighbors", 1, 15, 2),
+            new Challenge("visit3", "social", "Ghé thăm 3 vườn", "visit", 3, 15, 2),
+            new Challenge("help5", "social", "Tưới hoặc bón giúp 5 lần", "help", 5, 25, 3),
+            new Challenge("help20", "social", "Giúp hàng xóm 20 lần", "help", 20, 60, 5),
+            new Challenge("days7", "habit", "Chăm vườn 7 ngày khác nhau", "days", 7, 30, 3),
+            new Challenge("days30", "habit", "Chăm vườn 30 ngày khác nhau", "days", 30, 100, 8));
+
+    public static Challenge challenge(String key) {
+        for (Challenge c : CHALLENGES) if (c.key().equals(key)) return c;
+        return null;
     }
 
     // ---- chapters ----
@@ -108,7 +160,7 @@ public final class FarmGameRules {
             new Chapter(2, "Chợ Đồi Nắng", "Cô Thỏ mở quầy chợ dưới chân đồi và cần thật nhiều rau củ tươi.", 1, List.of(
                     new Quest("c2order", "Giao 3 đơn hàng", "order", 3), new Quest("c2level", "Đạt cấp vườn 3", "level", 3),
                     new Quest("c2days", "Chăm vườn 2 ngày khác nhau", "days", 2)), 40, false, false),
-            new Chapter(3, "Hạt giống Tri thức", "Một hạt giống phát sáng rơi xuống vườn: nó chỉ nảy mầm khi bé chăm học.", 3, List.of(
+            new Chapter(3, "Hạt giống Tri thức", "Một hạt giống phát sáng rơi xuống vườn: nó chỉ nảy mầm khi bé chăm học.", 5, List.of(
                     new Quest("c3magic", "Trồng 1 Cây Tri thức", "plant_magic", 1), new Quest("c3fert", "Bón phân 5 lần", "fertilize", 5),
                     new Quest("c3days", "Chăm vườn 4 ngày khác nhau", "days", 4)), 60, false, false),
             new Chapter(4, "Hàng xóm thân thiện", "Chó Bông về sống ở vườn Leo và dẫn Leo đi chào các vườn xung quanh.", 5, List.of(

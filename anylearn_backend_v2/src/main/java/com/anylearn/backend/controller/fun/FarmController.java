@@ -129,6 +129,16 @@ public class FarmController {
         return run(user, () -> progress.skipOrder(user.getId(), id));
     }
 
+    @PostMapping("/path/{index}/claim")
+    public ApiResponse<?> claimPath(@AuthenticationPrincipal User user, @PathVariable int index) {
+        return run(user, () -> progress.claimPath(user.getId(), index));
+    }
+
+    @PostMapping("/challenges/{key}/claim")
+    public ApiResponse<?> claimChallenge(@AuthenticationPrincipal User user, @PathVariable String key) {
+        return run(user, () -> progress.claimChallenge(user.getId(), key));
+    }
+
     @PostMapping("/tasks/{index}/claim")
     public ApiResponse<?> claimTask(@AuthenticationPrincipal User user, @PathVariable int index) {
         return run(user, () -> progress.claimTask(user.getId(), index));

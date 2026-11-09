@@ -39,9 +39,14 @@ export interface FarmChapter {
   no: number; title: string; story: string; unlockLevel: number; open: boolean; claimed: boolean; claimable: boolean
   coins: number; reward: string; quests: FarmQuest[]
 }
+export interface FarmPathStep { index: number; label: string; progress: number; target: number; xp: number; claimed: boolean; locked: boolean; claimable: boolean }
+export interface FarmPath { level: number; steps: FarmPathStep[]; allDone: boolean; percent: number }
+export interface FarmChallenge { key: string; group: 'knowledge' | 'social' | 'habit'; label: string; progress: number; target: number; coins: number; fertilizer: number; claimed: boolean; claimable: boolean }
 export interface FarmProgress {
   serverNow: string; hasDog: boolean; neighbors: number
   orders: FarmOrder[]
+  path: FarmPath
+  challenges: FarmChallenge[]
   tasks: { items: FarmTaskRow[]; xp: number; boxClaimed: boolean; boxReady: boolean; boxMin: number; boxMax: number }
   chapters: FarmChapter[]
   compost: { units: number; minutes: number; active: { id: number; readyAt: string; ready: boolean } | null }
@@ -55,6 +60,8 @@ export const deliverOrder = (token: string, id: number) => authFetch<{ coins: nu
 export const skipOrder = (token: string, id: number) => authFetch<{ skipped: boolean }>(`/farm/orders/${id}/skip`, token, { method: 'POST' })
 export const claimTask = (token: string, index: number) => authFetch<{ xp: number; levelUp: boolean }>(`/farm/tasks/${index}/claim`, token, { method: 'POST' })
 export const claimTaskBox = (token: string) => authFetch<{ coins: number; capped: boolean }>('/farm/tasks/box', token, { method: 'POST' })
+export const claimPath = (token: string, index: number) => authFetch<{ xp: number; levelUp: boolean; level: number }>(`/farm/path/${index}/claim`, token, { method: 'POST' })
+export const claimChallenge = (token: string, key: string) => authFetch<{ coins: number; fertilizer: number }>(`/farm/challenges/${key}/claim`, token, { method: 'POST' })
 export const claimChapter = (token: string, no: number) => authFetch<{ coins: number; freePlot: boolean; dog: boolean }>(`/farm/chapters/${no}/claim`, token, { method: 'POST' })
 
 export interface FarmNeighbor { userId: number; name: string; level: number }

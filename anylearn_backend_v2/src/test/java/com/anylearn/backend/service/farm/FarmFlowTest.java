@@ -36,6 +36,8 @@ class FarmFlowTest {
         assertNotNull(p.get("orders"));
         assertNotNull(p.get("tasks"));
         assertNotNull(p.get("chapters"));
+        assertNotNull(p.get("path"));
+        assertNotNull(p.get("challenges"));
         assertNotNull(p.get("compost"));
     }
 

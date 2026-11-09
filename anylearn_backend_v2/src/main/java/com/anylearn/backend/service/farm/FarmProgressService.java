@@ -113,7 +113,9 @@ public class FarmProgressService {
         out.put("serverNow", farm.now().toString());
         out.put("hasDog", ((Number) profile.get("has_dog")).intValue() == 1);
         out.put("orders", orders(userId, level));
+        out.put("path", path(userId, level, plots, life));
         out.put("tasks", tasks(userId, today, day));
+        out.put("challenges", challenges(userId, life));
         out.put("chapters", chapters(userId, level, plots, life));
         out.put("compost", compost(userId));
         out.put("neighbors", neighbors(userId));
@@ -258,6 +260,139 @@ public class FarmProgressService {
         int rows = jdbc.update("UPDATE farm_orders SET status = 'skipped', done_at = ? WHERE id = ? AND user_id = ? AND status = 'open'", (farm.now()), orderId, userId);
         if (rows != 1) throw new IllegalStateException("Đơn này không còn nữa.");
         return Map.of("skipped", true);
+    }
+
+    // ---------------------------------------------------------------- main path ("Lên cấp")
+
+    /** The crop the main path of a level is about: the newest one that opened at that level (the first one at level 1), else the best one open. */
+    private Map<String, Object> pathCrop(int level) {
+        Map<String, Object> best = null;
+        Map<String, Object> exact = null;
+        for (Map<String, Object> c : farm.cropMap().values()) {
+            if (((Number) c.get("active")).intValue() != 1 || !"shop".equals(c.get("seed_source"))) continue;
+            int unlock = ((Number) c.get("unlock_level")).intValue();
+            if (unlock > level) continue;
+            if (best == null || unlock >= ((Number) best.get("unlock_level")).intValue()) best = c;
+            if (unlock == level && (exact == null || level > 1)) exact = c;
+        }
+        return exact != null ? exact : best;
+    }
+
+    /** Takes, once per level, the lifetime counters at the moment the level is first seen: the path counts what happens after that. */
+    private Map<String, Integer> pathBase(long userId, int level, int plots, Map<String, Integer> life) {
+        Map<String, Integer> base = new LinkedHashMap<>();
+        jdbc.query("SELECT kind, base FROM farm_path_base WHERE user_id = ? AND level = ?", rs -> { base.put(rs.getString(1), rs.getInt(2)); }, userId, level);
+        if (base.containsKey("_init")) return base;
+        boolean canBuy = plots < FarmGameRules.MAX_PLOTS && FarmGameRules.plotPrice(plots) >= 0 && FarmGameRules.plotLevel(plots) <= level;
+        Map<String, Integer> snap = new LinkedHashMap<>(life);
+        snap.put("plots", plots);
+        snap.put("_buyplot", canBuy ? 1 : 0);
+        snap.put("_init", 1);
+        for (Map.Entry<String, Integer> e : snap.entrySet()) {
+            if (e.getKey().length() > 30) continue;
+            jdbc.update("INSERT IGNORE INTO farm_path_base (user_id, level, kind, base) VALUES (?, ?, ?, ?)", userId, level, e.getKey(), e.getValue());
+        }
+        return snap;
+    }
+
+    private List<FarmGameRules.PathStep> pathSteps(int level, Map<String, Integer> base, int plots) {
+        if (level >= FarmRules.MAX_LEVEL) return List.of();
+        Map<String, Object> crop = pathCrop(level);
+        if (crop == null) return List.of();
+        return FarmGameRules.pathFor(FarmRules.xpForNext(level, settings.params()), FarmGameRules.PATH_PERCENT,
+                (String) crop.get("crop_key"), (String) crop.get("name"), base.getOrDefault("_buyplot", 0) == 1, base.getOrDefault("plots", plots) + 1);
+    }
+
+    private int pathProgress(FarmGameRules.PathStep st, Map<String, Integer> base, int plots, Map<String, Integer> life) {
+        int now = st.kind().equals("plots") ? plots : life.getOrDefault(st.kind(), 0);
+        return Math.min(Math.max(now - base.getOrDefault(st.kind(), 0), 0), st.target());
+    }
+
+    private Map<String, Object> path(long userId, int level, int plots, Map<String, Integer> life) {
+        Map<String, Integer> base = pathBase(userId, level, plots, life);
+        List<FarmGameRules.PathStep> steps = pathSteps(level, base, plots);
+        List<Map<String, Object>> rows = new ArrayList<>();
+        boolean previous = true;
+        int done = 0;
+        for (int i = 0; i < steps.size(); i++) {
+            FarmGameRules.PathStep st = steps.get(i);
+            boolean claimed = claimed(userId, "path:" + level + ":" + i);
+            int progress = pathProgress(st, base, plots, life);
+            if (claimed) done++;
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("index", i);
+            m.put("label", st.label());
+            m.put("progress", progress);
+            m.put("target", st.target());
+            m.put("xp", st.xp());
+            m.put("claimed", claimed);
+            m.put("locked", !claimed && !previous);
+            m.put("claimable", !claimed && previous && progress >= st.target());
+            rows.add(m);
+            previous = claimed;
+        }
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("level", level);
+        out.put("steps", rows);
+        out.put("allDone", !steps.isEmpty() && done == steps.size());
+        out.put("percent", FarmGameRules.PATH_PERCENT);
+        return out;
+    }
+
+    @Transactional
+    public Map<String, Object> claimPath(long userId, int index) {
+        farm.checkOpen();
+        Map<String, Object> profile = farm.lockProfile(userId);
+        int level = ((Number) profile.get("level")).intValue();
+        int plots = ((Number) profile.get("plots")).intValue();
+        Map<String, Integer> life = counters(userId, null);
+        Map<String, Integer> base = pathBase(userId, level, plots, life);
+        List<FarmGameRules.PathStep> steps = pathSteps(level, base, plots);
+        if (index < 0 || index >= steps.size()) throw new IllegalStateException("Không có bước này.");
+        if (index > 0 && !claimed(userId, "path:" + level + ":" + (index - 1))) throw new IllegalStateException("Làm bước trước đã nhé.");
+        FarmGameRules.PathStep st = steps.get(index);
+        if (pathProgress(st, base, plots, life) < st.target()) throw new IllegalStateException("Chưa làm xong bước này.");
+        if (!claim(userId, "path:" + level + ":" + index)) throw new IllegalStateException("Bạn đã nhận bước này rồi.");
+        Map<String, Object> out = new LinkedHashMap<>(farm.gainXp(userId, st.xp()));
+        out.put("xp", st.xp());
+        return out;
+    }
+
+    // ---------------------------------------------------------------- challenges (optional, no level XP)
+
+    private List<Map<String, Object>> challenges(long userId, Map<String, Integer> life) {
+        List<Map<String, Object>> out = new ArrayList<>();
+        for (FarmGameRules.Challenge c : FarmGameRules.CHALLENGES) {
+            FarmGameRules.Quest q = new FarmGameRules.Quest(c.key(), c.label(), c.kind(), c.target());
+            int p = Math.min(progressOf(q, userId, 0, 0, life), c.target());
+            boolean claimed = claimed(userId, "chal:" + c.key());
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("key", c.key());
+            m.put("group", c.group());
+            m.put("label", c.label());
+            m.put("progress", p);
+            m.put("target", c.target());
+            m.put("coins", c.coins());
+            m.put("fertilizer", c.fertilizer());
+            m.put("claimed", claimed);
+            m.put("claimable", !claimed && p >= c.target());
+            out.add(m);
+        }
+        return out;
+    }
+
+    @Transactional
+    public Map<String, Object> claimChallenge(long userId, String key) {
+        farm.checkOpen();
+        farm.lockProfile(userId);
+        FarmGameRules.Challenge c = FarmGameRules.challenge(key);
+        if (c == null) throw new IllegalStateException("Không có thử thách này.");
+        FarmGameRules.Quest q = new FarmGameRules.Quest(c.key(), c.label(), c.kind(), c.target());
+        if (progressOf(q, userId, 0, 0, counters(userId, null)) < c.target()) throw new IllegalStateException("Chưa làm xong thử thách này.");
+        if (!claim(userId, "chal:" + key)) throw new IllegalStateException("Bạn đã nhận thử thách này rồi.");
+        if (c.coins() > 0) coins.credit(userId, c.coins(), CoinService.SOURCE_FARM_REWARD, "Thử thách nông trại: " + c.label());
+        if (c.fertilizer() > 0) farm.addInventory(userId, FarmService.FERTILIZER, c.fertilizer(), false);
+        return Map.of("coins", c.coins(), "fertilizer", c.fertilizer());
     }
 
     // ---------------------------------------------------------------- daily tasks

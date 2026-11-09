@@ -67,9 +67,9 @@ class FarmGameRulesTest {
         FarmGameRules.Chapter c1 = FarmGameRules.chapter(1);
         FarmGameRules.Chapter c3 = FarmGameRules.chapter(3);
         assertTrue(FarmGameRules.chapterOpen(c1, 1, false));
-        assertFalse(FarmGameRules.chapterOpen(c3, 2, true));
-        assertFalse(FarmGameRules.chapterOpen(c3, 3, false));
-        assertTrue(FarmGameRules.chapterOpen(c3, 3, true));
+        assertFalse(FarmGameRules.chapterOpen(c3, 4, true));
+        assertFalse(FarmGameRules.chapterOpen(c3, 5, false));
+        assertTrue(FarmGameRules.chapterOpen(c3, 5, true));
         assertEquals(6, FarmGameRules.CHAPTERS.size());
         assertNull(FarmGameRules.chapter(9));
     }
@@ -122,5 +122,27 @@ class FarmGameRulesTest {
         assertFalse(FarmGameRules.shouldPush(push(5, 10, 30, 3, 1, false), 3, 7), "3 ignored: one every 3 days");
         assertTrue(FarmGameRules.shouldPush(push(5, 10, 30, 3, 3, false), 3, 7));
         assertFalse(FarmGameRules.shouldPush(push(5, 10, 300, 7, 30, false), 3, 7), "7 ignored: stop");
+    }
+
+    @Test
+    void mainPathPaysThreeQuartersOfTheNextLevel() {
+        List<FarmGameRules.PathStep> steps = FarmGameRules.pathFor(186, 75, "bap_rang", "Bắp rang nổ", true, 6);
+        assertEquals(5, steps.size());
+        assertEquals(140, steps.stream().mapToInt(FarmGameRules.PathStep::xp).sum());          // round(186 * 0.75)
+        assertEquals("plots", steps.get(3).kind());
+        assertEquals("fertilize", FarmGameRules.pathFor(186, 75, "bap_rang", "Bắp rang nổ", false, 6).get(3).kind());
+        assertTrue(steps.stream().allMatch(s -> s.xp() >= 0));
+    }
+
+    @Test
+    void thePathWorksAtTheSmallestLevel() {
+        assertEquals(30, FarmGameRules.pathFor(40, 75, "rau_mam", "Rau mầm", false, 5).stream().mapToInt(FarmGameRules.PathStep::xp).sum());
+    }
+
+    @Test
+    void challengesHaveUniqueKeysAndNeverPayLevelXp() {
+        assertEquals(FarmGameRules.CHALLENGES.size(), FarmGameRules.CHALLENGES.stream().map(FarmGameRules.Challenge::key).distinct().count());
+        assertNotNull(FarmGameRules.challenge("visit3"));
+        assertNull(FarmGameRules.challenge("nope"));
     }
 }

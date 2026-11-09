@@ -292,6 +292,7 @@ public class FarmService {
                         + "ON DUPLICATE KEY UPDATE crop_key = VALUES(crop_key), planted_at = VALUES(planted_at), grow_minutes = VALUES(grow_minutes), water_needs = VALUES(water_needs), waters_done = 0, missed_waters = 0, lost_seconds = 0, fertilized = 0, stolen = 0",
                 userId, slot, cropKey, now(), crop.get("grow_minutes"), crop.get("water_needs"));
         bump(userId, "plant", 1);
+        bump(userId, "p:" + cropKey, 1);
         if ("knowledge".equals(crop.get("seed_source"))) bump(userId, "plant_magic", 1);
         events.record(userId, GameEventService.GAME_FARM, "plant", cropKey, 0);
         return Map.of("planted", cropKey, "free", free);
@@ -366,6 +367,7 @@ public class FarmService {
         Map<String, Integer> got = new LinkedHashMap<>();
         long xp = 0;
         int harvested = 0;
+        Map<String, Integer> plotsByCrop = new LinkedHashMap<>();
         for (int slot : slots) {
             Map<String, Object> row = plotRow(userId, slot);
             FarmRules.Plot plot = plotOf(row, crops);
@@ -376,6 +378,7 @@ public class FarmService {
             int stolen = ((Number) row.get("stolen")).intValue();
             got.merge(key, Math.max(v.yieldNow() - stolen, 1), Integer::sum);
             harvested++;
+            plotsByCrop.merge(key, 1, Integer::sum);
             xp += ((Number) crops.get(key).get("xp")).intValue();
             jdbc.update("UPDATE farm_plots SET crop_key = NULL, planted_at = NULL, grow_minutes = NULL, water_needs = 0, waters_done = 0, missed_waters = 0, lost_seconds = 0, fertilized = 0, stolen = 0 WHERE user_id = ? AND slot = ?", userId, slot);
         }
@@ -387,6 +390,7 @@ public class FarmService {
         out.put("level", ((Number) profile.get("level")).intValue());
         if (harvested > 0) {
             bump(userId, "harvest", harvested);
+            plotsByCrop.forEach((k, n) -> bump(userId, "h:" + k, n));
             events.record(userId, GameEventService.GAME_FARM, "harvest", got.toString(), 0);
             out.putAll(gainXp(userId, xp));
         }
