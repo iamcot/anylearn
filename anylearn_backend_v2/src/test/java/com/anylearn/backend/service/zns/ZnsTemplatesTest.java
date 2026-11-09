@@ -28,12 +28,12 @@ class ZnsTemplatesTest {
     }
 
     @Test
-    void accountCreatedCarriesLoginAndTemporaryPassword() {
+    void accountCreatedCarriesTheLoginButNoPassword() {
         assertThat(ZnsTemplates.def(ZnsTemplates.ACCOUNT_CREATED).orElseThrow().defaultTemplateId()).isEmpty();
-        assertThat(ZnsTemplates.accountCreated(" ", "0901234567", "482913"))
+        assertThat(ZnsTemplates.accountCreated(" ", "0901234567"))
                 .containsEntry("customer_name", "0901234567")
                 .containsEntry("phone_number", "0901234567")
-                .containsEntry("password", "482913");
+                .doesNotContainKey("password");
     }
 
     @Test

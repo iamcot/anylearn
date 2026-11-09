@@ -60,8 +60,8 @@ public final class ZnsTemplates {
                     midSurvey(1234L, LocalDate.of(2026, 11, 2), "Piano cơ bản cho bé", "Bin")),
             new Def(ACCOUNT_CREATED, "Tài khoản đã được tạo", "",
                     "Admin nhập đơn hàng bằng tay cho một số điện thoại chưa có tài khoản (giao dịch, gửi ngay)",
-                    List.of("customer_name", "phone_number", "password"),
-                    accountCreated("Nguyễn Văn An", "0901234567", "123456")));
+                    List.of("customer_name", "phone_number"),
+                    accountCreated("Nguyễn Văn An", "0901234567")));
 
     private ZnsTemplates() {}
 
@@ -116,12 +116,14 @@ public final class ZnsTemplates {
         return data;
     }
 
-    /** Template "Tài khoản đã được tạo": the phone is the login, the password is the temporary one made by the server. */
-    public static Map<String, String> accountCreated(String customerName, String phone, String password) {
+    /**
+     * Template "Tài khoản đã được tạo": the phone is the login. No password is sent (owner's choice, 2026-11-09): the person
+     * sets one with "Quên mật khẩu" (OTP).
+     */
+    public static Map<String, String> accountCreated(String customerName, String phone) {
         Map<String, String> data = new LinkedHashMap<>();
         data.put("customer_name", name(customerName, phone));
         data.put("phone_number", phone == null ? "" : phone.trim());
-        data.put("password", password == null ? "" : password);
         return data;
     }
 

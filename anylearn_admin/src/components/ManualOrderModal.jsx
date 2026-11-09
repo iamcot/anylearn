@@ -218,7 +218,8 @@ export default function ManualOrderModal({ open, onClose, onSaved }) {
               <div key={r.orderId}>
                 Đơn #{r.orderId} · {r.buyerName || r.phone} · {r.status === 'delivered' ? 'đã duyệt' : 'chờ thanh toán'} · {fmtVND(r.amount)}
                 {r.accountCreated && <> · tài khoản mới, mật khẩu tạm <Typography.Text code copyable>{r.password}</Typography.Text>
-                  {!r.accountZnsQueued && <Typography.Text type="warning"> (ZNS tài khoản chưa gửi: mẫu chưa có mã hoặc đang tắt, hãy báo khách)</Typography.Text>}</>}
+                  <Typography.Text type="secondary"> (không gửi qua ZNS; khách cũng có thể dùng "Quên mật khẩu")</Typography.Text>
+                  {!r.accountZnsQueued && <Typography.Text type="warning"> · ZNS tài khoản chưa gửi: mẫu chưa có mã hoặc đang tắt</Typography.Text>}</>}
               </div>
             ))}
           </div>

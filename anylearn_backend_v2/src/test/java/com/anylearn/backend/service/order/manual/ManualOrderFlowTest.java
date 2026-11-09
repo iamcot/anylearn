@@ -22,6 +22,9 @@ class ManualOrderFlowTest {
     @Autowired UserRepository users;
     @Autowired JdbcTemplate jdbc;
     @Autowired jakarta.persistence.EntityManager em;
+    // The 30-minute popularity rollup also runs when the context starts and updates every item while the first test
+    // inserts its cart rows, which deadlocks on MariaDB. It plays no part in these flows.
+    @org.springframework.test.context.bean.override.mockito.MockitoBean com.anylearn.backend.service.PopularityRollupService rollup;
 
     private static String newPhone() {
         return "09" + String.format("%08d", (long) (Math.random() * 100000000L));

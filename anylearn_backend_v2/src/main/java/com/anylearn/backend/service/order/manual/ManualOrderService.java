@@ -114,7 +114,7 @@ public class ManualOrderService {
         boolean accountZns = false;
         if (created != null && znsNotifier != null) {
             accountZns = znsNotifier.send(buyer.getId(), null, ZnsTemplates.ACCOUNT_CREATED, "account_created:" + buyer.getId(),
-                    ZnsTemplates.accountCreated(buyer.getName(), buyer.getPhone(), created.password()));
+                    ZnsTemplates.accountCreated(buyer.getName(), buyer.getPhone()));
         }
 
         if (in.paid()) paymentApprovalService.approveOrder(orderId, in.payment());
@@ -129,7 +129,7 @@ public class ManualOrderService {
         out.put("phone", buyer.getPhone());
         out.put("learnerId", learnerId);
         out.put("accountCreated", created != null);
-        // Shown once to the admin, in case the ZNS template is not set up yet and the customer must be told by phone.
+        // Shown once to the admin, who may tell the customer; the ZNS never carries it (the customer can also use "Quên mật khẩu").
         if (created != null) out.put("password", created.password());
         out.put("accountZnsQueued", accountZns);
         out.put("status", orderRepository.findById(orderId).map(Order::getStatus).orElse(null));
