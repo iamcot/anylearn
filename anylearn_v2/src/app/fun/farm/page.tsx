@@ -19,6 +19,18 @@ import { farmImg, timeOfDay } from '@/lib/farm/art'
 import type { SceneKind } from '@/lib/farm/scene'
 import { capUsedPercent, formatWait, isRipe, secondsUntil, sellable, seedCount, slotsToHarvest, slotsToWater } from '@/lib/farm/rules'
 
+function ActionButton({ icon, label, count, disabled, onClick }: { icon: string; label: string; count: number; disabled: boolean; onClick: () => void }) {
+  return (
+    <button type="button" disabled={disabled} onClick={onClick} className="flex min-h-14 cursor-pointer flex-col items-center gap-0.5 border-0 bg-transparent p-1 text-center transition-transform active:scale-95 disabled:cursor-default disabled:opacity-45 lg:flex-row lg:gap-2">
+      <span className="relative">
+        <img src={farmImg(icon)} alt="" className="size-14 object-contain lg:size-12" draggable={false} />
+        {count > 0 && <span className="absolute -right-1 -top-1 min-w-5 rounded-full bg-green px-1 text-center text-[11px] font-black leading-5 text-white ring-2 ring-white">{count}</span>}
+      </span>
+      <span className="max-w-24 text-xs font-extrabold leading-tight text-ink lg:max-w-none lg:text-sm">{label}</span>
+    </button>
+  )
+}
+
 export default function FarmPage() {
   const { token } = useAuth()
   const [view, setView] = useState<FarmView | null>(null)
@@ -126,17 +138,25 @@ export default function FarmPage() {
       <div className="mx-auto max-w-[1100px] lg:px-4 lg:pt-6">
         <div className="px-3 pt-3 lg:px-0 lg:pt-0">
           <Link href="/fun" className="inline-flex min-h-11 items-center gap-1 rounded-full bg-white/80 px-3 text-sm font-bold text-text no-underline"><ChevronLeftIcon className="size-4" /> Vui học</Link>
-          <div className="mt-2 flex items-center gap-3 rounded-2xl bg-white p-2.5 ring-1 ring-line">
+          <div className="relative mt-2 flex items-center gap-2 rounded-xl px-3 py-2 ring-2 ring-[#5b3a1a] shadow-[0_4px_0_#5b3a1a]" style={{ background: 'repeating-linear-gradient(180deg,#c28445 0 15px,#b3733a 15px 17px)' }}>
+            {['left-1.5 top-1.5', 'right-1.5 top-1.5', 'left-1.5 bottom-1.5', 'right-1.5 bottom-1.5'].map(c => <span key={c} className={`absolute size-1.5 rounded-full bg-[#5b3a1a]/70 ${c}`} aria-hidden />)}
             <img src={farmImg('leo_farmer_idle')} alt="" className="size-12 shrink-0 object-contain" />
             <div className="min-w-0 flex-1">
-              <h1 className="m-0 text-lg font-black lg:text-xl">Nông trại anyLEARN</h1>
-              <p className="m-0 text-xs text-muted">Cấp vườn <b>{view.level}</b> · {view.xpForNext > 0 ? `${view.xpIntoLevel}/${view.xpForNext} XP` : 'cấp tối đa'}</p>
+              <h1 className="m-0 text-lg font-black leading-tight text-[#fff4d6] [text-shadow:0_2px_0_#5b3a1a] lg:text-2xl">Nông trại anyLEARN</h1>
+              <div className="mt-1 flex items-center gap-2">
+                <span className="rounded-full bg-[#fff4d6] px-2 py-0.5 text-[11px] font-black text-[#5b3a1a]">Cấp {view.level}</span>
+                {view.xpForNext > 0 && (
+                  <span className="h-2 w-20 overflow-hidden rounded-full bg-[#5b3a1a]/60 lg:w-32" role="progressbar" aria-valuenow={view.xpIntoLevel} aria-valuemin={0} aria-valuemax={view.xpForNext} title={`${view.xpIntoLevel}/${view.xpForNext} XP`}>
+                    <span className="block h-full bg-[#ffd54a]" style={{ width: `${Math.min(100, (view.xpIntoLevel / view.xpForNext) * 100)}%` }} />
+                  </span>
+                )}
+              </div>
             </div>
-            <span className="inline-flex items-center gap-1.5 text-lg font-black text-[#b45309]" title={view.coinName}><CoinIcon className="size-6" /> {view.balance}</span>
+            <span className="inline-flex items-center gap-1.5 rounded-lg bg-[#5b3a1a] px-2.5 py-1.5 text-lg font-black text-[#ffd54a] ring-2 ring-[#ffd54a]/60" title={view.coinName}><CoinIcon className="size-6" /> {view.balance}</span>
           </div>
-          <div className="mt-2 grid grid-cols-5 gap-0.5 rounded-xl bg-white p-1 ring-1 ring-line" role="tablist">
-            {([['garden', 'Vườn', 'item_seed_packet'], ['orders', 'Đơn hàng', 'order_board'], ['quests', 'Nhiệm vụ', 'item_gift_box'], ['neighbors', 'Hàng xóm', 'icon_heart_neighbor'], ['market', 'Chợ', 'item_basket']] as const).map(([k, l, ic]) => (
-              <button key={k} type="button" role="tab" aria-selected={tab === k} aria-label={l} title={l} onClick={() => setTab(k)} className={`relative flex min-h-12 cursor-pointer items-center justify-center rounded-lg border-0 px-0 ${tab === k ? 'bg-green-soft text-green-dark' : 'bg-transparent text-muted'}`}><img src={farmImg(ic)} alt="" className={`h-9 w-12 object-contain ${tab === k ? '' : 'opacity-70'}`} />{((k === 'orders' && waiting) || (k === 'market' && progress.compost.active?.ready)) && <span className="absolute right-1 top-1 size-2 rounded-full bg-red-500" aria-hidden />}</button>
+          <div className="mt-2 grid grid-cols-5 gap-0.5" role="tablist">
+            {([['garden', 'Vườn', 'item_seed_packet'], ['orders', 'Đơn hàng', 'order_board'], ['quests', 'Nhiệm vụ', 'item_gift_box'], ['neighbors', 'Hàng xóm', 'icon_heart_neighbor'], ['market', 'Chợ', 'market_stall']] as const).map(([k, l, ic]) => (
+              <button key={k} type="button" role="tab" aria-selected={tab === k} aria-label={l} title={l} onClick={() => setTab(k)} className={`relative flex min-h-12 cursor-pointer items-center justify-center rounded-lg border-0 px-0 ${tab === k ? 'bg-white/80 shadow-sm' : 'bg-transparent'}`}><img src={farmImg(ic)} alt="" className={`h-9 w-12 object-contain ${tab === k ? '' : 'opacity-70'}`} />{((k === 'orders' && waiting) || (k === 'market' && progress.compost.active?.ready)) && <span className="absolute right-1 top-1 size-2 rounded-full bg-red-500" aria-hidden />}</button>
             ))}
           </div>
           {note && <p className="mt-2 rounded-xl bg-green-soft px-3 py-2 text-sm font-bold text-green-dark" role="status">{note}</p>}
@@ -161,10 +181,10 @@ export default function FarmPage() {
                   {isRipe(plot) && <button type="button" className="btn btn--green min-h-10" disabled={busy} onClick={() => act(() => harvestPlots(token, [plot.slot]), `Thu hoạch ${plot.yield} quả`, 'harvest')}>Thu {plot.yield} quả</button>}
                 </div>
               )}
-              <div className="grid grid-cols-3 gap-2">
-                <button type="button" className="btn btn--green min-h-11 px-1 text-xs" disabled={busy || toWater.length === 0} onClick={() => act(() => waterPlots(token, toWater), `Đã tưới ${toWater.length} ô`, 'water')}>Tưới tất cả ({toWater.length})</button>
-                <button type="button" className="btn btn--green min-h-11 px-1 text-xs" disabled={busy || toHarvest.length === 0} onClick={() => act(() => harvestPlots(token, toHarvest), `Đã thu ${toHarvest.length} ô`, 'harvest')}>Thu tất cả ({toHarvest.length})</button>
-                <button type="button" className="min-h-11 cursor-pointer rounded-xl border-0 bg-white px-1 text-xs font-extrabold text-ink ring-1 ring-line" disabled={busy} onClick={() => act(() => buyFertilizer(token, 1), 'Đã mua 1 phân bón', 'cheer')}>Mua phân · {view.fertilizerPrice}</button>
+              <div className="flex items-start justify-center gap-3 lg:gap-8">
+                <ActionButton icon="tool_can_1" label="Tưới tất cả" count={toWater.length} disabled={busy || toWater.length === 0} onClick={() => act(() => waterPlots(token, toWater), `Đã tưới ${toWater.length} ô`, 'water')} />
+                <ActionButton icon="item_basket" label="Thu tất cả" count={toHarvest.length} disabled={busy || toHarvest.length === 0} onClick={() => act(() => harvestPlots(token, toHarvest), `Đã thu ${toHarvest.length} ô`, 'harvest')} />
+                <ActionButton icon="item_fertilizer" label={`Mua phân · ${view.fertilizerPrice}`} count={view.inventory.fertilizer ?? 0} disabled={busy} onClick={() => act(() => buyFertilizer(token, 1), 'Đã mua 1 phân bón', 'cheer')} />
               </div>
             </div>
           </>
