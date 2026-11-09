@@ -288,7 +288,7 @@ export default function FarmPage() {
       {panel && (
         <div className="fixed inset-0 z-[1000] flex items-end bg-black/40 lg:items-center lg:justify-center" role="dialog" aria-modal="true" aria-label={PANEL_TITLES[panel]} onClick={() => setPanel(null)}>
         <div className="max-h-[80vh] w-full overflow-y-auto rounded-t-3xl bg-white p-4 lg:max-w-lg lg:rounded-3xl" onClick={e => e.stopPropagation()}>
-          <div className="flex items-center justify-between"><h2 className="m-0 text-lg font-black">{PANEL_TITLES[panel]}</h2><button type="button" className="min-h-11 cursor-pointer border-0 bg-transparent text-sm font-bold" onClick={() => setPanel(null)}>Đóng</button></div>
+          <div className="sticky top-0 z-10 -mx-4 -mt-4 flex items-center justify-between bg-white px-4 pt-4"><h2 className="m-0 text-lg font-black">{PANEL_TITLES[panel]}</h2><button type="button" className="min-h-11 cursor-pointer border-0 bg-transparent text-sm font-bold" onClick={() => setPanel(null)}>Đóng</button></div>
           {panel === 'orders' && <OrdersTab token={token} view={view} progress={progress} busy={busy} run={act} setNote={setNote} />}
           {panel === 'quests' && <QuestsTab token={token} view={view} progress={progress} busy={busy} run={act} setNote={setNote} />}
           {panel === 'neighbors' && <NeighborsTab token={token} view={view} onChanged={load} />}
@@ -410,9 +410,9 @@ export default function FarmPage() {
       )}
 
       {pick !== null && (
-        <div className="fixed inset-0 z-[1000] flex items-end bg-black/40 lg:items-center lg:justify-center" role="dialog" aria-modal="true" aria-label="Chọn hạt">
-          <div className="max-h-[80vh] w-full overflow-y-auto rounded-t-3xl bg-white p-4 lg:max-w-md lg:rounded-3xl">
-            <div className="flex items-center justify-between"><h2 className="m-0 flex items-center gap-2 text-lg font-black"><img src={farmImg('item_seed_packet')} alt="" className="size-8 object-contain" />Chọn hạt giống</h2><button type="button" className="min-h-11 cursor-pointer border-0 bg-transparent text-sm font-bold" onClick={() => setPick(null)}>Đóng</button></div>
+        <div className="fixed inset-0 z-[1000] flex items-end bg-black/40 lg:items-center lg:justify-center" role="dialog" aria-modal="true" aria-label="Chọn hạt" onClick={() => setPick(null)}>
+          <div className="max-h-[80vh] w-full overflow-y-auto rounded-t-3xl bg-white p-4 lg:max-w-md lg:rounded-3xl" onClick={e => e.stopPropagation()}>
+            <div className="sticky top-0 z-10 -mx-4 -mt-4 flex items-center justify-between bg-white px-4 pt-4"><h2 className="m-0 flex items-center gap-2 text-lg font-black"><img src={farmImg('item_seed_packet')} alt="" className="size-8 object-contain" />Chọn hạt giống</h2><button type="button" className="min-h-11 cursor-pointer border-0 bg-transparent text-sm font-bold" onClick={() => setPick(null)}>Đóng</button></div>
             <ul className="m-0 mt-2 list-none space-y-2 p-0">
               {view.crops.map(c => {
                 const have = seedCount(view, c.cropKey)
