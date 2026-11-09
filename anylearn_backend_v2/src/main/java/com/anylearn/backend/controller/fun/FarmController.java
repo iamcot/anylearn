@@ -130,8 +130,8 @@ public class FarmController {
     }
 
     @PostMapping("/path/{index}/claim")
-    public ApiResponse<?> claimPath(@AuthenticationPrincipal User user, @PathVariable int index) {
-        return run(user, () -> progress.claimPath(user.getId(), index));
+    public ApiResponse<?> claimPath(@AuthenticationPrincipal User user, @PathVariable int index, @RequestParam(required = false) Integer level) {
+        return run(user, () -> progress.claimPath(user.getId(), index, level));
     }
 
     @PostMapping("/challenges/{key}/claim")

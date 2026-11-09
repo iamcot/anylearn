@@ -46,6 +46,7 @@ export interface FarmProgress {
   serverNow: string; hasDog: boolean; neighbors: number
   orders: FarmOrder[]
   path: FarmPath
+  olderPaths?: FarmPath[]
   challenges: FarmChallenge[]
   tasks: { items: FarmTaskRow[]; xp: number; boxClaimed: boolean; boxReady: boolean; boxMin: number; boxMax: number }
   chapters: FarmChapter[]
@@ -60,7 +61,7 @@ export const deliverOrder = (token: string, id: number) => authFetch<{ coins: nu
 export const skipOrder = (token: string, id: number) => authFetch<{ skipped: boolean }>(`/farm/orders/${id}/skip`, token, { method: 'POST' })
 export const claimTask = (token: string, index: number) => authFetch<{ xp: number; levelUp: boolean }>(`/farm/tasks/${index}/claim`, token, { method: 'POST' })
 export const claimTaskBox = (token: string) => authFetch<{ coins: number; capped: boolean }>('/farm/tasks/box', token, { method: 'POST' })
-export const claimPath = (token: string, index: number) => authFetch<{ xp: number; levelUp: boolean; level: number }>(`/farm/path/${index}/claim`, token, { method: 'POST' })
+export const claimPath = (token: string, index: number, level?: number) => authFetch<{ xp: number; levelUp: boolean; level: number }>(`/farm/path/${index}/claim${level ? `?level=${level}` : ''}`, token, { method: 'POST' })
 export const claimChallenge = (token: string, key: string) => authFetch<{ coins: number; fertilizer: number }>(`/farm/challenges/${key}/claim`, token, { method: 'POST' })
 export const claimChapter = (token: string, no: number) => authFetch<{ coins: number; freePlot: boolean; dog: boolean }>(`/farm/chapters/${no}/claim`, token, { method: 'POST' })
 

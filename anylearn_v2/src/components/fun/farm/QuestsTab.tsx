@@ -18,7 +18,7 @@ export default function QuestsTab({ token, view, progress, busy, run, setNote }:
   const [branch, setBranch] = useState<'path' | 'daily' | 'challenge'>('path')
   const path = progress.path
   const need = Math.max(view.xpForNext - view.xpIntoLevel, 0)
-  const branches = [['path', 'Lên cấp', path.steps.some(x => x.claimable)], ['daily', 'Hằng ngày', t.items.some(x => x.claimable) || t.boxReady], ['challenge', 'Thử thách', progress.challenges.some(x => x.claimable) || progress.chapters.some(x => x.claimable)]] as const
+  const branches = [['path', 'Lên cấp', [path, ...(progress.olderPaths ?? [])].some(pt => pt.steps.some(x => x.claimable))], ['daily', 'Hằng ngày', t.items.some(x => x.claimable) || t.boxReady], ['challenge', 'Thử thách', progress.challenges.some(x => x.claimable) || progress.chapters.some(x => x.claimable)]] as const
   return (
     <div className="mt-4 space-y-4">
       <div className="grid grid-cols-3 gap-1 rounded-xl bg-slate-100 p-1" role="tablist">
@@ -29,19 +29,19 @@ export default function QuestsTab({ token, view, progress, busy, run, setNote }:
         ))}
       </div>
 
-      {branch === 'path' && (
-        <section aria-label="Nhiệm vụ lên cấp" className="rounded-2xl bg-white p-4 ring-1 ring-line">
-          <h2 className="m-0 text-lg font-black">Lên cấp {path.level + 1}</h2>
-          <p className="mt-1 text-xs text-muted">Làm lần lượt từng bước. Nhiệm vụ cho khoảng {path.percent}% XP cần để lên cấp, phần còn lại đến từ thu hoạch cây. Còn thiếu <b>{need} XP</b>.</p>
+      {branch === 'path' && [path, ...(progress.olderPaths ?? [])].map((pt, n) => (
+        <section key={pt.level} aria-label="Nhiệm vụ lên cấp" className="rounded-2xl bg-white p-4 ring-1 ring-line">
+          <h2 className="m-0 text-lg font-black">Lên cấp {pt.level + 1}{n > 0 && <span className="ml-2 text-xs font-bold text-muted">chưa xong</span>}</h2>
+          {n === 0 && <p className="mt-1 text-xs text-muted">Làm lần lượt từng bước. Nhiệm vụ cho khoảng {pt.percent}% XP cần để lên cấp, phần còn lại đến từ thu hoạch cây. Còn thiếu <b>{need} XP</b>.</p>}
           <ul className="m-0 mt-3 list-none space-y-3 p-0">
-            {path.steps.map(st => (
+            {pt.steps.map(st => (
               <li key={st.index} className={st.locked ? 'opacity-50' : ''}>
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-sm font-bold">{st.index + 1}. {st.label} ({st.progress}/{st.target})<span className="ml-2 whitespace-nowrap rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-extrabold text-amber-800">+{st.xp} XP</span></span>
                   {st.claimed ? <span className="text-xs font-extrabold text-green-dark">✓ Xong</span>
                     : <button type="button" className="min-h-9 cursor-pointer rounded-lg border-0 bg-green px-3 text-xs font-extrabold text-white disabled:opacity-40" disabled={busy || !st.claimable} onClick={() => run(async () => {
-                      const r = await claimPath(token, st.index)
-                      if (!r.error) enqueueRewards([{ kind: 'mission', key: `farm:path:${path.level}:${st.index}`, label: st.label, extra: [`+${st.xp} XP`] }], view.coinName)
+                      const r = await claimPath(token, st.index, pt.level)
+                      if (!r.error) enqueueRewards([{ kind: 'mission', key: `farm:path:${pt.level}:${st.index}`, label: st.label, extra: [`+${st.xp} XP`] }], view.coinName)
                       return r
                     }, '')}>Nhận</button>}
                 </div>
@@ -49,9 +49,9 @@ export default function QuestsTab({ token, view, progress, busy, run, setNote }:
               </li>
             ))}
           </ul>
-          {path.allDone && <p className="mt-3 rounded-xl bg-green-soft px-3 py-2 text-sm font-bold text-green-dark">Bạn đã xong chuỗi nhiệm vụ của cấp này. Thu hoạch thêm cây để đủ XP lên cấp {path.level + 1}, nhiệm vụ mới sẽ mở ngay.</p>}
+          {n === 0 && pt.allDone && <p className="mt-3 rounded-xl bg-green-soft px-3 py-2 text-sm font-bold text-green-dark">Bạn đã xong chuỗi nhiệm vụ của cấp này. Thu hoạch thêm cây để đủ XP lên cấp {pt.level + 1}, nhiệm vụ mới sẽ mở ngay.</p>}
         </section>
-      )}
+      ))}
 
       {branch === 'daily' && <section aria-label="Việc hôm nay" className="rounded-2xl bg-white p-4 ring-1 ring-line">
         <h2 className="m-0 text-lg font-black">Việc hôm nay</h2>

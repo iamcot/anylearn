@@ -114,6 +114,7 @@ public class FarmProgressService {
         out.put("hasDog", ((Number) profile.get("has_dog")).intValue() == 1);
         out.put("orders", orders(userId, level));
         out.put("path", path(userId, level, plots, life));
+        out.put("olderPaths", olderPaths(userId, level, plots, life));
         out.put("tasks", tasks(userId, today, day));
         out.put("challenges", challenges(userId, life));
         out.put("chapters", chapters(userId, level, plots, life));
@@ -339,11 +340,24 @@ public class FarmProgressService {
         return out;
     }
 
+    /** Chains of lower levels that were opened and are not finished: levelling up never removes them. */
+    private List<Map<String, Object>> olderPaths(long userId, int level, int plots, Map<String, Integer> life) {
+        List<Integer> seen = jdbc.queryForList("SELECT DISTINCT level FROM farm_path_base WHERE user_id = ? AND level < ? ORDER BY level DESC", Integer.class, userId, level);
+        List<Map<String, Object>> out = new ArrayList<>();
+        for (int lv : seen) {
+            Map<String, Object> p = path(userId, lv, plots, life);
+            if (!Boolean.TRUE.equals(p.get("allDone")) && !((List<?>) p.get("steps")).isEmpty()) out.add(p);
+        }
+        return out;
+    }
+
     @Transactional
-    public Map<String, Object> claimPath(long userId, int index) {
+    public Map<String, Object> claimPath(long userId, int index, Integer pathLevel) {
         farm.checkOpen();
         Map<String, Object> profile = farm.lockProfile(userId);
-        int level = ((Number) profile.get("level")).intValue();
+        int current = ((Number) profile.get("level")).intValue();
+        int level = pathLevel == null ? current : pathLevel;
+        if (level < 1 || level > current) throw new IllegalStateException("Không có bước này.");
         int plots = ((Number) profile.get("plots")).intValue();
         Map<String, Integer> life = counters(userId, null);
         Map<String, Integer> base = pathBase(userId, level, plots, life);
