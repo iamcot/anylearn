@@ -94,3 +94,6 @@ export function worldOffset(size: Size, world: Size): { x: number; y: number } {
   const clamp = (v: number, min: number, max: number) => Math.min(Math.max(v, min), max)
   return { x: clamp(target.cx - mine.cx, Math.min(size.w - world.w, 0), 0), y: clamp(target.cy - mine.cy, Math.min(size.h - world.h, 0), 0) }
 }
+
+/** Levels at which the three perennial tree slots open (the trees themselves come later). */
+export const TREE_SLOT_LEVELS = [10, 11, 12]

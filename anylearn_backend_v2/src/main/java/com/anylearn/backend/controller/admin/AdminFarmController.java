@@ -10,6 +10,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /** Back office of Nông trại anyLEARN (plan 22): the numbers, the crop catalog and a few totals. */
@@ -42,6 +43,15 @@ public class AdminFarmController {
         out.put("coinsSpentToday", count("SELECT COALESCE(SUM(coins_spent), 0) FROM farm_day_stats WHERE day = CURDATE()"));
         out.put("coinsIn7d", count("SELECT COALESCE(SUM(coins_in), 0) FROM farm_day_stats WHERE day >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)"));
         out.put("coinsSpent7d", count("SELECT COALESCE(SUM(coins_spent), 0) FROM farm_day_stats WHERE day >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)"));
+        out.put("compost7d", count("SELECT COUNT(*) FROM farm_compost WHERE collected_at >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)"));
+        out.put("ordersDone7d", count("SELECT COUNT(*) FROM farm_orders WHERE status = 'done' AND done_at >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)"));
+        out.put("ordersOpen", count("SELECT COUNT(*) FROM farm_orders WHERE status = 'open'"));
+        out.put("knowledgeSeeds7d", count("SELECT COALESCE(SUM(knowledge_seed), 0) FROM farm_day_stats WHERE day >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)"));
+        out.put("levelSpread", List.of(
+                Map.of("label", "Cấp 1-3", "count", count("SELECT COUNT(*) FROM farm_profiles WHERE level <= 3")),
+                Map.of("label", "Cấp 4-6", "count", count("SELECT COUNT(*) FROM farm_profiles WHERE level BETWEEN 4 AND 6")),
+                Map.of("label", "Cấp 7-10", "count", count("SELECT COUNT(*) FROM farm_profiles WHERE level BETWEEN 7 AND 10")),
+                Map.of("label", "Cấp 11 trở lên", "count", count("SELECT COUNT(*) FROM farm_profiles WHERE level >= 11"))));
         return ApiResponse.ok(out);
     }
 

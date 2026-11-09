@@ -4,7 +4,7 @@
 import type { FarmPlot, FarmProgress, FarmView } from '@/lib/api/farm'
 import { backgroundFor, cropImage, farmImg, plotImage, type TimeOfDay } from '@/lib/farm/art'
 import { formatWait, secondsUntil } from '@/lib/farm/rules'
-import { cellCenters, compostSpot, fieldRegion, treeSpots, type SceneKind, type Size } from '@/lib/farm/scene'
+import { cellCenters, compostSpot, fieldRegion, treeSpots, TREE_SLOT_LEVELS, type SceneKind, type Size } from '@/lib/farm/scene'
 
 interface Props {
   view: FarmView
@@ -72,7 +72,10 @@ export default function FarmScene({ view, progress, size, kind, tod, elapsed, se
 
       {trees.map((t, i) => (
         <div key={i} className="pointer-events-none absolute" style={{ left: px(t.x), top: px(t.y), width: px(t.w), transform: 'translate(-50%, -100%)', zIndex: 50 + i }}>
-          <img src={farmImg('tree_slot_empty')} alt="" className="block h-auto w-full" draggable={false} />
+          <img src={farmImg('tree_slot_empty')} alt="" className={`block h-auto w-full ${view.level < TREE_SLOT_LEVELS[i] ? 'opacity-50 grayscale' : ''}`} draggable={false} />
+          {view.level < TREE_SLOT_LEVELS[i] && (
+            <span className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 ${pill} bg-white/70 text-ink`}>Cấp {TREE_SLOT_LEVELS[i]}</span>
+          )}
         </div>
       ))}
 

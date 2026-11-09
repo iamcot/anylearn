@@ -57,7 +57,7 @@ export default function FunFarm() {
       <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/fun-events')}>Vui học</Button>
       <Typography.Title level={4} style={{ marginTop: 12 }}>Nông trại anyLEARN</Typography.Title>
       <Alert type="info" showIcon style={{ marginBottom: 16 }}
-        message={`Lãi ròng của người chơi (tiền bán trừ tiền hạt và phân) bị chặn theo ngày và theo tuần. Đây là chốt chặn chính để ${coin} từ Nông trại không làm lạm phát vì ${coin} đổi được voucher. Bật / tắt riêng game ở Vui học > "Mở dần từng game" (game farm).`} />
+        message={`Lãi ròng của người chơi (tiền bán trừ tiền hạt và phân) bị chặn theo ngày và theo tuần. Đây là chốt chặn chính để ${coin} từ Nông trại không làm lạm phát. Hiện ${coin} không đổi được voucher (đã tắt vì rủi ro giấy phép game), và tương tác giữa người chơi (hàng xóm, tưới giúp, hái trộm) đang tạm tắt: bật ở phần Cài đặt > Xã hội chỉ khi đã có giấy phép. Bật / tắt riêng game ở Vui học > "Mở dần từng game" (game farm).`} />
 
       <Row gutter={16} style={{ marginBottom: 16 }}>
         <Col xs={12} md={4}><Statistic title="Người chơi" value={d?.players ?? 0} /></Col>
@@ -66,6 +66,13 @@ export default function FunFarm() {
         <Col xs={12} md={4}><Statistic title={`${coin} chi hôm nay`} value={d?.coinsSpentToday ?? 0} /></Col>
         <Col xs={12} md={4}><Statistic title="Bán 7 ngày" value={d?.coinsIn7d ?? 0} /></Col>
         <Col xs={12} md={4}><Statistic title="Chi 7 ngày" value={d?.coinsSpent7d ?? 0} /></Col>
+      </Row>
+      <Row gutter={16} style={{ marginBottom: 16 }}>
+        <Col xs={12} md={4}><Statistic title="Thu phân 7 ngày" value={d?.compost7d ?? 0} /></Col>
+        <Col xs={12} md={4}><Statistic title="Đơn đã giao 7 ngày" value={d?.ordersDone7d ?? 0} /></Col>
+        <Col xs={12} md={4}><Statistic title="Đơn đang mở" value={d?.ordersOpen ?? 0} /></Col>
+        <Col xs={12} md={4}><Statistic title="Hạt Tri thức phát 7 ngày" value={d?.knowledgeSeeds7d ?? 0} /></Col>
+        {(d?.levelSpread ?? []).map(x => <Col xs={12} md={4} key={x.label}><Statistic title={x.label} value={x.count} /></Col>)}
       </Row>
 
       <Card title="Cây trồng" loading={cropsQ.isLoading} style={{ marginBottom: 16 }}>
