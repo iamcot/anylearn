@@ -39,6 +39,7 @@ export default function FarmScene({ view, kind, tod, elapsed, selected, hasDog, 
   const cells = view.plots.length + (view.nextPlotPrice > 0 ? 1 : 0)
   const { tw, th, centers } = cellCenters(cells, layout)
   const cropOf = (k?: string) => view.crops.find(c => c.cropKey === k)
+  const dense = tw < (kind === 'mobile' ? 22 : 17)
   const fontSize = `clamp(10px, ${cq(layout.font)}, 15px)`
 
   const box = (xPct: number, yPct: number, w: number): CSSProperties => ({ left: `${xPct}%`, top: `${yPct}%`, width: cq(w), transform: 'translate(-50%, -50%)' })
@@ -82,7 +83,7 @@ export default function FarmScene({ view, kind, tod, elapsed, selected, hasDog, 
         }
         const crop = cropOf(p.cropKey)
         const art = cropImage(p, crop, elapsed)
-        const tag = chip(p, elapsed)
+        const tag = dense && p.phase === 'growing' ? null : chip(p, elapsed)
         const spriteW = tw * (p.phase === 'ripe' || p.phase === 'wilting' ? 0.66 : 0.55)
         const spriteH = spriteW * (341 / 512)
         const sel = selected === p.slot

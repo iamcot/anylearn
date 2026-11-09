@@ -1,7 +1,7 @@
 /** Layout of the farm scene (pure, tested). Lengths are in cqw: 1/100 of the scene width. */
 export type SceneKind = 'desktop' | 'mobile'
 
-export interface Decor { key: string; img: string; x: number; y: number; w: number; label?: string; action?: 'compost' | 'market' | 'orders' | 'mailbox' }
+export interface Decor { key: string; img: string; x: number; y: number; w: number; label?: string; soon?: boolean; action?: 'compost' | 'market' | 'orders' | 'mailbox' }
 
 export interface SceneLayout {
   aspect: string
@@ -21,7 +21,7 @@ export const TILE_STEP = 0.43
 
 const LAYOUTS: Record<SceneKind, SceneLayout> = {
   desktop: {
-    aspect: '16 / 9', height: 56.25, region: { cx: 50, cy: 34, aw: 58, ah: 36 }, maxTile: 28, font: 1.1,
+    aspect: '16 / 9', height: 56.25, region: { cx: 45, cy: 33, aw: 46, ah: 31 }, maxTile: 24, font: 1.1,
     leo: { x: 30, y: 80, w: 7 },
     decor: [
       { key: 'well', img: 'well', x: 37, y: 31, w: 8 },
@@ -31,20 +31,25 @@ const LAYOUTS: Record<SceneKind, SceneLayout> = {
       { key: 'market', img: 'market_stall', x: 88, y: 63, w: 14, label: 'Chợ', action: 'market' },
       { key: 'mailbox', img: 'mailbox_neighbor', x: 67, y: 30, w: 6.5, label: 'Hàng xóm', action: 'mailbox' },
       { key: 'scarecrow', img: 'npc_bu_nhin', x: 82, y: 46, w: 5 },
-      { key: 'dog', img: 'npc_cho_bong', x: 72, y: 82, w: 6 },
+      { key: 'dog', img: 'npc_cho_bong', x: 60, y: 90, w: 6 },
+      { key: 'tree1', img: 'tree_slot_empty', x: 66, y: 56, w: 8, label: 'Cây lâu năm' },
+      { key: 'tree2', img: 'tree_slot_empty', x: 73, y: 64, w: 8 },
+      { key: 'tree3', img: 'tree_slot_empty', x: 66, y: 72, w: 8 },
     ],
   },
   mobile: {
-    aspect: '4 / 5', height: 125, region: { cx: 50, cy: 70, aw: 96, ah: 58 }, maxTile: 46, font: 3,
-    leo: { x: 36, y: 87, w: 15 },
+    aspect: '4 / 5', height: 125, region: { cx: 50, cy: 62, aw: 90, ah: 46 }, maxTile: 46, font: 3,
+    leo: { x: 20, y: 87, w: 15 },
     decor: [
       { key: 'well', img: 'well', x: 33, y: 30, w: 16 },
       { key: 'compost', img: 'compost_bin', x: 14, y: 37, w: 22, label: 'Thùng ủ', action: 'compost' },
       { key: 'market', img: 'market_stall', x: 85, y: 41, w: 25, label: 'Chợ', action: 'market' },
       { key: 'orders', img: 'order_board', x: 87, y: 68, w: 15, label: 'Đơn hàng', action: 'orders' },
       { key: 'mailbox', img: 'mailbox_neighbor', x: 13, y: 68, w: 15, label: 'Hàng xóm', action: 'mailbox' },
-      { key: 'chicken', img: 'pet_ga_bong', x: 60, y: 88, w: 9 },
-      { key: 'dog', img: 'npc_cho_bong', x: 72, y: 86, w: 12 },
+      { key: 'chicken', img: 'pet_ga_bong', x: 38, y: 90, w: 9 },
+      { key: 'dog', img: 'npc_cho_bong', x: 48, y: 88, w: 12 },
+      { key: 'tree1', img: 'tree_slot_empty', x: 66, y: 84, w: 17, label: 'Cây lâu năm' },
+      { key: 'tree2', img: 'tree_slot_empty', x: 84, y: 88, w: 17 },
     ],
   },
 }
