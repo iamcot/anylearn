@@ -9,7 +9,7 @@ import { useNotifications } from '@/components/header/useNotifications'
 import { ChevronLeftIcon } from '@/components/icons'
 import BrandText from '@/components/fun/BrandText'
 import {
-  buyFertilizer, collectCompost, debugAdvance, expandPlots, fertilizePlot, getFarm, getProgress, harvestPlots, plantCrop, sellCrops, startCompost, waterPlots,
+  buyFertilizer, collectCompost, debugAdvance, debugFillOrders, expandPlots, fertilizePlot, getFarm, getProgress, harvestPlots, plantCrop, sellCrops, startCompost, waterPlots,
   type FarmCrop, type FarmPlot, type FarmProgress, type FarmView,
 } from '@/lib/api/farm'
 import OrdersTab from '@/components/fun/farm/OrdersTab'
@@ -66,6 +66,7 @@ export default function FarmPage() {
   const [view, setView] = useState<FarmView | null>(null)
   const [progress, setProgress] = useState<FarmProgress | null>(null)
   const [panel, setPanel] = useState<'storage' | 'orders' | 'quests' | 'neighbors' | 'market' | 'compost' | null>(null)
+  const [todPick, setTodPick] = useState<'auto' | 'day' | 'sunset' | 'night'>('auto')
   const [flies, setFlies] = useState<Fly[]>([])
   const flyId = useRef(0)
   const rootRef = useRef<HTMLDivElement>(null)
@@ -218,7 +219,7 @@ export default function FarmPage() {
     return `còn ${formatWait((p.secondsToRipe ?? 0) - elapsed / 1000)}`
   }
 
-  const tod = timeOfDay(new Date(now).getHours())
+  const tod = todPick === 'auto' ? timeOfDay(new Date(now).getHours()) : todPick
   const waiting = progress.orders.length > 0
   const tabs = [['garden', 'Vườn', 'ui_tab_garden'], ['storage', 'Kho', 'item_basket'], ['orders', 'Đơn hàng', 'ui_tab_orders'], ['quests', 'Nhiệm vụ', 'ui_tab_quests'], ['neighbors', 'Hàng xóm', 'ui_tab_neighbors'], ['market', 'Chợ', 'ui_tab_market_alt']] as const
   const active = panel ?? 'garden'
@@ -275,9 +276,11 @@ export default function FarmPage() {
       {flies.map(f => <FlyItem key={f.id} f={f} onDone={id => setFlies(l => l.filter(x => x.id !== id))} />)}
 
       {user?.role === 'admin' && (
-        <div className="absolute left-2 top-[88px] z-[700] flex items-center gap-1 rounded-full bg-black/55 px-2 py-1 text-[11px] font-bold text-white">
+        <div className="absolute left-2 top-[88px] z-[700] flex max-w-[calc(100%-90px)] flex-wrap items-center gap-1 rounded-2xl bg-black/55 px-2 py-1 text-[11px] font-bold text-white">
           <span>Debug</span>
           {[[10, '+10p'], [60, '+1g'], [1440, '+1ng']].map(([m, l]) => <button key={m} type="button" className="cursor-pointer rounded-full border-0 bg-white/90 px-2 py-0.5 text-[11px] font-extrabold text-ink" onClick={async () => { await debugAdvance(token, m as number); await load() }}>{l}</button>)}
+          <button type="button" className="cursor-pointer rounded-full border-0 bg-amber-200 px-2 py-0.5 text-[11px] font-extrabold text-ink" onClick={async () => { await debugFillOrders(token); await load(); setNote('Đã nạp nông sản cho đơn hàng') }}>Nạp đơn</button>
+          {(['auto', 'day', 'sunset', 'night'] as const).map(k => <button key={k} type="button" className={`cursor-pointer rounded-full border-0 px-2 py-0.5 text-[11px] font-extrabold ${todPick === k ? 'bg-green text-white' : 'bg-white/90 text-ink'}`} onClick={() => setTodPick(k)}>{{ auto: 'Auto', day: 'Ngày', sunset: 'Chiều', night: 'Đêm' }[k]}</button>)}
         </div>
       )}
 

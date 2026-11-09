@@ -450,6 +450,21 @@ public class FarmService {
         int n = slot == null
                 ? jdbc.update("UPDATE farm_plots SET planted_at = DATE_SUB(planted_at, INTERVAL ? MINUTE) WHERE user_id = ? AND crop_key IS NOT NULL", m, userId)
                 : jdbc.update("UPDATE farm_plots SET planted_at = DATE_SUB(planted_at, INTERVAL ? MINUTE) WHERE user_id = ? AND slot = ? AND crop_key IS NOT NULL", m, userId, slot);
-        return Map.of("plots", n, "minutes", m);
+        int bins = slot == null
+                ? jdbc.update("UPDATE farm_compost SET ready_at = DATE_SUB(ready_at, INTERVAL ? MINUTE) WHERE user_id = ? AND collected_at IS NULL", m, userId)
+                : 0;
+        return Map.of("plots", n, "bins", bins, "minutes", m);
+    }
+
+    /** Testing aid for admins: put the crops of every open order into the storage, so the orders can be delivered at once. */
+    public Map<String, Object> debugFillOrders(long userId) {
+        int added = 0;
+        for (String json : jdbc.queryForList("SELECT items_json FROM farm_orders WHERE user_id = ? AND status = 'open'", String.class, userId)) {
+            try {
+                Map<String, Number> items = mapper.readValue(json, new com.fasterxml.jackson.core.type.TypeReference<Map<String, Number>>() {});
+                for (Map.Entry<String, Number> e : items.entrySet()) { addInventory(userId, e.getKey(), e.getValue().intValue(), false); added += e.getValue().intValue(); }
+            } catch (Exception ignored) { }
+        }
+        return Map.of("added", added);
     }
 }
