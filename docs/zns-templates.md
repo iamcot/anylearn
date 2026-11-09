@@ -219,3 +219,13 @@ Mẫu 6 và 8 chỉ cần khi thấy tỷ lệ mở push/email thấp. Mẫu 13 
 
 > **Đấu trường Leo sắp bắt đầu**
 > Chào <name>, Đấu trường Leo bắt đầu lúc <time> hôm nay. Bạn vào phòng sớm để không bỏ lỡ câu nào nhé.
+
+## 16. Tài khoản đã được tạo — Giao dịch (nhập đơn tay)
+
+- Điểm gửi: `ManualOrderService.create`, khi admin nhập đơn tay cho một số điện thoại chưa có tài khoản (tài khoản `member` được tạo với mật khẩu tạm 6 số). Gửi ngay, trước tin "Xác nhận đăng ký thành công" của đơn đó.
+- Mã mẫu: **chưa có**. Đăng ký mẫu trên Zalo OA, khi được duyệt thì nhập mã ở back office Cài đặt > "Mẫu Zalo ZNS" > "Tài khoản đã được tạo". Chưa có mã thì không gửi (màn hình nhập đơn hiện mật khẩu tạm để admin báo khách).
+- Tham số: `customer_name`, `phone_number`, `password`.
+- Nút: "Đăng nhập" → `https://anylearn.vn/login`.
+
+> **Tài khoản anyLEARN của bạn đã sẵn sàng**
+> Chào <customer_name>, anyLEARN đã tạo tài khoản cho bạn để theo dõi khóa học vừa đăng ký. Tên đăng nhập: <phone_number>. Mật khẩu tạm: <password>. Bạn đăng nhập và đổi mật khẩu trong mục Tài khoản nhé.

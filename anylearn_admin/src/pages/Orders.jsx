@@ -1,10 +1,11 @@
 import { App, Button, Drawer, Input, Popconfirm, Select, Space, Table, Tag, Typography } from 'antd'
-import { RightOutlined } from '@ant-design/icons'
+import { PlusOutlined, RightOutlined } from '@ant-design/icons'
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import client from '../api/client'
 import { fmtVND, fmtDate, fmtDateTime } from '../utils/format'
 import { Field } from '../components/Field'
+import ManualOrderModal from '../components/ManualOrderModal'
 
 const STATUS_MAP = {
   new:           ['Mới',            'default'],
@@ -31,6 +32,7 @@ export default function Orders() {
   const [page, setPage] = useState(1)
   const [selectedKeys, setSelectedKeys] = useState([])
   const [drawerOrder, setDrawerOrder] = useState(null)
+  const [manualOpen, setManualOpen] = useState(false)
 
   const { data: partners } = useQuery({
     queryKey: ['admin-partners'],
@@ -114,7 +116,7 @@ export default function Orders() {
         )
       }
     },
-    { title: 'Trạng thái', dataIndex: 'status', render: statusTag },
+    { title: 'Trạng thái', dataIndex: 'status', render: (v, row) => <Space size={4}>{statusTag(v)}{row.manual && <Tag color="purple">Nhập tay</Tag>}</Space> },
     { title: 'Ngày đặt', dataIndex: 'createdAt', render: v => fmtDateTime(v) },
     { dataIndex: 'id', width: 36, align: 'center', render: () => <RightOutlined style={{ color: '#bbb', fontSize: 11 }} /> },
   ]
@@ -124,9 +126,11 @@ export default function Orders() {
   return (
     <div style={{ padding: 24 }}>
       <div className="page-header">
+        <Button type="primary" icon={<PlusOutlined />} style={{ float: 'right' }} onClick={() => setManualOpen(true)}>Nhập đơn tay</Button>
         <div className="page-title">Đơn hàng</div>
         <span className="page-subtitle">Quản lý và duyệt đơn hàng</span>
       </div>
+      <ManualOrderModal open={manualOpen} onClose={() => setManualOpen(false)} onSaved={() => qc.invalidateQueries({ queryKey: ['admin-orders'] })} />
       <div className="page-content">
       <Space style={{ marginBottom: 16, flexWrap: 'wrap', width: '100%', justifyContent: 'space-between' }}>
         <Space wrap>
@@ -186,6 +190,14 @@ export default function Orders() {
         <Field label="Tổng tiền" viewValue={`${Number(drawerOrder?.amount ?? 0).toLocaleString()}đ`} />
         <Field label="Trạng thái" viewValue={statusTag(drawerStatus)} />
         <Field label="Ngày đặt" viewValue={fmtDateTime(drawerOrder?.createdAt)} />
+        {orderDetail?.manual && (
+          <Field label="Nhập tay" viewValue={(
+            <span>
+              Bởi {orderDetail.manual.adminName || 'admin'}{orderDetail.manual.accountCreated ? ' · tạo tài khoản mới' : ''}
+              {orderDetail.manual.note && <div style={{ color: '#888' }}>{orderDetail.manual.note}</div>}
+            </span>
+          )} />
+        )}
         {orderDetail?.items?.length > 0 && (
           <div style={{ marginTop: 16 }}>
             <div style={{ fontWeight: 600, marginBottom: 8 }}>Sản phẩm</div>

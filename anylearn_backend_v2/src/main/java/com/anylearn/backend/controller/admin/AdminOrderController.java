@@ -55,8 +55,9 @@ public class AdminOrderController {
 
         var sql = "SELECT o.id, o.amount, o.status, o.payment, o.created_at, u.name AS buyerName, u.phone AS buyerPhone, " +
                   "GROUP_CONCAT(DISTINCT pu.name SEPARATOR ', ') AS partnerNames, " +
-                  "GROUP_CONCAT(DISTINCT pu.id SEPARATOR ',') AS partnerIds " +
-                  baseSql +
+                  "GROUP_CONCAT(DISTINCT pu.id SEPARATOR ',') AS partnerIds, " +
+                  "MAX(CASE WHEN mo.id IS NULL THEN 0 ELSE 1 END) AS manual " +
+                  baseSql.replace("WHERE 1=1", "LEFT JOIN manual_orders mo ON mo.order_id = o.id WHERE 1=1") +
                   " GROUP BY o.id, o.status, o.payment, o.amount, o.created_at, u.name, u.phone" +
                   " ORDER BY o.id " + safeSort +
                   " LIMIT " + size + " OFFSET " + (long) page * size;
@@ -71,6 +72,7 @@ public class AdminOrderController {
             m.put("buyerName", r[5] != null ? r[5] : ""); m.put("buyerPhone", r[6] != null ? r[6] : "");
             m.put("partnerNames", r[7] != null ? r[7] : "");
             m.put("partnerIds", r[8] != null ? r[8] : "");
+            m.put("manual", r[9] != null && ((Number) r[9]).intValue() == 1);
             return m;
         }).toList();
 
@@ -100,6 +102,18 @@ public class AdminOrderController {
         return orderRepository.findById(id).map(o -> {
             var m = new LinkedHashMap<String, Object>();
             m.put("order", o);
+            @SuppressWarnings("unchecked")
+            List<Object[]> manual = em.createNativeQuery(
+                    "SELECT mo.note, mo.account_created, a.name FROM manual_orders mo LEFT JOIN users a ON a.id = mo.admin_id WHERE mo.order_id = ?1")
+                    .setParameter(1, id).getResultList();
+            if (!manual.isEmpty()) {
+                Object[] r = manual.get(0);
+                var info = new LinkedHashMap<String, Object>();
+                info.put("note", r[0] != null ? r[0] : "");
+                info.put("accountCreated", r[1] != null && ((Number) r[1]).intValue() == 1);
+                info.put("adminName", r[2] != null ? r[2] : "");
+                m.put("manual", info);
+            }
             m.put("items", details.stream().map(r -> {
                 var d = new LinkedHashMap<String, Object>();
                 d.put("id", r[0]); d.put("itemId", r[1]); d.put("title", r[2] != null ? r[2] : "");

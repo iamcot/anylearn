@@ -572,3 +572,18 @@ Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
 Content-Type: application/json
 
 {"dailyTokens": 1000000}
+
+### Manual order: who is this phone (account + children)
+GET {{baseUrl}}/admin/orders/manual/lookup?phone=0912345678
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+
+### Manual order: several orders at once (a new phone needs name; paid = approved at once)
+POST {{baseUrl}}/admin/orders/manual
+Authorization: Bearer {{$dotenv ADMIN_TOKEN}}
+Content-Type: application/json
+
+{"orders": [
+  {"phone": "0987654321", "name": "Nguyễn Thị Lan", "email": "", "forChild": true, "childName": "Bin", "childDob": "2019-06-01",
+   "items": [{"itemId": 1, "scheduleId": null, "startDate": null}], "payment": "cash", "paid": true, "amount": 1400000, "note": "Thu tại hội chợ"},
+  {"phone": "0912345678", "forChild": true, "childId": 12, "items": [{"itemId": 2}], "payment": "bank_transfer", "paid": false}
+]}

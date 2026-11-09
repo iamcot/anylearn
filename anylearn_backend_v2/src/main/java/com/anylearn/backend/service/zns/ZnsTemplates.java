@@ -22,6 +22,8 @@ public final class ZnsTemplates {
     public static final String ORDER_REMINDER = "order_reminder";
     public static final String COURSE_START = "course_start";
     public static final String MID_SURVEY = "mid_survey";
+    /** An admin created the account while entering an order by hand (no approved id yet: the team types it in the back office). */
+    public static final String ACCOUNT_CREATED = "account_created";
 
     /** Lengths kept under Zalo's usual limits (name 30, short text 100); longer values are cut with "…". */
     static final int NAME_MAX = 30;
@@ -55,7 +57,11 @@ public final class ZnsTemplates {
             new Def(MID_SURVEY, "Khảo sát giữa khóa", "659981",
                     "Học được nửa số buổi (cài đặt khảo sát giữa khóa), trong khung 8h-21h",
                     List.of("order_code", "date", "course_name", "learner_name"),
-                    midSurvey(1234L, LocalDate.of(2026, 11, 2), "Piano cơ bản cho bé", "Bin")));
+                    midSurvey(1234L, LocalDate.of(2026, 11, 2), "Piano cơ bản cho bé", "Bin")),
+            new Def(ACCOUNT_CREATED, "Tài khoản đã được tạo", "",
+                    "Admin nhập đơn hàng bằng tay cho một số điện thoại chưa có tài khoản (giao dịch, gửi ngay)",
+                    List.of("customer_name", "phone_number", "password"),
+                    accountCreated("Nguyễn Văn An", "0901234567", "123456")));
 
     private ZnsTemplates() {}
 
@@ -107,6 +113,15 @@ public final class ZnsTemplates {
         data.put("date", date(orderDate));
         data.put("course_name", cut(courseName, TEXT_MAX));
         data.put("learner_name", cut(blankToNull(learnerName) == null ? "Học viên" : learnerName.trim(), NAME_MAX));
+        return data;
+    }
+
+    /** Template "Tài khoản đã được tạo": the phone is the login, the password is the temporary one made by the server. */
+    public static Map<String, String> accountCreated(String customerName, String phone, String password) {
+        Map<String, String> data = new LinkedHashMap<>();
+        data.put("customer_name", name(customerName, phone));
+        data.put("phone_number", phone == null ? "" : phone.trim());
+        data.put("password", password == null ? "" : password);
         return data;
     }
 
