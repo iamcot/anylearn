@@ -14,10 +14,26 @@ import {
 import OrdersTab from '@/components/fun/farm/OrdersTab'
 import QuestsTab from '@/components/fun/farm/QuestsTab'
 import NeighborsTab from '@/components/fun/farm/NeighborsTab'
-import { backgroundFor, cropImage, farmImg, plotImage, timeOfDay } from '@/lib/farm/art'
+import FarmScene, { type DecoKey } from '@/components/fun/farm/FarmScene'
+import { farmImg, timeOfDay } from '@/lib/farm/art'
+import type { SceneKind } from '@/lib/farm/scene'
 import { capUsedPercent, formatWait, isRipe, secondsUntil, sellable, seedCount, slotsToHarvest, slotsToWater } from '@/lib/farm/rules'
 
-const PHASE_EMOJI: Record<string, string> = { growing: '🌱', thirsty: '🥀', ripe: '✨', wilting: '🍂' }
+type Pose = 'idle' | 'water' | 'harvest' | 'cheer'
+
+function Sheet({ title, icon, onClose, children }: { title: string; icon: string; onClose: () => void; children: React.ReactNode }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-end bg-black/40 lg:items-center lg:justify-center" role="dialog" aria-modal="true" aria-label={title} onClick={onClose}>
+      <div className="max-h-[85vh] w-full overflow-y-auto rounded-t-3xl bg-white p-4 lg:max-w-md lg:rounded-3xl" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between">
+          <h2 className="m-0 flex items-center gap-2 text-lg font-black"><img src={farmImg(icon)} alt="" className="h-10 w-14 object-contain" />{title}</h2>
+          <button type="button" className="min-h-11 cursor-pointer border-0 bg-transparent text-sm font-bold" onClick={onClose}>Đóng</button>
+        </div>
+        {children}
+      </div>
+    </div>
+  )
+}
 
 export default function FarmPage() {
   const { token } = useAuth()
@@ -27,9 +43,21 @@ export default function FarmPage() {
   const [error, setError] = useState('')
   const [note, setNote] = useState('')
   const [pick, setPick] = useState<number | null>(null)
+  const [selected, setSelected] = useState<number | null>(null)
+  const [sheet, setSheet] = useState<'compost' | 'market' | null>(null)
+  const [pose, setPose] = useState<Pose>('idle')
+  const [kind, setKind] = useState<SceneKind>('mobile')
   const [busy, setBusy] = useState(false)
   const [loadedAt, setLoadedAt] = useState(0)
   const [now, setNow] = useState(0)
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1024px)')
+    const sync = () => setKind(mq.matches ? 'desktop' : 'mobile')
+    sync()
+    mq.addEventListener('change', sync)
+    return () => mq.removeEventListener('change', sync)
+  }, [])
 
   const load = useCallback(async () => {
     if (!token) return
@@ -60,13 +88,15 @@ export default function FarmPage() {
 
   const elapsed = Math.max(now - loadedAt, 0)
 
-  async function act(run: () => Promise<{ error?: string; data?: unknown }>, ok: string) {
+  async function act(run: () => Promise<{ error?: string; data?: unknown }>, ok: string, as: Pose = 'cheer') {
     if (busy) return
     setBusy(true)
     const { error: err } = await run()
     setBusy(false)
     if (err) { setNote(err); return }
     if (ok) setNote(ok)
+    setPose(as)
+    setTimeout(() => setPose('idle'), 1800)
     await load()
   }
 
@@ -79,12 +109,29 @@ export default function FarmPage() {
   const toHarvest = slotsToHarvest(view.plots)
   const sell = sellable(view)
   const used = capUsedPercent(view.market.room, view.market.dayCap)
+  const plot = selected === null ? undefined : view.plots.find(p => p.slot === selected)
 
   async function plant(crop: FarmCrop) {
     if (pick === null || !token) return
     const slot = pick
     setPick(null)
-    await act(() => plantCrop(token, slot, crop.cropKey), `Đã gieo ${crop.name}`)
+    await act(() => plantCrop(token, slot, crop.cropKey), `Đã gieo ${crop.name}`, 'water')
+  }
+
+  /** A tap on a tile does the obvious thing: sow an empty one, water a thirsty one, harvest a ripe one; otherwise it just selects it. */
+  function tapTile(slot: number) {
+    if (!token || !view) return
+    const p = view.plots.find(x => x.slot === slot)
+    if (!p) return
+    setSelected(slot)
+    if (p.phase === 'empty') setPick(slot)
+    else if (p.phase === 'thirsty') act(() => waterPlots(token, [slot]), 'Đã tưới', 'water')
+    else if (isRipe(p)) act(() => harvestPlots(token, [slot]), `Thu hoạch ${p.yield} quả`, 'harvest')
+  }
+
+  function tapDeco(key: DecoKey) {
+    if (key === 'compost' || key === 'market') setSheet(key)
+    else setTab(key === 'orders' ? 'orders' : 'neighbors')
   }
 
   function plotLabel(p: FarmPlot) {
@@ -92,134 +139,123 @@ export default function FarmPage() {
     if (p.phase === 'ripe') return 'Chín rồi!'
     if (p.phase === 'wilting') return 'Sắp héo'
     if (p.phase === 'thirsty') return 'Khát nước'
-    return formatWait((p.secondsToRipe ?? 0) - elapsed / 1000)
+    return `còn ${formatWait((p.secondsToRipe ?? 0) - elapsed / 1000)}`
   }
 
   const tod = timeOfDay(new Date(now).getHours())
-  const bgStyle = { '--bgm': `url(${backgroundFor(tod, 'mobile')})`, '--bgd': `url(${backgroundFor(tod, 'desktop')})` } as React.CSSProperties
+  const waiting = progress.orders.length > 0
+  const badges = { compost: !!progress.compost.active?.ready, orders: waiting, market: sell.length > 0 }
 
   return (
-    <div className="min-h-screen bg-[image:var(--bgm)] bg-cover bg-top bg-no-repeat lg:bg-[image:var(--bgd)]" style={bgStyle}>
-    <div className="mx-auto max-w-[720px] px-4 pb-28 pt-5 lg:px-0 lg:pb-12 lg:pt-8">
-      <Link href="/fun" className="inline-flex min-h-11 items-center gap-1 rounded-full bg-white/80 px-3 text-sm font-bold text-text no-underline"><ChevronLeftIcon className="size-4" /> Vui học</Link>
-      <div className="mt-2 flex items-center gap-3 rounded-2xl bg-white/85 p-3 ring-1 ring-white">
-        <img src={farmImg('leo_farmer_idle')} alt="" className="size-14 shrink-0 object-contain" />
-        <div className="min-w-0 flex-1">
-          <h1 className="m-0 text-xl font-black lg:text-2xl">Nông trại anyLEARN</h1>
-          <p className="m-0 text-sm text-muted">Cấp vườn <b>{view.level}</b> · {view.xpForNext > 0 ? `${view.xpIntoLevel}/${view.xpForNext} XP` : 'cấp tối đa'}</p>
-        </div>
-        <span className="inline-flex items-center gap-1.5 text-xl font-black text-[#b45309]" title={view.coinName}><CoinIcon className="size-6" /> {view.balance}</span>
-      </div>
-      {note && <p className="mt-2 rounded-xl bg-green-soft px-3 py-2 text-sm font-bold text-green-dark" role="status">{note}</p>}
-
-      <div className="mt-3 grid grid-cols-4 gap-1 rounded-xl bg-white/85 p-1" role="tablist">
-        {([['garden', 'Vườn'], ['orders', 'Đơn hàng'], ['quests', 'Nhiệm vụ'], ['neighbors', 'Hàng xóm']] as const).map(([k, l]) => (
-          <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)} className={`min-h-10 cursor-pointer rounded-lg border-0 text-xs font-extrabold ${tab === k ? 'bg-white text-green-dark shadow-sm' : 'bg-transparent text-muted'}`}>{l}</button>
-        ))}
-      </div>
-      {tab === 'orders' && <OrdersTab token={token} view={view} progress={progress} busy={busy} run={act} setNote={setNote} />}
-      {tab === 'quests' && <QuestsTab token={token} view={view} progress={progress} busy={busy} run={act} setNote={setNote} />}
-      {tab === 'neighbors' && <NeighborsTab token={token} view={view} onChanged={load} />}
-      {tab === 'garden' && <>
-      <div className="mt-3 grid grid-cols-2 gap-3">
-        {view.plots.map(p => {
-          const crop = cropOf(p.cropKey)
-          const waterSecs = p.nextWaterAt ? secondsUntil(p.nextWaterAt, view.serverNow, elapsed) : 0
-          const art = cropImage(p, crop, elapsed)
-          return (
-            <div key={p.slot} className="flex flex-col items-center rounded-2xl bg-white/75 p-2 ring-1 ring-white">
-              <div className="relative aspect-[3/2] w-full">
-                <img src={plotImage(p)} alt="" className="absolute inset-0 size-full object-contain" />
-                {art
-                  ? <img src={art} alt={crop?.name ?? ''} className={`absolute inset-0 size-full -translate-y-[14%] scale-[.82] object-contain ${p.phase === 'wilting' ? 'grayscale sepia' : p.phase === 'thirsty' ? 'saturate-50' : ''}`} />
-                  : p.phase !== 'empty' && <div className="absolute inset-0 flex items-center justify-center pb-4 text-5xl" aria-hidden>{p.phase === 'ripe' ? crop?.emoji : PHASE_EMOJI[p.phase] ?? '🌱'}</div>}
-                {p.phase === 'thirsty' && (
-                  <img src={farmImg('icon_thirsty')} alt="Khát nước" className="absolute right-0 top-0 size-12 object-contain" />
-                )}
-              </div>
-              <div className="text-center text-sm font-black">{crop?.name ?? 'Ô đất trống'}</div>
-              <div className="mb-1 text-xs font-bold text-muted">{plotLabel(p)}{p.phase === 'growing' && p.waterNeeds && (p.watersDone ?? 0) < p.waterNeeds ? ` · tưới sau ${formatWait(waterSecs)}` : ''}</div>
-              {p.phase === 'empty' && <button type="button" className="btn btn--green min-h-11 w-full" onClick={() => setPick(p.slot)}>Gieo hạt</button>}
-              {p.phase === 'thirsty' && <button type="button" className="btn btn--green min-h-11 w-full" disabled={busy} onClick={() => act(() => waterPlots(token, [p.slot]), 'Đã tưới')}>💧 Tưới</button>}
-              {(p.phase === 'growing' || p.phase === 'thirsty') && !p.fertilized && (view.inventory.fertilizer ?? 0) > 0 && (
-                <button type="button" className="mt-1 min-h-9 w-full cursor-pointer rounded-lg border-0 bg-white text-xs font-extrabold text-ink ring-1 ring-line" disabled={busy} onClick={() => act(() => fertilizePlot(token, p.slot), 'Đã bón phân, +1 quả')}>Bón phân ({view.inventory.fertilizer})</button>
-              )}
-              {isRipe(p) && <button type="button" className="btn btn--green min-h-11 w-full" disabled={busy} onClick={() => act(() => harvestPlots(token, [p.slot]), `Thu hoạch ${p.yield} quả`)}>Thu {p.yield} quả</button>}
+    <div className="min-h-screen bg-[#e8f6d4] pb-28 lg:pb-12">
+      <div className="mx-auto max-w-[1100px] lg:px-4 lg:pt-6">
+        <div className="px-3 pt-3 lg:px-0 lg:pt-0">
+          <Link href="/fun" className="inline-flex min-h-11 items-center gap-1 rounded-full bg-white/80 px-3 text-sm font-bold text-text no-underline"><ChevronLeftIcon className="size-4" /> Vui học</Link>
+          <div className="mt-2 flex items-center gap-3 rounded-2xl bg-white p-2.5 ring-1 ring-line">
+            <img src={farmImg('leo_farmer_idle')} alt="" className="size-12 shrink-0 object-contain" />
+            <div className="min-w-0 flex-1">
+              <h1 className="m-0 text-lg font-black lg:text-xl">Nông trại anyLEARN</h1>
+              <p className="m-0 text-xs text-muted">Cấp vườn <b>{view.level}</b> · {view.xpForNext > 0 ? `${view.xpIntoLevel}/${view.xpForNext} XP` : 'cấp tối đa'}</p>
             </div>
-          )
-        })}
-        {view.nextPlotPrice > 0 && (
-          <button type="button" className="flex cursor-pointer flex-col items-center rounded-2xl border-0 bg-white/60 p-2 ring-1 ring-white disabled:opacity-70" disabled={busy || view.level < view.nextPlotLevel} onClick={() => act(() => expandPlots(token), 'Đã mở thêm ô đất')}>
-            <img src={farmImg('plot_locked')} alt="" className="aspect-[3/2] w-full object-contain" />
-            <span className="text-sm font-black">Mở thêm ô đất</span>
-            <span className="text-xs font-bold text-muted">{view.nextPlotPrice} {view.coinName}{view.level < view.nextPlotLevel ? ` · cấp ${view.nextPlotLevel}` : ''}</span>
-          </button>
-        )}
-      </div>
-
-      <div className="mt-3 grid grid-cols-2 gap-2">
-        <button type="button" className="btn btn--green min-h-11" disabled={busy || toWater.length === 0} onClick={() => act(() => waterPlots(token, toWater), `Đã tưới ${toWater.length} ô`)}>💧 Tưới tất cả ({toWater.length})</button>
-        <button type="button" className="btn btn--green min-h-11" disabled={busy || toHarvest.length === 0} onClick={() => act(() => harvestPlots(token, toHarvest), `Đã thu ${toHarvest.length} ô`)}>🧺 Thu tất cả ({toHarvest.length})</button>
-      </div>
-
-
-      <section className="mt-4 rounded-2xl bg-white/90 p-4 ring-1 ring-white" aria-label="Thùng ủ phân">
-        <div className="flex items-center gap-2">
-          <img src={farmImg('compost_bin')} alt="" className="h-14 w-20 object-contain" />
-          <h2 className="m-0 text-lg font-black">Thùng ủ phân</h2>
+            <span className="inline-flex items-center gap-1.5 text-lg font-black text-[#b45309]" title={view.coinName}><CoinIcon className="size-6" /> {view.balance}</span>
+          </div>
+          <div className="mt-2 grid grid-cols-4 gap-1 rounded-xl bg-white p-1 ring-1 ring-line" role="tablist">
+            {([['garden', 'Vườn'], ['orders', 'Đơn hàng'], ['quests', 'Nhiệm vụ'], ['neighbors', 'Hàng xóm']] as const).map(([k, l]) => (
+              <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)} className={`min-h-10 cursor-pointer rounded-lg border-0 text-xs font-extrabold ${tab === k ? 'bg-green-soft text-green-dark' : 'bg-transparent text-muted'}`}>{l}</button>
+            ))}
+          </div>
+          {note && <p className="mt-2 rounded-xl bg-green-soft px-3 py-2 text-sm font-bold text-green-dark" role="status">{note}</p>}
         </div>
-        {progress.compost.active ? (
-          progress.compost.active.ready
-            ? <button type="button" className="btn btn--green mt-2 min-h-11 w-full" disabled={busy} onClick={() => act(() => collectCompost(token), 'Đã nhận phân bón')}>Nhận phân bón</button>
-            : <p className="mt-1 text-sm text-muted">Đang ủ, xong lúc {new Date(progress.compost.active.readyAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}.</p>
-        ) : (
+
+        {tab === 'garden' && (
           <>
-            <p className="mt-1 text-xs text-muted">Bỏ {progress.compost.units} nông sản vào thùng, sau {formatWait(progress.compost.minutes * 60)} nhận 1 phân bón.</p>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {sell.filter(s => s.qty >= progress.compost.units).map(s => (
-                <button key={s.cropKey} type="button" className="min-h-9 cursor-pointer rounded-lg border-0 bg-white px-3 text-xs font-extrabold ring-1 ring-line" disabled={busy} onClick={() => act(() => startCompost(token, s.cropKey), 'Đã bỏ vào thùng ủ')}>{cropOf(s.cropKey)?.emoji} {cropOf(s.cropKey)?.name}</button>
-              ))}
-              {sell.every(s => s.qty < progress.compost.units) && <span className="text-xs text-muted">Chưa đủ nông sản để ủ.</span>}
+            <div className="mt-2">
+              <FarmScene view={view} kind={kind} tod={tod} elapsed={elapsed} selected={selected} hasDog={progress.hasDog} leo={pose} badges={badges}
+                onTile={tapTile} onExpand={() => act(() => expandPlots(token), 'Đã mở thêm ô đất')} onDeco={tapDeco} />
+            </div>
+            <div className="mx-auto mt-2 max-w-[720px] px-3 lg:px-0">
+              {plot && plot.phase !== 'empty' && (
+                <div className="mb-2 flex flex-wrap items-center gap-2 rounded-2xl bg-white p-2.5 ring-1 ring-line">
+                  <div className="min-w-0 flex-1">
+                    <b className="block text-sm">{cropOf(plot.cropKey)?.name ?? 'Cây trồng'}</b>
+                    <span className="text-xs text-muted">{plotLabel(plot)}{plot.phase === 'growing' && plot.waterNeeds && (plot.watersDone ?? 0) < plot.waterNeeds && plot.nextWaterAt ? ` · tưới sau ${formatWait(secondsUntil(plot.nextWaterAt, view.serverNow, elapsed))}` : ''}</span>
+                  </div>
+                  {(plot.phase === 'growing' || plot.phase === 'thirsty') && !plot.fertilized && (view.inventory.fertilizer ?? 0) > 0 && (
+                    <button type="button" className="min-h-10 cursor-pointer rounded-lg border-0 bg-white px-3 text-xs font-extrabold text-ink ring-1 ring-line" disabled={busy} onClick={() => act(() => fertilizePlot(token, plot.slot), 'Đã bón phân, +1 quả')}>Bón phân ({view.inventory.fertilizer})</button>
+                  )}
+                  {plot.phase === 'thirsty' && <button type="button" className="btn btn--green min-h-10" disabled={busy} onClick={() => act(() => waterPlots(token, [plot.slot]), 'Đã tưới', 'water')}>Tưới</button>}
+                  {isRipe(plot) && <button type="button" className="btn btn--green min-h-10" disabled={busy} onClick={() => act(() => harvestPlots(token, [plot.slot]), `Thu hoạch ${plot.yield} quả`, 'harvest')}>Thu {plot.yield} quả</button>}
+                </div>
+              )}
+              <div className="grid grid-cols-3 gap-2">
+                <button type="button" className="btn btn--green min-h-11 px-1 text-xs" disabled={busy || toWater.length === 0} onClick={() => act(() => waterPlots(token, toWater), `Đã tưới ${toWater.length} ô`, 'water')}>Tưới tất cả ({toWater.length})</button>
+                <button type="button" className="btn btn--green min-h-11 px-1 text-xs" disabled={busy || toHarvest.length === 0} onClick={() => act(() => harvestPlots(token, toHarvest), `Đã thu ${toHarvest.length} ô`, 'harvest')}>Thu tất cả ({toHarvest.length})</button>
+                <button type="button" className="min-h-11 cursor-pointer rounded-xl border-0 bg-white px-1 text-xs font-extrabold text-ink ring-1 ring-line" disabled={busy} onClick={() => act(() => buyFertilizer(token, 1), 'Đã mua 1 phân bón', 'cheer')}>Mua phân · {view.fertilizerPrice}</button>
+              </div>
             </div>
           </>
         )}
-      </section>
-
-      <section className="mt-4 rounded-2xl bg-white/90 p-4 ring-1 ring-white" aria-label="Chợ">
-        <div className="flex items-center gap-2">
-          <img src={farmImg('market_stall')} alt="" className="h-16 w-24 object-contain" />
-          <h2 className="m-0 text-lg font-black">Chợ</h2>
+        <div className="mx-auto max-w-[720px] px-3 lg:px-0">
+          {tab === 'orders' && <OrdersTab token={token} view={view} progress={progress} busy={busy} run={act} setNote={setNote} />}
+          {tab === 'quests' && <QuestsTab token={token} view={view} progress={progress} busy={busy} run={act} setNote={setNote} />}
+          {tab === 'neighbors' && <NeighborsTab token={token} view={view} onChanged={load} />}
         </div>
-        <p className="mt-1 text-xs text-muted">
-          Chợ mua tối đa <b>{view.market.room}</b> <BrandText text={view.coinName} coinName={view.coinName} /> lãi nữa hôm nay.
-          Lãi = tiền bán trừ tiền mua hạt và phân; nông sản chưa bán được vẫn giữ trong kho.
-        </p>
-        <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-200" role="progressbar" aria-valuenow={used} aria-valuemin={0} aria-valuemax={100}><div className="h-full bg-green" style={{ width: `${used}%` }} /></div>
-        {sell.length === 0 ? <p className="mt-3 text-sm text-muted">Kho chưa có nông sản. Thu hoạch xong quay lại đây nhé.</p> : (
-          <ul className="m-0 mt-3 list-none space-y-2 p-0">
-            {sell.map(s => {
-              const c = cropOf(s.cropKey)
-              const price = view.market.prices.find(x => x.cropKey === s.cropKey)
-              return (
-                <li key={s.cropKey} className="flex items-center justify-between gap-2">
-                  <span className="text-sm font-bold">{c?.emoji} {c?.name} × {s.qty}</span>
-                  <span className="text-xs text-muted">{price?.price} xu/quả{price && price.nextPercent < 100 ? ` (${price.nextPercent}%)` : ''}</span>
-                  <button type="button" className="min-h-9 cursor-pointer rounded-lg border-0 bg-green px-3 text-xs font-extrabold text-white" disabled={busy} onClick={() => act(async () => {
-                    const r = await sellCrops(token, { [s.cropKey]: s.qty })
-                    if (r.data) setNote(r.data.coins > 0 ? `Bán được ${r.data.coins} ${view.coinName}${r.data.capped ? ', chợ hết lãi cho hôm nay nên còn lại trong kho' : ''}` : 'Chợ hôm nay đã đủ lãi, ngày mai bán tiếp nhé')
-                    return r
-                  }, '')}>Bán hết</button>
-                </li>
-              )
-            })}
-          </ul>
-        )}
-        <button type="button" className="mt-4 min-h-11 w-full cursor-pointer rounded-xl border-0 bg-white text-sm font-extrabold text-ink ring-1 ring-line" disabled={busy} onClick={() => act(() => buyFertilizer(token, 1), 'Đã mua 1 phân bón')}>
-          Mua 1 phân bón · {view.fertilizerPrice} {view.coinName}
-        </button>
-      </section>
+      </div>
 
-      </>}
+      {sheet === 'compost' && (
+        <Sheet title="Thùng ủ phân" icon="compost_bin" onClose={() => setSheet(null)}>
+      <div>
+      {progress.compost.active ? (
+        progress.compost.active.ready
+          ? <button type="button" className="btn btn--green mt-2 min-h-11 w-full" disabled={busy} onClick={() => act(() => collectCompost(token), 'Đã nhận phân bón')}>Nhận phân bón</button>
+          : <p className="mt-1 text-sm text-muted">Đang ủ, xong lúc {new Date(progress.compost.active.readyAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}.</p>
+      ) : (
+        <>
+          <p className="mt-1 text-xs text-muted">Bỏ {progress.compost.units} nông sản vào thùng, sau {formatWait(progress.compost.minutes * 60)} nhận 1 phân bón.</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {sell.filter(s => s.qty >= progress.compost.units).map(s => (
+              <button key={s.cropKey} type="button" className="min-h-9 cursor-pointer rounded-lg border-0 bg-white px-3 text-xs font-extrabold ring-1 ring-line" disabled={busy} onClick={() => act(() => startCompost(token, s.cropKey), 'Đã bỏ vào thùng ủ')}>{cropOf(s.cropKey)?.emoji} {cropOf(s.cropKey)?.name}</button>
+            ))}
+            {sell.every(s => s.qty < progress.compost.units) && <span className="text-xs text-muted">Chưa đủ nông sản để ủ.</span>}
+          </div>
+        </>
+      )}
+    </div>
+        </Sheet>
+      )}
+      {sheet === 'market' && (
+        <Sheet title="Chợ" icon="market_stall" onClose={() => setSheet(null)}>
+      <div>
+      <p className="mt-1 text-xs text-muted">
+        Chợ mua tối đa <b>{view.market.room}</b> <BrandText text={view.coinName} coinName={view.coinName} /> lãi nữa hôm nay.
+        Lãi = tiền bán trừ tiền mua hạt và phân; nông sản chưa bán được vẫn giữ trong kho.
+      </p>
+      <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-200" role="progressbar" aria-valuenow={used} aria-valuemin={0} aria-valuemax={100}><div className="h-full bg-green" style={{ width: `${used}%` }} /></div>
+      {sell.length === 0 ? <p className="mt-3 text-sm text-muted">Kho chưa có nông sản. Thu hoạch xong quay lại đây nhé.</p> : (
+        <ul className="m-0 mt-3 list-none space-y-2 p-0">
+          {sell.map(s => {
+            const c = cropOf(s.cropKey)
+            const price = view.market.prices.find(x => x.cropKey === s.cropKey)
+            return (
+              <li key={s.cropKey} className="flex items-center justify-between gap-2">
+                <span className="text-sm font-bold">{c?.emoji} {c?.name} × {s.qty}</span>
+                <span className="text-xs text-muted">{price?.price} xu/quả{price && price.nextPercent < 100 ? ` (${price.nextPercent}%)` : ''}</span>
+                <button type="button" className="min-h-9 cursor-pointer rounded-lg border-0 bg-green px-3 text-xs font-extrabold text-white" disabled={busy} onClick={() => act(async () => {
+                  const r = await sellCrops(token, { [s.cropKey]: s.qty })
+                  if (r.data) setNote(r.data.coins > 0 ? `Bán được ${r.data.coins} ${view.coinName}${r.data.capped ? ', chợ hết lãi cho hôm nay nên còn lại trong kho' : ''}` : 'Chợ hôm nay đã đủ lãi, ngày mai bán tiếp nhé')
+                  return r
+                }, '')}>Bán hết</button>
+              </li>
+            )
+          })}
+        </ul>
+      )}
+      <button type="button" className="mt-4 min-h-11 w-full cursor-pointer rounded-xl border-0 bg-white text-sm font-extrabold text-ink ring-1 ring-line" disabled={busy} onClick={() => act(() => buyFertilizer(token, 1), 'Đã mua 1 phân bón')}>
+        Mua 1 phân bón · {view.fertilizerPrice} {view.coinName}
+      </button>
+    </div>
+        </Sheet>
+      )}
 
       {pick !== null && (
         <div className="fixed inset-0 z-50 flex items-end bg-black/40 lg:items-center lg:justify-center" role="dialog" aria-modal="true" aria-label="Chọn hạt">
@@ -242,7 +278,6 @@ export default function FarmPage() {
           </div>
         </div>
       )}
-    </div>
     </div>
   )
 }
