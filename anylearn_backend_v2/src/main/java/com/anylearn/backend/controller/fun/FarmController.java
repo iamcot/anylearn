@@ -4,6 +4,7 @@ import com.anylearn.backend.dto.response.ApiResponse;
 import com.anylearn.backend.entity.User;
 import com.anylearn.backend.service.farm.FarmProgressService;
 import com.anylearn.backend.service.farm.FarmService;
+import com.anylearn.backend.service.farm.FarmSettings;
 import com.anylearn.backend.service.farm.FarmSocialService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -22,6 +23,13 @@ public class FarmController {
     private final FarmService farm;
     private final FarmProgressService progress;
     private final FarmSocialService social;
+    private final FarmSettings settings;
+
+    /** Player-to-player features (neighbours, helping, stealing) are paused unless the admin switches `social_enabled` on. */
+    private ApiResponse<?> runSocial(User user, Supplier<Object> action) {
+        if (user != null && settings.n("social_enabled") != 1) return ApiResponse.fail("Tính năng tương tác giữa người chơi đang tạm tắt");
+        return run(user, action);
+    }
 
     private ApiResponse<?> run(User user, Supplier<Object> action) {
         if (user == null) return ApiResponse.fail("Unauthorized");
@@ -168,37 +176,37 @@ public class FarmController {
 
     @GetMapping("/neighbors")
     public ApiResponse<?> neighbors(@AuthenticationPrincipal User user) {
-        return run(user, () -> Map.of("neighbors", social.list(user.getId()), "suggestions", social.suggestions(user.getId()), "today", social.todaySummary(user.getId())));
+        return runSocial(user, () -> Map.of("neighbors", social.list(user.getId()), "suggestions", social.suggestions(user.getId()), "today", social.todaySummary(user.getId())));
     }
 
     @PostMapping("/neighbors")
     public ApiResponse<?> addNeighbor(@AuthenticationPrincipal User user, @RequestBody Map<String, Object> body) {
-        return run(user, () -> social.add(user.getId(), String.valueOf(body.get("code"))));
+        return runSocial(user, () -> social.add(user.getId(), String.valueOf(body.get("code"))));
     }
 
     @DeleteMapping("/neighbors/{id}")
     public ApiResponse<?> removeNeighbor(@AuthenticationPrincipal User user, @PathVariable long id) {
-        return run(user, () -> social.remove(user.getId(), id));
+        return runSocial(user, () -> social.remove(user.getId(), id));
     }
 
     @GetMapping("/visit/{ownerId}")
     public ApiResponse<?> visit(@AuthenticationPrincipal User user, @PathVariable long ownerId) {
-        return run(user, () -> social.visit(user.getId(), ownerId));
+        return runSocial(user, () -> social.visit(user.getId(), ownerId));
     }
 
     @PostMapping("/visit/{ownerId}/water")
     public ApiResponse<?> waterFor(@AuthenticationPrincipal User user, @PathVariable long ownerId, @RequestBody Map<String, Object> body) {
-        return run(user, () -> social.water(user.getId(), ownerId, slots(body)));
+        return runSocial(user, () -> social.water(user.getId(), ownerId, slots(body)));
     }
 
     @PostMapping("/visit/{ownerId}/fertilize")
     public ApiResponse<?> fertilizeFor(@AuthenticationPrincipal User user, @PathVariable long ownerId, @RequestBody Map<String, Object> body) {
-        return run(user, () -> social.fertilize(user.getId(), ownerId, (int) num(body, "slot")));
+        return runSocial(user, () -> social.fertilize(user.getId(), ownerId, (int) num(body, "slot")));
     }
 
     @PostMapping("/visit/{ownerId}/steal")
     public ApiResponse<?> steal(@AuthenticationPrincipal User user, @PathVariable long ownerId, @RequestBody Map<String, Object> body) {
-        return run(user, () -> social.steal(user.getId(), ownerId, (int) num(body, "slot")));
+        return runSocial(user, () -> social.steal(user.getId(), ownerId, (int) num(body, "slot")));
     }
 
     @PutMapping("/prefs")

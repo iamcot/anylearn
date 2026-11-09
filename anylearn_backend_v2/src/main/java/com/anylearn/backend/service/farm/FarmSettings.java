@@ -66,6 +66,7 @@ public class FarmSettings {
         f("push_to_hour", "Giờ ngừng gửi nhắc", "Nhắc nhở", 20, 1, 24);
         f("push_backoff_after", "Sau bao nhiêu nhắc không mở thì thưa dần (3 ngày / lần)", "Nhắc nhở", 3, 1, 30);
         f("push_stop_after", "Sau bao nhiêu nhắc không mở thì ngừng hẳn", "Nhắc nhở", 7, 1, 60);
+        f("social_enabled", "Cho người chơi tương tác với nhau (hàng xóm, tưới giúp, hái trộm). Tạm tắt vì rủi ro giấy phép G1", "Xã hội", 0, 0, 1);
         f("xp_base", "XP cơ bản để lên cấp", "Cấp vườn", 40, 1, 10000);
         f("xp_exp_tenths", "Độ dốc XP (x10, 14 = 1,4)", "Cấp vườn", 14, 5, 30);
         f("actions_per_minute", "Số thao tác tối đa mỗi phút", "Chống gian lận", 60, 5, 1000);

@@ -14,14 +14,13 @@ import {
 } from '@/lib/api/farm'
 import OrdersTab from '@/components/fun/farm/OrdersTab'
 import QuestsTab from '@/components/fun/farm/QuestsTab'
-import NeighborsTab from '@/components/fun/farm/NeighborsTab'
 import FarmScene from '@/components/fun/farm/FarmScene'
 import PanWorld from '@/components/fun/farm/PanWorld'
 import { CROPS_WITH_ART, farmImg, timeOfDay } from '@/lib/farm/art'
 import { worldSize, type SceneKind, type Size } from '@/lib/farm/scene'
 import { capUsedPercent, formatWait, isRipe, sellable, seedCount, slotsToHarvest, slotsToWater } from '@/lib/farm/rules'
 
-const PANEL_TITLES = { storage: 'Kho', orders: 'Đơn hàng', quests: 'Nhiệm vụ', neighbors: 'Hàng xóm', market: 'Chợ', compost: 'Thùng ủ phân' } as const
+const PANEL_TITLES = { storage: 'Kho', orders: 'Đơn hàng', quests: 'Nhiệm vụ', market: 'Chợ', compost: 'Thùng ủ phân' } as const
 
 interface Fly { id: number; x: number; y: number; dx: number; dy: number; img: string | null; emoji: string; delay: number }
 
@@ -66,7 +65,7 @@ export default function FarmPage() {
   const { unreadCount, setUnreadCount } = useNotifications()
   const [view, setView] = useState<FarmView | null>(null)
   const [progress, setProgress] = useState<FarmProgress | null>(null)
-  const [panel, setPanel] = useState<'storage' | 'orders' | 'quests' | 'neighbors' | 'market' | 'compost' | null>(null)
+  const [panel, setPanel] = useState<'storage' | 'orders' | 'quests' | 'market' | 'compost' | null>(null)
   const [todPick, setTodPick] = useState<'auto' | 'day' | 'sunset' | 'night'>('auto')
   const [flies, setFlies] = useState<Fly[]>([])
   const flyId = useRef(0)
@@ -222,7 +221,7 @@ export default function FarmPage() {
   const world = size && view ? worldSize(size, view.plots.length + (view.nextPlotPrice > 0 ? 1 : 0)) : null
   const tod = todPick === 'auto' ? timeOfDay(new Date(now).getHours()) : todPick
   const waiting = progress.orders.length > 0
-  const tabs = [['storage', 'Kho', 'item_basket'], ['orders', 'Đơn hàng', 'ui_tab_orders'], ['quests', 'Nhiệm vụ', 'ui_tab_quests'], ['neighbors', 'Hàng xóm', 'ui_tab_neighbors'], ['market', 'Chợ', 'ui_tab_market_alt']] as const
+  const tabs = [['storage', 'Kho', 'item_basket'], ['orders', 'Đơn hàng', 'ui_tab_orders'], ['quests', 'Nhiệm vụ', 'ui_tab_quests'], ['market', 'Chợ', 'ui_tab_market_alt']] as const
   const active = panel ?? 'garden'
 
   return (
@@ -292,7 +291,6 @@ export default function FarmPage() {
           <div className="sticky -top-4 z-10 -mx-4 -mt-4 flex items-center justify-between bg-white px-4 pb-2 pt-4"><h2 className="m-0 text-lg font-black">{PANEL_TITLES[panel]}</h2><button type="button" className="min-h-11 cursor-pointer border-0 bg-transparent text-sm font-bold" onClick={() => setPanel(null)}>Đóng</button></div>
           {panel === 'orders' && <OrdersTab token={token} view={view} progress={progress} busy={busy} run={act} setNote={setNote} />}
           {panel === 'quests' && <QuestsTab token={token} view={view} progress={progress} busy={busy} run={act} setNote={setNote} />}
-          {panel === 'neighbors' && <NeighborsTab token={token} view={view} onChanged={load} />}
           {panel === 'storage' && (
             <div className="mt-2 space-y-3">
               <div className="flex items-center gap-3 rounded-2xl bg-slate-50 p-3"><img src={farmImg('item_fertilizer')} alt="" className="size-10 object-contain" /><b className="flex-1 text-sm">Phân bón</b><span className="text-lg font-black">{view.inventory.fertilizer ?? 0}</span></div>

@@ -10,7 +10,8 @@ Một game "ghé vườn" nhẹ nhàng: mỗi ngày phụ huynh (và bé) mở 2
 
 Nguyên tắc:
 
-1. **Dùng chung kinh tế Leo Xu** (`CoinService`). Không tạo đồng tiền mới. Vì Leo Xu đổi được voucher tiền thật, **nông trại chỉ được thêm một phần nhỏ Leo Xu ròng** vào túi người chơi, và phần đó **có trần cứng theo lãi ròng** (mục 4.3), không theo sản lượng.
+1. **Dùng chung kinh tế Leo Xu** (`CoinService`). Không tạo đồng tiền mới. **nông trại chỉ được thêm một phần nhỏ Leo Xu ròng** vào túi người chơi, và phần đó **có trần cứng theo lãi ròng** (mục 4.3), không theo sản lượng.
+   **[Cập nhật 09/11] Đổi Leo Xu lấy voucher đã TẮT (rủi ro giấy phép G1, NĐ 147/2024): vật phẩm ảo không đổi ra giá trị ngoài game. Các mốc voucher bên dưới chỉ để tham khảo lịch sử; tương tác giữa người chơi (hàng xóm, tưới giúp, hái trộm) cũng tạm dừng (`farm/social_enabled` = 0, ẩn tab Hàng xóm); vẫn có nút mời bạn ở trang Vui học.**
 2. **Tiến bộ không có trần, xu thì có.** Chăm vườn lâu hơn luôn được nhiều hơn: kinh nghiệm (XP), cấp vườn, đơn hàng, bộ sưu tập, đồ trang trí, cây mới. Chỉ phần đổi ra Leo Xu là bị chặn. Đây là cách "kết quả tương xứng với thời gian" mà không lạm phát.
 3. **Không phạt nặng.** Cây không bao giờ chết. Quên tưới thì cây lớn chậm hơn và ít quả hơn; chín lâu không thu thì héo bớt, phần héo thành phân ủ.
 4. **Tương tác có giới hạn và không chuyển được giá trị.** Tưới, bón giúp chỉ tiết kiệm thời gian cho chủ vườn; hoa hái trộm và quà tặng **không bán được ra chợ** (chỉ dùng cho đơn hàng, bó hoa, bộ sưu tập), nên tài khoản phụ không thể "bơm" xu cho nhau.
@@ -189,7 +190,7 @@ Cây ngắn có lãi/giờ cao nhưng **cần ghé liên tục** (không ai ng�
 
 Người chơi nhiều tiếp tục có XP, cấp, đơn hàng, đồ trang trí, sticker; xu không tăng thêm.
 
-**Mốc so với voucher (đã chốt 09/11)**: shop đang bán voucher 500 Leo Xu = giảm 10% tối đa 50.000đ, và 1.000 Leo Xu = giảm 15% tối đa 100.000đ (1 tháng chỉ dùng 1 lần). Tức mỗi Leo Xu đáng tối đa ~100đ khi giỏ hàng đủ lớn (đơn từ 500.000đ cho gói 1, từ ~670.000đ cho gói 2). Trần lãi nông trại 70 xu/tuần = tối đa ~7.000đ/tuần, ~28.000đ/tháng; người chơi rất chăm (mọi game ~300 xu/tuần) đổi được gói 1.000 xu sau khoảng 3-4 tuần, vừa khớp luật 1 lần/tháng. Trang sức khỏe hiện "số tuần chơi chăm để đổi voucher rẻ nhất" để theo dõi; nếu thấy voucher đổi quá dễ thì hạ trần tuần trước, không đụng giá voucher.
+~~**Mốc so với voucher (đã chốt 09/11)**: shop đang bán voucher 500 Leo Xu = giảm 10% tối đa 50.000đ, và 1.000 Leo Xu = giảm 15% tối đa 100.000đ (1 tháng chỉ dùng 1 lần). Tức mỗi Leo Xu đáng tối đa ~100đ khi giỏ hàng đủ lớn (đơn từ 500.000đ cho gói 1, từ ~670.000đ cho gói 2). Trần lãi nông trại 70 xu/tuần = tối đa ~7.000đ/tuần, ~28.000đ/tháng; người chơi rất chăm (mọi game ~300 xu/tuần) đổi được gói 1.000 xu sau khoảng 3-4 tuần, vừa khớp luật 1 lần/tháng. Trang sức khỏe hiện "số tuần chơi chăm để đổi voucher rẻ nhất" để theo dõi; nếu thấy voucher đổi quá dễ thì hạ trần tuần trước, không đụng giá voucher.~~ (đã tắt, xem ghi chú 09/11 ở đầu mục 1)
 
 ### 4.5 Phần thưởng một lần (ngân sách cố định)
 
@@ -358,7 +359,7 @@ Nguyên tắc: **ưu tiên dấu đỏ trong app, thông báo đẩy là ngoại
 
 - Leo Xu **vào / ra theo nguồn nông trại** 7 / 30 ngày, **lãi ròng trung bình mỗi người chơi / tuần**, phân vị 50 / 90 / 99.
 - **Hệ số sink** = xu chi trong nông trại ÷ xu thu từ nông trại (mục tiêu ≥ 0,8; vàng < 0,8, đỏ < 0,6).
-- "Số tuần chơi chăm để đổi voucher Leo Xu rẻ nhất" (đọc giá từ `voucher_groups.coin_price`).
+~~- "Số tuần chơi chăm để đổi voucher Leo Xu rẻ nhất" (đọc giá từ `voucher_groups.coin_price`).~~ (đã tắt, xem ghi chú 09/11 ở đầu mục 1)
 - Cảnh báo khi lãi ròng tuần p90 vượt 90% trần tuần trong 2 tuần liền (gợi ý giảm giá bán / tăng giá hạt).
 
 ### 11.3 Máy mô phỏng (thuần, `FarmEconomySim`, có test)
@@ -471,7 +472,7 @@ Test: thuần cho mọi `*Rules` và `FarmEconomySim`; `FarmFlowTest` trên sche
 
 ## 14. Quyết định của chủ sản phẩm (09/11/2026)
 
-1. **Giá voucher Leo Xu**: giữ như đang bán (500 xu: 10% tối đa 50K; 1.000 xu: 15% tối đa 100K, mỗi tháng 1 lần). Mục 4.3 và 4.4 đã tính theo mốc này.
+~~1. **Giá voucher Leo Xu**: giữ như đang bán (500 xu: 10% tối đa 50K; 1.000 xu: 15% tối đa 100K, mỗi tháng 1 lần). Mục 4.3 và 4.4 đã tính theo mốc này.~~ (đã tắt, xem ghi chú 09/11 ở đầu mục 1)
 2. **Trần lãi tuần**: chưa trả lời, **giữ mặc định 70 xu/tuần** (admin sửa được, theo dõi bằng trang sức khỏe kinh tế).
 3. **anyPoint mốc lớn**: mặc định **0**, admin bật khi muốn (`farm/anypoint_level_10|20|30`, `anypoint_chapter_6`, `anypoint_accounts`).
 4. **Hái trộm**: **bật ngay khi ra mắt**; 22.5 vẫn làm sau 22.1-22.4 nhưng hái trộm không chờ đủ người chơi (công tắc `farm/steal_enabled` mặc định 1).
