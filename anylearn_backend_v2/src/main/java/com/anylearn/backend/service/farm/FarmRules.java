@@ -24,9 +24,9 @@ public final class FarmRules {
     public record View(Phase phase, LocalDateTime ripeAt, int yieldNow, int missedNow, int wiltedUnits, LocalDateTime nextWaterAt,
                        boolean needsWater, int secondsToRipe) {}
 
-    /** Moment the i-th watering (1-based) opens: the plant is {@code i/(needs+1)} of the way through its growing time. */
+    /** Moment the i-th watering (1-based) opens: the first right after sowing, the rest spread evenly over the growing time. */
     public static LocalDateTime checkpoint(Plot p, int i) {
-        long seconds = (long) p.growMinutes() * 60L * i / (p.waterNeeds() + 1);
+        long seconds = (long) p.growMinutes() * 60L * (i - 1) / Math.max(p.waterNeeds(), 1);
         return p.plantedAt().plusSeconds(seconds);
     }
 

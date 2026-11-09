@@ -33,15 +33,15 @@ class FarmRulesTest {
     @Test
     void waterCheckpointsAreEvenlySpread() {
         FarmRules.Plot p = plot(120, 2, 0, 0, 0, false);
-        assertEquals(T0.plusMinutes(40), FarmRules.checkpoint(p, 1));
-        assertEquals(T0.plusMinutes(80), FarmRules.checkpoint(p, 2));
+        assertEquals(T0, FarmRules.checkpoint(p, 1));   // the first watering opens right after sowing
+        assertEquals(T0.plusMinutes(60), FarmRules.checkpoint(p, 2));
     }
 
     @Test
     void becomesThirstyAtTheCheckpointAndSlowsDown() {
-        FarmRules.Plot p = plot(120, 1, 0, 0, 0, false);   // checkpoint at +60
-        assertFalse(FarmRules.view(p, T0.plusMinutes(59), P).needsWater());
-        FarmRules.View v = FarmRules.view(p, T0.plusMinutes(90), P);
+        FarmRules.Plot p = plot(120, 1, 0, 0, 0, false);   // checkpoint right after sowing
+        assertTrue(FarmRules.view(p, T0, P).needsWater());
+        FarmRules.View v = FarmRules.view(p, T0.plusMinutes(30), P);
         assertTrue(v.needsWater());
         assertEquals(FarmRules.Phase.THIRSTY, v.phase());
         // 30 minutes thirsty at 50% speed = 15 minutes lost
@@ -50,18 +50,18 @@ class FarmRulesTest {
 
     @Test
     void lateWateringNeverCountsTheSameTimeTwice() {
-        FarmRules.Plot p = plot(120, 2, 0, 0, 0, false);   // checkpoints at +40 and +80
-        assertEquals(40 * 60 / 2, FarmRules.lostWhenWatered(p, 1, T0.plusMinutes(200), P));   // only +40..+80
-        assertEquals(30 * 60 / 2, FarmRules.lostWhenWatered(p, 2, T0.plusMinutes(110), P));
+        FarmRules.Plot p = plot(120, 2, 0, 0, 0, false);   // checkpoints at +0 and +60
+        assertEquals(60 * 60 / 2, FarmRules.lostWhenWatered(p, 1, T0.plusMinutes(200), P));   // only +0..+60
+        assertEquals(50 * 60 / 2, FarmRules.lostWhenWatered(p, 2, T0.plusMinutes(110), P));
     }
 
     @Test
     void wateringLateLosesGrowthAndAYieldAfterTheGrace() {
         FarmRules.Plot p = plot(120, 1, 0, 0, 0, false);
-        assertEquals(0, FarmRules.lostWhenWatered(p, 1, T0.plusMinutes(60), P));
-        assertEquals(30 * 60 / 2, FarmRules.lostWhenWatered(p, 1, T0.plusMinutes(90), P));
-        assertFalse(FarmRules.tooLate(p, 1, T0.plusMinutes(100), P));
-        assertTrue(FarmRules.tooLate(p, 1, T0.plusMinutes(120), P));
+        assertEquals(0, FarmRules.lostWhenWatered(p, 1, T0, P));
+        assertEquals(30 * 60 / 2, FarmRules.lostWhenWatered(p, 1, T0.plusMinutes(30), P));
+        assertFalse(FarmRules.tooLate(p, 1, T0.plusMinutes(40), P));
+        assertTrue(FarmRules.tooLate(p, 1, T0.plusMinutes(60), P));
     }
 
     @Test
