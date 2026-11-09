@@ -804,3 +804,15 @@ Mọi thứ dẫn gia đình mới tới **khóa học đầu tiên**. Mỗi tab
 - **Cấp học viên**: mỗi bé (và tài khoản tự học) có cấp theo số khóa **hoàn thành**: Hạt mầm, Chồi non (1), Lá xanh (3), Cây non (6), Đại thụ (10); đổi các mốc ở cài đặt. Một khóa hoàn thành khi: học xong 100% khóa video; hoặc lớp đã kết thúc và bé đi đủ tỉ lệ buổi (mặc định 80%); hoặc phụ huynh bấm "Đã hoàn thành" (tắt được). Danh sách cho phép **Bỏ** (bắt buộc lý do; dòng đã bỏ không bị hệ thống thêm lại), **Khôi phục**, **Thêm thủ công** (ID người học + ID khóa).
 - **Quiz thử cho khách**: trang công khai `/quiz-thu` (không cần đăng nhập), lấy câu dễ từ Kho câu hỏi theo chủ đề chọn ở đây (mặc định nuôi dạy con). Số câu, mức khó cao nhất, Leo Xu tặng khi đăng ký từ trang kết quả (một lần mỗi tài khoản). Cần Kho câu hỏi có câu "Đang dùng" ở chủ đề đó.
 - **Leo hướng dẫn**: Leo nhỏ ở góc dưới màn hình (trên thanh tab), chạm để nghe gợi ý; tự mở tối đa một lần mỗi trang mỗi ngày và chỉ khi có quà chờ hoặc nhiệm vụ ngay trên trang đó. Leo tự ẩn khi có cửa sổ hỏi đáp hoặc popup đang mở. Không hiện ở trang khóa học, giỏ, thanh toán, đơn hàng, trang học và trò chơi. Khách tắt ở Tài khoản > Thông báo > "Tắt Leo hướng dẫn".
+
+### Nông trại anyLEARN (plan 22)
+
+Menu "Giải trí" > "Vui học" > nút "Nông trại". Người chơi gieo hạt, tưới, bón phân, thu hoạch rồi bán ở chợ lấy Leo Xu.
+
+- **Bật / tắt và mở dần**: công tắc "Bật Nông trại" ở phần Cài đặt; chuyển game `farm` sang "tester" hoặc "tắt" ở Vui học > "Mở dần từng game".
+- **Cây trồng**: bảng các cây (thời gian lớn theo phút, số lần tưới, giá hạt, giá bán mỗi quả, số quả mỗi vụ, XP, cấp mở). Hai cột cuối tính sẵn **lãi khi chăm đủ** và **lãi khi có bón phân** (cả hai đã trừ tiền hạt). Mục tiêu: chăm đủ lãi mỏng (10-20% tiền hạt), có bón lãi khá (35-50%). Dòng đỏ là lãi có bón trên 60% hoặc lỗ khi chăm đủ. Sửa xong bấm "Lưu" ở dòng đó; thay đổi áp dụng cho vụ gieo từ lúc đó (cây đang trồng giữ thông số cũ về thời gian).
+- **Trần lãi (quan trọng nhất)**: Leo Xu đổi được voucher tiền thật, nên Nông trại **không trả theo sản lượng mà trả theo lãi ròng** (tiền bán trừ tiền mua hạt và phân). Mỗi người có trần mỗi ngày (mức nền + thêm theo cấp, tối đa) và trần mỗi tuần (mặc định 70 Leo Xu, khoảng 7.000đ theo giá voucher hiện tại). Vượt trần thì chợ không mua nữa, nông sản ở lại kho; người chơi thấy thanh "trần lãi hôm nay". Nếu thấy voucher bị đổi quá dễ, hạ **trần lãi tuần** trước, đừng sửa giá voucher.
+- **Giá chợ**: dao động mỗi ngày quanh giá gốc (± `price_jitter`%, ai cũng thấy cùng giá); bán nhiều cùng một loại trong ngày thì các quả sau được trả 70% rồi 40%.
+- **Chăm cây**: cây khát lớn chậm lại; tưới trễ hơn số phút cho phép thì mất 1 quả (không thấp hơn mức tối thiểu); chín mà không thu thì sau một lúc héo dần mất quả. Cây không bao giờ chết.
+- **Số liệu**: người chơi, người vào vườn hôm nay, Leo Xu bán và chi hôm nay và 7 ngày. Nhìn mức "bán" so với "chi" để biết Nông trại đang thêm bao nhiêu Leo Xu vào hệ thống.
+- Thùng ủ phân, mở thêm ô, đơn hàng, chương nhiệm vụ, hàng xóm và nhắc nhở sẽ thêm ở các phần sau của plan 22.

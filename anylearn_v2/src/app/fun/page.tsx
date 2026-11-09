@@ -36,7 +36,7 @@ export default function FunPage() {
     if (!token) return
     getFunAccess(token).then(({ data: a }) => {
       // an old server without the call leaves everything open
-      const open = a ?? { checkin: true, quiz: true, sticker: true, explore: true, arena: true }
+      const open = a ?? { checkin: true, quiz: true, sticker: true, explore: true, arena: true, farm: true }
       setAccess(open)
       if (!open.checkin) return
       getCheckin(token).then(({ data, error: err }) => {

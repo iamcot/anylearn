@@ -49,7 +49,7 @@ const NAV_GROUPS = [
   ] },
 ]
 // Opened from buttons on the "Vui học" page, not from the menu.
-const FUN_SUBPAGES = ['/fun-checkin', '/quiz-bank', '/quiz-game', '/stickers', '/fun-coins', '/fun-shop', '/achievements']
+const FUN_SUBPAGES = ['/fun-checkin', '/quiz-bank', '/quiz-game', '/stickers', '/fun-coins', '/fun-shop', '/fun-farm', '/achievements']
 const NAV_ITEMS = NAV_GROUPS.flatMap(group => group.children)
 
 // A member with "Duyệt nội dung" (plan 19.A5) only sees Khám phá (posts, comments, social queue); the server refuses the rest.

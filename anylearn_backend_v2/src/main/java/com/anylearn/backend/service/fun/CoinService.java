@@ -34,6 +34,8 @@ public class CoinService {
     public static final String SOURCE_SHOP_ENERGY = "shop_energy";
     public static final String SOURCE_SHOP_CHEST = "shop_chest";
     public static final String SOURCE_SHOP_SELL = "shop_sell";
+    public static final String SOURCE_FARM_SELL = "farm_sell";   // plan 22: crops sold at the farm market
+    public static final String SOURCE_FARM_SEED = "farm_seed";   // plan 22: seeds and fertilizer bought for the farm
     public static final String SOURCE_SHOP_VOUCHER = "shop_voucher"; // a voucher bought with Leo Xu
 
     private final JdbcTemplate jdbc;

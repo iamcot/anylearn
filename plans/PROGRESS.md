@@ -162,7 +162,7 @@ Chi tiết và trạng thái: `plans/21-gamification-first-order.md`.
 
 ### Giai đoạn 7 – Nông trại anyLEARN (plan 22)
 
-Kế hoạch: `plans/22-nong-trai-leo.md` (đã chốt 6 quyết định 09/11/2026), prompt ảnh: `plans/22-nong-trai-leo-asset-prompts.md`. Việc 22.1 đến 22.8 trong mục 13 của plan; mục 14 đã có quyết định, sẵn sàng làm 22.1.
+Kế hoạch: `plans/22-nong-trai-leo.md` (đã chốt 6 quyết định 09/11/2026), prompt ảnh: `plans/22-nong-trai-leo-asset-prompts.md`. Việc 22.1 đến 22.8 trong mục 13 của plan; mục 14 đã có quyết định. **22.1 + 22.2 (bản đầu) đã làm**: V83, luật thuần + test, API, chợ với trần lãi, `/fun/farm`, admin `/fun-farm`. Còn thiếu của 22.1: thùng ủ phân, mở ô bằng Leo Xu, ảnh / âm thanh. 22.3 đến 22.8 chưa làm.
 
 ## Nhật ký
 
