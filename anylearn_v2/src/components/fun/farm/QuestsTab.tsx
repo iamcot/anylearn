@@ -20,7 +20,7 @@ export default function QuestsTab({ token, view, progress, busy, run, setNote }:
           {t.items.map(it => (
             <li key={it.index}>
               <div className="flex items-center justify-between gap-2">
-                <span className="text-sm font-bold">{it.label} ({it.progress}/{it.target})</span>
+                <span className="text-sm font-bold">{it.label} ({it.progress}/{it.target})<span className="ml-2 whitespace-nowrap rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-extrabold text-amber-800">+{t.xp} XP · +1 phân</span></span>
                 {it.claimed ? <span className="text-xs font-extrabold text-green-dark">✓ Đã nhận</span>
                   : <button type="button" className="min-h-9 cursor-pointer rounded-lg border-0 bg-green px-3 text-xs font-extrabold text-white disabled:opacity-40" disabled={busy || !it.claimable} onClick={() => run(() => claimTask(token, it.index), `+${t.xp} XP và 1 phân bón`)}>Nhận</button>}
               </div>
