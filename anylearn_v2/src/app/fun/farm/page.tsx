@@ -14,38 +14,20 @@ import {
 import OrdersTab from '@/components/fun/farm/OrdersTab'
 import QuestsTab from '@/components/fun/farm/QuestsTab'
 import NeighborsTab from '@/components/fun/farm/NeighborsTab'
-import FarmScene, { type DecoKey } from '@/components/fun/farm/FarmScene'
+import FarmScene from '@/components/fun/farm/FarmScene'
 import { farmImg, timeOfDay } from '@/lib/farm/art'
 import type { SceneKind } from '@/lib/farm/scene'
 import { capUsedPercent, formatWait, isRipe, secondsUntil, sellable, seedCount, slotsToHarvest, slotsToWater } from '@/lib/farm/rules'
-
-type Pose = 'idle' | 'water' | 'harvest' | 'cheer'
-
-function Sheet({ title, icon, onClose, children }: { title: string; icon: string; onClose: () => void; children: React.ReactNode }) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-end bg-black/40 lg:items-center lg:justify-center" role="dialog" aria-modal="true" aria-label={title} onClick={onClose}>
-      <div className="max-h-[85vh] w-full overflow-y-auto rounded-t-3xl bg-white p-4 lg:max-w-md lg:rounded-3xl" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between">
-          <h2 className="m-0 flex items-center gap-2 text-lg font-black"><img src={farmImg(icon)} alt="" className="h-10 w-14 object-contain" />{title}</h2>
-          <button type="button" className="min-h-11 cursor-pointer border-0 bg-transparent text-sm font-bold" onClick={onClose}>Đóng</button>
-        </div>
-        {children}
-      </div>
-    </div>
-  )
-}
 
 export default function FarmPage() {
   const { token } = useAuth()
   const [view, setView] = useState<FarmView | null>(null)
   const [progress, setProgress] = useState<FarmProgress | null>(null)
-  const [tab, setTab] = useState<'garden' | 'orders' | 'quests' | 'neighbors'>('garden')
+  const [tab, setTab] = useState<'garden' | 'orders' | 'quests' | 'neighbors' | 'market'>('garden')
   const [error, setError] = useState('')
   const [note, setNote] = useState('')
   const [pick, setPick] = useState<number | null>(null)
   const [selected, setSelected] = useState<number | null>(null)
-  const [sheet, setSheet] = useState<'compost' | 'market' | null>(null)
-  const [pose, setPose] = useState<Pose>('idle')
   const [kind, setKind] = useState<SceneKind>('mobile')
   const [busy, setBusy] = useState(false)
   const [loadedAt, setLoadedAt] = useState(0)
@@ -88,15 +70,14 @@ export default function FarmPage() {
 
   const elapsed = Math.max(now - loadedAt, 0)
 
-  async function act(run: () => Promise<{ error?: string; data?: unknown }>, ok: string, as: Pose = 'cheer') {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async function act(run: () => Promise<{ error?: string; data?: unknown }>, ok: string, _as?: string) {
     if (busy) return
     setBusy(true)
     const { error: err } = await run()
     setBusy(false)
     if (err) { setNote(err); return }
     if (ok) setNote(ok)
-    setPose(as)
-    setTimeout(() => setPose('idle'), 1800)
     await load()
   }
 
@@ -129,11 +110,6 @@ export default function FarmPage() {
     else if (isRipe(p)) act(() => harvestPlots(token, [slot]), `Thu hoạch ${p.yield} quả`, 'harvest')
   }
 
-  function tapDeco(key: DecoKey) {
-    if (key === 'compost' || key === 'market') setSheet(key)
-    else setTab(key === 'orders' ? 'orders' : 'neighbors')
-  }
-
   function plotLabel(p: FarmPlot) {
     if (p.phase === 'empty') return 'Trống'
     if (p.phase === 'ripe') return 'Chín rồi!'
@@ -144,7 +120,6 @@ export default function FarmPage() {
 
   const tod = timeOfDay(new Date(now).getHours())
   const waiting = progress.orders.length > 0
-  const badges = { compost: !!progress.compost.active?.ready, orders: waiting, market: sell.length > 0 }
 
   return (
     <div className="min-h-screen bg-[#e8f6d4] pb-28 lg:pb-12">
@@ -159,9 +134,9 @@ export default function FarmPage() {
             </div>
             <span className="inline-flex items-center gap-1.5 text-lg font-black text-[#b45309]" title={view.coinName}><CoinIcon className="size-6" /> {view.balance}</span>
           </div>
-          <div className="mt-2 grid grid-cols-4 gap-1 rounded-xl bg-white p-1 ring-1 ring-line" role="tablist">
-            {([['garden', 'Vườn'], ['orders', 'Đơn hàng'], ['quests', 'Nhiệm vụ'], ['neighbors', 'Hàng xóm']] as const).map(([k, l]) => (
-              <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)} className={`min-h-10 cursor-pointer rounded-lg border-0 text-xs font-extrabold ${tab === k ? 'bg-green-soft text-green-dark' : 'bg-transparent text-muted'}`}>{l}</button>
+          <div className="mt-2 grid grid-cols-5 gap-0.5 rounded-xl bg-white p-1 ring-1 ring-line" role="tablist">
+            {([['garden', 'Vườn'], ['orders', 'Đơn hàng'], ['quests', 'Nhiệm vụ'], ['neighbors', 'Hàng xóm'], ['market', 'Chợ']] as const).map(([k, l]) => (
+              <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)} className={`relative min-h-10 cursor-pointer rounded-lg border-0 px-0 text-[11px] font-extrabold ${tab === k ? 'bg-green-soft text-green-dark' : 'bg-transparent text-muted'}`}>{l}{((k === 'orders' && waiting) || (k === 'market' && progress.compost.active?.ready)) && <span className="absolute right-1 top-1 size-2 rounded-full bg-red-500" aria-hidden />}</button>
             ))}
           </div>
           {note && <p className="mt-2 rounded-xl bg-green-soft px-3 py-2 text-sm font-bold text-green-dark" role="status">{note}</p>}
@@ -170,8 +145,7 @@ export default function FarmPage() {
         {tab === 'garden' && (
           <>
             <div className="mt-2">
-              <FarmScene view={view} kind={kind} tod={tod} elapsed={elapsed} selected={selected} hasDog={progress.hasDog} leo={pose} badges={badges}
-                onTile={tapTile} onExpand={() => act(() => expandPlots(token), 'Đã mở thêm ô đất')} onDeco={tapDeco} />
+              <FarmScene view={view} kind={kind} tod={tod} elapsed={elapsed} selected={selected} onTile={tapTile} onExpand={() => act(() => expandPlots(token), 'Đã mở thêm ô đất')} />
             </div>
             <div className="mx-auto mt-2 max-w-[720px] px-3 lg:px-0">
               {plot && plot.phase !== 'empty' && (
@@ -202,8 +176,11 @@ export default function FarmPage() {
         </div>
       </div>
 
-      {sheet === 'compost' && (
-        <Sheet title="Thùng ủ phân" icon="compost_bin" onClose={() => setSheet(null)}>
+      {tab === 'market' && (
+        <div className="mx-auto mt-3 max-w-[1100px] space-y-3 px-3 lg:px-4">
+        <div className="mx-auto max-w-[720px] space-y-3">
+        <section className="rounded-2xl bg-white p-4 ring-1 ring-line" aria-label="Thùng ủ phân">
+        <h2 className="m-0 flex items-center gap-2 text-lg font-black"><img src={farmImg('compost_bin')} alt="" className="h-10 w-14 object-contain" />Thùng ủ phân</h2>
       <div>
       {progress.compost.active ? (
         progress.compost.active.ready
@@ -221,10 +198,9 @@ export default function FarmPage() {
         </>
       )}
     </div>
-        </Sheet>
-      )}
-      {sheet === 'market' && (
-        <Sheet title="Chợ" icon="market_stall" onClose={() => setSheet(null)}>
+        </section>
+        <section className="rounded-2xl bg-white p-4 ring-1 ring-line" aria-label="Chợ">
+        <h2 className="m-0 flex items-center gap-2 text-lg font-black"><img src={farmImg('market_stall')} alt="" className="h-10 w-14 object-contain" />Chợ</h2>
       <div>
       <p className="mt-1 text-xs text-muted">
         Chợ mua tối đa <b>{view.market.room}</b> <BrandText text={view.coinName} coinName={view.coinName} /> lãi nữa hôm nay.
@@ -254,7 +230,9 @@ export default function FarmPage() {
         Mua 1 phân bón · {view.fertilizerPrice} {view.coinName}
       </button>
     </div>
-        </Sheet>
+        </section>
+        </div>
+        </div>
       )}
 
       {pick !== null && (

@@ -7,20 +7,14 @@ import { backgroundFor, cropImage, farmImg, plotImage, type TimeOfDay } from '@/
 import { formatWait } from '@/lib/farm/rules'
 import { cellCenters, sceneLayout, type SceneKind } from '@/lib/farm/scene'
 
-export type DecoKey = 'compost' | 'market' | 'orders' | 'mailbox'
-
 interface Props {
   view: FarmView
   kind: SceneKind
   tod: TimeOfDay
   elapsed: number
   selected: number | null
-  hasDog: boolean
-  leo: 'idle' | 'water' | 'harvest' | 'cheer'
-  badges: Partial<Record<DecoKey, boolean>>
   onTile: (slot: number) => void
   onExpand: () => void
-  onDeco: (key: DecoKey) => void
 }
 
 const DIAMOND = 'polygon(50% 3%, 97% 50%, 50% 97%, 3% 50%)'
@@ -34,12 +28,12 @@ function chip(p: FarmPlot, elapsed: number): { text: string; tone: string } | nu
 }
 
 /** The garden drawn as a field: tiles laid out isometrically over the background, crops growing on them. */
-export default function FarmScene({ view, kind, tod, elapsed, selected, hasDog, leo, badges, onTile, onExpand, onDeco }: Props) {
+export default function FarmScene({ view, kind, tod, elapsed, selected, onTile, onExpand }: Props) {
   const layout = sceneLayout(kind)
   const cells = view.plots.length + (view.nextPlotPrice > 0 ? 1 : 0)
   const { tw, th, centers } = cellCenters(cells, layout)
   const cropOf = (k?: string) => view.crops.find(c => c.cropKey === k)
-  const dense = tw < (kind === 'mobile' ? 22 : 17)
+  const dense = tw < (kind === 'mobile' ? 30 : 20)
   const fontSize = `clamp(10px, ${cq(layout.font)}, 15px)`
 
   const box = (xPct: number, yPct: number, w: number): CSSProperties => ({ left: `${xPct}%`, top: `${yPct}%`, width: cq(w), transform: 'translate(-50%, -50%)' })
@@ -48,22 +42,11 @@ export default function FarmScene({ view, kind, tod, elapsed, selected, hasDog, 
     <div className="relative mx-auto w-full select-none overflow-hidden bg-[#9be15d] lg:rounded-3xl lg:shadow-lg" style={{ containerType: 'inline-size', aspectRatio: layout.aspect, fontSize }}>
       <img src={backgroundFor(tod, kind)} alt="" className="absolute inset-0 size-full object-cover" draggable={false} />
 
-      {layout.decor.map(d => {
-        if (d.key === 'dog' && !hasDog) return null
-        const interactive = d.action
-        const img = <img src={farmImg(d.img)} alt="" className={`block h-auto w-full ${d.key === 'dog' ? 'animate-pulse' : ''}`} draggable={false} />
-        return (
-          <div key={d.key} className="absolute" style={{ ...box(d.x, d.y, d.w), zIndex: Math.round(d.y) }}>
-            {interactive
-              ? <button type="button" aria-label={d.label} onClick={() => onDeco(interactive)} className="relative block w-full cursor-pointer border-0 bg-transparent p-0 transition-transform active:scale-95">
-                {img}
-                <span className="absolute left-1/2 top-[92%] -translate-x-1/2 whitespace-nowrap rounded-full bg-white/95 px-2 py-0.5 text-[0.85em] font-extrabold text-ink shadow">{d.label}</span>
-                {badges[interactive] && <span className="absolute right-[12%] top-[2%] size-3.5 animate-bounce rounded-full bg-red-500 ring-2 ring-white" aria-hidden />}
-              </button>
-              : img}
-          </div>
-        )
-      })}
+      {layout.decor.map(d => (
+        <div key={d.key} className="pointer-events-none absolute" style={{ ...box(d.x, d.y, d.w), zIndex: Math.round(d.y) }}>
+          <img src={farmImg(d.img)} alt="" className="block h-auto w-full" draggable={false} />
+        </div>
+      ))}
 
       {centers.map((c, i) => {
         const p = view.plots[i]
@@ -111,9 +94,6 @@ export default function FarmScene({ view, kind, tod, elapsed, selected, hasDog, 
         )
       })}
 
-      <div className="pointer-events-none absolute" style={{ ...box(layout.leo.x, layout.leo.y, layout.leo.w), zIndex: Math.round(layout.leo.y) }}>
-        <img src={farmImg(`leo_farmer_${leo}`)} alt="Leo" className="block h-auto w-full" draggable={false} />
-      </div>
     </div>
   )
 }
