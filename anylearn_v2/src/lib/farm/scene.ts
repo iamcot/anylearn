@@ -20,15 +20,15 @@ export const TILE_STEP = 0.43
 
 const LAYOUTS: Record<SceneKind, SceneLayout> = {
   desktop: {
-    aspect: '16 / 9', height: 56.25, region: { cx: 43, cy: 33, aw: 54, ah: 36 }, maxTile: 30, font: 1.1,
+    aspect: '16 / 9', height: 56.25, region: { cx: 41, cy: 33, aw: 60, ah: 40 }, maxTile: 34, font: 1.1,
     decor: [
-      { key: 'tree1', img: 'tree_slot_empty', x: 76, y: 52, w: 9 },
-      { key: 'tree2', img: 'tree_slot_empty', x: 84, y: 62, w: 9 },
-      { key: 'tree3', img: 'tree_slot_empty', x: 76, y: 72, w: 9 },
+      { key: 'tree1', img: 'tree_slot_empty', x: 81, y: 50, w: 9 },
+      { key: 'tree2', img: 'tree_slot_empty', x: 89, y: 60, w: 9 },
+      { key: 'tree3', img: 'tree_slot_empty', x: 81, y: 70, w: 9 },
     ],
   },
   mobile: {
-    aspect: '4 / 5', height: 125, region: { cx: 50, cy: 66, aw: 94, ah: 56 }, maxTile: 50, font: 3,
+    aspect: '4 / 5', height: 125, region: { cx: 50, cy: 64, aw: 98, ah: 62 }, maxTile: 56, font: 3,
     decor: [
       { key: 'tree1', img: 'tree_slot_empty', x: 30, y: 90, w: 17 },
       { key: 'tree2', img: 'tree_slot_empty', x: 50, y: 92, w: 17 }, { key: 'tree3', img: 'tree_slot_empty', x: 70, y: 90, w: 17 },

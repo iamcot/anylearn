@@ -135,8 +135,8 @@ export default function FarmPage() {
             <span className="inline-flex items-center gap-1.5 text-lg font-black text-[#b45309]" title={view.coinName}><CoinIcon className="size-6" /> {view.balance}</span>
           </div>
           <div className="mt-2 grid grid-cols-5 gap-0.5 rounded-xl bg-white p-1 ring-1 ring-line" role="tablist">
-            {([['garden', 'Vườn'], ['orders', 'Đơn hàng'], ['quests', 'Nhiệm vụ'], ['neighbors', 'Hàng xóm'], ['market', 'Chợ']] as const).map(([k, l]) => (
-              <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)} className={`relative min-h-10 cursor-pointer rounded-lg border-0 px-0 text-[11px] font-extrabold ${tab === k ? 'bg-green-soft text-green-dark' : 'bg-transparent text-muted'}`}>{l}{((k === 'orders' && waiting) || (k === 'market' && progress.compost.active?.ready)) && <span className="absolute right-1 top-1 size-2 rounded-full bg-red-500" aria-hidden />}</button>
+            {([['garden', 'Vườn', 'item_seed_packet'], ['orders', 'Đơn hàng', 'order_board'], ['quests', 'Nhiệm vụ', 'item_gift_box'], ['neighbors', 'Hàng xóm', 'icon_heart_neighbor'], ['market', 'Chợ', 'item_basket']] as const).map(([k, l, ic]) => (
+              <button key={k} type="button" role="tab" aria-selected={tab === k} aria-label={l} title={l} onClick={() => setTab(k)} className={`relative flex min-h-12 cursor-pointer items-center justify-center rounded-lg border-0 px-0 ${tab === k ? 'bg-green-soft text-green-dark' : 'bg-transparent text-muted'}`}><img src={farmImg(ic)} alt="" className={`h-9 w-12 object-contain ${tab === k ? '' : 'opacity-70'}`} />{((k === 'orders' && waiting) || (k === 'market' && progress.compost.active?.ready)) && <span className="absolute right-1 top-1 size-2 rounded-full bg-red-500" aria-hidden />}</button>
             ))}
           </div>
           {note && <p className="mt-2 rounded-xl bg-green-soft px-3 py-2 text-sm font-bold text-green-dark" role="status">{note}</p>}
