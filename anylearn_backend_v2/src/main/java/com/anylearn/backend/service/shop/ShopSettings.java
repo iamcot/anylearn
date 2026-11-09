@@ -47,7 +47,13 @@ public class ShopSettings {
         field("sell_item_percent", "Giá bán lại vật phẩm Leo rank (% giá mua)", "Bán lại cho Leo", 30, 0, 100);
         field("sell_item_cap", "Số vật phẩm bán tối đa mỗi ngày", "Bán lại cho Leo", 5, 0, 1000);
         for (String key : ShopRules.SWITCHES) {
-            field("on_" + key, "Bán " + switchLabel(key) + " (1 = bật, 0 = tắt)", "Công tắc từng món", 1, 0, 1);
+            // Vouchers for Leo Xu: off by default. ND 147/2024 Art. 57.4 forbids turning game coins into anything with
+            // value outside the game, and a course discount has real value. Switch on only after legal advice.
+            int def = ShopRules.VOUCHER.equals(key) ? 0 : 1;
+            String label = ShopRules.VOUCHER.equals(key)
+                    ? "Bán voucher đổi bằng Leo Xu (1 = bật, 0 = tắt; để tắt: NĐ 147/2024 Điều 57 cấm đổi xu game ra thứ có giá trị ngoài game)"
+                    : "Bán " + switchLabel(key) + " (1 = bật, 0 = tắt)";
+            field("on_" + key, label, "Công tắc từng món", def, 0, 1);
         }
         field("on_sell_sticker", "Cho bán sticker trùng cho Leo (1 = bật, 0 = tắt)", "Công tắc từng món", 1, 0, 1);
         field("on_sell_item", "Cho bán lại vật phẩm cho Leo (1 = bật, 0 = tắt)", "Công tắc từng món", 1, 0, 1);

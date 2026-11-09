@@ -31,6 +31,7 @@ class VoucherFlowTest {
     @Autowired com.anylearn.backend.service.shop.ShopService shop;
     @Autowired com.anylearn.backend.service.fun.CoinService coins;
     @Autowired com.anylearn.backend.service.journey.JourneyService journey;
+    @Autowired com.anylearn.backend.service.shop.ShopSettings shopSettings;
 
     private long walletC(long id) {
         em.flush();
@@ -131,6 +132,8 @@ class VoucherFlowTest {
         long g = group(Map.of("title", "Giảm 20k", "value", 20_000, "generateType", "auto", "prefix", "LEO",
                 "coinExchange", true, "coinPrice", 100, "coinRebuyDays", 30));
         String key = "voucher:" + g;
+        assertTrue(shop.voucherOffers(me).get("items") instanceof List<?> l && l.isEmpty(), "off by default: not on sale");
+        shopSettings.save(Map.of("on_voucher", 1)); // the test runs inside a rolled back transaction
         coins.credit(me, 250, com.anylearn.backend.service.fun.CoinService.SOURCE_ADMIN, "test");
 
         @SuppressWarnings("unchecked")
