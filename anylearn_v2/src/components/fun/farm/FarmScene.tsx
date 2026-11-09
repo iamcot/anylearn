@@ -74,7 +74,7 @@ export default function FarmScene({ view, progress, size, kind, tod, elapsed, se
       </button>
       <span className={`pointer-events-none absolute -translate-x-1/2 whitespace-nowrap text-[11px] font-extrabold text-white ${labelStroke}`} style={{ left: px(bin.x), top: px(bin.y + binH * 0.5 - 2), zIndex: 91 }}>Thùng ủ phân</span>
       {active && (
-        <span className={`pointer-events-none absolute -translate-x-1/2 ${pill} ${active.ready ? 'bg-green/90 text-white' : 'bg-white/50 text-ink'}`} style={{ left: px(bin.x), top: px(bin.y - binH * 0.5 - 4), transform: 'translate(-50%, -100%)', zIndex: OVERLAY_Z }}>
+        <span className={`pointer-events-none absolute ${pill} ${active.ready ? 'bg-green/90 text-white' : 'bg-white/50 text-ink'}`} style={{ left: px(bin.x), top: px(bin.y - binH * 0.5 - 4), transform: 'translate(-50%, -100%)', zIndex: OVERLAY_Z }}>
           {active.ready ? 'Nhận phân' : formatWait(binLeft)}
         </span>
       )}
