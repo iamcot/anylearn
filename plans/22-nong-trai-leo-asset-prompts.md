@@ -132,6 +132,8 @@ Use the attached reference sheet as the exact design of "Leo", the mascot: a chu
 
 ## 7. Cây trồng
 
+> **Đã có bản dán thẳng**: dùng `plans/22-nong-trai-leo-crop-prompts.md` (mỗi khối là một prompt hoàn chỉnh, không phải ghép). Phần khuôn và bảng dưới đây giữ lại để tham khảo cách viết.
+
 Mỗi cây cần **3 ảnh giai đoạn + 1 ảnh sản phẩm** (giai đoạn "hạt" dùng chung `plot_seeded.png`; giai đoạn héo làm bằng CSS: ngả màu + rủ xuống). Khuôn prompt:
 
 ```
