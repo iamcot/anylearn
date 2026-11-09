@@ -9,8 +9,7 @@ const SHORTCUTS: Shortcut[] = [
   { href: '/fun/quiz', image: '/fun/leo_rank.png', label: 'Leo rank', game: 'quiz' },
   { href: '/fun/sticker', image: '/fun/leo_sticker.png', label: 'Sticker', game: 'sticker' },
   { href: '/fun/explore', image: '/fun/leo_discovery.png', label: 'Khám phá', game: 'explore' },
-  // no Leo picture yet (plan 22 asset prompts): an emoji stands in until public/fun/leo_farm.png exists
-  { href: '/fun/farm', emoji: '🌱', label: 'Nông trại', game: 'farm' },
+  { href: '/fun/farm', image: '/farm/leo_farmer_cheer.webp', label: 'Nông trại', game: 'farm' },
 ]
 
 /** The four main places of Vui học as Leo pictures with a green outlined label under each; a game closed to the person is left out. */

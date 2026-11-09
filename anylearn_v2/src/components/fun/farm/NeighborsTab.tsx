@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useCallback, useEffect, useState } from 'react'
+import { farmImg } from '@/lib/farm/art'
 import { addNeighbor, getNeighbors, removeNeighbor, setAllowSteal, type FarmNeighbors, type FarmView } from '@/lib/api/farm'
 
 interface Props { token: string; view: FarmView; onChanged: () => void }
@@ -33,7 +34,11 @@ export default function NeighborsTab({ token, view, onChanged }: Props) {
         </p>
       )}
       <div className="rounded-2xl bg-white p-4 ring-1 ring-line">
-        <h2 className="m-0 text-base font-black">Kết bạn</h2>
+        <div className="flex items-center gap-2">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={farmImg('mailbox_neighbor')} alt="" className="h-12 w-16 object-contain" />
+          <h2 className="m-0 text-base font-black">Kết bạn</h2>
+        </div>
         <p className="mt-1 text-xs text-muted">Nhập số điện thoại hoặc mã giới thiệu của bạn đã mở Nông trại. Cần tài khoản từ 3 ngày và điểm danh 3 ngày mới tưới giúp và ghé vườn được.</p>
         <div className="mt-2 flex gap-2">
           <input value={code} onChange={e => setCode(e.target.value)} placeholder="SĐT hoặc mã giới thiệu" className="min-h-11 flex-1 rounded-xl border border-line px-3 text-sm" inputMode="tel" />
