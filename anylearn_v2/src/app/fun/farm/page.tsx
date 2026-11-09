@@ -262,7 +262,7 @@ export default function FarmPage() {
           <button key={k} data-tab={k} type="button" role="tab" aria-selected={active === k} aria-label={l} title={l} onClick={() => setPanel(k === 'garden' || panel === k ? null : k)} className={`relative flex w-16 cursor-pointer flex-col items-center gap-0 rounded-xl border-0 px-0 py-1 ${active === k ? 'bg-white/45 shadow-[0_0_10px_rgba(255,255,255,.9)]' : 'bg-transparent'}`}>
             <img src={farmImg(ic)} alt="" className="h-9 w-11 object-contain drop-shadow" draggable={false} />
             <span className="text-[10px] font-extrabold leading-tight text-white [text-shadow:-1px_-1px_0_#4a2a10,1px_-1px_0_#4a2a10,-1px_1px_0_#4a2a10,1px_1px_0_#4a2a10,0_2px_3px_rgba(0,0,0,.4)]">{l}</span>
-            {((k === 'orders' && waiting) || (k === 'quests' && ([progress.path, ...(progress.olderPaths ?? [])].some(pt => pt.steps.some(x => x.claimable)) || progress.tasks.items.some(x => x.claimable) || progress.tasks.boxReady || progress.challenges.some(x => x.claimable))) || (k === 'market' && progress.compost.active?.ready)) && <span className="absolute right-1.5 top-0.5 size-2.5 rounded-full bg-red-500 ring-2 ring-white" aria-hidden />}
+            {((k === 'orders' && waiting) || (k === 'quests' && (view.levelReady || [progress.path, ...(progress.olderPaths ?? [])].some(pt => pt.steps.some(x => x.claimable)) || progress.tasks.items.some(x => x.claimable) || progress.tasks.boxReady || progress.challenges.some(x => x.claimable))) || (k === 'market' && progress.compost.active?.ready)) && <span className="absolute right-1.5 top-0.5 size-2.5 rounded-full bg-red-500 ring-2 ring-white" aria-hidden />}
           </button>
         ))}
       </div>

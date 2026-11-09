@@ -97,20 +97,42 @@ public class FarmService {
         jdbc.update("INSERT INTO farm_counters (user_id, day, kind, n) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE n = n + VALUES(n)", userId, Date(today()), kind, n);
     }
 
-    /** Adds XP, moves the level and pays the Leo Xu of every even level reached (a one-time reward, outside the profit cap). */
+    /** Adds XP. The level does not move by itself: the player takes the "Lên cấp" step when the bar is full ({@link #levelUp}). */
     Map<String, Object> gainXp(long userId, long xp) {
         Map<String, Object> out = new LinkedHashMap<>();
         Map<String, Object> p = jdbc.queryForMap("SELECT level, xp FROM farm_profiles WHERE user_id = ?", userId);
         int level = ((Number) p.get("level")).intValue();
         long total = ((Number) p.get("xp")).longValue() + Math.max(xp, 0);
-        int newLevel = FarmRules.levelFor(total, settings.params());
-        jdbc.update("UPDATE farm_profiles SET xp = ?, level = ? WHERE user_id = ?", total, newLevel, userId);
-        long reward = 0;
-        for (int l = level + 1; l <= newLevel; l++) if (l % 2 == 0) reward += (long) settings.n("level_coins") * l;
-        if (reward > 0) coins.credit(userId, reward, CoinService.SOURCE_FARM_REWARD, "Lên cấp vườn " + newLevel);
-        if (newLevel > level) events.record(userId, GameEventService.GAME_FARM, "level", String.valueOf(newLevel), (int) reward);
-        out.put("levelUp", newLevel > level);
-        out.put("level", newLevel);
+        jdbc.update("UPDATE farm_profiles SET xp = ? WHERE user_id = ?", total, userId);
+        out.put("levelUp", false);
+        out.put("level", level);
+        out.put("levelCoins", 0L);
+        return out;
+    }
+
+    /** Leo Xu paid when {@code level} is reached (every even level, a one-time reward outside the profit cap). */
+    long levelReward(int level) {
+        return level % 2 == 0 ? (long) settings.n("level_coins") * level : 0L;
+    }
+
+    /** The "Lên cấp" step: allowed once the XP of the current level is full; takes one level and keeps the extra XP. */
+    @Transactional
+    public Map<String, Object> levelUp(long userId) {
+        checkOpen();
+        Map<String, Object> profile = lockProfile(userId);
+        int level = ((Number) profile.get("level")).intValue();
+        long xp = ((Number) profile.get("xp")).longValue();
+        FarmRules.Params params = settings.params();
+        if (level >= FarmRules.MAX_LEVEL) throw new IllegalStateException("Bạn đã ở cấp cao nhất.");
+        if (xpIntoLevel(xp, level, params) < FarmRules.xpForNext(level, params)) throw new IllegalStateException("Chưa đủ XP để lên cấp.");
+        int next = level + 1;
+        jdbc.update("UPDATE farm_profiles SET level = ? WHERE user_id = ?", next, userId);
+        long reward = levelReward(next);
+        if (reward > 0) coins.credit(userId, reward, CoinService.SOURCE_FARM_REWARD, "Lên cấp vườn " + next);
+        events.record(userId, GameEventService.GAME_FARM, "level", String.valueOf(next), (int) reward);
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("levelUp", true);
+        out.put("level", next);
         out.put("levelCoins", reward);
         return out;
     }
@@ -169,6 +191,8 @@ public class FarmService {
         out.put("xp", xp);
         out.put("xpIntoLevel", xpIntoLevel(xp, level, params));
         out.put("xpForNext", level >= FarmRules.MAX_LEVEL ? 0 : FarmRules.xpForNext(level, params));
+        out.put("levelReady", level < FarmRules.MAX_LEVEL && xpIntoLevel(xp, level, params) >= FarmRules.xpForNext(level, params));
+        out.put("levelCoinsNext", level >= FarmRules.MAX_LEVEL ? 0L : levelReward(level + 1));
         out.put("plots", plots);
         out.put("inventory", inventory);
         out.put("crops", cropList(crops.values(), level));

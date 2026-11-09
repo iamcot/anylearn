@@ -129,6 +129,11 @@ public class FarmController {
         return run(user, () -> progress.skipOrder(user.getId(), id));
     }
 
+    @PostMapping("/level-up")
+    public ApiResponse<?> levelUp(@AuthenticationPrincipal User user) {
+        return run(user, () -> farm.levelUp(user.getId()));
+    }
+
     @PostMapping("/path/{index}/claim")
     public ApiResponse<?> claimPath(@AuthenticationPrincipal User user, @PathVariable int index, @RequestParam(required = false) Integer level) {
         return run(user, () -> progress.claimPath(user.getId(), index, level));

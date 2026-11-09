@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import type { FarmProgress, FarmView } from '@/lib/api/farm'
 import { enqueueRewards } from '@/lib/journey/store'
-import { claimChallenge, claimChapter, claimPath, claimTask, claimTaskBox } from '@/lib/api/farm'
+import { claimChallenge, claimChapter, claimPath, claimTask, claimTaskBox, levelUpFarm } from '@/lib/api/farm'
 
 interface Props { token: string; view: FarmView; progress: FarmProgress; busy: boolean; run: (action: () => Promise<{ error?: string; data?: unknown }>, ok: string) => Promise<void>; setNote: (s: string) => void }
 
@@ -49,7 +49,21 @@ export default function QuestsTab({ token, view, progress, busy, run, setNote }:
               </li>
             ))}
           </ul>
-          {n === 0 && pt.allDone && <p className="mt-3 rounded-xl bg-green-soft px-3 py-2 text-sm font-bold text-green-dark">Bạn đã xong chuỗi nhiệm vụ của cấp này. Thu hoạch thêm cây để đủ XP lên cấp {pt.level + 1}, nhiệm vụ mới sẽ mở ngay.</p>}
+          {n === 0 && (
+            <div className={`mt-4 rounded-xl p-3 ring-1 ${view.levelReady ? 'bg-amber-50 ring-amber-300' : 'bg-slate-50 opacity-70 ring-line'}`}>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-sm font-black">★ Lên cấp {pt.level + 1}{(view.levelCoinsNext ?? 0) > 0 && <span className="ml-2 whitespace-nowrap rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-extrabold text-amber-800">+{view.levelCoinsNext} {view.coinName}</span>}</span>
+                <button type="button" className="min-h-9 cursor-pointer rounded-lg border-0 bg-green px-3 text-xs font-extrabold text-white disabled:opacity-40" disabled={busy || !view.levelReady} onClick={() => run(async () => {
+                  const r = await levelUpFarm(token)
+                  if (!r.error) enqueueRewards([{ kind: 'mission', key: `farm:level:${pt.level + 1}`, label: `Lên cấp ${pt.level + 1}`, extra: r.data && r.data.levelCoins > 0 ? [`+${r.data.levelCoins} ${view.coinName}`] : [] }], view.coinName)
+                  return r
+                }, '')}>Lên cấp</button>
+              </div>
+              <div className="mt-1"><Bar value={Math.min(view.xpIntoLevel, view.xpForNext)} max={Math.max(view.xpForNext, 1)} /></div>
+              <p className="mt-1 text-xs text-muted">{view.levelReady ? 'Đủ XP rồi, bấm để lên cấp và mở nhiệm vụ mới.' : `Cần đủ ${view.xpForNext} XP (còn thiếu ${need}). Lên cấp xong mới mở nhiệm vụ cấp mới.`}</p>
+            </div>
+          )}
+          {n === 0 && pt.allDone && !view.levelReady && <p className="mt-3 rounded-xl bg-green-soft px-3 py-2 text-sm font-bold text-green-dark">Bạn đã xong chuỗi nhiệm vụ của cấp này. Thu hoạch thêm cây để đủ XP lên cấp {pt.level + 1}.</p>}
         </section>
       ))}
 

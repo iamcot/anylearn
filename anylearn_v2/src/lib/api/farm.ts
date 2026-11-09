@@ -16,7 +16,7 @@ export interface FarmPlot {
 export interface FarmPrice { cropKey: string; price: number; basePrice: number; soldToday: number; nextPercent: number }
 
 export interface FarmView {
-  serverNow: string; coinName: string; balance: number; level: number; xp: number; xpIntoLevel: number; xpForNext: number
+  serverNow: string; coinName: string; balance: number; level: number; xp: number; xpIntoLevel: number; xpForNext: number; levelReady?: boolean; levelCoinsNext?: number
   plots: FarmPlot[]; inventory: Record<string, number>; crops: FarmCrop[]; fertilizerPrice: number
   market: { prices: FarmPrice[]; room: number; dayCap: number; weekCap: number }
   allowSteal: boolean; nextPlotPrice: number; nextPlotLevel: number
@@ -84,3 +84,5 @@ export const setAllowSteal = (token: string, allowSteal: boolean) => authFetch<{
 export const debugAdvance = (token: string, minutes: number, slot?: number) => authFetch<{ plots: number }>('/farm/debug/advance', token, { method: 'POST', body: JSON.stringify({ minutes, slot }) })
 export const debugFillOrders = (token: string) => authFetch<{ added: number }>('/farm/debug/advance', token, { method: 'POST', body: JSON.stringify({ kind: 'orders' }) })
 export const debugNewOrders = (token: string) => authFetch<{ removed: number }>('/farm/debug/advance', token, { method: 'POST', body: JSON.stringify({ kind: 'new-orders' }) })
+
+export const levelUpFarm = (token: string) => authFetch<{ levelUp: boolean; level: number; levelCoins: number }>('/farm/level-up', token, { method: 'POST' })
