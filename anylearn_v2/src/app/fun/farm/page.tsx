@@ -143,7 +143,7 @@ export default function FarmPage() {
             <div className="relative w-[62%] max-w-[360px] lg:max-w-[290px] shrink-0">
               <img src={farmImg('ui_sign_board')} alt="" className="block h-auto w-full" draggable={false} />
               <div className="absolute inset-x-[9%] bottom-[16%] top-[34%] flex flex-col items-center justify-center text-center">
-                <h1 className="m-0 text-[15px] font-black leading-tight text-[#3b2008] [text-shadow:0_1px_0_rgba(255,236,180,.9)] lg:text-lg">Nông trại anyLEARN</h1>
+                <h1 className="m-0 text-[15px] font-black leading-tight text-white [-webkit-text-stroke:4px_#4a2a10] [paint-order:stroke_fill] [text-shadow:0_2px_0_#4a2a10] lg:text-lg">Nông trại anyLEARN</h1>
                 <div className="mt-1 flex items-center gap-2">
                   <span className="rounded-full bg-[#fff4d6] px-2 py-0.5 text-[11px] font-black text-[#5b3a1a]">Cấp {view.level}</span>
                   {view.xpForNext > 0 && (
