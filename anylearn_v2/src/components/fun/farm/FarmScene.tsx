@@ -98,13 +98,12 @@ export default function FarmScene({ view, progress, size, kind, tod, elapsed, se
         const crop = cropOf(p.cropKey)
         const art = cropImage(p, crop, elapsed)
         const spriteW = tw * (p.phase === 'ripe' || p.phase === 'wilting' ? 0.66 : 0.55)
-        const spriteH = spriteW * (341 / 512)
         const sel = selected === p.slot
         return (
           <div key={p.slot} className="pointer-events-none absolute" style={{ left: px(left), top: px(top), width: px(tw), height: px(th), zIndex: z }}>
             <img src={plotImage(p)} alt="" className={`absolute inset-0 size-full object-contain transition-[filter] ${sel ? 'drop-shadow-[0_0_6px_rgba(255,255,255,1)]' : ''}`} draggable={false} />
             {p.phase !== 'empty' && (
-              <div className="pointer-events-none absolute left-1/2" style={{ width: px(spriteW), top: px(th * 0.62 - spriteH), transform: 'translateX(-50%)' }}><div className={p.phase === 'ripe' ? 'animate-bounce [animation-duration:2.4s]' : ''}>
+              <div className="pointer-events-none absolute left-1/2" style={{ width: px(spriteW), bottom: px(th * 0.38), transform: 'translateX(-50%)' }}><div className={p.phase === 'ripe' ? 'animate-bounce [animation-duration:2.4s]' : ''}>
                 {art
                   ? <img src={art} alt={crop?.name ?? ''} className={`block h-auto w-full ${p.phase === 'wilting' ? 'grayscale sepia' : p.phase === 'thirsty' ? 'saturate-50' : ''}`} draggable={false} />
                   : <div className="text-center leading-none" style={{ fontSize: px(tw * 0.3) }} aria-hidden>{p.phase === 'ripe' ? crop?.emoji ?? '🌾' : p.phase === 'wilting' ? '🍂' : '🌱'}</div>}

@@ -73,6 +73,9 @@ def main():
             # scenery and plants keep the whole canvas so they line up on a plot
             img = clear_background(img)
             save(img, name, 512 if name.startswith(('plot_', 'tree_slot', 'ca_rot')) else 640, name.endswith('product') or name == 'order_board')
+        elif name.endswith(('_seedling', '_growing', '_ripe', '_sapling', '_grown', '_fruiting', '_resting')):
+            # plant stages from farm_split_sheet.py share one box, so they must not be trimmed on their own
+            save(clear_background(img), name, 512, False)
         elif name == 'ui_sign_board':
             save(clear_background(img), name, 1100, True)
         else:
