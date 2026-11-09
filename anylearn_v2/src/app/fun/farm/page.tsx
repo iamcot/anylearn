@@ -54,7 +54,9 @@ export default function FarmPage() {
 
   const load = useCallback(async () => {
     if (!token) return
-    const [{ data, error: err }, { data: prog }] = await Promise.all([getFarm(token), getProgress(token)])
+    // one after the other: a new player's first two calls would both create the profile row
+    const { data, error: err } = await getFarm(token)
+    const { data: prog } = await getProgress(token)
     if (err || !data) return setError(err ?? 'Không tải được nông trại')
     setError('')
     setView(data)
@@ -141,7 +143,7 @@ export default function FarmPage() {
             <div className="relative w-[62%] max-w-[360px] lg:max-w-[290px] shrink-0">
               <img src={farmImg('ui_sign_board')} alt="" className="block h-auto w-full" draggable={false} />
               <div className="absolute inset-x-[9%] bottom-[16%] top-[34%] flex flex-col items-center justify-center text-center">
-                <h1 className="m-0 text-[15px] font-black leading-tight text-[#fff4d6] [text-shadow:0_2px_0_#5b3a1a] lg:text-lg">Nông trại anyLEARN</h1>
+                <h1 className="m-0 text-[15px] font-black leading-tight text-[#3b2008] [text-shadow:0_1px_0_rgba(255,236,180,.9)] lg:text-lg">Nông trại anyLEARN</h1>
                 <div className="mt-1 flex items-center gap-2">
                   <span className="rounded-full bg-[#fff4d6] px-2 py-0.5 text-[11px] font-black text-[#5b3a1a]">Cấp {view.level}</span>
                   {view.xpForNext > 0 && (
@@ -152,9 +154,9 @@ export default function FarmPage() {
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-1" title={view.coinName}>
-              <img src={farmImg('ui_coin_chest')} alt="" className="size-20 object-contain lg:size-28" draggable={false} />
-              <span className="text-2xl font-black text-[#b45309] [text-shadow:0_2px_0_#fff] lg:text-3xl">{view.balance}</span>
+            <div className="flex shrink-0 flex-col items-center" title={view.coinName}>
+              <span className="text-xl font-black leading-none text-[#b45309] [text-shadow:0_1px_0_#fff] lg:text-2xl">{view.balance}</span>
+              <img src={farmImg('ui_coin_chest')} alt="" className="-mt-0.5 size-12 object-contain lg:size-14" draggable={false} />
             </div>
           </div>
           <div className="mt-2 grid grid-cols-5 gap-0.5" role="tablist">

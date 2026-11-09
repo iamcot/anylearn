@@ -25,10 +25,16 @@ public class FarmController {
 
     private ApiResponse<?> run(User user, Supplier<Object> action) {
         if (user == null) return ApiResponse.fail("Unauthorized");
-        try {
-            return ApiResponse.ok(action.get());
-        } catch (IllegalStateException e) {
-            return ApiResponse.fail(e.getMessage());
+        // Two requests of a new player (the garden and the progress call) can create the profile row at the same time;
+        // MySQL then kills one of them as a deadlock victim. The loser's transaction is already rolled back, so asking again is safe.
+        for (int attempt = 1; ; attempt++) {
+            try {
+                return ApiResponse.ok(action.get());
+            } catch (IllegalStateException e) {
+                return ApiResponse.fail(e.getMessage());
+            } catch (org.springframework.dao.CannotAcquireLockException | org.springframework.dao.DeadlockLoserDataAccessException e) {
+                if (attempt >= 3) throw e;
+            }
         }
     }
 
