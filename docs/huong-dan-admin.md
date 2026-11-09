@@ -441,6 +441,19 @@ Mỗi chức năng viết theo cùng khung:
 
 Ghi chú cho người làm phần mềm: file này nằm ở `docs/huong-dan-admin.md`; `CLAUDE.md` ở gốc dự án ghi quy tắc cập nhật.
 
+### Nhập đơn hàng bằng tay (Đơn hàng > "Nhập đơn tay")
+
+Dùng khi tiền thu ngoài web (tại trường, sự kiện, qua điện thoại). Một lần lưu được nhiều đơn: bấm **Thêm đơn** để thêm khung mới.
+
+- **Số điện thoại người mua**: gõ xong (Enter hoặc bấm ra ngoài) hệ thống kiểm tra. Đã có tài khoản thì hiện tên; chưa có thì hiện ô **Họ và tên** (bắt buộc) và **Email** (không bắt buộc), lưu đơn sẽ tạo tài khoản thành viên với **mật khẩu tạm 6 số** và gửi ZNS "Tài khoản đã được tạo" (chỉ có tên và số điện thoại, không có mật khẩu: khách dùng "Quên mật khẩu" để tự đặt; cần nhập mã mẫu ở Cài đặt > Mẫu Zalo ZNS). Màn hình kết quả vẫn hiện mật khẩu tạm một lần nếu admin muốn báo khách. Số của tài khoản con không dùng được, nhập số phụ huynh.
+- **Người học là con**: tick thì chọn bé đã có của tài khoản, hoặc "+ Thêm bé mới" (tên, ngày sinh, "Chỉ biết năm sinh"). Bé mới trùng tên với bé đã có thì dùng lại bé đó.
+- **Chọn khóa học**: tìm và tick nhiều khóa như trang Bộ sưu tập. Khóa có lớp thì chọn **Lớp** (lớp linh hoạt thì chọn thêm ngày khai giảng). Nhập tay không chặn theo độ tuổi, hạn đăng ký hay số chỗ: admin tự chịu trách nhiệm.
+- **Hình thức** (Chuyển khoản, Tiền mặt, Thẻ, Khác), **Đã thu tiền / Chờ thanh toán**, **Số tiền** đã thu (trống = tổng giá khóa, ưu đãi gia đình vẫn tự áp), **Ghi chú**.
+  - **Đã thu tiền**: đơn được duyệt ngay như đơn khách tự trả: ghi danh vào lớp, ZNS "Xác nhận đăng ký thành công", email, anyPoint, phần góp anyLEARN Foundation, thưởng đơn đầu, voucher theo sự kiện.
+  - **Chờ thanh toán**: đơn nằm ở trạng thái Chờ thanh toán, có nhắc thanh toán và tự hủy sau thời hạn như đơn thường; nhận tiền thì bấm **Duyệt đơn**.
+- Hoa hồng đối tác và phần góp quỹ tính trên giá khóa, không theo số tiền nhập tay.
+- Mỗi đơn lưu riêng: đơn lỗi ở lại form kèm lý do, đơn thành công hiện trong khung xanh. Danh sách đơn có nhãn **Nhập tay**, mở đơn để xem ai nhập và ghi chú.
+
 ### Khóa chưa có địa chỉ vẫn tìm được bằng "Gần tôi"
 
 Khóa không có địa chỉ riêng (không địa chỉ khóa, không địa chỉ ở các lớp) sẽ được tìm theo **hội sở của đối tác** (không có hội sở thì lấy địa chỉ đầu tiên có tọa độ). Địa chỉ của khóa/lớp luôn được ưu tiên. Đối tác cần có ít nhất một địa chỉ có tọa độ. Sau khi cập nhật hệ thống, bấm **Cài đặt > Vận hành > Lập lại chỉ mục** một lần. Khóa vẫn được cảnh báo "Thiếu thuộc tính" cho đến khi gắn địa chỉ riêng.

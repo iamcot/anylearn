@@ -390,6 +390,53 @@ public class CartService {
         List<ItemUserAction> cartItems = findCartItems(currentUser.getId());
         if (cartItems.isEmpty()) throw new IllegalArgumentException("Giỏ hàng trống");
         requireFullDobForLearners(cartItems, currentUser);
+        return placeOrder(cartItems, paymentMethod, couponCode, voucherWalletId, pointsUsed, currentUser, false);
+    }
+
+    /** One course of an order an admin enters by hand: the learner (null = the buyer), the class and a flexible start day. */
+    public record ManualLine(Long itemId, Long studentId, Long scheduleId, String startDate) {}
+
+    /**
+     * An order an admin enters by hand for `buyer` (back office "Nhập đơn tay"). The buyer's own cart is left alone: the lines
+     * become cart rows only inside this transaction and go through the same order code as a checkout (family offer, pending
+     * commissions, Foundation share, pending_reg rows read by the approval). The admin knows the family, so the date of birth,
+     * age limit, registration deadline and seat checks of the shop are not applied, and the team is not told about its own order.
+     */
+    @org.springframework.transaction.annotation.Transactional
+    public Map<String, Object> adminCheckout(User buyer, List<ManualLine> lines, String paymentMethod) {
+        if (lines == null || lines.isEmpty()) throw new IllegalArgumentException("Chưa chọn khóa học");
+        List<ItemUserAction> staged = new ArrayList<>();
+        for (ManualLine line : lines) {
+            Item item = itemRepository.findById(line.itemId())
+                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy khóa học #" + line.itemId()));
+            Long scheduleId = line.scheduleId();
+            if (scheduleId != null) {
+                ItemSchedule schedule = itemScheduleRepository.findById(scheduleId).orElse(null);
+                if (schedule == null || !item.getId().equals(schedule.getItemId()))
+                    throw new IllegalArgumentException("Lớp #" + scheduleId + " không thuộc khóa " + item.getTitle());
+            }
+            Map<String, Object> extra = new LinkedHashMap<>();
+            extra.put("studentId", line.studentId());
+            extra.put("planId", null);
+            extra.put("scheduleId", scheduleId);
+            String startDate = resolveFlexibleStart(item.getId(), scheduleId, line.startDate());
+            if (startDate != null && !startDate.isBlank()) extra.put("startDate", startDate);
+            extra.put("manual", true);
+            ItemUserAction action = new ItemUserAction();
+            action.setItemId(item.getId());
+            action.setUserId(buyer.getId());
+            action.setType("cart");
+            action.setValue("1");
+            try { action.setExtraValue(objectMapper.writeValueAsString(extra)); } catch (Exception ignored) {}
+            action.setCreatedAt(LocalDateTime.now());
+            action.setUpdatedAt(LocalDateTime.now());
+            staged.add(itemUserActionRepository.save(action));
+        }
+        return placeOrder(staged, paymentMethod, null, null, null, buyer, true);
+    }
+
+    private Map<String, Object> placeOrder(List<ItemUserAction> cartItems, String paymentMethod, String couponCode,
+                                           Long voucherWalletId, Integer pointsUsed, User currentUser, boolean adminEntry) {
 
         // Build item list and calculate total
         long totalAmount = 0;
@@ -533,9 +580,11 @@ public class CartService {
 
         itemUserActionRepository.deleteAll(cartItems);
 
-        // Notify admins so they can review and approve
-        notifyAdminsNewOrder(order, currentUser, orderedItems);
-        notifyAdminsActivityRegistrations(currentUser, cartItems);
+        // Notify admins so they can review and approve (an order entered by an admin is already known to the team)
+        if (!adminEntry) {
+            notifyAdminsNewOrder(order, currentUser, orderedItems);
+            notifyAdminsActivityRegistrations(currentUser, cartItems);
+        }
 
         // Deduct the anyPoint used (the amount already counts their value) and record the exchange.
         if (deductPoints > 0) {

@@ -52,7 +52,7 @@ function TemplateCard({ template, testPhone: defaultPhone, onSaved }) {
         <span>Mã mẫu ZNS:</span>
         <Input style={{ width: 140 }} value={id} onChange={e => setTemplateId(e.target.value)} placeholder={template.defaultTemplateId} />
         <Button onClick={() => save.mutate({ templateId: id })} disabled={templateId === null} loading={save.isPending}>Lưu mã</Button>
-        <Typography.Text type="secondary">(để trống = mã đã duyệt {template.defaultTemplateId})</Typography.Text>
+        <Typography.Text type="secondary">{template.defaultTemplateId ? `(để trống = mã đã duyệt ${template.defaultTemplateId})` : '(chưa có mã duyệt sẵn: nhập mã Zalo cấp để bắt đầu gửi)'}</Typography.Text>
       </Space>
       <div style={{ marginBottom: 8 }}>
         <Typography.Text type="secondary">Tham số gửi kèm: </Typography.Text>
