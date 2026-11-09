@@ -1,6 +1,7 @@
 'use client'
 
 import type { FarmProgress, FarmView } from '@/lib/api/farm'
+import { enqueueRewards } from '@/lib/journey/store'
 import { claimChapter, claimTask, claimTaskBox } from '@/lib/api/farm'
 
 interface Props { token: string; view: FarmView; progress: FarmProgress; busy: boolean; run: (action: () => Promise<{ error?: string; data?: unknown }>, ok: string) => Promise<void>; setNote: (s: string) => void }
@@ -22,7 +23,11 @@ export default function QuestsTab({ token, view, progress, busy, run, setNote }:
               <div className="flex items-center justify-between gap-2">
                 <span className="text-sm font-bold">{it.label} ({it.progress}/{it.target})<span className="ml-2 whitespace-nowrap rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-extrabold text-amber-800">+{t.xp} XP · +1 phân</span></span>
                 {it.claimed ? <span className="text-xs font-extrabold text-green-dark">✓ Đã nhận</span>
-                  : <button type="button" className="min-h-9 cursor-pointer rounded-lg border-0 bg-green px-3 text-xs font-extrabold text-white disabled:opacity-40" disabled={busy || !it.claimable} onClick={() => run(() => claimTask(token, it.index), `+${t.xp} XP và 1 phân bón`)}>Nhận</button>}
+                  : <button type="button" className="min-h-9 cursor-pointer rounded-lg border-0 bg-green px-3 text-xs font-extrabold text-white disabled:opacity-40" disabled={busy || !it.claimable} onClick={() => run(async () => {
+                    const r = await claimTask(token, it.index)
+                    if (!r.error) enqueueRewards([{ kind: 'mission', key: `farm:task:${it.index}:${Date.now()}`, label: it.label, extra: [`+${t.xp} XP`, '+1 phân bón'] }], view.coinName)
+                    return r
+                  }, '')}>Nhận</button>}
               </div>
               <div className="mt-1"><Bar value={it.progress} max={it.target} /></div>
             </li>
@@ -30,7 +35,10 @@ export default function QuestsTab({ token, view, progress, busy, run, setNote }:
         </ul>
         <button type="button" className="btn btn--green mt-3 min-h-11 w-full" disabled={busy || !t.boxReady} onClick={() => run(async () => {
           const r = await claimTaskBox(token)
-          if (r.data) setNote(r.data.coins > 0 ? `Hộp quà có ${r.data.coins} ${view.coinName}` : 'Hôm nay hết trần lãi nên hộp quà trống, mai thử lại nhé')
+          if (r.data) {
+            if (r.data.coins > 0) enqueueRewards([{ kind: 'order', key: `farm:box:${Date.now()}`, label: 'Hộp quà của Leo', coins: r.data.coins }], view.coinName)
+            else setNote('Hôm nay hết trần lãi nên hộp quà trống, mai thử lại nhé')
+          }
           return r
         }, '')}>{t.boxClaimed ? 'Đã mở hộp quà hôm nay' : '🎁 Mở hộp quà'}</button>
       </section>
@@ -55,7 +63,11 @@ export default function QuestsTab({ token, view, progress, busy, run, setNote }:
                     ))}
                   </ul>
                   <p className="mt-2 text-xs text-muted">Thưởng: {c.coins} {view.coinName}{c.reward ? ` · ${c.reward}` : ''}</p>
-                  <button type="button" className="btn btn--green mt-2 min-h-11 w-full" disabled={busy || !c.claimable} onClick={() => run(() => claimChapter(token, c.no), `Hoàn thành chương ${c.no}! +${c.coins} ${view.coinName}`)}>Nhận thưởng chương</button>
+                  <button type="button" className="btn btn--green mt-2 min-h-11 w-full" disabled={busy || !c.claimable} onClick={() => run(async () => {
+                    const r = await claimChapter(token, c.no)
+                    if (!r.error) enqueueRewards([{ kind: 'chapter', key: `farm:chapter:${c.no}`, label: `Xong chương ${c.no}: ${c.title}`, coins: c.coins }], view.coinName)
+                    return r
+                  }, '')}>Nhận thưởng chương</button>
                 </>
               )}
             </div>
