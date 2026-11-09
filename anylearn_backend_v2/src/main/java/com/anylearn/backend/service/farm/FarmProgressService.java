@@ -89,7 +89,7 @@ public class FarmProgressService {
         Integer attended = jdbc.queryForObject("SELECT COUNT(*) FROM session_attendances sa JOIN users u ON u.id = sa.learner_id WHERE (u.id = ? OR u.user_id = ?) AND sa.session_date = ? AND sa.status = 'attended'",
                 Integer.class, userId, userId, FarmService.Date(farm.today()));
         Integer watched = jdbc.queryForObject("SELECT COUNT(*) FROM item_video_lesson_user_links l JOIN users u ON u.id = l.learner_id WHERE (u.id = ? OR u.user_id = ?) AND l.completed_at >= ?",
-                Integer.class, userId, userId, Timestamp.valueOf(farm.today().atStartOfDay()));
+                Integer.class, userId, userId, (farm.today().atStartOfDay()));
         if ((attended == null ? 0 : attended) + (watched == null ? 0 : watched) == 0) return;
         farm.addInventory(userId, "seed:" + KNOWLEDGE_CROP, 1, false);
         jdbc.update("INSERT INTO farm_day_stats (user_id, day, knowledge_seed) VALUES (?, ?, 1) ON DUPLICATE KEY UPDATE knowledge_seed = knowledge_seed + 1", userId, FarmService.Date(farm.today()));
@@ -145,7 +145,7 @@ public class FarmProgressService {
         int units = settings.n("compost_units");
         if (cropKey == null || !farm.cropMap().containsKey(cropKey)) throw new IllegalStateException("Chọn một loại nông sản để ủ.");
         if (!farm.takeOwn(userId, cropKey, units)) throw new IllegalStateException("Cần " + units + " quả cùng loại để ủ 1 mẻ phân.");
-        jdbc.update("INSERT INTO farm_compost (user_id, ready_at) VALUES (?, ?)", userId, Timestamp.valueOf(farm.now().plusMinutes(settings.n("compost_minutes"))));
+        jdbc.update("INSERT INTO farm_compost (user_id, ready_at) VALUES (?, ?)", userId, (farm.now().plusMinutes(settings.n("compost_minutes"))));
         farm.bump(userId, "compost", 1);
         events.record(userId, GameEventService.GAME_FARM, "compost", cropKey, 0);
         return Map.of("started", true);
@@ -158,7 +158,7 @@ public class FarmProgressService {
         List<Map<String, Object>> rows = jdbc.queryForList("SELECT id, ready_at FROM farm_compost WHERE user_id = ? AND collected_at IS NULL ORDER BY id LIMIT 1", userId);
         if (rows.isEmpty()) throw new IllegalStateException("Chưa có mẻ phân nào.");
         if (farm.now().isBefore(FarmService.time(rows.get(0).get("ready_at")))) throw new IllegalStateException("Phân chưa ủ xong.");
-        jdbc.update("UPDATE farm_compost SET collected_at = ? WHERE id = ?", Timestamp.valueOf(farm.now()), rows.get(0).get("id"));
+        jdbc.update("UPDATE farm_compost SET collected_at = ? WHERE id = ?", (farm.now()), rows.get(0).get("id"));
         farm.addInventory(userId, FarmService.FERTILIZER, 1, false);
         return Map.of("fertilizer", 1);
     }
@@ -192,12 +192,12 @@ public class FarmProgressService {
         for (int slot = 0; slot < slots && !unlocked.isEmpty(); slot++) {
             final int s = slot;
             if (open.stream().anyMatch(o -> ((Number) o.get("slot")).intValue() == s)) continue;
-            Timestamp last = jdbc.query("SELECT MAX(done_at) FROM farm_orders WHERE user_id = ? AND slot = ?", rs -> rs.next() ? rs.getTimestamp(1) : null, userId, slot);
-            if (last != null && last.toLocalDateTime().plusMinutes(settings.n("order_refill_minutes")).isAfter(now)) continue;
+            LocalDateTime last = jdbc.query("SELECT MAX(done_at) FROM farm_orders WHERE user_id = ? AND slot = ?", rs -> rs.next() ? rs.getObject(1, LocalDateTime.class) : null, userId, slot);
+            if (last != null && last.plusMinutes(settings.n("order_refill_minutes")).isAfter(now)) continue;
             FarmGameRules.Order o = FarmGameRules.newOrder(userId * 31L + slot * 1_000_003L + now.toEpochSecond(ZoneOffset.UTC), unlocked, settings.n("order_coin_percent"));
             String json;
             try { json = mapper.writeValueAsString(o.items()); } catch (Exception e) { continue; }
-            jdbc.update("INSERT INTO farm_orders (user_id, slot, items_json, xp, coins, created_at) VALUES (?, ?, ?, ?, ?, ?)", userId, slot, json, o.xp(), o.coins(), Timestamp.valueOf(now));
+            jdbc.update("INSERT INTO farm_orders (user_id, slot, items_json, xp, coins, created_at) VALUES (?, ?, ?, ?, ?, ?)", userId, slot, json, o.xp(), o.coins(), (now));
         }
         open = jdbc.queryForList("SELECT * FROM farm_orders WHERE user_id = ? AND status = 'open' ORDER BY slot", userId);
         List<Map<String, Object>> out = new ArrayList<>();
@@ -239,7 +239,7 @@ public class FarmProgressService {
             if (have == null || have < e.getValue()) throw new IllegalStateException("Chưa đủ nông sản cho đơn này.");
         }
         for (Map.Entry<String, Integer> e : items.entrySet()) takeAny(userId, e.getKey(), e.getValue());
-        jdbc.update("UPDATE farm_orders SET status = 'done', done_at = ? WHERE id = ?", Timestamp.valueOf(farm.now()), orderId);
+        jdbc.update("UPDATE farm_orders SET status = 'done', done_at = ? WHERE id = ?", (farm.now()), orderId);
         long paid = payInsideCap(userId, level, ((Number) rows.get(0).get("coins")).intValue(), CoinService.SOURCE_FARM_ORDER, "Giao đơn hàng");
         farm.bump(userId, "order", 1);
         Map<String, Object> out = new LinkedHashMap<>(farm.gainXp(userId, ((Number) rows.get(0).get("xp")).longValue()));
@@ -255,7 +255,7 @@ public class FarmProgressService {
     public Map<String, Object> skipOrder(long userId, long orderId) {
         farm.checkOpen();
         farm.lockProfile(userId);
-        int rows = jdbc.update("UPDATE farm_orders SET status = 'skipped', done_at = ? WHERE id = ? AND user_id = ? AND status = 'open'", Timestamp.valueOf(farm.now()), orderId, userId);
+        int rows = jdbc.update("UPDATE farm_orders SET status = 'skipped', done_at = ? WHERE id = ? AND user_id = ? AND status = 'open'", (farm.now()), orderId, userId);
         if (rows != 1) throw new IllegalStateException("Đơn này không còn nữa.");
         return Map.of("skipped", true);
     }

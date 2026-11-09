@@ -289,5 +289,5 @@ public class FarmSocialService {
     }
 
     @SuppressWarnings("unused")
-    private static Timestamp ts(LocalDateTime t) { return Timestamp.valueOf(t); }
+    private static LocalDateTime ts(LocalDateTime t) { return t; }
 }

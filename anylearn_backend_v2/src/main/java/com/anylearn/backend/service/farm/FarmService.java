@@ -45,7 +45,7 @@ public class FarmService {
 
     /** Creates the profile on the first visit (with the starter seeds and fertilizer) and locks the row for the rest of the transaction. */
     Map<String, Object> lockProfile(long userId) {
-        int created = jdbc.update("INSERT IGNORE INTO farm_profiles (user_id, last_visit_at) VALUES (?, ?)", userId, Timestamp.valueOf(now()));
+        int created = jdbc.update("INSERT IGNORE INTO farm_profiles (user_id, last_visit_at) VALUES (?, ?)", userId, now());
         if (created == 1) {
             addInventory(userId, "seed:rau_mam", settings.n("starter_seeds"), false);
             addInventory(userId, "seed:ca_rot_cau_vong", settings.n("starter_seeds_carrot"), false);
@@ -121,7 +121,7 @@ public class FarmService {
     public Map<String, Object> view(long userId) {
         checkOpen();
         Map<String, Object> profile = lockProfile(userId);
-        jdbc.update("UPDATE farm_profiles SET last_visit_at = ? WHERE user_id = ?", Timestamp.valueOf(now()), userId);
+        jdbc.update("UPDATE farm_profiles SET last_visit_at = ? WHERE user_id = ?", now(), userId);
         int level = ((Number) profile.get("level")).intValue();
         int plotCount = ((Number) profile.get("plots")).intValue();
         FarmRules.Params params = settings.params();
@@ -290,7 +290,7 @@ public class FarmService {
         if (!free) spend(userId, ((Number) crop.get("seed_price")).intValue(), "Hạt " + crop.get("name"));
         jdbc.update("INSERT INTO farm_plots (user_id, slot, crop_key, planted_at, grow_minutes, water_needs, waters_done, missed_waters, lost_seconds, fertilized) VALUES (?, ?, ?, ?, ?, ?, 0, 0, 0, 0) "
                         + "ON DUPLICATE KEY UPDATE crop_key = VALUES(crop_key), planted_at = VALUES(planted_at), grow_minutes = VALUES(grow_minutes), water_needs = VALUES(water_needs), waters_done = 0, missed_waters = 0, lost_seconds = 0, fertilized = 0, stolen = 0",
-                userId, slot, cropKey, Timestamp.valueOf(now()), crop.get("grow_minutes"), crop.get("water_needs"));
+                userId, slot, cropKey, now(), crop.get("grow_minutes"), crop.get("water_needs"));
         bump(userId, "plant", 1);
         if ("knowledge".equals(crop.get("seed_source"))) bump(userId, "plant_magic", 1);
         events.record(userId, GameEventService.GAME_FARM, "plant", cropKey, 0);

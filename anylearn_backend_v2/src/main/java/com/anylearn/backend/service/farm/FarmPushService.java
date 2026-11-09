@@ -45,17 +45,17 @@ public class FarmPushService {
         if (!settings.enabled() || settings.n("push_enabled") != 1) return 0;
         LocalDateTime now = LocalDateTime.now(clock);
         LocalDate today = now.toLocalDate();
-        List<Map<String, Object>> candidates = jdbc.queryForList("SELECT user_id, plots, push_ignored, last_visit_at FROM farm_profiles WHERE last_visit_at IS NOT NULL AND last_visit_at < ? LIMIT 2000", Timestamp.valueOf(now.minusHours(3)));
+        List<Map<String, Object>> candidates = jdbc.queryForList("SELECT user_id, plots, push_ignored, last_visit_at FROM farm_profiles WHERE last_visit_at IS NOT NULL AND last_visit_at < ? LIMIT 2000", (now.minusHours(3)));
         int sent = 0;
         for (Map<String, Object> p : candidates) {
             long userId = ((Number) p.get("user_id")).longValue();
             LocalDateTime lastVisit = FarmService.time(p.get("last_visit_at"));
             int plots = ((Number) p.get("plots")).intValue();
             int ignored = ((Number) p.get("push_ignored")).intValue();
-            Timestamp lastPush = jdbc.query("SELECT MAX(sent_at) FROM farm_push_log WHERE user_id = ?", rs -> rs.next() ? rs.getTimestamp(1) : null, userId);
+            LocalDateTime lastPush = jdbc.query("SELECT MAX(sent_at) FROM farm_push_log WHERE user_id = ?", rs -> rs.next() ? rs.getObject(1, LocalDateTime.class) : null, userId);
             Integer sentToday = jdbc.queryForObject("SELECT COUNT(*) FROM farm_push_log WHERE user_id = ? AND day = ?", Integer.class, userId, java.sql.Date.valueOf(today));
             // a reminder that came after the last visit and was not followed by a visit counts as not opened
-            int ignoredNow = lastPush != null && lastPush.toLocalDateTime().isAfter(lastVisit) ? ignored : 0;
+            int ignoredNow = lastPush != null && lastPush.isAfter(lastVisit) ? ignored : 0;
             int ripe = 0;
             int soon = 0;
             FarmRules.Params params = settings.params();
@@ -66,9 +66,9 @@ public class FarmPushService {
                 if (v.phase() == FarmRules.Phase.RIPE && v.ripeAt() != null && Duration.between(v.ripeAt(), now).toHours() >= Math.max(params.ripeHoursMin() - 2, 0)) soon++;
             }
             FarmGameRules.PushInput in = new FarmGameRules.PushInput(plots, ripe, soon, now.getHour(), settings.n("push_from_hour"), settings.n("push_to_hour"),
-                    Duration.between(lastVisit, now).toHours(), ignoredNow, lastPush == null ? 999 : Duration.between(lastPush.toLocalDateTime(), now).toDays(), sentToday != null && sentToday > 0);
+                    Duration.between(lastVisit, now).toHours(), ignoredNow, lastPush == null ? 999 : Duration.between(lastPush, now).toDays(), sentToday != null && sentToday > 0);
             if (!FarmGameRules.shouldPush(in, settings.n("push_backoff_after"), settings.n("push_stop_after"))) continue;
-            if (jdbc.update("INSERT IGNORE INTO farm_push_log (user_id, day, sent_at) VALUES (?, ?, ?)", userId, java.sql.Date.valueOf(today), Timestamp.valueOf(now)) != 1) continue;
+            if (jdbc.update("INSERT IGNORE INTO farm_push_log (user_id, day, sent_at) VALUES (?, ?, ?)", userId, java.sql.Date.valueOf(today), (now)) != 1) continue;
             jdbc.update("UPDATE farm_profiles SET push_ignored = ? WHERE user_id = ?", ignoredNow + 1, userId);
             Map<String, Object> summary = social.todaySummary(userId);
             StringBuilder body = new StringBuilder("Vườn của bạn có ").append(ripe).append(" ô đã chín, vào thu hoạch nhé!");
