@@ -15,6 +15,7 @@ import {
 import OrdersTab from '@/components/fun/farm/OrdersTab'
 import QuestsTab from '@/components/fun/farm/QuestsTab'
 import FarmScene from '@/components/fun/farm/FarmScene'
+import NpcSays from '@/components/fun/farm/NpcSays'
 import PanWorld from '@/components/fun/farm/PanWorld'
 import { CROPS_WITH_ART, farmImg, timeOfDay } from '@/lib/farm/art'
 import { worldSize, type SceneKind, type Size } from '@/lib/farm/scene'
@@ -293,6 +294,7 @@ export default function FarmPage() {
           {panel === 'quests' && <QuestsTab token={token} view={view} progress={progress} busy={busy} run={act} setNote={setNote} />}
           {panel === 'storage' && (
             <div className="mt-2 space-y-3">
+              <NpcSays npc="npc_cho_bong" name="Chó Bông">Gâu! Đây là kho của bạn. Nông sản của người khác tặng sẽ nằm riêng, chỉ nông sản bạn tự trồng mới bán được.</NpcSays>
               <div className="flex items-center gap-3 rounded-2xl bg-slate-50 p-3"><img src={farmImg('item_fertilizer')} alt="" className="size-10 object-contain" /><b className="flex-1 text-sm">Phân bón</b><span className="text-lg font-black">{view.inventory.fertilizer ?? 0}</span></div>
               <div>
                 <h3 className="m-0 mb-1 text-sm font-black">Hạt giống</h3>
@@ -310,7 +312,8 @@ export default function FarmPage() {
             </div>
           )}
           {panel === 'compost' && (
-            <div className="mt-2">
+            <div className="mt-2 space-y-3">
+              <NpcSays npc="npc_be_mam" name="Bé Mầm">Bỏ nông sản vào thùng, chờ một lúc là có phân bón. Phân giúp cây cho thêm một quả đó!</NpcSays>
 
         <h2 className="m-0 flex items-center gap-2 text-lg font-black"><img src={farmImg('compost_bin')} alt="" className="h-10 w-14 object-contain" />Thùng ủ phân</h2>
       <div>
@@ -335,6 +338,7 @@ export default function FarmPage() {
           )}
           {panel === 'market' && (
             <div className="space-y-3">
+              <NpcSays npc="npc_co_tho" name="Cô Thỏ">Giá chợ mỗi ngày mỗi khác, ai cũng thấy cùng giá. Bán nhiều một loại thì các quả sau được trả rẻ hơn nhé.</NpcSays>
         <section className="rounded-2xl bg-white p-4 ring-1 ring-line" aria-label="Chợ">
         <h2 className="m-0 flex items-center gap-2 text-lg font-black"><img src={farmImg('market_stall')} alt="" className="h-10 w-14 object-contain" />Chợ</h2>
       <div>

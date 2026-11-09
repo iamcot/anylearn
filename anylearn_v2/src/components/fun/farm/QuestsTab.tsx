@@ -1,5 +1,6 @@
 'use client'
 
+import NpcSays from '@/components/fun/farm/NpcSays'
 import { useState } from 'react'
 import type { FarmProgress, FarmView } from '@/lib/api/farm'
 import { enqueueRewards } from '@/lib/journey/store'
@@ -21,6 +22,7 @@ export default function QuestsTab({ token, view, progress, busy, run, setNote }:
   const branches = [['path', 'Lên cấp', [path, ...(progress.olderPaths ?? [])].some(pt => pt.steps.some(x => x.claimable))], ['daily', 'Hằng ngày', t.items.some(x => x.claimable) || t.boxReady], ['challenge', 'Thử thách', progress.challenges.some(x => x.claimable) || progress.chapters.some(x => x.claimable)]] as const
   return (
     <div className="mt-4 space-y-4">
+      <NpcSays npc="npc_be_mam" name="Bé Mầm">Làm lần lượt từng bước để lên cấp nhé. Nhiệm vụ cũ chưa xong vẫn còn đây, bạn làm lúc nào cũng được.</NpcSays>
       <div className="grid grid-cols-3 gap-1 rounded-xl bg-slate-100 p-1" role="tablist">
         {branches.map(([k, l, dot]) => (
           <button key={k} type="button" role="tab" aria-selected={branch === k} onClick={() => setBranch(k)} className={`relative min-h-10 cursor-pointer rounded-lg border-0 text-sm font-extrabold ${branch === k ? 'bg-white text-green-dark shadow-sm' : 'bg-transparent text-muted'}`}>

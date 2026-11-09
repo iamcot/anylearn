@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useRef, useState, type ReactNode } from 'react'
 import { worldOffset, type Size } from '@/lib/farm/scene'
 
 /**
@@ -8,12 +8,15 @@ import { worldOffset, type Size } from '@/lib/farm/scene'
  * a drag never counts as a tap on a tile. When the world is as big as the screen nothing moves.
  */
 export default function PanWorld({ size, world, children }: { size: Size; world: Size; children: ReactNode }) {
-  const [off, setOff] = useState(() => worldOffset(size, world))
+  // The dragged position is only valid for the sizes it was made at; after a resize the default view comes back.
+  const key = `${size.w}x${size.h}:${world.w}x${world.h}`
+  const [dragged, setDragged] = useState<{ key: string; x: number; y: number } | null>(null)
+  const off = dragged && dragged.key === key ? dragged : worldOffset(size, world)
+  const setOff = (o: { x: number; y: number }) => setDragged({ key, ...o })
   const drag = useRef<{ x: number; y: number; ox: number; oy: number; moved: boolean; id: number } | null>(null)
   const justDragged = useRef(false)
   const bigger = world.w > size.w + 1 || world.h > size.h + 1
 
-  useEffect(() => { setOff(worldOffset(size, world)) }, [size.w, size.h, world.w, world.h]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const clamp = (v: number, min: number) => Math.min(Math.max(v, Math.min(min, 0)), 0)
 
