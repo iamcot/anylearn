@@ -1,8 +1,8 @@
-# Plan 22: Nông trại Leo (game trồng trọt trong Vui học)
+# Plan 22: Nông trại anyLEARN (game trồng trọt trong Vui học)
 
 Ngày: 09/11/2026. Nối tiếp plan 14 (Vui học), 15 (kinh tế Leo Xu), 18 (Đấu trường), 21 (gamification đơn đầu). Prompt tạo ảnh: `plans/22-nong-trai-leo-asset-prompts.md`.
 
-Mọi con số dưới đây là **mặc định**, admin chỉnh được. Plan này chưa viết code; chỗ nào cần chủ sản phẩm quyết nằm ở mục 14.
+Mọi con số dưới đây là **mặc định**, admin chỉnh được. Plan này chưa viết code. Quyết định của chủ sản phẩm (09/11/2026) ở mục 14. Tên game: **Nông trại anyLEARN** (chủ sản phẩm gõ "Nông Trại AnyLearn", viết theo thương hiệu anyLEARN).
 
 ## 0. Mục tiêu và nguyên tắc
 
@@ -189,7 +189,7 @@ Cây ngắn có lãi/giờ cao nhưng **cần ghé liên tục** (không ai ng�
 
 Người chơi nhiều tiếp tục có XP, cấp, đơn hàng, đồ trang trí, sticker; xu không tăng thêm.
 
-**Mốc so với voucher**: admin nên định giá voucher Leo Xu sao cho một người chơi rất chăm (mọi game, ~300 xu ròng/tuần) cần ít nhất 3-4 tuần cho voucher 20.000đ (vd. 1.000 xu). Trang sức khỏe hiện "số tuần chơi chăm để đổi voucher rẻ nhất" (mục 11.2). Đây là câu hỏi 14.1.
+**Mốc so với voucher (đã chốt 09/11)**: shop đang bán voucher 500 Leo Xu = giảm 10% tối đa 50.000đ, và 1.000 Leo Xu = giảm 15% tối đa 100.000đ (1 tháng chỉ dùng 1 lần). Tức mỗi Leo Xu đáng tối đa ~100đ khi giỏ hàng đủ lớn (đơn từ 500.000đ cho gói 1, từ ~670.000đ cho gói 2). Trần lãi nông trại 70 xu/tuần = tối đa ~7.000đ/tuần, ~28.000đ/tháng; người chơi rất chăm (mọi game ~300 xu/tuần) đổi được gói 1.000 xu sau khoảng 3-4 tuần, vừa khớp luật 1 lần/tháng. Trang sức khỏe hiện "số tuần chơi chăm để đổi voucher rẻ nhất" để theo dõi; nếu thấy voucher đổi quá dễ thì hạ trần tuần trước, không đụng giá voucher.
 
 ### 4.5 Phần thưởng một lần (ngân sách cố định)
 
@@ -292,7 +292,7 @@ Sau chương 6: **Mùa** (sự kiện 2-3 tuần do admin tạo, mục 11.1): c�
 
 ### 8.1 Hàng xóm
 
-- Nguồn hàng xóm: người mời / người được mời (`users.user_id`), thêm bằng mã giới thiệu hoặc SĐT (bên kia đồng ý), và **"Vườn gợi ý"**: 6 vườn đang hoạt động ngẫu nhiên mỗi ngày (chỉ ghé, tưới, hái, không xem hồ sơ).
+- Nguồn hàng xóm: người mời / người được mời (`users.user_id`), thêm bằng mã giới thiệu hoặc SĐT (bên kia đồng ý), và **"Vườn gợi ý"**: 6 vườn của bất kỳ người chơi đủ điều kiện, xếp ưu tiên vườn có ô khát nước và hoa có thể hái (chỉ ghé, tưới, hái, không xem hồ sơ).
 - Tối đa `farm/max_neighbors` (30). Chỉ hiện tên 2 chữ cuối + cấp vườn + ảnh vườn. Không nhắn chữ tự do (tránh kiểm duyệt): chỉ **thả biểu cảm** dựng sẵn (Leo vẫy tay, tim, ngón cái, hoa).
 - Chỉ người đủ điều kiện (`StickerService.eligible`: tài khoản ≥ 3 ngày, ≥ 3 ngày điểm danh) và không bị chặn mới tương tác.
 
@@ -469,11 +469,11 @@ Mỗi phần một hoặc vài commit, cập nhật `CLAUDE.md`, `docs/huong-dan
 
 Test: thuần cho mọi `*Rules` và `FarmEconomySim`; `FarmFlowTest` trên schema thật (đồng hồ di chuyển được như `ArenaFlowTest`): gieo → khát → tưới → chín → héo → thu → bán đụng trần; hái trộm đủ mọi giới hạn; hai luồng thu cùng lúc chỉ thu một lần.
 
-## 14. Cần chủ sản phẩm quyết
+## 14. Quyết định của chủ sản phẩm (09/11/2026)
 
-1. **Giá voucher Leo Xu**: hiện chưa có mốc. Đề xuất voucher 20.000đ ≈ 1.000 Leo Xu để nông trại (tối đa 70 xu ròng/tuần) không làm voucher rẻ đi. Đồng ý mốc này không?
-2. **Trần lãi tuần 70 xu** (~+30% thu nhập game của người chơi chăm): giữ, hạ (50) hay nâng?
-3. **anyPoint cho mốc lớn** (cấp 10/20/30, hết chương 6): để mặc định 0 và bật sau khi có người mua, hay đặt số ngay (gợi ý 20 / 50 / 100 / 50, chỉ 500 tài khoản đầu)?
-4. **Hái trộm có bật ngay khi ra mắt** không, hay chỉ mở khi đủ người chơi (cùng 22.5)?
-5. **Vườn gợi ý** (ghé vườn người lạ, chỉ thấy tên 2 chữ cuối): được không, hay chỉ hàng xóm do mời / thêm bằng mã?
-6. Tên game: "Nông trại Leo" hay "Vườn Đồi Nắng"?
+1. **Giá voucher Leo Xu**: giữ như đang bán (500 xu: 10% tối đa 50K; 1.000 xu: 15% tối đa 100K, mỗi tháng 1 lần). Mục 4.3 và 4.4 đã tính theo mốc này.
+2. **Trần lãi tuần**: chưa trả lời, **giữ mặc định 70 xu/tuần** (admin sửa được, theo dõi bằng trang sức khỏe kinh tế).
+3. **anyPoint mốc lớn**: mặc định **0**, admin bật khi muốn (`farm/anypoint_level_10|20|30`, `anypoint_chapter_6`, `anypoint_accounts`).
+4. **Hái trộm**: **bật ngay khi ra mắt**; 22.5 vẫn làm sau 22.1-22.4 nhưng hái trộm không chờ đủ người chơi (công tắc `farm/steal_enabled` mặc định 1).
+5. **Vườn gợi ý**: gồm **mọi người chơi** (không chỉ hàng xóm), **ưu tiên vườn đang có ô khát nước và vườn có hoa hái trộm được** (hoa đã chín quá `steal_grace_minutes`); chỉ thấy tên 2 chữ cuối + cấp, và chỉ vườn của người đủ điều kiện (`StickerService.eligible`) và chưa tắt "Cho hái trộm" mới được gợi ý để hái. Giới hạn hái / giúp ở mục 8 vẫn áp dụng.
+6. **Tên game**: **Nông trại anyLEARN**.

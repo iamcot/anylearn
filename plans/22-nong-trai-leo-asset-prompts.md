@@ -1,4 +1,4 @@
-# Plan 22 – Prompt tạo ảnh cho Nông trại Leo
+# Plan 22 – Prompt tạo ảnh cho Nông trại anyLEARN
 
 Đi kèm `plans/22-nong-trai-leo.md`. Cách làm giống `iamcot/gunb` (`plan/03-assets.md`, `08-prompt-nhan-vat.md`): **một đoạn style chung dán vào mọi prompt**, vẽ trong **cùng một cuộc chat** để giữ nét, tạo ảnh tĩnh, còn chuyển động (lắc lá, nảy quả, giọt nước, lấp lánh) làm bằng CSS. Prompt viết tiếng Anh vì model ảnh hiểu tốt hơn; giải thích bằng tiếng Việt.
 
@@ -241,7 +241,7 @@ Wide story illustration for chapter {N} of a children's farming game, same chara
 | `comeback_gift.png` | `Farmer Leo holding a small seed packet gift with both hands toward the viewer, warm smile, a watering can at his feet.` |
 | `share_farm_card.png` (1200×630) | `Horizontal banner: a lush cute hillside farm with colorful crops in diamond plots, farmer Leo waving in the front left, wide empty sky area on the right for a title overlay.` |
 | `shortcut_farm.png` (512×512) | `Farmer Leo holding a watering can over a small sprout, shown as a round app shortcut illustration, white outline around the silhouette.` (đặt cạnh các ảnh `public/fun/leo_*.png` của `FunShortcuts`) |
-| `sticker_farm_01..12.png` | Bộ sticker "Nông trại Leo": dùng **Prompt gốc** của `assets/leo-sticker-prompts.md` (die-cut, viền trắng) + một cảnh: Leo ôm cà rốt cầu vồng · Leo đội bí đèn lồng · Leo ngủ trên bắp cải mây · Leo thổi bồ công anh · Leo cưỡi chó Bông · Leo hái trộm hoa nhón chân · Leo nhảy múa với Bé Mầm · Leo tắm dưới bình tưới · Leo đếm quả dây số · Leo đọc sách dưới Cây Tri thức · Leo và Ong Mật chia mật · Leo ôm bó hoa tặng cô giáo |
+| `sticker_farm_01..12.png` | Bộ sticker "Nông trại anyLEARN": dùng **Prompt gốc** của `assets/leo-sticker-prompts.md` (die-cut, viền trắng) + một cảnh: Leo ôm cà rốt cầu vồng · Leo đội bí đèn lồng · Leo ngủ trên bắp cải mây · Leo thổi bồ công anh · Leo cưỡi chó Bông · Leo hái trộm hoa nhón chân · Leo nhảy múa với Bé Mầm · Leo tắm dưới bình tưới · Leo đếm quả dây số · Leo đọc sách dưới Cây Tri thức · Leo và Ong Mật chia mật · Leo ôm bó hoa tặng cô giáo |
 
 ## 11. Thứ tự vẽ theo phần việc
 
