@@ -16,8 +16,8 @@ class FarmGameRulesTest {
         assertEquals(30, FarmGameRules.plotPrice(4));
         assertEquals(500, FarmGameRules.plotPrice(11));
         assertEquals(-1, FarmGameRules.plotPrice(12));
-        assertEquals(2, FarmGameRules.plotLevel(4));
-        assertEquals(20, FarmGameRules.plotLevel(11));
+        assertEquals(3, FarmGameRules.plotLevel(4));
+        assertEquals(10, FarmGameRules.plotLevel(11));
         assertEquals(99, FarmGameRules.plotLevel(12));
     }
 

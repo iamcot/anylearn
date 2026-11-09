@@ -20,7 +20,7 @@ public final class FarmGameRules {
     public static final int START_PLOTS = 4;
     public static final int MAX_PLOTS = 12;
     private static final int[] PLOT_PRICE = {30, 60, 100, 150, 220, 300, 400, 500};      // plots 5..12
-    private static final int[] PLOT_LEVEL = {2, 4, 6, 8, 11, 14, 17, 20};
+    private static final int[] PLOT_LEVEL = {3, 4, 5, 6, 7, 8, 9, 10};
 
     /** Price of the next plot when the player has {@code owned} plots; -1 when everything is bought. */
     public static int plotPrice(int owned) {

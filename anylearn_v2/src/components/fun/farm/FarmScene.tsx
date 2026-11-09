@@ -103,7 +103,7 @@ export default function FarmScene({ view, progress, size, kind, tod, elapsed, se
               style={{ left: px(left), top: px(top), width: px(tw), height: px(th), zIndex: z, clipPath: DIAMOND }}>
               <img src={farmImg('plot_locked')} alt="" className="size-full object-contain" draggable={false} />
               <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-full bg-white/50 px-2 py-0.5 text-xs font-extrabold text-ink shadow">
-                + {view.nextPlotPrice}{view.level < view.nextPlotLevel ? ` · cấp ${view.nextPlotLevel}` : ''}
+                {view.level < view.nextPlotLevel ? `Cấp ${view.nextPlotLevel}` : `+ ${view.nextPlotPrice}`}
               </span>
             </button>
           )
