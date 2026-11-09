@@ -81,7 +81,7 @@ export default function FarmScene({ view, kind, tod, elapsed, selected, onTile, 
               </div>
             )}
             {p.phase === 'empty' && (
-              <span className="pointer-events-none absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 font-black text-green-dark shadow" style={{ width: cq(tw * 0.16), height: cq(tw * 0.16), fontSize: cq(tw * 0.11) }} aria-hidden>+</span>
+              <img src={farmImg('item_seed_packet')} alt="" className="pointer-events-none absolute left-1/2 animate-bounce object-contain drop-shadow [animation-duration:2.2s]" style={{ width: cq(tw * 0.3), top: cq(th * 0.2), transform: 'translateX(-50%)' }} draggable={false} />
             )}
             {p.phase === 'thirsty' && (
               <img src={farmImg('icon_thirsty')} alt="Khát nước" className="pointer-events-none absolute left-1/2 animate-bounce object-contain" style={{ width: cq(tw * 0.2), top: cq(th * 0.04), transform: 'translateX(-50%)' }} draggable={false} />
