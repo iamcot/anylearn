@@ -160,6 +160,10 @@ Trạng thái: `todo` · `doing` · `done` · `blocked` (ghi lý do) · `skip` (
 
 Chi tiết và trạng thái: `plans/21-gamification-first-order.md`.
 
+### Giai đoạn 7 – Nông trại Leo (plan 22)
+
+Kế hoạch: `plans/22-nong-trai-leo.md` (chưa duyệt), prompt ảnh: `plans/22-nong-trai-leo-asset-prompts.md`. Việc 22.1 đến 22.8 trong mục 13 của plan; chờ chủ sản phẩm trả lời mục 14 trước khi làm.
+
 ## Nhật ký
 
 ### 29/10/2026 – t2m: bản đầu của tool video (19.B1 đến 19.B4)
