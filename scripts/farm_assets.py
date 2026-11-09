@@ -73,6 +73,8 @@ def main():
             # scenery and plants keep the whole canvas so they line up on a plot
             img = clear_background(img)
             save(img, name, 512 if name.startswith(('plot_', 'tree_slot', 'ca_rot')) else 640, name.endswith('product') or name == 'order_board')
+        elif name == 'ui_sign_board':
+            save(clear_background(img), name, 1100, True)
         else:
             save(clear_background(img), name, 384, True)
         total += os.path.getsize(os.path.join(OUT, name + '.webp'))

@@ -6,7 +6,6 @@ import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { ChevronLeftIcon } from '@/components/icons'
 import BrandText from '@/components/fun/BrandText'
-import CoinIcon from '@/components/fun/CoinIcon'
 import {
   buyFertilizer, collectCompost, expandPlots, fertilizePlot, getFarm, getProgress, harvestPlots, plantCrop, sellCrops, startCompost, waterPlots,
   type FarmCrop, type FarmPlot, type FarmProgress, type FarmView,
@@ -138,24 +137,28 @@ export default function FarmPage() {
       <div className="mx-auto max-w-[1100px] lg:px-4 lg:pt-6">
         <div className="px-3 pt-3 lg:px-0 lg:pt-0">
           <Link href="/fun" className="inline-flex min-h-11 items-center gap-1 rounded-full bg-white/80 px-3 text-sm font-bold text-text no-underline"><ChevronLeftIcon className="size-4" /> Vui học</Link>
-          <div className="relative mt-2 flex items-center gap-2 rounded-xl px-3 py-2 ring-2 ring-[#5b3a1a] shadow-[0_4px_0_#5b3a1a]" style={{ background: 'repeating-linear-gradient(180deg,#c28445 0 15px,#b3733a 15px 17px)' }}>
-            {['left-1.5 top-1.5', 'right-1.5 top-1.5', 'left-1.5 bottom-1.5', 'right-1.5 bottom-1.5'].map(c => <span key={c} className={`absolute size-1.5 rounded-full bg-[#5b3a1a]/70 ${c}`} aria-hidden />)}
-            <img src={farmImg('leo_farmer_idle')} alt="" className="size-12 shrink-0 object-contain" />
-            <div className="min-w-0 flex-1">
-              <h1 className="m-0 text-lg font-black leading-tight text-[#fff4d6] [text-shadow:0_2px_0_#5b3a1a] lg:text-2xl">Nông trại anyLEARN</h1>
-              <div className="mt-1 flex items-center gap-2">
-                <span className="rounded-full bg-[#fff4d6] px-2 py-0.5 text-[11px] font-black text-[#5b3a1a]">Cấp {view.level}</span>
-                {view.xpForNext > 0 && (
-                  <span className="h-2 w-20 overflow-hidden rounded-full bg-[#5b3a1a]/60 lg:w-32" role="progressbar" aria-valuenow={view.xpIntoLevel} aria-valuemin={0} aria-valuemax={view.xpForNext} title={`${view.xpIntoLevel}/${view.xpForNext} XP`}>
-                    <span className="block h-full bg-[#ffd54a]" style={{ width: `${Math.min(100, (view.xpIntoLevel / view.xpForNext) * 100)}%` }} />
-                  </span>
-                )}
+          <div className="mt-1 flex items-center justify-between gap-3">
+            <div className="relative w-[62%] max-w-[360px] lg:max-w-[290px] shrink-0">
+              <img src={farmImg('ui_sign_board')} alt="" className="block h-auto w-full" draggable={false} />
+              <div className="absolute inset-x-[9%] bottom-[16%] top-[34%] flex flex-col items-center justify-center text-center">
+                <h1 className="m-0 text-[15px] font-black leading-tight text-[#fff4d6] [text-shadow:0_2px_0_#5b3a1a] lg:text-lg">Nông trại anyLEARN</h1>
+                <div className="mt-1 flex items-center gap-2">
+                  <span className="rounded-full bg-[#fff4d6] px-2 py-0.5 text-[11px] font-black text-[#5b3a1a]">Cấp {view.level}</span>
+                  {view.xpForNext > 0 && (
+                    <span className="h-2 w-16 overflow-hidden rounded-full bg-[#5b3a1a]/60 lg:w-28" role="progressbar" aria-valuenow={view.xpIntoLevel} aria-valuemin={0} aria-valuemax={view.xpForNext} title={`${view.xpIntoLevel}/${view.xpForNext} XP`}>
+                      <span className="block h-full bg-[#ffd54a]" style={{ width: `${Math.min(100, (view.xpIntoLevel / view.xpForNext) * 100)}%` }} />
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
-            <span className="inline-flex items-center gap-1.5 rounded-lg bg-[#5b3a1a] px-2.5 py-1.5 text-lg font-black text-[#ffd54a] ring-2 ring-[#ffd54a]/60" title={view.coinName}><CoinIcon className="size-6" /> {view.balance}</span>
+            <div className="flex items-center gap-1" title={view.coinName}>
+              <img src={farmImg('ui_coin_chest')} alt="" className="size-20 object-contain lg:size-28" draggable={false} />
+              <span className="text-2xl font-black text-[#b45309] [text-shadow:0_2px_0_#fff] lg:text-3xl">{view.balance}</span>
+            </div>
           </div>
           <div className="mt-2 grid grid-cols-5 gap-0.5" role="tablist">
-            {([['garden', 'Vườn', 'item_seed_packet'], ['orders', 'Đơn hàng', 'order_board'], ['quests', 'Nhiệm vụ', 'item_gift_box'], ['neighbors', 'Hàng xóm', 'icon_heart_neighbor'], ['market', 'Chợ', 'market_stall']] as const).map(([k, l, ic]) => (
+            {([['garden', 'Vườn', 'ui_tab_garden'], ['orders', 'Đơn hàng', 'ui_tab_orders'], ['quests', 'Nhiệm vụ', 'ui_tab_quests'], ['neighbors', 'Hàng xóm', 'ui_tab_neighbors'], ['market', 'Chợ', 'ui_tab_market_alt']] as const).map(([k, l, ic]) => (
               <button key={k} type="button" role="tab" aria-selected={tab === k} aria-label={l} title={l} onClick={() => setTab(k)} className={`relative flex min-h-14 cursor-pointer flex-col items-center justify-center gap-0.5 rounded-lg border-0 px-0 lg:flex-row lg:gap-2 ${tab === k ? 'bg-white/80 shadow-sm' : 'bg-transparent'}`}><img src={farmImg(ic)} alt="" className={`h-8 w-10 object-contain lg:h-9 lg:w-12 ${tab === k ? '' : 'opacity-70'}`} /><span className={`text-[11px] font-extrabold leading-tight lg:text-sm ${tab === k ? 'text-green-dark' : 'text-ink'}`}>{l}</span>{((k === 'orders' && waiting) || (k === 'market' && progress.compost.active?.ready)) && <span className="absolute right-1 top-1 size-2 rounded-full bg-red-500" aria-hidden />}</button>
             ))}
           </div>
