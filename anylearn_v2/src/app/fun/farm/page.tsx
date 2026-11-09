@@ -154,9 +154,9 @@ export default function FarmPage() {
                 </div>
               </div>
             </div>
-            <div className="flex shrink-0 flex-col items-center" title={view.coinName}>
+            <div className="flex shrink-0 flex-col items-center gap-1.5" title={view.coinName}>
               <span className="text-xl font-black leading-none text-[#b45309] [text-shadow:0_1px_0_#fff] lg:text-2xl">{view.balance}</span>
-              <img src={farmImg('ui_coin_chest')} alt="" className="-mt-0.5 size-12 object-contain lg:size-14" draggable={false} />
+              <img src={farmImg('ui_coin_chest')} alt="" className="size-12 object-contain lg:size-14" draggable={false} />
             </div>
           </div>
           <div className="mt-2 grid grid-cols-5 gap-0.5" role="tablist">
