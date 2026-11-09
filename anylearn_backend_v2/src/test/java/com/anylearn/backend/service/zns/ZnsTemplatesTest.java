@@ -15,7 +15,7 @@ class ZnsTemplatesTest {
     void everyTemplateSendsExactlyItsDeclaredParams() {
         for (ZnsTemplates.Def def : ZnsTemplates.DEFS) {
             assertThat(def.sample().keySet()).as(def.key()).containsExactlyInAnyOrderElementsOf(def.params());
-            assertThat(def.defaultTemplateId()).matches("\\d+");
+            assertThat(def.defaultTemplateId()).matches("\\d*"); // empty = not approved yet, typed in the back office
         }
     }
 
@@ -25,6 +25,15 @@ class ZnsTemplatesTest {
         assertThat(ZnsTemplates.def(ZnsTemplates.ORDER_REMINDER).orElseThrow().defaultTemplateId()).isEqualTo("659976");
         assertThat(ZnsTemplates.def(ZnsTemplates.COURSE_START).orElseThrow().defaultTemplateId()).isEqualTo("659979");
         assertThat(ZnsTemplates.def(ZnsTemplates.MID_SURVEY).orElseThrow().defaultTemplateId()).isEqualTo("659981");
+    }
+
+    @Test
+    void accountCreatedCarriesTheLoginButNoPassword() {
+        assertThat(ZnsTemplates.def(ZnsTemplates.ACCOUNT_CREATED).orElseThrow().defaultTemplateId()).isEmpty();
+        assertThat(ZnsTemplates.accountCreated(" ", "0901234567"))
+                .containsEntry("customer_name", "0901234567")
+                .containsEntry("phone_number", "0901234567")
+                .doesNotContainKey("password");
     }
 
     @Test

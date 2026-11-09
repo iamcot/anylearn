@@ -113,6 +113,49 @@ public class AuthService {
         return new LoginResponse(user, jwtService.generateToken(user.getId()));
     }
 
+    /** A new member account made by an admin (manual order entry) and its temporary password, shown once and sent by ZNS. */
+    public record CreatedAccount(User user, String password) {}
+
+    /**
+     * Creates a `member` account for a phone that has none, with a random 6-digit password (no referral, no OTP).
+     * Same welcome as a self registration: welcome vouchers and, when an email is given, the welcome email.
+     */
+    public CreatedAccount createMemberByAdmin(String name, String rawPhone, String email) {
+        String phone = com.anylearn.backend.service.signup.SignupRules.normalizePhone(rawPhone);
+        String password = temporaryPassword();
+        String problem = com.anylearn.backend.service.signup.SignupRules.problem(name, phone, email, password);
+        if (problem != null) throw new IllegalArgumentException(problem);
+        if (userRepository.findByPhone(phone).isPresent()) throw new IllegalArgumentException("Số điện thoại này đã có tài khoản.");
+
+        User user = new User();
+        user.setName(name.trim());
+        user.setPhone(phone);
+        user.setRefcode(phone);
+        user.setEmail(email != null ? email.trim() : "");
+        user.setPassword(passwordEncoder.encode(password));
+        user.setRole("member");
+        NewUserDefaults.apply(user);
+        LocalDateTime now = LocalDateTime.now();
+        user.setCreatedAt(now);
+        user.setUpdatedAt(now);
+        user.setApiToken(generateApiToken());
+        userRepository.save(user);
+        if (voucherService != null) voucherService.fire("register", user.getId(), 0);
+        if (emailTemplateService != null && !user.getEmail().isBlank()) {
+            try {
+                emailTemplateService.sendToUser(user.getId(), "email-user_register", "Chào mừng bạn đến với anyLEARN",
+                        java.util.Map.of("phone", phone));
+            } catch (Exception e) {
+                log.warn("[admin-create] welcome email failed for user {}: {}", user.getId(), e.getMessage());
+            }
+        }
+        return new CreatedAccount(user, password);
+    }
+
+    static String temporaryPassword() {
+        return String.format("%06d", new SecureRandom().nextInt(1_000_000));
+    }
+
     private String generateApiToken() {
         try {
             byte[] random = new byte[60];
