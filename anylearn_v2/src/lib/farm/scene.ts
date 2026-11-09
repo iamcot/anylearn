@@ -20,7 +20,7 @@ export const TILE_STEP = 0.43
 
 const LAYOUTS: Record<SceneKind, SceneLayout> = {
   desktop: {
-    aspect: '16 / 9', height: 56.25, region: { cx: 41, cy: 33, aw: 60, ah: 40 }, maxTile: 34, font: 1.1,
+    aspect: '16 / 9', height: 56.25, region: { cx: 47, cy: 33.5, aw: 48, ah: 38 }, maxTile: 30, font: 1.1,
     decor: [
       { key: 'tree1', img: 'tree_slot_empty', x: 81, y: 50, w: 9 },
       { key: 'tree2', img: 'tree_slot_empty', x: 89, y: 60, w: 9 },
