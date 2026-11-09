@@ -71,3 +71,6 @@ export const waterNeighbor = (token: string, ownerId: number, slots: number[]) =
 export const fertilizeNeighbor = (token: string, ownerId: number, slot: number) => authFetch<{ xp: number }>(`/farm/visit/${ownerId}/fertilize`, token, { method: 'POST', body: JSON.stringify({ slot }) })
 export const stealFlower = (token: string, ownerId: number, slot: number) => authFetch<{ caught: boolean; message: string }>(`/farm/visit/${ownerId}/steal`, token, { method: 'POST', body: JSON.stringify({ slot }) })
 export const setAllowSteal = (token: string, allowSteal: boolean) => authFetch<{ allowSteal: boolean }>('/farm/prefs', token, { method: 'PUT', body: JSON.stringify({ allowSteal }) })
+
+/** Admins only: age the planted crops by some minutes (one slot, or all) to test the growth stages. */
+export const debugAdvance = (token: string, minutes: number, slot?: number) => authFetch<{ plots: number }>('/farm/debug/advance', token, { method: 'POST', body: JSON.stringify({ minutes, slot }) })

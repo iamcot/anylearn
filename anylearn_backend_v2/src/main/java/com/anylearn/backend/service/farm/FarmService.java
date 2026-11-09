@@ -443,4 +443,13 @@ public class FarmService {
         out.put("capped", capped);
         return out;
     }
+
+    /** Testing aid for admins: make every planted crop (or one slot) {@code minutes} older, so it reaches its next stage at once. */
+    public Map<String, Object> debugAdvance(long userId, Integer slot, int minutes) {
+        int m = Math.max(1, Math.min(minutes, 60 * 24 * 7));
+        int n = slot == null
+                ? jdbc.update("UPDATE farm_plots SET planted_at = DATE_SUB(planted_at, INTERVAL ? MINUTE) WHERE user_id = ? AND crop_key IS NOT NULL", m, userId)
+                : jdbc.update("UPDATE farm_plots SET planted_at = DATE_SUB(planted_at, INTERVAL ? MINUTE) WHERE user_id = ? AND slot = ? AND crop_key IS NOT NULL", m, userId, slot);
+        return Map.of("plots", n, "minutes", m);
+    }
 }

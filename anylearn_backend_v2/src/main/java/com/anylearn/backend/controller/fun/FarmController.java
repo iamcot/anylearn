@@ -43,6 +43,15 @@ public class FarmController {
         return list.stream().filter(o -> o instanceof Number).map(o -> ((Number) o).intValue()).toList();
     }
 
+    /** Admins only: age the planted crops to test the growth stages. */
+    @PostMapping("/debug/advance")
+    public ApiResponse<?> debugAdvance(@AuthenticationPrincipal User user, @RequestBody Map<String, Object> body) {
+        if (user == null || !"admin".equals(user.getRole())) return ApiResponse.fail("Chỉ dành cho admin");
+        Integer slot = body.get("slot") instanceof Number n ? n.intValue() : null;
+        int minutes = ((Number) body.getOrDefault("minutes", 10)).intValue();
+        return run(user, () -> farm.debugAdvance(user.getId(), slot, minutes));
+    }
+
     @GetMapping
     public ApiResponse<?> view(@AuthenticationPrincipal User user) {
         return run(user, () -> farm.view(user.getId()));

@@ -9,18 +9,41 @@ import { useNotifications } from '@/components/header/useNotifications'
 import { ChevronLeftIcon } from '@/components/icons'
 import BrandText from '@/components/fun/BrandText'
 import {
-  buyFertilizer, collectCompost, expandPlots, fertilizePlot, getFarm, getProgress, harvestPlots, plantCrop, sellCrops, startCompost, waterPlots,
+  buyFertilizer, collectCompost, debugAdvance, expandPlots, fertilizePlot, getFarm, getProgress, harvestPlots, plantCrop, sellCrops, startCompost, waterPlots,
   type FarmCrop, type FarmPlot, type FarmProgress, type FarmView,
 } from '@/lib/api/farm'
 import OrdersTab from '@/components/fun/farm/OrdersTab'
 import QuestsTab from '@/components/fun/farm/QuestsTab'
 import NeighborsTab from '@/components/fun/farm/NeighborsTab'
 import FarmScene from '@/components/fun/farm/FarmScene'
-import { farmImg, timeOfDay } from '@/lib/farm/art'
-import type { SceneKind, Size } from '@/lib/farm/scene'
+import { CROPS_WITH_ART, farmImg, timeOfDay } from '@/lib/farm/art'
+import { cellCenters, fieldRegion, type SceneKind, type Size } from '@/lib/farm/scene'
 import { capUsedPercent, formatWait, isRipe, sellable, seedCount, slotsToHarvest, slotsToWater } from '@/lib/farm/rules'
 
-const PANEL_TITLES = { orders: 'Đơn hàng', quests: 'Nhiệm vụ', neighbors: 'Hàng xóm', market: 'Chợ' } as const
+const PANEL_TITLES = { storage: 'Kho', orders: 'Đơn hàng', quests: 'Nhiệm vụ', neighbors: 'Hàng xóm', market: 'Chợ', compost: 'Thùng ủ phân' } as const
+
+interface Fly { id: number; x: number; y: number; dx: number; dy: number; img: string | null; emoji: string; delay: number }
+
+/** A harvested product that flies from its plot to the storage tab. */
+function FlyItem({ f, onDone }: { f: Fly; onDone: (id: number) => void }) {
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const a = el.animate([
+      { transform: 'translate(-50%,-50%) scale(1)', opacity: 1 },
+      { transform: `translate(calc(-50% + ${f.dx * 0.5}px), calc(-50% + ${f.dy * 0.5 - 60}px)) scale(1.3)`, opacity: 1, offset: 0.4 },
+      { transform: `translate(calc(-50% + ${f.dx}px), calc(-50% + ${f.dy}px)) scale(0.35)`, opacity: 0.8 },
+    ], { duration: 900, delay: f.delay, easing: 'ease-in', fill: 'both' })
+    a.onfinish = () => onDone(f.id)
+    return () => a.cancel()
+  }, [f, onDone])
+  return (
+    <div ref={ref} className="pointer-events-none absolute z-[900]" style={{ left: f.x, top: f.y }}>
+      {f.img ? <img src={f.img} alt="" className="size-12 object-contain drop-shadow-lg" /> : <span className="text-4xl drop-shadow-lg">{f.emoji}</span>}
+    </div>
+  )
+}
 
 function ActionButton({ icon, label, count, disabled, onClick }: { icon: string; label: string; count: number; disabled: boolean; onClick: () => void }) {
   return (
@@ -35,11 +58,13 @@ function ActionButton({ icon, label, count, disabled, onClick }: { icon: string;
 }
 
 export default function FarmPage() {
-  const { token } = useAuth()
+  const { token, user } = useAuth()
   const { unreadCount, setUnreadCount } = useNotifications()
   const [view, setView] = useState<FarmView | null>(null)
   const [progress, setProgress] = useState<FarmProgress | null>(null)
-  const [panel, setPanel] = useState<'orders' | 'quests' | 'neighbors' | 'market' | null>(null)
+  const [panel, setPanel] = useState<'storage' | 'orders' | 'quests' | 'neighbors' | 'market' | 'compost' | null>(null)
+  const [flies, setFlies] = useState<Fly[]>([])
+  const flyId = useRef(0)
   const rootRef = useRef<HTMLDivElement>(null)
   const [size, setSize] = useState<Size | null>(null)
   const [error, setError] = useState('')
@@ -132,6 +157,30 @@ export default function FarmPage() {
   const sell = sellable(view)
   const used = capUsedPercent(view.market.room, view.market.dayCap)
 
+  /** Send the harvested products flying from their plots to the storage tab. */
+  function flyHarvest(slots: number[]) {
+    if (!view || !size) return
+    const target = document.querySelector('[data-tab="storage"]')?.getBoundingClientRect()
+    if (!target) return
+    const cells = view.plots.length + (view.nextPlotPrice > 0 ? 1 : 0)
+    const { centers } = cellCenters(cells, fieldRegion(size))
+    const made: Fly[] = []
+    slots.slice(0, 12).forEach((slot, n) => {
+      const i = view.plots.findIndex(p => p.slot === slot)
+      const p = view.plots[i]
+      const c = centers[i]
+      if (!p || !c) return
+      const crop = cropOf(p.cropKey)
+      const art = crop && CROPS_WITH_ART.has(crop.cropKey) ? farmImg(`${crop.cropKey}_ripe`) : null
+      for (let k = 0; k < Math.min(p.yield ?? 1, 3); k++) {
+        const x = c.x + (k - 1) * 14
+        const y = c.y - 20
+        made.push({ id: ++flyId.current, x, y, dx: target.left + target.width / 2 - x + 0, dy: target.top + target.height / 2 - y, img: art, emoji: crop?.emoji ?? '🌾', delay: (n * 3 + k) * 70 })
+      }
+    })
+    setFlies(f => [...f, ...made])
+  }
+
   async function plant(crop: FarmCrop) {
     if (pick === null || !token) return
     const slot = pick
@@ -147,7 +196,7 @@ export default function FarmPage() {
     setSelected(slot)
     if (p.phase === 'empty') setPick(slot)
     else if (p.phase === 'thirsty') act(() => waterPlots(token, [slot]), 'Đã tưới', 'water')
-    else if (isRipe(p)) act(() => harvestPlots(token, [slot]), `Thu hoạch ${p.yield} quả`, 'harvest')
+    else if (isRipe(p)) { flyHarvest([slot]); act(() => harvestPlots(token, [slot]), `Thu hoạch ${p.yield} quả`, 'harvest') }
     else if (p.phase === 'growing' && !p.fertilized && (view.inventory.fertilizer ?? 0) > 0) act(() => fertilizePlot(token, slot), 'Đã bón phân, +1 quả')
     else setNote(`${cropOf(p.cropKey)?.name ?? 'Cây'}: ${plotLabel(p)}`)
   }
@@ -155,7 +204,7 @@ export default function FarmPage() {
   function tapCompost() {
     if (!token || !progress) return
     if (progress.compost.active?.ready) act(() => collectCompost(token), 'Đã nhận phân bón')
-    else setPanel('market')
+    else setPanel('compost')
   }
 
   function plotLabel(p: FarmPlot) {
@@ -168,7 +217,7 @@ export default function FarmPage() {
 
   const tod = timeOfDay(new Date(now).getHours())
   const waiting = progress.orders.length > 0
-  const tabs = [['garden', 'Vườn', 'ui_tab_garden'], ['orders', 'Đơn hàng', 'ui_tab_orders'], ['quests', 'Nhiệm vụ', 'ui_tab_quests'], ['neighbors', 'Hàng xóm', 'ui_tab_neighbors'], ['market', 'Chợ', 'ui_tab_market_alt']] as const
+  const tabs = [['garden', 'Vườn', 'ui_tab_garden'], ['storage', 'Kho', 'item_basket'], ['orders', 'Đơn hàng', 'ui_tab_orders'], ['quests', 'Nhiệm vụ', 'ui_tab_quests'], ['neighbors', 'Hàng xóm', 'ui_tab_neighbors'], ['market', 'Chợ', 'ui_tab_market_alt']] as const
   const active = panel ?? 'garden'
 
   return (
@@ -195,7 +244,7 @@ export default function FarmPage() {
         </div>
         <div className="pointer-events-auto flex flex-col items-end gap-0.5" title={view.coinName}>
           <div className="flex items-center gap-1">
-            <div className="rounded-full bg-white/80 shadow"><NotificationBell token={token} unreadCount={unreadCount} onUnreadChange={setUnreadCount} /></div>
+            <div className="mr-2 rounded-full bg-white/80 shadow"><NotificationBell token={token} unreadCount={unreadCount} onUnreadChange={setUnreadCount} /></div>
             <img src={farmImg('ui_coin_chest')} alt="" className="size-10 object-contain lg:size-12" draggable={false} />
           </div>
           <span className="text-lg font-black leading-none text-white lg:text-xl [text-shadow:-1px_-1px_0_#4a2a10,1px_-1px_0_#4a2a10,-1px_1px_0_#4a2a10,1px_1px_0_#4a2a10,0_2px_3px_rgba(0,0,0,.4)]">{view.balance.toLocaleString('vi-VN')}</span>
@@ -206,7 +255,7 @@ export default function FarmPage() {
 
       <div className="absolute right-1 top-1/2 z-[800] flex -translate-y-1/2 flex-col gap-1" role="tablist">
         {tabs.map(([k, l, ic]) => (
-          <button key={k} type="button" role="tab" aria-selected={active === k} aria-label={l} title={l} onClick={() => setPanel(k === 'garden' || panel === k ? null : k)} className={`relative flex w-16 cursor-pointer flex-col items-center gap-0 rounded-xl border-0 px-0 py-1 ${active === k ? 'bg-white/45 shadow-[0_0_10px_rgba(255,255,255,.9)]' : 'bg-transparent'}`}>
+          <button key={k} data-tab={k} type="button" role="tab" aria-selected={active === k} aria-label={l} title={l} onClick={() => setPanel(k === 'garden' || panel === k ? null : k)} className={`relative flex w-16 cursor-pointer flex-col items-center gap-0 rounded-xl border-0 px-0 py-1 ${active === k ? 'bg-white/45 shadow-[0_0_10px_rgba(255,255,255,.9)]' : 'bg-transparent'}`}>
             <img src={farmImg(ic)} alt="" className="h-9 w-11 object-contain drop-shadow" draggable={false} />
             <span className="text-[10px] font-extrabold leading-tight text-white [text-shadow:-1px_-1px_0_#4a2a10,1px_-1px_0_#4a2a10,-1px_1px_0_#4a2a10,1px_1px_0_#4a2a10,0_2px_3px_rgba(0,0,0,.4)]">{l}</span>
             {((k === 'orders' && waiting) || (k === 'market' && progress.compost.active?.ready)) && <span className="absolute right-1.5 top-0.5 size-2.5 rounded-full bg-red-500 ring-2 ring-white" aria-hidden />}
@@ -216,9 +265,18 @@ export default function FarmPage() {
 
       <div className="pointer-events-none absolute inset-x-0 bottom-2 z-[700] flex items-end justify-center gap-3 pr-16 lg:gap-8">
         <div className="pointer-events-auto"><ActionButton icon="tool_can_1" label="Tưới tất cả" count={toWater.length} disabled={busy || toWater.length === 0} onClick={() => act(() => waterPlots(token, toWater), `Đã tưới ${toWater.length} ô`, 'water')} /></div>
-        <div className="pointer-events-auto"><ActionButton icon="item_basket" label="Thu tất cả" count={toHarvest.length} disabled={busy || toHarvest.length === 0} onClick={() => act(() => harvestPlots(token, toHarvest), `Đã thu ${toHarvest.length} ô`, 'harvest')} /></div>
+        <div className="pointer-events-auto"><ActionButton icon="item_basket" label="Thu tất cả" count={toHarvest.length} disabled={busy || toHarvest.length === 0} onClick={() => { flyHarvest(toHarvest); act(() => harvestPlots(token, toHarvest), `Đã thu ${toHarvest.length} ô`, 'harvest') }} /></div>
         <div className="pointer-events-auto"><ActionButton icon="item_fertilizer" label={`Mua phân · ${view.fertilizerPrice}`} count={view.inventory.fertilizer ?? 0} disabled={busy} onClick={() => act(() => buyFertilizer(token, 1), 'Đã mua 1 phân bón', 'cheer')} /></div>
       </div>
+
+      {flies.map(f => <FlyItem key={f.id} f={f} onDone={id => setFlies(l => l.filter(x => x.id !== id))} />)}
+
+      {user?.role === 'admin' && (
+        <div className="absolute left-2 top-[88px] z-[700] flex items-center gap-1 rounded-full bg-black/55 px-2 py-1 text-[11px] font-bold text-white">
+          <span>Debug</span>
+          {[[10, '+10p'], [60, '+1g'], [1440, '+1ng']].map(([m, l]) => <button key={m} type="button" className="cursor-pointer rounded-full border-0 bg-white/90 px-2 py-0.5 text-[11px] font-extrabold text-ink" onClick={async () => { await debugAdvance(token, m as number); await load() }}>{l}</button>)}
+        </div>
+      )}
 
       {panel && (
         <div className="fixed inset-0 z-[1000] flex items-end bg-black/40 lg:items-center lg:justify-center" role="dialog" aria-modal="true" aria-label={PANEL_TITLES[panel]} onClick={() => setPanel(null)}>
@@ -227,9 +285,27 @@ export default function FarmPage() {
           {panel === 'orders' && <OrdersTab token={token} view={view} progress={progress} busy={busy} run={act} setNote={setNote} />}
           {panel === 'quests' && <QuestsTab token={token} view={view} progress={progress} busy={busy} run={act} setNote={setNote} />}
           {panel === 'neighbors' && <NeighborsTab token={token} view={view} onChanged={load} />}
-          {panel === 'market' && (
-            <div className="space-y-3">
-        <section className="rounded-2xl bg-white p-4 ring-1 ring-line" aria-label="Thùng ủ phân">
+          {panel === 'storage' && (
+            <div className="mt-2 space-y-3">
+              <div className="flex items-center gap-3 rounded-2xl bg-slate-50 p-3"><img src={farmImg('item_fertilizer')} alt="" className="size-10 object-contain" /><b className="flex-1 text-sm">Phân bón</b><span className="text-lg font-black">{view.inventory.fertilizer ?? 0}</span></div>
+              <div>
+                <h3 className="m-0 mb-1 text-sm font-black">Hạt giống</h3>
+                {view.crops.filter(c => seedCount(view, c.cropKey) > 0).length === 0 ? <p className="m-0 text-xs text-muted">Chưa có hạt dự trữ. Hạt mua khi gieo.</p> : (
+                  <ul className="m-0 grid list-none grid-cols-2 gap-2 p-0">{view.crops.filter(c => seedCount(view, c.cropKey) > 0).map(c => <li key={c.cropKey} className="flex items-center gap-2 rounded-xl bg-slate-50 p-2 text-sm font-bold"><span className="text-2xl">{c.emoji}</span><span className="flex-1">{c.name}</span><span>× {seedCount(view, c.cropKey)}</span></li>)}</ul>
+                )}
+              </div>
+              <div>
+                <h3 className="m-0 mb-1 text-sm font-black">Nông sản</h3>
+                {sell.length === 0 ? <p className="m-0 text-xs text-muted">Kho chưa có nông sản. Thu hoạch xong sẽ bay về đây.</p> : (
+                  <ul className="m-0 grid list-none grid-cols-2 gap-2 p-0">{sell.map(x => <li key={x.cropKey} className="flex items-center gap-2 rounded-xl bg-slate-50 p-2 text-sm font-bold"><span className="text-2xl">{cropOf(x.cropKey)?.emoji}</span><span className="flex-1">{cropOf(x.cropKey)?.name}</span><span>× {x.qty}</span></li>)}</ul>
+                )}
+              </div>
+              <button type="button" className="min-h-11 w-full cursor-pointer rounded-xl border-0 bg-green text-sm font-extrabold text-white" onClick={() => setPanel('market')}>Đi chợ bán hàng</button>
+            </div>
+          )}
+          {panel === 'compost' && (
+            <div className="mt-2">
+
         <h2 className="m-0 flex items-center gap-2 text-lg font-black"><img src={farmImg('compost_bin')} alt="" className="h-10 w-14 object-contain" />Thùng ủ phân</h2>
       <div>
       {progress.compost.active ? (
@@ -248,7 +324,11 @@ export default function FarmPage() {
         </>
       )}
     </div>
-        </section>
+
+            </div>
+          )}
+          {panel === 'market' && (
+            <div className="space-y-3">
         <section className="rounded-2xl bg-white p-4 ring-1 ring-line" aria-label="Chợ">
         <h2 className="m-0 flex items-center gap-2 text-lg font-black"><img src={farmImg('market_stall')} alt="" className="h-10 w-14 object-contain" />Chợ</h2>
       <div>

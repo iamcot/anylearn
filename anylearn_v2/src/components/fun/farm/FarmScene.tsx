@@ -35,7 +35,10 @@ function timerText(p: FarmPlot, elapsed: number): { text: string; tone: string }
 function Hint({ img, x, y, w }: { img: string; x: number; y: number; w: number }) {
   return (
     <div className="pointer-events-none absolute" style={{ left: px(x), top: px(y), width: px(w), transform: 'translate(-50%, -100%)', zIndex: OVERLAY_Z }}>
-      <div className="-rotate-[25deg]"><div className="animate-bounce [animation-duration:1.6s]"><img src={farmImg(img)} alt="" className="block h-auto w-full drop-shadow" draggable={false} /></div></div>
+      <div className="relative">
+        <span className="absolute -inset-[30%] animate-pulse rounded-full bg-white/55 blur-[3px] ring-2 ring-white/70 [animation-duration:1.4s]" aria-hidden />
+        <div className="relative -rotate-[25deg]"><div className="animate-bounce [animation-duration:1.6s]"><img src={farmImg(img)} alt="" className="block h-auto w-full drop-shadow-[0_0_5px_rgba(255,255,255,1)]" draggable={false} /></div></div>
+      </div>
     </div>
   )
 }
@@ -127,8 +130,8 @@ export default function FarmScene({ view, progress, size, kind, tod, elapsed, se
         const feed = p.phase === 'growing' && !p.fertilized && canFeed
         return (
           <div key={p.slot}>
-            {p.phase === 'thirsty' && <Hint img="tool_can_1" x={c.x} y={topOfPlant} w={Math.max(tw * 0.17, 18)} />}
-            {feed && <Hint img="item_fertilizer" x={c.x} y={topOfPlant} w={Math.max(tw * 0.15, 16)} />}
+            {p.phase === 'thirsty' && <Hint img="tool_can_1" x={c.x} y={topOfPlant} w={Math.max(tw * 0.22, 26)} />}
+            {feed && <Hint img="item_fertilizer" x={c.x} y={topOfPlant} w={Math.max(tw * 0.2, 24)} />}
             {tag && (
               <span className={`pointer-events-none absolute -translate-x-1/2 ${pill} ${tag.tone}`} style={{ left: px(c.x), top: px(c.y + th * 0.16), zIndex: OVERLAY_Z + 1 }}>{tag.text}</span>
             )}
