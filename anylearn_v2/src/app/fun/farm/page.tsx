@@ -27,6 +27,9 @@ interface Fly { id: number; x: number; y: number; dx: number; dy: number; img: s
 /** A harvested product that flies from its plot to the storage tab. */
 function FlyItem({ f, onDone }: { f: Fly; onDone: (id: number) => void }) {
   const ref = useRef<HTMLDivElement>(null)
+  // the page redraws every second: keep the callback in a ref so the animation is started once and never restarted
+  const done = useRef(onDone)
+  useEffect(() => { done.current = onDone })
   useEffect(() => {
     const el = ref.current
     if (!el) return
@@ -35,9 +38,9 @@ function FlyItem({ f, onDone }: { f: Fly; onDone: (id: number) => void }) {
       { transform: `translate(calc(-50% + ${f.dx * 0.5}px), calc(-50% + ${f.dy * 0.5 - 60}px)) scale(1.3)`, opacity: 1, offset: 0.4 },
       { transform: `translate(calc(-50% + ${f.dx}px), calc(-50% + ${f.dy}px)) scale(0.35)`, opacity: 0.8 },
     ], { duration: 900, delay: f.delay, easing: 'ease-in', fill: 'both' })
-    a.onfinish = () => onDone(f.id)
+    a.onfinish = () => done.current(f.id)
     return () => a.cancel()
-  }, [f, onDone])
+  }, [f])
   return (
     <div ref={ref} className="pointer-events-none absolute z-[900]" style={{ left: f.x, top: f.y }}>
       {f.img ? <img src={f.img} alt="" className="size-12 object-contain drop-shadow-lg" /> : <span className="text-4xl drop-shadow-lg">{f.emoji}</span>}
