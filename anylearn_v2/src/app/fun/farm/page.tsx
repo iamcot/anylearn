@@ -2,7 +2,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { ChevronLeftIcon } from '@/components/icons'
 import BrandText from '@/components/fun/BrandText'
@@ -15,17 +15,17 @@ import QuestsTab from '@/components/fun/farm/QuestsTab'
 import NeighborsTab from '@/components/fun/farm/NeighborsTab'
 import FarmScene from '@/components/fun/farm/FarmScene'
 import { farmImg, timeOfDay } from '@/lib/farm/art'
-import type { SceneKind } from '@/lib/farm/scene'
-import { capUsedPercent, formatWait, isRipe, secondsUntil, sellable, seedCount, slotsToHarvest, slotsToWater } from '@/lib/farm/rules'
+import type { SceneKind, Size } from '@/lib/farm/scene'
+import { capUsedPercent, formatWait, isRipe, sellable, seedCount, slotsToHarvest, slotsToWater } from '@/lib/farm/rules'
 
 function ActionButton({ icon, label, count, disabled, onClick }: { icon: string; label: string; count: number; disabled: boolean; onClick: () => void }) {
   return (
-    <button type="button" disabled={disabled} onClick={onClick} className="flex min-h-14 cursor-pointer flex-col items-center gap-0.5 border-0 bg-transparent p-1 text-center transition-transform active:scale-95 disabled:cursor-default disabled:opacity-45 lg:flex-row lg:gap-2">
+    <button type="button" disabled={disabled} onClick={onClick} className="flex min-h-12 cursor-pointer flex-col items-center gap-0.5 border-0 bg-transparent p-1 text-center transition-transform active:scale-95 disabled:cursor-default disabled:opacity-45 lg:flex-row lg:gap-2">
       <span className="relative">
-        <img src={farmImg(icon)} alt="" className="size-14 object-contain lg:size-12" draggable={false} />
+        <img src={farmImg(icon)} alt="" className="size-12 object-contain drop-shadow lg:size-12" draggable={false} />
         {count > 0 && <span className="absolute -right-1 -top-1 min-w-5 rounded-full bg-green px-1 text-center text-[11px] font-black leading-5 text-white ring-2 ring-white">{count}</span>}
       </span>
-      <span className="max-w-24 text-xs font-extrabold leading-tight text-ink lg:max-w-none lg:text-sm">{label}</span>
+      <span className="max-w-24 text-xs font-extrabold leading-tight text-white lg:max-w-none lg:text-sm [text-shadow:-1px_-1px_0_#4a2a10,1px_-1px_0_#4a2a10,-1px_1px_0_#4a2a10,1px_1px_0_#4a2a10,0_2px_3px_rgba(0,0,0,.4)]">{label}</span>
     </button>
   )
 }
@@ -34,7 +34,9 @@ export default function FarmPage() {
   const { token } = useAuth()
   const [view, setView] = useState<FarmView | null>(null)
   const [progress, setProgress] = useState<FarmProgress | null>(null)
-  const [tab, setTab] = useState<'garden' | 'orders' | 'quests' | 'neighbors' | 'market'>('garden')
+  const [panel, setPanel] = useState<'orders' | 'quests' | 'neighbors' | 'market' | null>(null)
+  const rootRef = useRef<HTMLDivElement>(null)
+  const [size, setSize] = useState<Size | null>(null)
   const [error, setError] = useState('')
   const [note, setNote] = useState('')
   const [pick, setPick] = useState<number | null>(null)
@@ -52,6 +54,26 @@ export default function FarmPage() {
     mq.addEventListener('change', sync)
     return () => mq.removeEventListener('change', sync)
   }, [])
+
+  // the game fills the screen: measure it, and keep the page itself from scrolling behind it
+  useEffect(() => {
+    const el = rootRef.current
+    if (!el) return
+    const measure = () => setSize({ w: el.clientWidth, h: el.clientHeight })
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { ro.disconnect(); document.body.style.overflow = prev }
+  }, [view])
+
+  // a message on the garden disappears by itself
+  useEffect(() => {
+    if (!note) return
+    const id = setTimeout(() => setNote(''), 3200)
+    return () => clearTimeout(id)
+  }, [note])
 
   const load = useCallback(async () => {
     if (!token) return
@@ -96,15 +118,14 @@ export default function FarmPage() {
   }
 
   if (!token) return null
-  if (error) return <div className="mx-auto max-w-[720px] px-4 pt-6"><p className="text-warn-text" role="alert">{error}</p></div>
-  if (!view || !progress) return <div className="mx-auto max-w-[720px] px-4 pt-6"><div className="h-80 animate-pulse rounded-2xl bg-slate-200" /></div>
+  if (error) return <div className="fixed inset-0 z-[90] grid place-items-center bg-[#e8f6d4] px-4"><p className="text-warn-text" role="alert">{error}</p></div>
+  if (!view || !progress) return <div className="fixed inset-0 z-[90] grid place-items-center bg-[#e8f6d4]"><div className="size-16 animate-pulse rounded-full bg-green/40" /></div>
 
   const cropOf = (k?: string) => view.crops.find(c => c.cropKey === k)
   const toWater = slotsToWater(view.plots)
   const toHarvest = slotsToHarvest(view.plots)
   const sell = sellable(view)
   const used = capUsedPercent(view.market.room, view.market.dayCap)
-  const plot = selected === null ? undefined : view.plots.find(p => p.slot === selected)
 
   async function plant(crop: FarmCrop) {
     if (pick === null || !token) return
@@ -113,7 +134,7 @@ export default function FarmPage() {
     await act(() => plantCrop(token, slot, crop.cropKey), `Đã gieo ${crop.name}`, 'water')
   }
 
-  /** A tap on a tile does the obvious thing: sow an empty one, water a thirsty one, harvest a ripe one; otherwise it just selects it. */
+  /** A tap on a tile does the obvious thing: sow an empty one, water a thirsty one, harvest a ripe one, feed a growing one; otherwise it says what is left. */
   function tapTile(slot: number) {
     if (!token || !view) return
     const p = view.plots.find(x => x.slot === slot)
@@ -122,6 +143,14 @@ export default function FarmPage() {
     if (p.phase === 'empty') setPick(slot)
     else if (p.phase === 'thirsty') act(() => waterPlots(token, [slot]), 'Đã tưới', 'water')
     else if (isRipe(p)) act(() => harvestPlots(token, [slot]), `Thu hoạch ${p.yield} quả`, 'harvest')
+    else if (p.phase === 'growing' && !p.fertilized && (view.inventory.fertilizer ?? 0) > 0) act(() => fertilizePlot(token, slot), 'Đã bón phân, +1 quả')
+    else setNote(`${cropOf(p.cropKey)?.name ?? 'Cây'}: ${plotLabel(p)}`)
+  }
+
+  function tapCompost() {
+    if (!token || !progress) return
+    if (progress.compost.active?.ready) act(() => collectCompost(token), 'Đã nhận phân bón')
+    else setPanel('market')
   }
 
   function plotLabel(p: FarmPlot) {
@@ -134,77 +163,63 @@ export default function FarmPage() {
 
   const tod = timeOfDay(new Date(now).getHours())
   const waiting = progress.orders.length > 0
+  const tabs = [['garden', 'Vườn', 'ui_tab_garden'], ['orders', 'Đơn hàng', 'ui_tab_orders'], ['quests', 'Nhiệm vụ', 'ui_tab_quests'], ['neighbors', 'Hàng xóm', 'ui_tab_neighbors'], ['market', 'Chợ', 'ui_tab_market_alt']] as const
+  const active = panel ?? 'garden'
 
   return (
-    <div className="min-h-screen bg-[#e8f6d4] pb-28 lg:pb-12">
-      <div className="mx-auto max-w-[1100px] lg:px-4 lg:pt-6">
-        <div className="px-3 pt-3 lg:px-0 lg:pt-0">
-          <Link href="/fun" className="inline-flex min-h-11 items-center gap-1 rounded-full bg-white/80 px-3 text-sm font-bold text-text no-underline"><ChevronLeftIcon className="size-4" /> Vui học</Link>
-          <div className="mt-1 flex items-center justify-between gap-3">
-            <div className="relative w-[62%] max-w-[360px] lg:max-w-[290px] shrink-0">
-              <img src={farmImg('ui_sign_board')} alt="" className="block h-auto w-full" draggable={false} />
-              <div className="absolute inset-x-[9%] bottom-[16%] top-[34%] flex flex-col items-center justify-center text-center">
-                <h1 className="m-0 text-[15px] font-black leading-tight text-white [-webkit-text-stroke:4px_#4a2a10] [paint-order:stroke_fill] [text-shadow:0_2px_0_#4a2a10] lg:text-lg">Nông trại anyLEARN</h1>
-                <div className="mt-1 flex items-center gap-2">
-                  <span className="rounded-full bg-[#fff4d6] px-2 py-0.5 text-[11px] font-black text-[#5b3a1a]">Cấp {view.level}</span>
-                  {view.xpForNext > 0 && (
-                    <span className="h-2 w-16 overflow-hidden rounded-full bg-[#5b3a1a]/60 lg:w-28" role="progressbar" aria-valuenow={view.xpIntoLevel} aria-valuemin={0} aria-valuemax={view.xpForNext} title={`${view.xpIntoLevel}/${view.xpForNext} XP`}>
-                      <span className="block h-full bg-[#ffd54a]" style={{ width: `${Math.min(100, (view.xpIntoLevel / view.xpForNext) * 100)}%` }} />
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-            <div className="flex shrink-0 flex-col items-center gap-1.5" title={view.coinName}>
-              <span className="text-xl font-black leading-none text-[#b45309] [text-shadow:0_1px_0_#fff] lg:text-2xl">{view.balance}</span>
-              <img src={farmImg('ui_coin_chest')} alt="" className="size-12 object-contain lg:size-14" draggable={false} />
-            </div>
-          </div>
-          <div className="mt-2 grid grid-cols-5 gap-0.5" role="tablist">
-            {([['garden', 'Vườn', 'ui_tab_garden'], ['orders', 'Đơn hàng', 'ui_tab_orders'], ['quests', 'Nhiệm vụ', 'ui_tab_quests'], ['neighbors', 'Hàng xóm', 'ui_tab_neighbors'], ['market', 'Chợ', 'ui_tab_market_alt']] as const).map(([k, l, ic]) => (
-              <button key={k} type="button" role="tab" aria-selected={tab === k} aria-label={l} title={l} onClick={() => setTab(k)} className={`relative flex min-h-14 cursor-pointer flex-col items-center justify-center gap-0.5 rounded-lg border-0 px-0 lg:flex-row lg:gap-2 ${tab === k ? 'bg-white/80 shadow-sm' : 'bg-transparent'}`}><img src={farmImg(ic)} alt="" className={`h-8 w-10 object-contain lg:h-9 lg:w-12 ${tab === k ? '' : 'opacity-70'}`} /><span className={`text-[11px] font-extrabold leading-tight lg:text-sm ${tab === k ? 'text-green-dark' : 'text-ink'}`}>{l}</span>{((k === 'orders' && waiting) || (k === 'market' && progress.compost.active?.ready)) && <span className="absolute right-1 top-1 size-2 rounded-full bg-red-500" aria-hidden />}</button>
-            ))}
-          </div>
-          {note && <p className="mt-2 rounded-xl bg-green-soft px-3 py-2 text-sm font-bold text-green-dark" role="status">{note}</p>}
-        </div>
+    <div ref={rootRef} className="fixed inset-0 z-[90] overflow-hidden bg-[#9be15d]">
+      {size && <FarmScene view={view} progress={progress} size={size} kind={kind} tod={tod} elapsed={elapsed} selected={selected} onTile={tapTile} onExpand={() => setConfirmExpand(true)} onCompost={tapCompost} />}
 
-        {tab === 'garden' && (
-          <>
-            <div className="mt-2">
-              <FarmScene view={view} kind={kind} tod={tod} elapsed={elapsed} selected={selected} onTile={tapTile} onExpand={() => setConfirmExpand(true)} />
-            </div>
-            <div className="mx-auto mt-2 max-w-[720px] px-3 lg:px-0">
-              {plot && plot.phase !== 'empty' && (
-                <div className="mb-2 flex flex-wrap items-center gap-2 rounded-2xl bg-white p-2.5 ring-1 ring-line">
-                  <div className="min-w-0 flex-1">
-                    <b className="block text-sm">{cropOf(plot.cropKey)?.name ?? 'Cây trồng'}</b>
-                    <span className="text-xs text-muted">{plotLabel(plot)}{plot.phase === 'growing' && plot.waterNeeds && (plot.watersDone ?? 0) < plot.waterNeeds && plot.nextWaterAt ? ` · tưới sau ${formatWait(secondsUntil(plot.nextWaterAt, view.serverNow, elapsed))}` : ''}</span>
-                  </div>
-                  {(plot.phase === 'growing' || plot.phase === 'thirsty') && !plot.fertilized && (view.inventory.fertilizer ?? 0) > 0 && (
-                    <button type="button" className="min-h-10 cursor-pointer rounded-lg border-0 bg-white px-3 text-xs font-extrabold text-ink ring-1 ring-line" disabled={busy} onClick={() => act(() => fertilizePlot(token, plot.slot), 'Đã bón phân, +1 quả')}>Bón phân ({view.inventory.fertilizer})</button>
-                  )}
-                  {plot.phase === 'thirsty' && <button type="button" className="btn btn--green min-h-10" disabled={busy} onClick={() => act(() => waterPlots(token, [plot.slot]), 'Đã tưới', 'water')}>Tưới</button>}
-                  {isRipe(plot) && <button type="button" className="btn btn--green min-h-10" disabled={busy} onClick={() => act(() => harvestPlots(token, [plot.slot]), `Thu hoạch ${plot.yield} quả`, 'harvest')}>Thu {plot.yield} quả</button>}
-                </div>
-              )}
-              <div className="flex items-start justify-center gap-3 lg:gap-8">
-                <ActionButton icon="tool_can_1" label="Tưới tất cả" count={toWater.length} disabled={busy || toWater.length === 0} onClick={() => act(() => waterPlots(token, toWater), `Đã tưới ${toWater.length} ô`, 'water')} />
-                <ActionButton icon="item_basket" label="Thu tất cả" count={toHarvest.length} disabled={busy || toHarvest.length === 0} onClick={() => act(() => harvestPlots(token, toHarvest), `Đã thu ${toHarvest.length} ô`, 'harvest')} />
-                <ActionButton icon="item_fertilizer" label={`Mua phân · ${view.fertilizerPrice}`} count={view.inventory.fertilizer ?? 0} disabled={busy} onClick={() => act(() => buyFertilizer(token, 1), 'Đã mua 1 phân bón', 'cheer')} />
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-[700] flex items-start justify-between p-2">
+        <div className="pointer-events-auto flex items-start gap-1">
+          <Link href="/fun" aria-label="Về Vui học" className="grid size-10 place-items-center rounded-full bg-white/80 text-text no-underline shadow"><ChevronLeftIcon className="size-5" /></Link>
+          <div className="relative w-[150px] lg:w-[190px]">
+            <img src={farmImg('ui_sign_board')} alt="" className="block h-auto w-full" draggable={false} />
+            <div className="absolute inset-x-[9%] bottom-[16%] top-[32%] flex flex-col items-center justify-center text-center">
+              <h1 className="m-0 text-[11px] font-black leading-tight text-white [-webkit-text-stroke:3px_#4a2a10] [paint-order:stroke_fill] lg:text-sm">Nông trại anyLEARN</h1>
+              <div className="mt-0.5 flex items-center gap-1.5">
+                <span className="rounded-full bg-[#fff4d6] px-1.5 text-[10px] font-black leading-4 text-[#5b3a1a]">Cấp {view.level}</span>
+                {view.xpForNext > 0 && (
+                  <span className="h-1.5 w-10 overflow-hidden rounded-full bg-[#5b3a1a]/60 lg:w-16" role="progressbar" aria-valuenow={view.xpIntoLevel} aria-valuemin={0} aria-valuemax={view.xpForNext} title={`${view.xpIntoLevel}/${view.xpForNext} XP`}>
+                    <span className="block h-full bg-[#ffd54a]" style={{ width: `${Math.min(100, (view.xpIntoLevel / view.xpForNext) * 100)}%` }} />
+                  </span>
+                )}
               </div>
             </div>
-          </>
-        )}
-        <div className="mx-auto max-w-[720px] px-3 lg:px-0">
-          {tab === 'orders' && <OrdersTab token={token} view={view} progress={progress} busy={busy} run={act} setNote={setNote} />}
-          {tab === 'quests' && <QuestsTab token={token} view={view} progress={progress} busy={busy} run={act} setNote={setNote} />}
-          {tab === 'neighbors' && <NeighborsTab token={token} view={view} onChanged={load} />}
+          </div>
+        </div>
+        <div className="flex flex-col items-center gap-0.5" title={view.coinName}>
+          <span className="text-lg font-black leading-none text-white lg:text-xl [text-shadow:-1px_-1px_0_#4a2a10,1px_-1px_0_#4a2a10,-1px_1px_0_#4a2a10,1px_1px_0_#4a2a10,0_2px_3px_rgba(0,0,0,.4)]">{view.balance}</span>
+          <img src={farmImg('ui_coin_chest')} alt="" className="size-10 object-contain lg:size-12" draggable={false} />
         </div>
       </div>
 
-      {tab === 'market' && (
-        <div className="mx-auto mt-3 max-w-[1100px] space-y-3 px-3 lg:px-4">
-        <div className="mx-auto max-w-[720px] space-y-3">
+      {note && <p className="pointer-events-none absolute left-1/2 top-16 z-[900] m-0 max-w-[80%] -translate-x-1/2 rounded-full bg-white/95 px-4 py-2 text-center text-sm font-extrabold text-green-dark shadow-lg lg:top-20" role="status">{note}</p>}
+
+      <div className="absolute right-1 top-1/2 z-[800] flex -translate-y-1/2 flex-col gap-1" role="tablist">
+        {tabs.map(([k, l, ic]) => (
+          <button key={k} type="button" role="tab" aria-selected={active === k} aria-label={l} title={l} onClick={() => setPanel(k === 'garden' || panel === k ? null : k)} className={`relative flex w-16 cursor-pointer flex-col items-center gap-0 rounded-xl border-0 px-0 py-1 ${active === k ? 'bg-white/45 shadow-[0_0_10px_rgba(255,255,255,.9)]' : 'bg-transparent'}`}>
+            <img src={farmImg(ic)} alt="" className="h-9 w-11 object-contain drop-shadow" draggable={false} />
+            <span className="text-[10px] font-extrabold leading-tight text-white [text-shadow:-1px_-1px_0_#4a2a10,1px_-1px_0_#4a2a10,-1px_1px_0_#4a2a10,1px_1px_0_#4a2a10,0_2px_3px_rgba(0,0,0,.4)]">{l}</span>
+            {((k === 'orders' && waiting) || (k === 'market' && progress.compost.active?.ready)) && <span className="absolute right-1.5 top-0.5 size-2.5 rounded-full bg-red-500 ring-2 ring-white" aria-hidden />}
+          </button>
+        ))}
+      </div>
+
+      <div className="pointer-events-none absolute inset-x-0 bottom-2 z-[700] flex items-end justify-center gap-3 pr-16 lg:gap-8">
+        <div className="pointer-events-auto"><ActionButton icon="tool_can_1" label="Tưới tất cả" count={toWater.length} disabled={busy || toWater.length === 0} onClick={() => act(() => waterPlots(token, toWater), `Đã tưới ${toWater.length} ô`, 'water')} /></div>
+        <div className="pointer-events-auto"><ActionButton icon="item_basket" label="Thu tất cả" count={toHarvest.length} disabled={busy || toHarvest.length === 0} onClick={() => act(() => harvestPlots(token, toHarvest), `Đã thu ${toHarvest.length} ô`, 'harvest')} /></div>
+        <div className="pointer-events-auto"><ActionButton icon="item_fertilizer" label={`Mua phân · ${view.fertilizerPrice}`} count={view.inventory.fertilizer ?? 0} disabled={busy} onClick={() => act(() => buyFertilizer(token, 1), 'Đã mua 1 phân bón', 'cheer')} /></div>
+      </div>
+
+      {panel && (
+        <div className="absolute inset-y-14 left-2 right-[72px] z-[750] mx-auto max-w-[680px] overflow-y-auto rounded-2xl bg-white/95 p-3 shadow-2xl lg:inset-y-20" role="region" aria-label="Bảng">
+          <button type="button" className="sticky top-0 float-right grid size-9 cursor-pointer place-items-center rounded-full border-0 bg-slate-100 text-lg font-black" aria-label="Đóng" onClick={() => setPanel(null)}>×</button>
+          {panel === 'orders' && <OrdersTab token={token} view={view} progress={progress} busy={busy} run={act} setNote={setNote} />}
+          {panel === 'quests' && <QuestsTab token={token} view={view} progress={progress} busy={busy} run={act} setNote={setNote} />}
+          {panel === 'neighbors' && <NeighborsTab token={token} view={view} onChanged={load} />}
+          {panel === 'market' && (
+            <div className="space-y-3">
         <section className="rounded-2xl bg-white p-4 ring-1 ring-line" aria-label="Thùng ủ phân">
         <h2 className="m-0 flex items-center gap-2 text-lg font-black"><img src={farmImg('compost_bin')} alt="" className="h-10 w-14 object-contain" />Thùng ủ phân</h2>
       <div>
@@ -257,7 +272,8 @@ export default function FarmPage() {
       </button>
     </div>
         </section>
-        </div>
+            </div>
+          )}
         </div>
       )}
 
