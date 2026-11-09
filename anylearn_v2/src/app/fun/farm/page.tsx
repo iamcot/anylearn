@@ -416,7 +416,8 @@ export default function FarmPage() {
                   <li key={c.cropKey}>
                     <button type="button" disabled={c.locked || busy} onClick={() => plant(c)} className="flex min-h-14 w-full cursor-pointer items-center gap-3 rounded-xl border-0 bg-slate-50 p-2 text-left ring-1 ring-line disabled:opacity-50">
                       <span className="text-3xl" aria-hidden>{c.emoji}</span>
-                      <span className="flex-1"><b className="block text-sm">{c.name}</b><span className="text-xs text-muted">{formatWait(c.growMinutes * 60)} · tưới {c.waterNeeds} lần · {c.baseYield} quả</span></span>
+                      <span className="flex-1"><b className="block text-sm">{c.name}</b><span className="text-xs text-muted">{formatWait(c.growMinutes * 60)} · tưới {c.waterNeeds} lần · {c.baseYield} quả</span>
+<span className="block text-xs font-bold text-green-dark">Bán ~{view.market.prices.find(x => x.cropKey === c.cropKey)?.price ?? '?'} xu/quả · +{c.xp} XP</span></span>
                       <span className="text-xs font-extrabold">{c.locked ? `Cấp ${c.unlockLevel}` : have > 0 ? `Có ${have} hạt` : `${c.seedPrice} xu`}</span>
                     </button>
                   </li>
