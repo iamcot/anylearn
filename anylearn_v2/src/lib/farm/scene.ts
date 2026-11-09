@@ -63,13 +63,13 @@ export interface Spot { x: number; y: number; w: number }
 export function compostSpot(size: Size, region: Region): Spot {
   const w = Math.min(Math.max(size.w * 0.17, 84), 150)
   const x = Math.min(region.cx + region.aw * 0.36, region.x1 - w * 0.5)
-  return { x, y: region.y1 - region.ah * 0.2, w }
+  return { x, y: region.y1 - region.ah * 0.34, w }
 }
 
 /** The three slots for perennial trees: the empty lower left corner. */
 export function treeSpots(region: Region, tw: number): Spot[] {
-  const w = Math.min(Math.max(tw * 0.55, 40), 90)
-  return [0, 1, 2].map(i => ({ x: region.x0 + w * 0.6 + i * w * 1.05, y: region.y1 - w * 0.35 - (i === 1 ? w * 0.05 : 0), w }))
+  const w = Math.min(Math.max(Math.min(tw * 0.8, region.aw / 3.1), 56), 130)
+  return [0, 1, 2].map(i => ({ x: region.x0 + w * 0.55 + i * w * 0.98, y: region.y1 - w * 0.08 - (i === 1 ? w * 0.05 : 0), w }))
 }
 
 /** The smallest a soil tile may get before the garden grows past the screen (the player then pans around it). */
