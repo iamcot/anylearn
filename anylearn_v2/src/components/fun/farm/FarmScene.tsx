@@ -71,7 +71,7 @@ export default function FarmScene({ view, kind, tod, elapsed, selected, onTile, 
         const spriteH = spriteW * (341 / 512)
         const sel = selected === p.slot
         return (
-          <div key={p.slot} className="absolute" style={{ left: cq(left), top: cq(top), width: cq(tw), height: cq(th), zIndex: z }}>
+          <div key={p.slot} className="pointer-events-none absolute" style={{ left: cq(left), top: cq(top), width: cq(tw), height: cq(th), zIndex: z }}>
             <img src={plotImage(p)} alt="" className={`absolute inset-0 size-full object-contain transition-[filter] ${sel ? 'drop-shadow-[0_0_6px_rgba(255,255,255,1)]' : ''}`} draggable={false} />
             {p.phase !== 'empty' && (
               <div className="pointer-events-none absolute left-1/2" style={{ width: cq(spriteW), top: cq(th * 0.62 - spriteH), transform: 'translateX(-50%)' }}><div className={p.phase === 'ripe' ? 'animate-bounce [animation-duration:2.4s]' : ''}>
@@ -93,7 +93,7 @@ export default function FarmScene({ view, kind, tod, elapsed, selected, onTile, 
             {tag && (
               <span className={`pointer-events-none absolute left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full px-2 py-0.5 text-[0.85em] font-extrabold shadow ${tag.tone}`} style={{ top: cq(th * 0.66) }}>{tag.text}</span>
             )}
-            <button type="button" aria-label={`Ô ${p.slot + 1}${crop ? `, ${crop.name}` : ', trống'}`} onClick={() => onTile(p.slot)} className="absolute inset-0 cursor-pointer border-0 bg-transparent p-0" style={{ clipPath: DIAMOND }} />
+            <button type="button" aria-label={`Ô ${p.slot + 1}${crop ? `, ${crop.name}` : ', trống'}`} onClick={() => onTile(p.slot)} className="pointer-events-auto absolute inset-0 cursor-pointer border-0 bg-transparent p-0" style={{ clipPath: DIAMOND }} />
           </div>
         )
       })}
