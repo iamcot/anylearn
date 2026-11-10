@@ -1,0 +1,106 @@
+@host = http://localhost:8080/v2
+@token = {{$dotenv JWT_TOKEN}}
+@admin = {{$dotenv ADMIN_TOKEN}}
+
+### Nông trại anyLEARN (plan 22): the whole farm (plots, inventory, crops, market, profit room)
+GET {{host}}/api/farm
+Authorization: Bearer {{token}}
+
+### Plant (a starter seed is used first, otherwise the seed price is charged)
+POST {{host}}/api/farm/plant
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "slot": 0, "cropKey": "ca_rot_cau_vong" }
+
+### Water the given plots (only plants that are thirsty are watered)
+POST {{host}}/api/farm/water
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "slots": [0, 1, 2, 3] }
+
+### Fertilize one plot (+1 unit)
+POST {{host}}/api/farm/fertilize
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "slot": 0 }
+
+### Buy fertilizer
+POST {{host}}/api/farm/buy-fertilizer
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "qty": 2 }
+
+### Harvest ripe plots
+POST {{host}}/api/farm/harvest
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "slots": [0, 1, 2, 3] }
+
+### Sell crops (paid only up to the daily / weekly net-profit cap)
+POST {{host}}/api/farm/sell
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "items": { "ca_rot_cau_vong": 4 } }
+
+### Admin: settings, crops
+GET {{host}}/admin/farm/settings
+Authorization: Bearer {{admin}}
+
+###
+PUT {{host}}/admin/farm/settings
+Authorization: Bearer {{admin}}
+Content-Type: application/json
+
+{ "numbers": { "weekly_profit_cap": 70 } }
+
+###
+GET {{host}}/admin/farm/crops
+Authorization: Bearer {{admin}}
+
+###
+PUT {{host}}/admin/farm/crops/ca_rot_cau_vong
+Authorization: Bearer {{admin}}
+Content-Type: application/json
+
+{ "unit_price": 2, "seed_price": 7 }
+
+### Progress: orders, daily tasks, quest path, chapters, compost (22.3 to 22.6)
+GET {{host}}/api/farm/progress
+Authorization: Bearer {{token}}
+
+###
+POST {{host}}/api/farm/level-up
+Authorization: Bearer {{token}}
+
+###
+POST {{host}}/api/farm/expand
+Authorization: Bearer {{token}}
+
+###
+POST {{host}}/api/farm/compost
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "cropKey": "rau_mam" }
+
+###
+POST {{host}}/api/farm/compost/collect
+Authorization: Bearer {{token}}
+
+###
+POST {{host}}/api/farm/path/0/claim
+Authorization: Bearer {{token}}
+
+### Leo's gift: today's Knowledge seed for people with an order, attendance or a finished video lesson
+POST {{host}}/api/farm/gift
+Authorization: Bearer {{token}}
+
+### Player-to-player calls answer "tạm tắt" while farm/social_enabled = 0
+GET {{host}}/api/farm/neighbors
+Authorization: Bearer {{token}}

@@ -1,0 +1,233 @@
+package com.anylearn.backend.controller.fun;
+
+import com.anylearn.backend.dto.response.ApiResponse;
+import com.anylearn.backend.entity.User;
+import com.anylearn.backend.service.farm.FarmProgressService;
+import com.anylearn.backend.service.farm.FarmService;
+import com.anylearn.backend.service.farm.FarmSettings;
+import com.anylearn.backend.service.farm.FarmTreeService;
+import com.anylearn.backend.service.farm.FarmSocialService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
+
+/** Nông trại anyLEARN (plan 22). Login needed; the path follows the access mode of the game `farm`. */
+@RestController
+@RequestMapping("/api/farm")
+@RequiredArgsConstructor
+public class FarmController {
+
+    private final FarmService farm;
+    private final FarmProgressService progress;
+    private final FarmSocialService social;
+    private final FarmSettings settings;
+    private final FarmTreeService trees;
+
+    /** Player-to-player features (neighbours, helping, stealing) are paused unless the admin switches `social_enabled` on. */
+    private ApiResponse<?> runSocial(User user, Supplier<Object> action) {
+        if (user != null && settings.n("social_enabled") != 1) return ApiResponse.fail("Tính năng tương tác giữa người chơi đang tạm tắt");
+        return run(user, action);
+    }
+
+    private ApiResponse<?> run(User user, Supplier<Object> action) {
+        if (user == null) return ApiResponse.fail("Unauthorized");
+        // Two requests of a new player (the garden and the progress call) can create the profile row at the same time;
+        // MySQL then kills one of them as a deadlock victim. The loser's transaction is already rolled back, so asking again is safe.
+        for (int attempt = 1; ; attempt++) {
+            try {
+                return ApiResponse.ok(action.get());
+            } catch (IllegalStateException e) {
+                return ApiResponse.fail(e.getMessage());
+            } catch (org.springframework.dao.CannotAcquireLockException | org.springframework.dao.DeadlockLoserDataAccessException e) {
+                if (attempt >= 3) throw e;
+            }
+        }
+    }
+
+    private static List<Integer> slots(Map<String, Object> body) {
+        if (!(body.get("slots") instanceof List<?> list)) return List.of();
+        return list.stream().filter(o -> o instanceof Number).map(o -> ((Number) o).intValue()).toList();
+    }
+
+    /** Admins only: age the planted crops to test the growth stages. */
+    @PostMapping("/debug/advance")
+    public ApiResponse<?> debugAdvance(@AuthenticationPrincipal User user, @RequestBody Map<String, Object> body) {
+        if (user == null || !"admin".equals(user.getRole())) return ApiResponse.fail("Chỉ dành cho admin");
+        if ("new-orders".equals(body.get("kind"))) return run(user, () -> farm.debugNewOrders(user.getId()));
+        if ("orders".equals(body.get("kind"))) return run(user, () -> farm.debugFillOrders(user.getId()));
+        Integer slot = body.get("slot") instanceof Number n ? n.intValue() : null;
+        int minutes = ((Number) body.getOrDefault("minutes", 10)).intValue();
+        return run(user, () -> farm.debugAdvance(user.getId(), slot, minutes));
+    }
+
+    @GetMapping
+    public ApiResponse<?> view(@AuthenticationPrincipal User user) {
+        return run(user, () -> farm.view(user.getId()));
+    }
+
+    @PostMapping("/plant")
+    public ApiResponse<?> plant(@AuthenticationPrincipal User user, @RequestBody Map<String, Object> body) {
+        return run(user, () -> farm.plant(user.getId(), ((Number) body.getOrDefault("slot", -1)).intValue(), String.valueOf(body.get("cropKey"))));
+    }
+
+    @PostMapping("/water")
+    public ApiResponse<?> water(@AuthenticationPrincipal User user, @RequestBody Map<String, Object> body) {
+        return run(user, () -> farm.water(user.getId(), slots(body)));
+    }
+
+    @PostMapping("/fertilize")
+    public ApiResponse<?> fertilize(@AuthenticationPrincipal User user, @RequestBody Map<String, Object> body) {
+        return run(user, () -> farm.fertilize(user.getId(), ((Number) body.getOrDefault("slot", -1)).intValue()));
+    }
+
+    @PostMapping("/buy-fertilizer")
+    public ApiResponse<?> buyFertilizer(@AuthenticationPrincipal User user, @RequestBody Map<String, Object> body) {
+        return run(user, () -> farm.buyFertilizer(user.getId(), ((Number) body.getOrDefault("qty", 1)).intValue()));
+    }
+
+    @PostMapping("/harvest")
+    public ApiResponse<?> harvest(@AuthenticationPrincipal User user, @RequestBody Map<String, Object> body) {
+        return run(user, () -> farm.harvest(user.getId(), slots(body)));
+    }
+
+    @PostMapping("/sell")
+    public ApiResponse<?> sell(@AuthenticationPrincipal User user, @RequestBody Map<String, Object> body) {
+        return run(user, () -> {
+            Map<String, Integer> items = new java.util.LinkedHashMap<>();
+            if (body.get("items") instanceof Map<?, ?> m) m.forEach((k, v) -> { if (v instanceof Number n) items.put(String.valueOf(k), n.intValue()); });
+            return farm.sell(user.getId(), items);
+        });
+    }
+
+    private static long num(Map<String, Object> body, String key) {
+        return body.get(key) instanceof Number n ? n.longValue() : -1;
+    }
+
+    // ---- 22.3: compost, plots, orders, tasks, chapters ----
+
+    @GetMapping("/progress")
+    public ApiResponse<?> progress(@AuthenticationPrincipal User user) {
+        return run(user, () -> progress.progress(user.getId()));
+    }
+
+    @PostMapping("/compost")
+    public ApiResponse<?> compost(@AuthenticationPrincipal User user, @RequestBody Map<String, Object> body) {
+        return run(user, () -> progress.startCompost(user.getId(), String.valueOf(body.get("cropKey"))));
+    }
+
+    @PostMapping("/compost/collect")
+    public ApiResponse<?> collectCompost(@AuthenticationPrincipal User user) {
+        return run(user, () -> progress.collectCompost(user.getId()));
+    }
+
+    @PostMapping("/expand")
+    public ApiResponse<?> expand(@AuthenticationPrincipal User user) {
+        return run(user, () -> progress.expand(user.getId()));
+    }
+
+    @PostMapping("/orders/{id}/deliver")
+    public ApiResponse<?> deliver(@AuthenticationPrincipal User user, @PathVariable long id) {
+        return run(user, () -> progress.deliver(user.getId(), id));
+    }
+
+    @PostMapping("/orders/{id}/skip")
+    public ApiResponse<?> skip(@AuthenticationPrincipal User user, @PathVariable long id) {
+        return run(user, () -> progress.skipOrder(user.getId(), id));
+    }
+
+    @PostMapping("/gift")
+    public ApiResponse<?> gift(@AuthenticationPrincipal User user) {
+        return run(user, () -> progress.gift(user.getId()));
+    }
+
+    @PostMapping("/tree/plant")
+    public ApiResponse<?> plantTree(@AuthenticationPrincipal User user, @RequestBody Map<String, Object> body) {
+        return run(user, () -> trees.plant(user.getId(), (int) num(body, "slot"), String.valueOf(body.get("cropKey"))));
+    }
+
+    @PostMapping("/tree/harvest")
+    public ApiResponse<?> harvestTree(@AuthenticationPrincipal User user, @RequestBody Map<String, Object> body) {
+        return run(user, () -> trees.harvest(user.getId(), (int) num(body, "slot")));
+    }
+
+    @PostMapping("/tree/remove")
+    public ApiResponse<?> removeTree(@AuthenticationPrincipal User user, @RequestBody Map<String, Object> body) {
+        return run(user, () -> trees.remove(user.getId(), (int) num(body, "slot")));
+    }
+
+    @PostMapping("/level-up")
+    public ApiResponse<?> levelUp(@AuthenticationPrincipal User user) {
+        return run(user, () -> farm.levelUp(user.getId()));
+    }
+
+    @PostMapping("/path/{index}/claim")
+    public ApiResponse<?> claimPath(@AuthenticationPrincipal User user, @PathVariable int index, @RequestParam(required = false) Integer level) {
+        return run(user, () -> progress.claimPath(user.getId(), index, level));
+    }
+
+    @PostMapping("/challenges/{key}/claim")
+    public ApiResponse<?> claimChallenge(@AuthenticationPrincipal User user, @PathVariable String key) {
+        return run(user, () -> progress.claimChallenge(user.getId(), key));
+    }
+
+    @PostMapping("/tasks/{index}/claim")
+    public ApiResponse<?> claimTask(@AuthenticationPrincipal User user, @PathVariable int index) {
+        return run(user, () -> progress.claimTask(user.getId(), index));
+    }
+
+    @PostMapping("/tasks/box")
+    public ApiResponse<?> claimBox(@AuthenticationPrincipal User user) {
+        return run(user, () -> progress.claimTaskBox(user.getId()));
+    }
+
+    @PostMapping("/chapters/{no}/claim")
+    public ApiResponse<?> claimChapter(@AuthenticationPrincipal User user, @PathVariable int no) {
+        return run(user, () -> progress.claimChapter(user.getId(), no));
+    }
+
+    // ---- 22.5: neighbours ----
+
+    @GetMapping("/neighbors")
+    public ApiResponse<?> neighbors(@AuthenticationPrincipal User user) {
+        return runSocial(user, () -> Map.of("neighbors", social.list(user.getId()), "suggestions", social.suggestions(user.getId()), "today", social.todaySummary(user.getId())));
+    }
+
+    @PostMapping("/neighbors")
+    public ApiResponse<?> addNeighbor(@AuthenticationPrincipal User user, @RequestBody Map<String, Object> body) {
+        return runSocial(user, () -> social.add(user.getId(), String.valueOf(body.get("code"))));
+    }
+
+    @DeleteMapping("/neighbors/{id}")
+    public ApiResponse<?> removeNeighbor(@AuthenticationPrincipal User user, @PathVariable long id) {
+        return runSocial(user, () -> social.remove(user.getId(), id));
+    }
+
+    @GetMapping("/visit/{ownerId}")
+    public ApiResponse<?> visit(@AuthenticationPrincipal User user, @PathVariable long ownerId) {
+        return runSocial(user, () -> social.visit(user.getId(), ownerId));
+    }
+
+    @PostMapping("/visit/{ownerId}/water")
+    public ApiResponse<?> waterFor(@AuthenticationPrincipal User user, @PathVariable long ownerId, @RequestBody Map<String, Object> body) {
+        return runSocial(user, () -> social.water(user.getId(), ownerId, slots(body)));
+    }
+
+    @PostMapping("/visit/{ownerId}/fertilize")
+    public ApiResponse<?> fertilizeFor(@AuthenticationPrincipal User user, @PathVariable long ownerId, @RequestBody Map<String, Object> body) {
+        return runSocial(user, () -> social.fertilize(user.getId(), ownerId, (int) num(body, "slot")));
+    }
+
+    @PostMapping("/visit/{ownerId}/steal")
+    public ApiResponse<?> steal(@AuthenticationPrincipal User user, @PathVariable long ownerId, @RequestBody Map<String, Object> body) {
+        return runSocial(user, () -> social.steal(user.getId(), ownerId, (int) num(body, "slot")));
+    }
+
+    @PutMapping("/prefs")
+    public ApiResponse<?> prefs(@AuthenticationPrincipal User user, @RequestBody Map<String, Object> body) {
+        return run(user, () -> social.setAllowSteal(user.getId(), !Boolean.FALSE.equals(body.get("allowSteal"))));
+    }
+}

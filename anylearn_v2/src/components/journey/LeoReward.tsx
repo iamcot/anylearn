@@ -44,7 +44,7 @@ export default function LeoReward() {
   const coins = current.coins ?? 0
   return (
     <button type="button" onClick={shiftReward} aria-label="Đóng"
-      className="fixed inset-0 z-[90] flex cursor-pointer items-center justify-center border-0 bg-black/45 p-4">
+      className="fixed inset-0 z-[1100] flex cursor-pointer items-center justify-center border-0 bg-black/45 p-4">
       <div key={current.key} className="relative w-full max-w-[320px]">
         {/* the sun sits behind the card, so its rays rise above the card's top edge around Leo */}
         <div className="pointer-events-none absolute left-1/2 top-0 size-72 -translate-x-1/2 -translate-y-1/2" aria-hidden>

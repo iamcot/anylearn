@@ -89,6 +89,8 @@ public class JourneyService {
     private Set<String> enabledKeys() {
         Set<String> out = new HashSet<>();
         for (JourneyRules.Def d : JourneyRules.DEFS) if (settings.on(d.key() + "_on")) out.add(d.key());
+        // "Đổi 1 voucher bằng Leo Xu" only exists while the shop sells vouchers for coins
+        if (vouchers == null || !vouchers.coinShopOpen()) out.remove("leo_voucher");
         return out;
     }
 

@@ -36,7 +36,7 @@ export default function FunPage() {
     if (!token) return
     getFunAccess(token).then(({ data: a }) => {
       // an old server without the call leaves everything open
-      const open = a ?? { checkin: true, quiz: true, sticker: true, explore: true, arena: true }
+      const open = a ?? { checkin: true, quiz: true, sticker: true, explore: true, arena: true, farm: true }
       setAccess(open)
       if (!open.checkin) return
       getCheckin(token).then(({ data, error: err }) => {
@@ -75,7 +75,7 @@ export default function FunPage() {
       {token && status && <MyAchievements key={claims} token={token} />}
       {token && <CollectVouchers place="fun" className="mt-5" />}
 
-      {access && !access.checkin && !access.quiz && !access.sticker && !access.explore && !access.arena && <p className="mt-4 rounded-2xl bg-white p-4 text-center text-sm text-muted ring-1 ring-line">Vui học đang thử nghiệm với một nhóm nhỏ, bạn sẽ được chơi sớm thôi!</p>}
+      {access && !access.checkin && !access.quiz && !access.sticker && !access.explore && !access.arena && !access.farm && <p className="mt-4 rounded-2xl bg-white p-4 text-center text-sm text-muted ring-1 ring-line">Vui học đang thử nghiệm với một nhóm nhỏ, bạn sẽ được chơi sớm thôi!</p>}
 
       {token && access && access.explore !== false && <ExploreBrowser token={token} />}
     </div>

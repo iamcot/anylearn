@@ -55,6 +55,8 @@ export interface Reward {
   achievement?: string | null
   vouchers?: number
   chapter?: number
+  /** Extra gift lines shown as they are (for example the farm's XP and fertilizer). */
+  extra?: string[]
 }
 
 export async function getJourney(token: string | null): Promise<Journey | null> {

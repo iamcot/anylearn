@@ -14,6 +14,8 @@ export const COIN_SOURCE_LABEL: Record<string, string> = {
   share: 'Thưởng chia sẻ thành tích',
   invite: 'Thưởng mời bạn',
   arena: 'Thưởng Đấu trường Leo',
+  farm_sell: 'Bán nông sản ở Nông trại',
+  farm_seed: 'Mua hạt và phân bón',
 }
 
 export function coinSourceLabel(source: string): string {

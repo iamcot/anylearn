@@ -32,6 +32,7 @@ export function rewardLines(r: Reward, coinName: string): { title: string; gifts
   if (r.points && r.points > 0) gifts.push(`+${r.points} anyPoint`)
   if (r.sticker) gifts.push(`Sticker ${r.sticker.name ?? 'mới'}`)
   if (r.foundation && r.foundation > 0) gifts.push(`Góp ${r.foundationLabel ?? 'gạch'} cho anyLEARN Foundation`)
+  if (r.extra) gifts.push(...r.extra)
   if (r.achievement) gifts.push('Huy hiệu thành tích mới')
   if (r.vouchers && r.vouchers > 0) gifts.push(r.vouchers > 1 ? `${r.vouchers} voucher` : '1 voucher')
   const title = r.kind === 'chapter' ? `Hoàn thành chương! ${r.label.replace(/^Xong chương \d+: /, '')}`

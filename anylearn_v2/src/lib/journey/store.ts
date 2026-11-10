@@ -49,3 +49,10 @@ export function setGuideOff(off: boolean) {
   try { if (off) localStorage.setItem(GUIDE_OFF_KEY, '1'); else localStorage.removeItem(GUIDE_OFF_KEY) } catch { /* private mode */ }
   guideOff.set(off)
 }
+
+/** Bumped after an order is placed or paid so Leo's farm gift is asked for at once. */
+export const farmGiftNudge = createStore<number>(0)
+
+export function nudgeFarmGift() {
+  farmGiftNudge.set(farmGiftNudge.get() + 1)
+}

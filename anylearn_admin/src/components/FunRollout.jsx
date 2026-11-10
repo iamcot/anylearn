@@ -3,7 +3,7 @@ import { useEffect } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import client from '../api/client'
 
-const GAMES = { checkin: 'Điểm danh', quiz: 'Quiz Leo rank', sticker: 'Sticker', explore: 'Khám phá', arena: 'Đấu trường Leo' }
+const GAMES = { checkin: 'Điểm danh', quiz: 'Quiz Leo rank', sticker: 'Sticker', explore: 'Khám phá', arena: 'Đấu trường Leo', farm: 'Nông trại anyLEARN' }
 const MODES = [
   { value: 'all', label: 'Mở cho mọi người' },
   { value: 'testers', label: 'Chỉ nhóm thử' },

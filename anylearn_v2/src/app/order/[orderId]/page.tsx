@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import OrderFoundationNote from '@/components/foundation/OrderFoundationNote'
 import { orderRewards } from '@/lib/journey/rules'
-import { enqueueRewards, nudgeJourneyClaim } from '@/lib/journey/store'
+import { enqueueRewards, nudgeFarmGift, nudgeJourneyClaim } from '@/lib/journey/store'
 import { useAuth } from '@/context/AuthContext'
 import { useRouter, useParams, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
@@ -159,6 +159,15 @@ export default function OrderPage() {
     enqueueRewards(orderRewards(order.rewards))
     nudgeJourneyClaim()
   }, [isApproved, order?.rewards, orderId])
+
+  // Right after an order is placed, Leo brings the farm gift (the server decides if one is due today).
+  const hasOrder = !!order
+  useEffect(() => {
+    if (!hasOrder) return
+    const key = `order-gift:${orderId}`
+    try { if (sessionStorage.getItem(key)) return; sessionStorage.setItem(key, '1') } catch { /* private mode */ }
+    nudgeFarmGift()
+  }, [hasOrder, orderId])
 
   if (isAuthLoading) return <FormPageSkeleton />
   if (!user) return null

@@ -146,6 +146,7 @@ public class ShopService {
         List<Map<String, Object>> out = new ArrayList<>();
         long balance = coins.balance(userId);
         boolean on = shop.on(ShopRules.VOUCHER);
+        if (!on) return out; // switched off = not listed at all (not a greyed-out offer)
         for (VoucherService.GroupRow g : vouchers.coinGroups()) {
             Map<String, Object> offer = vouchers.coinOffer(g, userId, balance, funSettings.coinName());
             Map<String, Object> m = entry(ShopRules.voucherKey(g.id()), "voucher", "voucher", g.displayTitle(),
