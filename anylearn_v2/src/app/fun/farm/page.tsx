@@ -2,6 +2,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import NotificationBell from '@/components/header/NotificationBell'
@@ -19,6 +20,7 @@ import NpcSays from '@/components/fun/farm/NpcSays'
 import PanWorld from '@/components/fun/farm/PanWorld'
 import SeedBag from '@/components/fun/farm/SeedBag'
 import { CROPS_WITH_ART, farmImg, timeOfDay } from '@/lib/farm/art'
+import { getFunAccess } from '@/lib/api/fun'
 import { worldSize, type SceneKind, type Size } from '@/lib/farm/scene'
 import { capUsedPercent, formatWait, isRipe, sellable, seedCount, slotsToHarvest, slotsToWater } from '@/lib/farm/rules'
 
@@ -64,6 +66,12 @@ function ActionButton({ icon, label, count, disabled, onClick }: { icon: string;
 
 export default function FarmPage() {
   const { token, user } = useAuth()
+  const router = useRouter()
+  // closed in the back office: nobody should land here from an old link or bookmark
+  useEffect(() => {
+    if (!token) return
+    void getFunAccess(token).then(a => { if (a.data?.farm === false) router.replace('/fun') }).catch(() => {})
+  }, [token, router])
   const { unreadCount, setUnreadCount } = useNotifications()
   const [view, setView] = useState<FarmView | null>(null)
   const [progress, setProgress] = useState<FarmProgress | null>(null)
