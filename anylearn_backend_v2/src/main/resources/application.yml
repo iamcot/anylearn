@@ -18,6 +18,8 @@ spring:
   flyway:
     enabled: true
     baseline-on-migrate: true
+    # V83/V84 (farm) were merged after V85 (manual orders) had already run in production
+    out-of-order: true
     locations: classpath:db/migration
   jackson:
     serialization:
