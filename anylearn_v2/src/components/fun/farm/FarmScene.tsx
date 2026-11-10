@@ -143,7 +143,8 @@ export default function FarmScene({ view, progress, size, kind, tod, elapsed, se
             {p.phase === 'thirsty' && <Hint img="tool_can_1" x={c.x} y={topOfPlant} w={Math.max(tw * 0.22, 26)} />}
             {feed && <Hint img="item_fertilizer" x={c.x} y={topOfPlant} w={Math.max(tw * 0.2, 24)} />}
             {tag && (
-              <span className={`pointer-events-none absolute -translate-x-1/2 ${pill} ${tag.tone}`} style={{ left: px(c.x), top: px(c.y + th * 0.16), zIndex: OVERLAY_Z + 1 }}>{tag.text}</span>
+              <span className={`pointer-events-none absolute -translate-x-1/2 whitespace-nowrap rounded-full font-extrabold leading-none shadow ${tag.tone}`}
+                style={{ left: px(c.x), top: px(c.y + th * 0.2), zIndex: OVERLAY_Z + 1, fontSize: px(Math.min(Math.max(tw * 0.06, 9), 13)), padding: `${px(Math.max(tw * 0.014, 2))} ${px(Math.max(tw * 0.025, 5))}` }}>{tag.text}</span>
             )}
           </div>
         )
