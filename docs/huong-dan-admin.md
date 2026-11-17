@@ -95,6 +95,10 @@ Một khóa chỉ hiện cho khách (tìm kiếm, trang chủ, danh mục, bộ 
 
 Thiếu một điều kiện thì khóa biến khỏi mọi danh sách; mở link trực tiếp cũng báo "Trang không tồn tại". Ngoại lệ: admin, chính đối tác đó và người đã mua khóa vẫn mở được trang khóa. Bật hoặc tắt công tắc Ký HĐ, hoặc đổi trạng thái đối tác, thì các khóa của đối tác được cập nhật lại trong tìm kiếm trong vài phút (không cần bấm "Cập nhật chỉ mục ngay"). **Trước khi triển khai bản này, kiểm tra công tắc Ký HĐ của các đối tác chính, nếu không toàn bộ khóa của họ sẽ biến mất.**
 
+Xem nhanh ngay trên danh sách **Khóa học**:
+- Cột **FE**: con mắt xanh = khóa đang hiện cho khách; con mắt gạch đỏ = chưa hiện, rê chuột để xem lý do (có thể nhiều lý do cùng lúc).
+- Cột **Đối tác**, trước tên: chấm **xanh** = đối tác đang hoạt động, chấm **đỏ** = chưa kích hoạt. Icon **hợp đồng** xanh = đã ký (đã duyệt), **cam** = hợp đồng đã ký nhưng chưa duyệt (khóa vẫn chưa hiện), **xám** = chưa ký. Sửa hai việc này ở trang **Thành viên** (trạng thái và công tắc Ký HĐ).
+
 ### 3.1 Hình thức học và địa chỉ bắt buộc
 
 Hình thức: Học tại trường, Học online, Mã code, Ngoại khóa, Video, Mầm non.

@@ -2,6 +2,9 @@ package com.anylearn.backend.service.search;
 
 import com.anylearn.backend.entity.Contract;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * What a visitor may see: a course is shown when it is switched on (platform and partner both), and its partner is an
  * active member with a signed contract. Every public list uses this rule (the SQL text is for queries, the methods for code).
@@ -27,5 +30,24 @@ public final class ItemVisibility {
 
     public static boolean isVisible(Byte status, Byte userStatus, Byte authorStatus, Byte authorIsSigned) {
         return isItemOn(status, userStatus) && isAuthorLive(authorStatus, authorIsSigned);
+    }
+
+    /** Reason codes, in the order an admin would fix them; empty = visitors see the course. */
+    public static final String ITEM_OFF = "item_off";
+    public static final String PARTNER_PENDING = "partner_pending";
+    public static final String PARTNER_INACTIVE = "partner_inactive";
+    public static final String CONTRACT_UNAPPROVED = "contract_unapproved";
+    public static final String CONTRACT_MISSING = "contract_missing";
+
+    /** Why visitors do not see a course (back office list); same rule as {@link #isVisible}. */
+    public static List<String> hiddenReasons(Byte status, Byte userStatus, Byte authorStatus, Byte authorIsSigned) {
+        List<String> reasons = new ArrayList<>();
+        if (status == null || status != 1) reasons.add(ITEM_OFF);
+        if (userStatus == null || userStatus != 1) reasons.add(PARTNER_PENDING);
+        if (authorStatus == null || authorStatus != 1) reasons.add(PARTNER_INACTIVE);
+        if (authorIsSigned == null || authorIsSigned != Contract.APPROVED) {
+            reasons.add(authorIsSigned != null && authorIsSigned == Contract.SIGNED ? CONTRACT_UNAPPROVED : CONTRACT_MISSING);
+        }
+        return reasons;
     }
 }

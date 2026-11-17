@@ -4,6 +4,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import client from '../api/client'
 import { fmtVND } from '../utils/format'
+import { PartnerStatus, VisibilityIcon } from '../components/PartnerStatus'
 
 export default function Items() {
   const { message } = App.useApp()
@@ -121,10 +122,17 @@ export default function Items() {
         />
       ),
     },
+    {
+      title: <Tooltip title="Hiện ngoài trang? Rê chuột để xem lý do"><span>FE</span></Tooltip>,
+      dataIndex: 'hiddenReasons', width: 50, align: 'center',
+      render: v => <VisibilityIcon reasons={v} />,
+    },
     { title: 'Tiêu đề', dataIndex: 'title', ellipsis: true,
       render: (text) => <Typography.Text>{text}</Typography.Text>,
     },
-    { title: 'Đối tác', dataIndex: 'ownerName' },
+    { title: 'Đối tác', dataIndex: 'ownerName',
+      render: (v, row) => <PartnerStatus name={v} status={row.ownerStatus} signed={row.ownerSigned} />,
+    },
     { title: 'Học phí', dataIndex: 'price', width: 120, render: v => fmtVND(v) },
     { title: 'Đã bán', dataIndex: 'soldCount', width: 75 },
     {
