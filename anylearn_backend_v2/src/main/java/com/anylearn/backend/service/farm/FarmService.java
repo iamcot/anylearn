@@ -80,6 +80,12 @@ public class FarmService {
     void spend(long userId, int amount, String detail) {
         if (amount <= 0) return;
         if (!coins.debit(userId, amount, CoinService.SOURCE_FARM_SEED, detail)) throw new IllegalStateException("Bạn chưa đủ " + funSettings.coinName() + ".");
+        recordSpent(userId, amount);
+    }
+
+    /** Counts coins the player put into the farm today, so the profit cap measures net profit after every farm cost (seeds, fertilizer, plots). */
+    void recordSpent(long userId, int amount) {
+        if (amount <= 0) return;
         jdbc.update("INSERT INTO farm_day_stats (user_id, day, coins_spent) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE coins_spent = coins_spent + VALUES(coins_spent)", userId, Date(today()), amount);
     }
 
