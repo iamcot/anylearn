@@ -1,5 +1,6 @@
 package com.anylearn.backend.controller.admin;
 
+import com.anylearn.backend.service.search.ItemVisibility;
 import com.anylearn.backend.service.location.ItemAddressRules;
 import com.anylearn.backend.service.partners.FollowService;
 import com.anylearn.backend.service.search.ItemAttributeGaps;
@@ -106,7 +107,8 @@ public class AdminItemController {
                   "(SELECT COUNT(DISTINCT od.user_id) FROM order_details od WHERE od.item_id = i.id) AS soldCount, " +
                   "i.popularity_score, " +
                   "(SELECT COUNT(*) FROM item_user_actions iua WHERE iua.item_id = i.id AND iua.type = 'fav' AND iua.value = '1') AS favCount, " +
-                  "(SELECT AVG(CAST(iua2.value AS DECIMAL)) FROM item_user_actions iua2 WHERE iua2.item_id = i.id AND iua2.type = 'rating') AS avgRating " +
+                  "(SELECT AVG(CAST(iua2.value AS DECIMAL)) FROM item_user_actions iua2 WHERE iua2.item_id = i.id AND iua2.type = 'rating') AS avgRating, " +
+                  "u.id AS ownerId, u.status AS ownerStatus, u.is_signed AS ownerSigned " +
                   "FROM items i LEFT JOIN users u ON i.user_id = u.id WHERE i.is_test = 0" +
                   (status != null ? " AND i.status=" + status : "") +
                   (userStatus != null ? " AND i.user_status=" + userStatus : "") +
@@ -130,10 +132,20 @@ public class AdminItemController {
             m.put("popularityScore", r[12] != null ? r[12] : 0);
             m.put("favCount", r[13] != null ? r[13] : 0);
             m.put("avgRating", r[14] != null ? ((Number) r[14]).doubleValue() : null);
+            Byte ownerStatus = toByte(r[16]), ownerSigned = toByte(r[17]);
+            m.put("ownerId", r[15]);
+            m.put("ownerStatus", ownerStatus);
+            m.put("ownerSigned", ownerSigned);
+            m.put("hiddenReasons", ItemVisibility.hiddenReasons(toByte(r[4]), toByte(r[5]), ownerStatus, ownerSigned));
             return m;
         }).toList();
 
         return ApiResponse.ok(Map.of("content", content, "total", buildTotal(status, userStatus, categoryId, userId, q), "page", page, "size", size));
+    }
+
+    private static Byte toByte(Object v) {
+        if (v instanceof Boolean b) return (byte) (b ? 1 : 0);
+        return v instanceof Number n ? n.byteValue() : null;
     }
 
     private long buildTotal(Integer status, Integer userStatus, Long categoryId, Long userId, String q) {
