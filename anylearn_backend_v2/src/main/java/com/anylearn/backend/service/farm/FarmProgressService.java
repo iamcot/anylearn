@@ -192,6 +192,7 @@ public class FarmProgressService {
         if (price < 0 || plots >= FarmGameRules.MAX_PLOTS) throw new IllegalStateException("Bạn đã mở hết ô đất.");
         if (((Number) profile.get("level")).intValue() < FarmGameRules.plotLevel(plots)) throw new IllegalStateException("Cần đạt cấp " + FarmGameRules.plotLevel(plots) + " để mở ô này.");
         if (!coins.debit(userId, price, CoinService.SOURCE_FARM_EXPAND, "Mở ô đất " + (plots + 1))) throw new IllegalStateException("Bạn chưa đủ " + funSettings.coinName() + ".");
+        farm.recordSpent(userId, price); // a new plot is a farm cost like seeds: the profit cap lets the player earn it back
         jdbc.update("UPDATE farm_profiles SET plots = plots + 1 WHERE user_id = ?", userId);
         events.record(userId, GameEventService.GAME_FARM, "expand", String.valueOf(plots + 1), 0);
         return Map.of("plots", plots + 1);

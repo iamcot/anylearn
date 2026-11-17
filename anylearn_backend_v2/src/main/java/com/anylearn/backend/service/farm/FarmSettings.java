@@ -40,6 +40,7 @@ public class FarmSettings {
         f("same_crop_full_units", "Số quả cùng loại bán đủ giá mỗi ngày", "Chợ", 12, 1, 1000);
         f("same_crop_step1", "Giá % cho lượt bán thứ hai", "Chợ", 70, 0, 100);
         f("same_crop_step2", "Giá % cho các quả sau đó", "Chợ", 40, 0, 100);
+        f("profit_cap_on", "Bật trần lãi (0 = tạm tắt, chợ và đơn hàng trả không giới hạn)", "Trần lãi (chống lạm phát)", 1, 0, 1);
         f("profit_cap_base", "Trần lãi ròng mỗi ngày: mức nền (Leo Xu)", "Trần lãi (chống lạm phát)", 8, 0, 1000);
         f("profit_cap_per_2_levels", "Cộng thêm mỗi 2 cấp vườn", "Trần lãi (chống lạm phát)", 1, 0, 100);
         f("profit_cap_max", "Trần lãi ròng mỗi ngày: tối đa", "Trần lãi (chống lạm phát)", 18, 0, 1000);

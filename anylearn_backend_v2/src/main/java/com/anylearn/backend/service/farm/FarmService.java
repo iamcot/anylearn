@@ -80,6 +80,12 @@ public class FarmService {
     void spend(long userId, int amount, String detail) {
         if (amount <= 0) return;
         if (!coins.debit(userId, amount, CoinService.SOURCE_FARM_SEED, detail)) throw new IllegalStateException("Bạn chưa đủ " + funSettings.coinName() + ".");
+        recordSpent(userId, amount);
+    }
+
+    /** Counts coins the player put into the farm today, so the profit cap measures net profit after every farm cost (seeds, fertilizer, plots). */
+    void recordSpent(long userId, int amount) {
+        if (amount <= 0) return;
         jdbc.update("INSERT INTO farm_day_stats (user_id, day, coins_spent) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE coins_spent = coins_spent + VALUES(coins_spent)", userId, Date(today()), amount);
     }
 
@@ -254,7 +260,11 @@ public class FarmService {
         return v == null ? 0 : v;
     }
 
+    /** True while the daily and weekly profit cap is on (the back office can switch it off for a while). */
+    boolean capOn() { return settings.n("profit_cap_on") != 0; }
+
     int room(long userId, int level) {
+        if (!capOn()) return 1_000_000;
         LocalDate day = today();
         int dayCap = FarmRules.dailyProfitCap(settings.n("profit_cap_base"), settings.n("profit_cap_per_2_levels"), settings.n("profit_cap_max"), level);
         int dayNet = netOn(userId, day, day.plusDays(1));
@@ -283,6 +293,7 @@ public class FarmService {
         out.put("room", room(userId, level));
         out.put("dayCap", dayCap);
         out.put("weekCap", settings.n("weekly_profit_cap"));
+        out.put("capOn", capOn());
         return out;
     }
 
