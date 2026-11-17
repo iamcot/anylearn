@@ -18,7 +18,7 @@ export interface FarmPrice { cropKey: string; price: number; basePrice: number; 
 export interface FarmView {
   serverNow: string; coinName: string; balance: number; level: number; xp: number; xpIntoLevel: number; xpForNext: number; levelReady?: boolean; levelCoinsNext?: number
   plots: FarmPlot[]; inventory: Record<string, number>; crops: FarmCrop[]; fertilizerPrice: number
-  market: { prices: FarmPrice[]; room: number; dayCap: number; weekCap: number }
+  market: { prices: FarmPrice[]; room: number; dayCap: number; weekCap: number; capOn?: boolean }
   allowSteal: boolean; nextPlotPrice: number; nextPlotLevel: number
 }
 

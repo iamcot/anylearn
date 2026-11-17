@@ -260,7 +260,11 @@ public class FarmService {
         return v == null ? 0 : v;
     }
 
+    /** True while the daily and weekly profit cap is on (the back office can switch it off for a while). */
+    boolean capOn() { return settings.n("profit_cap_on") != 0; }
+
     int room(long userId, int level) {
+        if (!capOn()) return 1_000_000;
         LocalDate day = today();
         int dayCap = FarmRules.dailyProfitCap(settings.n("profit_cap_base"), settings.n("profit_cap_per_2_levels"), settings.n("profit_cap_max"), level);
         int dayNet = netOn(userId, day, day.plusDays(1));
@@ -289,6 +293,7 @@ public class FarmService {
         out.put("room", room(userId, level));
         out.put("dayCap", dayCap);
         out.put("weekCap", settings.n("weekly_profit_cap"));
+        out.put("capOn", capOn());
         return out;
     }
 

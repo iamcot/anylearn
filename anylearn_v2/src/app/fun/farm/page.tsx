@@ -370,11 +370,13 @@ export default function FarmPage() {
         <section className="rounded-2xl bg-white p-4 ring-1 ring-line" aria-label="Chợ">
         <h2 className="m-0 flex items-center gap-2 text-lg font-black"><img src={farmImg('market_stall')} alt="" className="h-10 w-14 object-contain" />Chợ</h2>
       <div>
+      {view.market.capOn !== false && (<>
       <p className="mt-1 text-xs text-muted">
         Chợ mua tối đa <b>{view.market.room}</b> <BrandText text={view.coinName} coinName={view.coinName} /> lãi nữa hôm nay.
         Lãi = tiền bán trừ tiền mua hạt và phân; nông sản chưa bán được vẫn giữ trong kho.
       </p>
       <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-200" role="progressbar" aria-valuenow={used} aria-valuemin={0} aria-valuemax={100}><div className="h-full bg-green" style={{ width: `${used}%` }} /></div>
+      </>)}
       {sell.length === 0 ? <p className="mt-3 text-sm text-muted">Kho chưa có nông sản. Thu hoạch xong quay lại đây nhé.</p> : (
         <ul className="m-0 mt-3 list-none space-y-2 p-0">
           {sell.map(s => {
